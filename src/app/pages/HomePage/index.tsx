@@ -442,7 +442,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <small style={{ color: 'black' }}>开源的 nostr 中文客户端</small>
           &nbsp;
           <small>
-            <a href="https://github.com/digi-monkey/flycat-protocol">Github</a>
+            <a href="https://github.com/digi-monkey/flycat-web">Github</a>
           </small>
         </Grid>
         <Grid item xs={8}>
