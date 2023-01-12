@@ -4,7 +4,7 @@
 
 import { lazyLoad } from 'utils/loadable';
 
-export const ProfilePage = lazyLoad(
+export const EventPage = lazyLoad(
   () => import('./index'),
   module => module.default,
 );

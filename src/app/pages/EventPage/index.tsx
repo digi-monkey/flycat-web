@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import {
-  Api,
   Event,
   EventResponse,
   EventSetMetadataContent,
@@ -13,21 +12,17 @@ import {
   PrivateKey,
   RelayUrl,
   PetName,
-  EventTags,
-  EventContactListPTag,
-  RawEvent,
   isEventETag,
   isEventPTag,
-  nip19Encode,
-  Nip19DataType,
+  EventId,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
-import LoginForm from './LoginForm';
+import LoginForm from '../HomePage/LoginForm';
 import { connect } from 'react-redux';
-import { matchKeyPair } from 'service/crypto';
-import RelayManager, { WsConnectStatus } from './RelayManager';
-import { Content } from './Content';
-import ReplyButton from './ReplyBtn';
+import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
+import { Content } from '../HomePage/Content';
+import ReplyButton from '../HomePage/ReplyBtn';
+import { useParams } from 'react-router-dom';
 
 const mapStateToProps = state => {
   return {
@@ -165,9 +160,23 @@ export const styles = {
     fontWeight: '500',
     color: 'red',
   },
+  userProfile: {
+    padding: '10px',
+  },
+  userProfileAvatar: {
+    width: '80px',
+    height: '80px',
+    marginRight: '10px',
+  },
+  userProfileName: {
+    fontSize: '20px',
+    fontWeight: '500',
+  },
+  userProfileBtnGroup: {
+    marginTop: '20px',
+  },
 };
 
-const api: Api = new Api();
 const wsApiList: WsApi[] = [];
 
 export type UserMap = Map<PublicKey, EventSetMetadataContent>;
@@ -183,16 +192,20 @@ export interface KeyPair {
   privateKey: PrivateKey;
 }
 
-export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+interface UserParams {
+  eventId: EventId;
+}
+
+export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { eventId } = useParams<UserParams>();
   const [relays, setRelays] = useState<string[]>([]);
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
 
-  const [text, setText] = useState('');
+  const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>(new Map());
   const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
@@ -228,6 +241,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
+          console.log('get user meta data: ', event);
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
           setUserMap(prev => {
             const newMap = new Map(prev);
@@ -238,12 +252,20 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
         case WellKnownEventKind.text_note:
           setMsgList(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
+            const replyToEventIds = oldArray
+              .map(e => getEventIdsFromETags(e.tags))
+              .reduce((prev, current) => prev.concat(current), []);
+
+            if (
+              !oldArray.map(e => e.id).includes(event.id) &&
+              (replyToEventIds.length === 0 ||
+                replyToEventIds.includes(event.id))
+            ) {
+              // only add un-duplicated and replyTo msg
               const newItems = [...oldArray, event];
-              // sort by timestamp
+              // sort by timestamp in asc
               const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
+                a.created_at >= b.created_at ? 1 : -1,
               );
               return sortedItems;
             }
@@ -251,38 +273,24 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           });
 
           // check if need to sub new user metadata
-          const newPks: string[] = [];
+          const newPks: PublicKey[] = [];
           for (const t of event.tags) {
             if (isEventPTag(t)) {
               const pk = t[1];
-              if (userMap.get(pk) == null) {
+              if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
                 newPks.push(pk);
               }
             }
           }
+          if (
+            userMap.get(event.pubkey) == null &&
+            !unknownPks.includes(event.pubkey)
+          ) {
+            newPks.push(event.pubkey);
+          }
           if (newPks.length > 0) {
-            subMetadata(newPks);
+            setUnknownPks([...unknownPks, ...newPks]);
           }
-          break;
-
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myKeyPair.publicKey) {
-            const contacts = event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[];
-            contacts.forEach(c =>
-              setMyContactList(
-                myContactList.set(c[1], {
-                  relayer: c[2],
-                  name: c[3],
-                }),
-              ),
-            );
-          }
-          break;
-
-        case WellKnownEventKind.recommend_server:
-          console.log('recommend_server: ', event.content);
           break;
 
         default:
@@ -301,27 +309,36 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-    if (myKeyPair.publicKey == null) return;
-
-    subSelfMetadata();
-    subSelfRecommendServer();
-    subContactList();
-  }, [Array.from(wsConnectStatus.values()), myKeyPair]);
+    subMsg([eventId]);
+  }, [Array.from(wsConnectStatus.values()), eventId]);
 
   useEffect(() => {
-    const pks = Array.from(myContactList.keys());
-    if (pks.length === 0) return;
+    if (unknownPks.length > 0) {
+      subMetadata(unknownPks);
+    }
+  }, [unknownPks, Array.from(wsConnectStatus.values())]);
 
-    // subscibe myself msg too
-    pks.push(myKeyPair.publicKey);
-    subMetadata(pks);
-    subMsg(pks);
-  }, [myContactList.keys()]);
+  useEffect(() => {
+    const replyToEventIds = msgList
+      .map(e => getEventIdsFromETags(e.tags))
+      .reduce((prev, current) => prev.concat(current), []);
+    const msgIds = msgList.map(m => m.id);
 
-  const subMsg = async (pks: PublicKey[]) => {
+    // subscribe new reply event id
+    const newIds: EventId[] = [];
+    for (const id of replyToEventIds) {
+      if (!msgIds.includes(id)) {
+        newIds.push(id);
+      }
+    }
+    if (newIds.length > 0) {
+      subMsg(newIds);
+    }
+  }, [Array.from(wsConnectStatus.values()), eventId, msgList.values()]);
+
+  const subMsg = async (eventIds: EventId[]) => {
     const filter: Filter = {
-      authors: pks,
+      ids: eventIds,
       limit: 50,
     };
     wsConnectStatus.forEach((connected, url) => {
@@ -333,76 +350,14 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     });
   };
 
-  const subSelfMetadata = async () => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subUserMetadata([myKeyPair.publicKey]));
-      }
-    });
-  };
-
-  const subSelfRecommendServer = async () => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subUserRelayer(myKeyPair.publicKey));
-      }
-    });
-  };
-
   const subMetadata = async (pks: PublicKey[]) => {
     wsConnectStatus.forEach((connected, url) => {
       if (connected === true) {
         wsApiList
           .filter(ws => ws.url() === url)
-          .map(ws => ws.subUserMetadata(pks));
+          .forEach(ws => ws.subUserMetadata(pks));
       }
     });
-  };
-
-  const subContactList = async () => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subUserContactList(myKeyPair.publicKey));
-      }
-    });
-  };
-
-  const handleSubmitText = async (formEvt: React.FormEvent) => {
-    formEvt.preventDefault();
-
-    if (myKeyPair.privateKey === '') {
-      alert('set privateKey first!');
-      return;
-    }
-    if (!matchKeyPair(myKeyPair.publicKey, myKeyPair.privateKey)) {
-      alert('public key and private key not matched!');
-      return;
-    }
-
-    const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
-      WellKnownEventKind.text_note,
-      undefined,
-      text,
-    );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
-    console.log(text, event);
-
-    // publish to all connected relays
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList.filter(ws => ws.url() === url).map(ws => ws.pubEvent(event));
-      }
-    });
-
-    // clear the textarea
-    setText('');
   };
 
   const shortPublicKey = (key: PublicKey | undefined) => {
@@ -422,10 +377,15 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   };
 
+  const getEventIdsFromETags = (tags: any[]) => {
+    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
+    return eventIds;
+  };
+
   const getLastEventIdFromETags = (tags: any[]) => {
-    const ids = tags.filter(t => isEventETag(t)).map(t => t[1]);
-    if (ids.length > 0) {
-      return ids[ids.length - 1] as string;
+    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1]);
+    if (eventIds.length > 0) {
+      return eventIds[eventIds.length - 1] as string;
     } else {
       return null;
     }
@@ -449,7 +409,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <div className="menu">
             <ul style={styles.ul}>
               <li style={styles.li}>
-                <a href="">首页</a>
+                <a href="/">首页</a>
               </li>
               <li style={styles.li}>
                 <a href="">我的主页</a>
@@ -480,20 +440,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <div style={styles.postBox}>
-              <form onSubmit={handleSubmitText}>
-                <div style={styles.postHintText}>你在想什么？</div>
-                <textarea
-                  style={styles.postTextArea}
-                  value={text}
-                  onChange={event => setText(event.target.value)}
-                ></textarea>
-                <div style={styles.btn}>
-                  <button type="submit">发送</button>
-                </div>
-              </form>
-            </div>
-
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
                 {msgList.map((msg, index) => (
@@ -516,7 +462,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           </a>
                           {getLastPubKeyFromPTags(msg.tags) && (
                             <span>
-                              回复 
+                              回复
                               <a
                                 style={styles.userName}
                                 href={
@@ -554,7 +500,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           {timeSince(msg?.created_at)}
                         </span>
                         <span style={styles.time}>
-                          {getLastPubKeyFromPTags(msg.tags) && <button onClick={()=>window.open(`/event/${msg.id}`, "_blank")} style={styles.smallBtn}>查看对话</button>}
                           <button
                             onClick={() => {
                               alert('not impl 还没做');
@@ -581,94 +526,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
-            <div style={{ marginBottom: '10px' }}>
-              <img
-                style={styles.myAvatar}
-                src={userMap.get(myKeyPair.publicKey)?.picture}
-                alt=""
-              />
-              <span
-                style={{
-                  marginLeft: '20px',
-                  fontSize: '20px',
-                  fontWeight: '500',
-                }}
-              >
-                {isLoggedIn == true
-                  ? userMap.get(myKeyPair.publicKey)?.name
-                  : '请先登录'}
-              </span>
-              <span
-                style={{ display: 'block', fontSize: '14px', margin: '5px' }}
-              >
-                {isLoggedIn == true
-                  ? userMap.get(myKeyPair.publicKey)?.about
-                  : ''}
-              </span>
-            </div>
-
-            <div
-              style={{
-                padding: '2px 3px 1px 8px',
-                borderBottom: '2px solid #ffed00',
-                fontSize: '14px',
-                color: 'gray',
-                background: '#fffcaa',
-              }}
-            >
-              公钥：
-              {isLoggedIn &&
-                myKeyPair.publicKey &&
-                shortPublicKey(
-                  nip19Encode(myKeyPair.publicKey, Nip19DataType.Pubkey),
-                )}
-            </div>
-
-            <Grid container style={{ marginTop: '20px' }}>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>
-                  {Array.from(myContactList.keys()).length}
-                </span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    被关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    消息
-                  </a>
-                </span>
-              </Grid>
-            </Grid>
-            <hr />
             <LoginForm />
-            <hr />
-            <ul style={styles.simpleUl}>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">@提到我的</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">私信</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">互动</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">公众号</a>
-              </li>
-            </ul>
             <hr />
             <RelayManager
               setRelaysCallback={setRelays}
@@ -681,4 +539,4 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(HomePage);
+export default connect(mapStateToProps)(EventPage);
