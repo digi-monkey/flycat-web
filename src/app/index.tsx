@@ -15,7 +15,9 @@ import { GlobalStyle } from 'styles/global-styles';
 import { HomePage } from './pages/HomePage/Loadable';
 import { NotFoundPage } from './components/NotFoundPage/Loadable';
 import { useTranslation } from 'react-i18next';
-import ProfilePage from './pages/ProfilePage';
+import {ProfilePage} from './pages/ProfilePage/Loadable';
+import {EventPage} from './pages/EventPage/Loadable';
+
 
 export function App() {
   const { i18n } = useTranslation();
@@ -32,6 +34,9 @@ export function App() {
       <Switch>
         <Route path="/user/:publicKey">
           <ProfilePage />
+        </Route>
+        <Route path="/event/:eventId">
+          <EventPage />
         </Route>
         <Route exact path="/" component={HomePage} />
         <Route component={NotFoundPage} />
