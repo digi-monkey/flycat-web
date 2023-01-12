@@ -1,28 +1,35 @@
 import React, { useState } from 'react';
-import { extractImageUrls } from 'service/helper';
+import { normalizeContent } from 'service/helper';
 
 export function Content({ text }: { text: string }) {
-  const { modifiedText, imageUrls } = extractImageUrls(text);
+  const { modifiedText, imageUrls } = normalizeContent(text);
   return (
-    <span style={{ whiteSpace: 'pre-line' as const }}>
-      {modifiedText}
-      {imageUrls.length > 0 &&
-        imageUrls.map((url, index) => (
-          <span key={index}>
-            <ImagePlate url={url} />
-          </span>
-        ))}
+    <span>
+      <span
+        style={{ whiteSpace: 'pre-line' as const }}
+        dangerouslySetInnerHTML={{ __html: modifiedText }}
+      ></span>
+      <span>
+        {imageUrls.length > 0 &&
+          imageUrls.map((url, index) => (
+            <span key={index}>
+              <ImagePlate url={url} />
+            </span>
+          ))}
+      </span>
     </span>
   );
 }
 
 export function ImagePlate({ url }: { url: string }) {
-  // image hover effect
+  // image click effect
   const [scale, setScale] = useState(1);
-  const handleMouseEnter = () => {
+
+  const handleFocus = () => {
+    console.log('foucs...');
     setScale(10);
   };
-  const handleMouseLeave = () => {
+  const handleBlur = () => {
     setScale(1);
   };
 
@@ -32,9 +39,11 @@ export function ImagePlate({ url }: { url: string }) {
       alt=""
       style={{
         width: `${48 * scale}px`,
+        cursor: 'pointer',
       }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      tabIndex={0}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     />
   );
 }

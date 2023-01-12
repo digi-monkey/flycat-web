@@ -1,4 +1,6 @@
-export function extractImageUrls(text: string): {
+import DOMPurify from 'dompurify';
+
+export function normalizeContent(text: string): {
   imageUrls: string[];
   modifiedText: string;
 } {
@@ -23,7 +25,24 @@ export function extractImageUrls(text: string): {
     modifiedText = text.replace(url, '');
   }
 
+  // Add link to url
+  modifiedText = linkify(modifiedText);
+
+  modifiedText = DOMPurify.sanitize(modifiedText);
+  DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+    // set all elements owning target to target=_blank
+    if ('target' in node) {
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener');
+    }
+  });
+
   return { imageUrls, modifiedText };
+}
+
+export function linkify(content: string): string {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
 }
 
 export function isValidWssUrl(url: string): boolean {
