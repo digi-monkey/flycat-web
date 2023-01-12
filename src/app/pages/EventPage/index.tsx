@@ -15,6 +15,8 @@ import {
   isEventETag,
   isEventPTag,
   EventId,
+  EventETag,
+  EventTags,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
 import LoginForm from '../HomePage/LoginForm';
@@ -241,7 +243,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
-          console.log('get user meta data: ', event);
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
           setUserMap(prev => {
             const newMap = new Map(prev);
@@ -309,7 +310,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    subMsg([eventId]);
+    subMsgByIds([eventId]);
   }, [Array.from(wsConnectStatus.values()), eventId]);
 
   useEffect(() => {
@@ -332,13 +333,34 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
     }
     if (newIds.length > 0) {
-      subMsg(newIds);
+      subMsgByIds(newIds);
     }
   }, [Array.from(wsConnectStatus.values()), eventId, msgList.values()]);
 
-  const subMsg = async (eventIds: EventId[]) => {
+  useEffect(() => {
+    const msgIds = msgList.map(e => e.id);
+    if (msgIds.length > 0) {
+      subMsgByTags(msgIds);
+    }
+  }, [msgList]);
+
+  const subMsgByIds = async (eventIds: EventId[]) => {
     const filter: Filter = {
       ids: eventIds,
+      limit: 50,
+    };
+    wsConnectStatus.forEach((connected, url) => {
+      if (connected === true) {
+        wsApiList
+          .filter(ws => ws.url() === url)
+          .map(ws => ws.subFilter(filter));
+      }
+    });
+  };
+
+  const subMsgByTags = async (tags: EventId[]) => {
+    const filter: Filter = {
+      '#e': tags,
       limit: 50,
     };
     wsConnectStatus.forEach((connected, url) => {
@@ -441,6 +463,8 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         <Grid container>
           <Grid item xs={8} style={styles.left}>
             <div style={styles.message}>
+              <h3>交谈消息</h3>
+              <hr />
               <ul style={styles.msgsUl}>
                 {msgList.map((msg, index) => (
                   <li key={index} style={styles.msgItem}>

@@ -155,8 +155,8 @@ export interface Filter {
   ids?: EventId[];
   authors?: PublicKey[];
   kinds?: EventKind[];
-  '#e'?: EventETag[];
-  '#p'?: EventPTag[];
+  '#e'?: EventId[];
+  '#p'?: PublicKey[];
   since?: number;
   until?: number;
   limit?: number;
@@ -349,9 +349,8 @@ export class WsApi {
     const filter: Filter = {
       authors: publicKeys,
       kinds: [WellKnownEventKind.set_metadata],
-      limit: 50,//publicKeys.length,
+      limit: 50, //publicKeys.length,
     };
-    console.log("userMetadat fileter: ", filter);
     return await this.subFilter(filter);
   }
 

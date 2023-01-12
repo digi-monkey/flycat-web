@@ -597,16 +597,14 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           {timeSince(msg?.created_at)}
                         </span>
                         <span style={styles.time}>
-                          {getLastPubKeyFromPTags(msg.tags) && (
-                            <button
-                              onClick={() =>
-                                window.open(`/event/${msg.id}`, '_blank')
-                              }
-                              style={styles.smallBtn}
-                            >
-                              查看对话
-                            </button>
-                          )}
+                          <button
+                            onClick={() =>
+                              window.open(`/event/${msg.id}`, '_blank')
+                            }
+                            style={styles.smallBtn}
+                          >
+                            查看对话
+                          </button>
                           <button
                             onClick={() => {
                               alert('not impl 还没做');
