@@ -251,6 +251,8 @@ export interface EventSetMetadataContent {
 export interface WsApiHandler {
   onMsgHandler?: (msg: any) => any;
   onOpenHandler?: (event: WsEvent) => any;
+  onCloseHandler?: (event: WsEvent) => any;
+  onErrHandler?: (event: WsEvent) => any;
 }
 
 export type WsEvent = globalThis.Event;
@@ -267,10 +269,10 @@ export class WsApi {
       }
     });
 
-    //this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
+    this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
     this.ws.onmessage = wsHandler?.onMsgHandler || this.handleMessage;
-    this.ws.onerror = this.handleError;
-    this.ws.onclose = this.handleClose;
+    this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
+    this.ws.onclose = wsHandler?.onCloseHandler || this.handleClose;
   }
 
   url() {
@@ -285,6 +287,20 @@ export class WsApi {
     } else {
       return false;
     }
+  }
+
+  isClose() {
+    if (this.ws == null) return false;
+
+    if (this.ws.readyState === WebSocket.CLOSED) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  close() {
+    this.ws.close();
   }
 
   async _send(data: string | ArrayBuffer) {

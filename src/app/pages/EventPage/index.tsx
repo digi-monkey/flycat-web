@@ -24,6 +24,13 @@ import { Content } from '../HomePage/Content';
 import ReplyButton from '../HomePage/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
+import {
+  FromWorkerMessage,
+  ToWorkerMessage,
+  ToWorkerMessageType,
+  wsApiWorker,
+  FromWorkerMessageType,
+} from 'service/worker/wsApi';
 
 const mapStateToProps = state => {
   return {
@@ -178,8 +185,6 @@ export const styles = {
   },
 };
 
-const wsApiList: WsApi[] = [];
-
 export type UserMap = Map<PublicKey, EventSetMetadataContent>;
 export type ContactList = Map<
   PublicKey,
@@ -203,6 +208,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const [port, setPort] = useState<MessagePort | null>(null);
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
@@ -213,31 +219,56 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   });
 
   useEffect(() => {
-    // connect to relayers
-    relays.forEach(url => {
-      if (wsApiList.filter(ws => ws.url() === url).length === 0) {
-        // only create new wsApi
-        let wsApi: WsApi | undefined;
-        wsApi = new WsApi(url, {
-          onMsgHandler: onMsgHandler,
-          onOpenHandler: event => {
-            if (wsApi?.isConnected() === true) {
-              console.log('ws connected!', event);
-              setWsConnectStatus(prev => {
-                const newMap = new Map(prev);
-                newMap.set(wsApi!.url(), true);
-                return newMap;
-              });
-            }
-          },
-        });
-        wsApiList.push(wsApi);
-      }
+    const worker = new SharedWorker('service/worker/wsApi');
+    setPort(worker.port);
+    wsApiWorker.connect(port => {
+      console.log('set port!');
+      setPort(port);
     });
-  }, [relays]);
+    wsApiWorker.onPortConnect = port => {
+      console.log('set port222!');
+      setPort(port);
+    };
+  }, []);
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res.data);
+  useEffect(() => {
+    if (port) {
+      // Listen for messages from the worker
+      port.onmessage = event => {
+        const message: FromWorkerMessage = event.data;
+        const type = message.type;
+
+        switch (type) {
+          case FromWorkerMessageType.WS_CONN_STATUS:
+            if (message.wsConnectStatus) {
+              setWsConnectStatus(message.wsConnectStatus);
+            }
+            break;
+
+          case FromWorkerMessageType.NostrData:
+            onMsgHandler(message.nostrData);
+            break;
+
+          default:
+            break;
+        }
+      };
+    }
+  }, [port]);
+
+  useEffect(() => {
+    if (!port) return;
+
+    // connect to relayers
+    const msg: ToWorkerMessage = {
+      type: ToWorkerMessageType.ADD_RELAY_URL,
+      urls: relays,
+    };
+    port.postMessage(msg);
+  }, [relays, port]);
+
+  function onMsgHandler(data: any) {
+    const msg = JSON.parse(data);
     if (isEventResponse(msg)) {
       const event = (msg as EventResponse)[2];
       switch (event.kind) {
@@ -348,13 +379,12 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       ids: eventIds,
       limit: 50,
     };
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subFilter(filter));
-      }
-    });
+    const msg: ToWorkerMessage = {
+      type: ToWorkerMessageType.CALL_API,
+      callMethod: 'subFilter',
+      callData: [filter],
+    };
+    port?.postMessage(msg);
   };
 
   const subMsgByTags = async (tags: EventId[]) => {
@@ -362,23 +392,21 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       '#e': tags,
       limit: 50,
     };
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subFilter(filter));
-      }
-    });
+    const msg: ToWorkerMessage = {
+      type: ToWorkerMessageType.CALL_API,
+      callMethod: 'subFilter',
+      callData: [filter],
+    };
+    port?.postMessage(msg);
   };
 
   const subMetadata = async (pks: PublicKey[]) => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.subUserMetadata(pks));
-      }
-    });
+    const msg: ToWorkerMessage = {
+      type: ToWorkerMessageType.CALL_API,
+      callMethod: 'subUserMetadata',
+      callData: [pks],
+    };
+    port?.postMessage(msg);
   };
 
   const shortPublicKey = (key: PublicKey | undefined) => {
@@ -491,6 +519,8 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           </button>
                         </span>
                         <span style={styles.time}>
+                          {/**
+                           * 
                           <ReplyButton
                             replyToEventId={msg.id}
                             replyToPublicKey={msg.pubkey}
@@ -498,6 +528,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             wsApiList={wsApiList}
                             myKeyPair={myKeyPair}
                           />
+                           */}
                         </span>
                       </Grid>
                     </Grid>

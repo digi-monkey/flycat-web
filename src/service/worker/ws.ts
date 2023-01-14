@@ -1,4 +1,4 @@
-import { defaultRelays } from './relay';
+import { defaultRelays } from '../relay';
 
 export enum ToWorkerMessageType {
   ADD_RELAY_URL = 'addRelayUrl',
