@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import {
-  Event,
   EventResponse,
   EventSetMetadataContent,
   Filter,
@@ -17,20 +16,19 @@ import { timeSince } from 'utils/helper';
 import LoginForm from '../HomePage/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
-import { Content } from '../HomePage/Content';
 import { useParams } from 'react-router-dom';
 import {
   ArticleDataSchema,
   ArticlePageContentSchema,
   Flycat,
   FlycatWellKnownEventKind,
-  isSiteMetaDataContentSchema,
   SiteMetaDataContentSchema,
   validateArticlePageKind,
 } from 'service/flycat-protocol';
 import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
 import { Article } from './Article';
+import NavHeader from 'app/components/layout/NavHeader';
 
 const mapStateToProps = state => {
   return {
@@ -506,49 +504,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   return (
     <div style={styles.root}>
-      <Grid container spacing={2}>
-        <Grid item xs={4}>
-          <div style={styles.title}>
-            飞猫FlyCat{' '}
-            <span style={{ fontSize: '14px', color: 'red' }}>测试版</span>{' '}
-          </div>
-          <small style={{ color: 'black' }}>开源的 nostr 中文客户端</small>
-          &nbsp;
-          <small>
-            <a href="https://github.com/digi-monkey/flycat-web">Github</a>
-          </small>
-        </Grid>
-        <Grid item xs={8}>
-          <div className="menu">
-            <ul style={styles.ul}>
-              <li style={styles.li}>
-                <a href="/">首页</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">我的主页</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">私信</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">连接器</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">随便看看</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">搜索</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">设置</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">退出</a>
-              </li>
-            </ul>
-          </div>
-        </Grid>
-      </Grid>
+      <NavHeader />
 
       <div style={styles.content}>
         <Grid container>

@@ -350,7 +350,7 @@ export class WsApi {
     const filter: Filter = {
       authors: publicKeys,
       kinds: [WellKnownEventKind.set_metadata],
-      limit: 50, //publicKeys.length,
+      limit: publicKeys.length,
     };
     return await this.subFilter(filter);
   }
