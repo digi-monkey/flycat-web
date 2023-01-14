@@ -28,6 +28,7 @@ import { matchKeyPair } from 'service/crypto';
 import RelayManager, { WsConnectStatus } from './RelayManager';
 import { Content } from './Content';
 import ReplyButton from './ReplyBtn';
+import NavHeader from 'app/components/layout/NavHeader';
 
 const mapStateToProps = state => {
   return {
@@ -433,49 +434,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   return (
     <div style={styles.root}>
-      <Grid container spacing={2}>
-        <Grid item xs={4}>
-          <div style={styles.title}>
-            飞猫FlyCat{' '}
-            <span style={{ fontSize: '14px', color: 'red' }}>测试版</span>{' '}
-          </div>
-          <small style={{ color: 'black' }}>开源的 nostr 中文客户端</small>
-          &nbsp;
-          <small>
-            <a href="https://github.com/digi-monkey/flycat-web">Github</a>
-          </small>
-        </Grid>
-        <Grid item xs={8}>
-          <div className="menu">
-            <ul style={styles.ul}>
-              <li style={styles.li}>
-                <a href="">首页</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">我的主页</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">私信</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">连接器</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">随便看看</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">搜索</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">设置</a>
-              </li>
-              <li style={styles.li}>
-                <a href="">退出</a>
-              </li>
-            </ul>
-          </div>
-        </Grid>
-      </Grid>
+      <NavHeader />
 
       <div style={styles.content}>
         <Grid container>
