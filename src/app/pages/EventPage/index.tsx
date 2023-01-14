@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
   EventResponse,
   EventSetMetadataContent,
-  Filter,
   isEventResponse,
   WellKnownEventKind,
-  WsApi,
   PublicKey,
   PrivateKey,
   RelayUrl,
@@ -24,6 +22,14 @@ import { Content } from '../HomePage/Content';
 import ReplyButton from '../HomePage/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
+import { FromWorkerMessage } from 'service/worker/wsApi';
+import {
+  listenFromWsApiWorker,
+  subMetadata,
+  subMsgByETags,
+  subMsgByEventIds,
+} from 'service/worker/wsCall';
+import { UserMap } from 'service/type';
 
 const mapStateToProps = state => {
   return {
@@ -178,9 +184,6 @@ export const styles = {
   },
 };
 
-const wsApiList: WsApi[] = [];
-
-export type UserMap = Map<PublicKey, EventSetMetadataContent>;
 export type ContactList = Map<
   PublicKey,
   {
@@ -199,45 +202,35 @@ interface UserParams {
 
 export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const { eventId } = useParams<UserParams>();
-  const [relays, setRelays] = useState<string[]>([]);
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
-
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
 
   useEffect(() => {
-    // connect to relayers
-    relays.forEach(url => {
-      if (wsApiList.filter(ws => ws.url() === url).length === 0) {
-        // only create new wsApi
-        let wsApi: WsApi | undefined;
-        wsApi = new WsApi(url, {
-          onMsgHandler: onMsgHandler,
-          onOpenHandler: event => {
-            if (wsApi?.isConnected() === true) {
-              console.log('ws connected!', event);
-              setWsConnectStatus(prev => {
-                const newMap = new Map(prev);
-                newMap.set(wsApi!.url(), true);
-                return newMap;
-              });
-            }
-          },
-        });
-        wsApiList.push(wsApi);
-      }
-    });
-  }, [relays]);
+    listenFromWsApiWorker(
+      (message: FromWorkerMessage) => {
+        if (message.wsConnectStatus) {
+          const data = Array.from(message.wsConnectStatus.entries());
+          for (const d of data) {
+            setWsConnectStatus(prev => {
+              const newMap = new Map(prev);
+              newMap.set(d[0], d[1]);
+              return newMap;
+            });
+          }
+        }
+      },
+      (message: FromWorkerMessage) => {
+        onMsgHandler(message.nostrData);
+      },
+    );
+  }, []);
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res.data);
+  function onMsgHandler(data: any) {
+    const msg = JSON.parse(data);
     if (isEventResponse(msg)) {
       const event = (msg as EventResponse)[2];
       switch (event.kind) {
@@ -245,7 +238,16 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
           setUserMap(prev => {
             const newMap = new Map(prev);
-            newMap.set(event.pubkey, metadata);
+            const oldData = newMap.get(event.pubkey);
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
+
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
             return newMap;
           });
           break;
@@ -300,16 +302,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    subMsgByIds([eventId]);
+    subMsgByEventIds([eventId]);
   }, [Array.from(wsConnectStatus.values()), eventId]);
 
   useEffect(() => {
@@ -332,54 +325,16 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
     }
     if (newIds.length > 0) {
-      subMsgByIds(newIds);
+      subMsgByEventIds(newIds);
     }
   }, [Array.from(wsConnectStatus.values()), eventId, msgList.values()]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);
     if (msgIds.length > 0) {
-      subMsgByTags(msgIds);
+      subMsgByETags(msgIds);
     }
   }, [msgList]);
-
-  const subMsgByIds = async (eventIds: EventId[]) => {
-    const filter: Filter = {
-      ids: eventIds,
-      limit: 50,
-    };
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subFilter(filter));
-      }
-    });
-  };
-
-  const subMsgByTags = async (tags: EventId[]) => {
-    const filter: Filter = {
-      '#e': tags,
-      limit: 50,
-    };
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subFilter(filter));
-      }
-    });
-  };
-
-  const subMetadata = async (pks: PublicKey[]) => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.subUserMetadata(pks));
-      }
-    });
-  };
 
   const shortPublicKey = (key: PublicKey | undefined) => {
     if (key) {
@@ -401,15 +356,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const getEventIdsFromETags = (tags: any[]) => {
     const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
     return eventIds;
-  };
-
-  const getLastEventIdFromETags = (tags: any[]) => {
-    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1]);
-    if (eventIds.length > 0) {
-      return eventIds[eventIds.length - 1] as string;
-    } else {
-      return null;
-    }
   };
 
   return (
@@ -494,9 +440,10 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           <ReplyButton
                             replyToEventId={msg.id}
                             replyToPublicKey={msg.pubkey}
-                            wsConnectStatus={wsConnectStatus}
-                            wsApiList={wsApiList}
-                            myKeyPair={myKeyPair}
+                            myKeyPair={{
+                              publicKey: myPublicKey,
+                              privateKey: myPrivateKey,
+                            }}
                           />
                         </span>
                       </Grid>
@@ -509,10 +456,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <Grid item xs={4} style={styles.right}>
             <LoginForm />
             <hr />
-            <RelayManager
-              setRelaysCallback={setRelays}
-              wsConnectStatus={wsConnectStatus}
-            />
+            <RelayManager />
           </Grid>
         </Grid>
       </div>

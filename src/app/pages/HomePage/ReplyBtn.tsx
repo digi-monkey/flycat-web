@@ -8,10 +8,9 @@ import {
   PublicKey,
   RawEvent,
   WellKnownEventKind,
-  WsApi,
 } from 'service/api';
 import { matchKeyPair } from 'service/crypto';
-import { WsConnectStatus } from './RelayManager';
+import { pubEvent } from 'service/worker/wsCall';
 
 const styles = {
   smallBtn: {
@@ -35,14 +34,10 @@ interface KeyPair {
 function ReplyButton({
   replyToEventId,
   replyToPublicKey,
-  wsConnectStatus,
-  wsApiList,
   myKeyPair,
 }: {
   replyToEventId: EventId;
   replyToPublicKey: PublicKey;
-  wsConnectStatus: WsConnectStatus;
-  wsApiList: WsApi[];
   myKeyPair: KeyPair;
 }) {
   const [showPopup, setShowPopup] = useState(false);
@@ -78,11 +73,7 @@ function ReplyButton({
     console.log(textareaValue, event);
 
     // publish to all connected relays
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList.filter(ws => ws.url() === url).map(ws => ws.pubEvent(event));
-      }
-    });
+    pubEvent(event);
 
     // clear the textarea
     setTextareaValue('');

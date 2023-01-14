@@ -6,7 +6,6 @@ import {
   Filter,
   isEventResponse,
   WellKnownEventKind,
-  WsApi,
   PublicKey,
   PrivateKey,
   RelayUrl,
@@ -29,6 +28,21 @@ import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
 import { Article } from './Article';
 import NavHeader from 'app/components/layout/NavHeader';
+import {
+  workerEventEmitter,
+  FromWorkerMessageType,
+  FromWorkerMessage,
+  ToWorkerMessage,
+  ToWorkerMessageType,
+} from 'service/worker/wsApi';
+import {
+  listenFromWsApiWorker,
+  pubEvent,
+  subBlogSiteMetadata,
+  subFilter,
+  subMetadata,
+} from 'service/worker/wsCall';
+import { UserMap } from 'service/type';
 
 const mapStateToProps = state => {
   return {
@@ -183,9 +197,6 @@ export const styles = {
   },
 };
 
-const wsApiList: WsApi[] = [];
-
-export type UserMap = Map<PublicKey, EventSetMetadataContent>;
 export type ContactList = Map<
   PublicKey,
   {
@@ -204,7 +215,7 @@ interface UserParams {
 
 export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const { publicKey } = useParams<UserParams>();
-  const [relays, setRelays] = useState<string[]>([]);
+
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
@@ -215,10 +226,6 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     (ArticleDataSchema & { page_id: number })[]
   >([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
 
   const flycat = new Flycat({
     publicKey: myPublicKey,
@@ -226,32 +233,8 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     version: '',
   });
 
-  useEffect(() => {
-    // connect to relayers
-    relays.forEach(url => {
-      if (wsApiList.filter(ws => ws.url() === url).length === 0) {
-        // only create new wsApi
-        let wsApi: WsApi | undefined;
-        wsApi = new WsApi(url, {
-          onMsgHandler: onMsgHandler,
-          onOpenHandler: event => {
-            if (wsApi?.isConnected() === true) {
-              console.log('ws connected!', event);
-              setWsConnectStatus(prev => {
-                const newMap = new Map(prev);
-                newMap.set(wsApi!.url(), true);
-                return newMap;
-              });
-            }
-          },
-        });
-        wsApiList.push(wsApi);
-      }
-    });
-  }, [relays]);
-
   function onMsgHandler(res: any) {
-    const msg = JSON.parse(res.data);
+    const msg = JSON.parse(res);
     if (isEventResponse(msg)) {
       const event = (msg as EventResponse)[2];
 
@@ -263,7 +246,16 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         const metadata: EventSetMetadataContent = JSON.parse(event.content);
         setUserMap(prev => {
           const newMap = new Map(prev);
-          newMap.set(event.pubkey, metadata);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
+            return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
+          });
           return newMap;
         });
         return;
@@ -324,13 +316,24 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
+    listenFromWsApiWorker(
+      (message: FromWorkerMessage) => {
+        if (message.wsConnectStatus) {
+          const data = Array.from(message.wsConnectStatus.entries());
+          for (const d of data) {
+            setWsConnectStatus(prev => {
+              const newMap = new Map(prev);
+              newMap.set(d[0], d[1]);
+              return newMap;
+            });
+          }
+        }
+      },
+      (message: FromWorkerMessage) => {
+        onMsgHandler(message.nostrData);
+      },
+    );
+  }, []);
 
   useEffect(() => {
     subMetadata([publicKey]);
@@ -343,26 +346,6 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   }, [Array.from(wsConnectStatus.values()), siteMetaData]);
 
-  const subBlogSiteMetadata = async (pks: PublicKey[]) => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .map(ws => ws.subUserSiteMetadata(pks));
-      }
-    });
-  };
-
-  const subMetadata = async (pks: PublicKey[]) => {
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.subUserMetadata(pks));
-      }
-    });
-  };
-
   const subArticlePages = async (siteMetaData: SiteMetaDataContentSchema) => {
     const filter: Filter = {
       authors: [publicKey],
@@ -371,36 +354,15 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       ),
       limit: 50,
     };
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.subFilter(filter));
-      }
-    });
+    subFilter(filter);
 
     // refresh blog data
     subBlogSiteMetadata([publicKey]);
   };
 
-  const shortPublicKey = (key: PublicKey | undefined) => {
-    if (key) {
-      return key.slice(0, 8) + '..' + key.slice(48);
-    } else {
-      return 'unknown';
-    }
-  };
-
   const submitSiteMetaData = async (name: string, description: string) => {
     const event = await flycat.newSite({ name, description });
-
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.pubEvent(event));
-      }
-    });
+    pubEvent(event);
   };
 
   const submitArticle = async (form: ArticlePostForm) => {
@@ -428,13 +390,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       { ...articleDataSchema, ...{ page_id: pageId } },
     ]);
     const apEvent = await flycat.updateArticlePage(ap);
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.pubEvent(apEvent));
-      }
-    });
+    pubEvent(apEvent);
 
     // remember to update the site metadata with new page id
     if (!siteMetaData?.page_ids.includes(pageId)) {
@@ -443,13 +399,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const siteEvent = await flycat.updateSite(
         metaData as SiteMetaDataContentSchema,
       );
-      wsConnectStatus.forEach((connected, url) => {
-        if (connected === true) {
-          wsApiList
-            .filter(ws => ws.url() === url)
-            .forEach(ws => ws.pubEvent(siteEvent));
-        }
-      });
+      pubEvent(siteEvent);
     }
   };
 
@@ -493,13 +443,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     const event = await flycat.updateArticlePage(articlePage);
 
-    wsConnectStatus.forEach((connected, url) => {
-      if (connected === true) {
-        wsApiList
-          .filter(ws => ws.url() === url)
-          .forEach(ws => ws.pubEvent(event));
-      }
-    });
+    pubEvent(event);
   };
 
   return (
@@ -591,10 +535,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             <hr />
             <LoginForm />
             <hr />
-            <RelayManager
-              setRelaysCallback={setRelays}
-              wsConnectStatus={wsConnectStatus}
-            />
+            <RelayManager />
           </Grid>
         </Grid>
       </div>

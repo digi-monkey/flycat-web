@@ -16,20 +16,3 @@ export function timeSince(timestamp: number): string {
     return `约 ${Math.floor(timeDifference / 2592000)} 月前`;
   }
 }
-
-export type UserMap = Map<PublicKey, EventSetMetadataContent>;
-
-export function updateUserMap(
-  prev: UserMap,
-  event: Event,
-  metadata: EventSetMetadataContent,
-) {
-  const newMap = new Map(prev);
-  if (newMap.get(event.pubkey)) {
-    // check timestamp
-    //todo
-  }
-
-  newMap.set(event.pubkey, metadata);
-  return newMap;
-}
