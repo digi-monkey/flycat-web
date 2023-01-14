@@ -289,15 +289,31 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
         // set new articles
         setArticles(oldArray => {
+          let updatedArray = [...oldArray];
+
+          // check if there is old article updated
+          for (const newItem of ap.data) {
+            let index = updatedArray.findIndex(item => item.id === newItem.id);
+            if (index !== -1) {
+              if (newItem.updated_at > updatedArray[index].updated_at) {
+                updatedArray[index] = {
+                  ...newItem,
+                  ...{ page_id: updatedArray[index].page_id },
+                };
+              }
+            }
+          }
+
+          // check if there is new article added
           const newData: (ArticleDataSchema & { page_id: number })[] = [];
           for (const a of ap.data) {
-            if (!oldArray.map(a => a.id).includes(a.id)) {
+            if (!updatedArray.map(o => o.id).includes(a.id)) {
               newData.push({ ...a, ...{ page_id: ap.page_id } });
             }
           }
 
-          const unsorted = [...oldArray, ...newData];
           // sort by timestamp
+          const unsorted = [...updatedArray, ...newData];
           const sorted = unsorted.sort((a, b) =>
             a.created_at >= b.created_at ? -1 : 1,
           );
@@ -564,7 +580,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               </Grid>
             </div>
             <div style={styles.message}>
-              {isOwner && (
+              {isOwner && siteMetaData && (
                 <>
                   <PostArticle onSubmit={submitArticle} />
                 </>
@@ -593,6 +609,9 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             siteMetaData={siteMetaData!}
                             article={article}
                             onUpdateSubmit={submitUpdateArticle}
+                            onRefreshArticlePage={() => {
+                              subArticlePages(siteMetaData!);
+                            }}
                           />
                         </span>
                         <span style={styles.time}>

@@ -18,6 +18,7 @@ export interface ArticleProps {
   author?: EventSetMetadataContent;
   onCommentSubmit?: (comments: string) => any;
   onUpdateSubmit?: (article: ArticleDataSchema & { page_id: number }) => any;
+  onRefreshArticlePage?: () => any;
 }
 
 export function Article(props: ArticleProps) {
@@ -29,6 +30,7 @@ export function Article(props: ArticleProps) {
     article,
     onUpdateSubmit,
     isOwner,
+    onRefreshArticlePage,
   } = props;
   const [readModalIsOpen, setReadModalIsOpen] = useState(false);
 
@@ -67,6 +69,10 @@ export function Article(props: ArticleProps) {
       onUpdateSubmit(newArticle);
 
       seUpdateModalIsOpen(false);
+
+      if (onRefreshArticlePage) {
+        onRefreshArticlePage();
+      }
     }
   };
 

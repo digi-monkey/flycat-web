@@ -49,7 +49,7 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
         <input
           type="text"
           value={siteName}
-          placeholder="名称"
+          placeholder="公众号名称"
           onChange={e => setSiteName(e.target.value)}
         />
       </label>
@@ -58,12 +58,12 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
         <input
           type="text"
           value={siteDescription}
-          placeholder="描述"
+          placeholder="公众号介绍描述"
           onChange={e => setSiteDescription(e.target.value)}
         />
       </label>
       <br />
-      <button type="submit">Submit</button>
+      <button type="submit">创建</button>
     </form>
   );
 };
