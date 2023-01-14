@@ -35,6 +35,7 @@ import {
   subMsg,
   subUserRecommendServer,
 } from 'service/worker/wsCall';
+import { UserMap } from 'service/type';
 
 const mapStateToProps = state => {
   return {
@@ -174,7 +175,6 @@ export const styles = {
   },
 };
 
-export type UserMap = Map<PublicKey, EventSetMetadataContent>;
 export type ContactList = Map<
   PublicKey,
   {
@@ -230,7 +230,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
           setUserMap(prev => {
             const newMap = new Map(prev);
-            newMap.set(event.pubkey, metadata);
+            const oldData = newMap.get(event.pubkey);
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
+
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
             return newMap;
           });
           break;
