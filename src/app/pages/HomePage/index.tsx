@@ -533,7 +533,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   {Array.from(myContactList.keys()).length}
                 </span>
                 <span>
-                  <a style={styles.numberText} href="">
+                  <a style={styles.numberText} href={'/contact/' + myPublicKey}>
                     关注
                   </a>
                 </span>

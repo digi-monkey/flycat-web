@@ -206,7 +206,7 @@ interface UserParams {
   publicKey: string;
 }
 
-export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const { publicKey } = useParams<UserParams>();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -348,13 +348,15 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     subSelfMetadata();
     subContactList(myKeyPair.publicKey);
+    subContactList(publicKey);
   }, [Array.from(wsConnectStatus.values()), myKeyPair]);
 
   useEffect(() => {
-    subContactList(publicKey);
-    subMetadata([publicKey]);
-    subMsg([publicKey]);
-  }, [Array.from(wsConnectStatus.values())]);
+    subMetadata(Array.from(userContactList.keys()));
+  }, [
+    Array.from(wsConnectStatus.values()),
+    Array.from(userContactList.keys()),
+  ]);
 
   const subSelfMetadata = async () => {
     subMetadata([myKeyPair.publicKey]);
@@ -422,123 +424,71 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <div style={styles.userProfile}>
-              <Grid container style={{ background: '#F7F5EB' }}>
-                <Grid item xs={2}>
-                  <img
-                    style={styles.userProfileAvatar}
-                    src={userMap.get(publicKey)?.picture}
-                    alt=""
-                  />
-                </Grid>
-                <Grid item xs={10}>
-                  <div style={styles.userProfileName}>
-                    {userMap.get(publicKey)?.name}
-                  </div>
-                  <div style={styles.userProfileBtnGroup}>
-                    <button onClick={followOrUnfollowOnClick}>
-                      {followOrUnfollowText}
-                    </button>
-                    &nbsp;
-                    <button
-                      onClick={() => {
-                        alert('not impl 还没做');
-                      }}
-                    >
-                      私信他
-                    </button>
-                    &nbsp;
-                    <button
-                      onClick={() => {
-                        window.open(`/blog/${publicKey}`, '_blank');
-                      }}
-                    >
-                      ta的公众号
-                    </button>
-                  </div>
-                </Grid>
-              </Grid>
-            </div>
-
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
-                {msgList.map((msg, index) => (
-                  <li key={index} style={styles.msgItem}>
-                    <Grid container>
-                      <Grid item xs={12}>
-                        <span style={styles.msgWord}>
-                          {getLastPubKeyFromPTags(msg.tags) && (
-                            <span>
-                              回复
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/user/' + getLastPubKeyFromPTags(msg.tags)
-                                }
-                              >
-                                @
-                                {userMap.get(getLastPubKeyFromPTags(msg.tags)!)
-                                  ?.name ||
-                                  shortPublicKey(
-                                    getLastPubKeyFromPTags(msg.tags)!,
-                                  )}
-                              </a>
-                              {/* 
-                              的
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/msg/' +
-                                  getLastEventIdFromETags(msg.tags)?.slice(
-                                    0,
-                                    10,
-                                  )
-                                }
-                              >
-                                发言
-                              </a>
-            
-                              */}
-                            </span>
-                          )}
-                          <Content text={msg.content} />
-                        </span>
-                        <span style={styles.time}>
-                          {timeSince(msg?.created_at)}
-                        </span>
-                        <span style={styles.time}>
-                          <button
-                            onClick={() =>
-                              window.open(`/event/${msg.id}`, '_blank')
-                            }
-                            style={styles.smallBtn}
-                          >
-                            查看对话
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert('not impl 还没做');
-                            }}
-                            style={styles.smallBtn}
-                          >
-                            点赞
-                          </button>
-                        </span>
-                        <span style={styles.time}>
-                          <ReplyButton
-                            replyToEventId={msg.id}
-                            replyToPublicKey={msg.pubkey}
-                            myKeyPair={myKeyPair}
+                {Array.from(userMap.entries())
+                  .filter(u => u[0] !== myPublicKey && u[0] !== publicKey)
+                  .map(([pk, user], index) => (
+                    <li key={index} style={styles.msgItem}>
+                      <Grid container>
+                        <Grid item xs={2}>
+                          <img
+                            style={styles.userProfileAvatar}
+                            src={user.picture}
+                            alt=""
                           />
-                        </span>
+                        </Grid>
+                        <Grid item xs={10}>
+                          <span style={styles.msgWord}>
+                            <span>
+                              <a style={styles.userName} href={'/user/' + pk}>
+                                @{user.name || shortPublicKey(pk)}
+                              </a>
+                            </span>
+                            <br />
+                            <Content text={user.about || '暂无介绍'} />
+                          </span>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </li>
-                ))}
+                    </li>
+                  ))}
               </ul>
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
+            <Grid item xs={2}>
+              <img
+                style={styles.userProfileAvatar}
+                src={userMap.get(publicKey)?.picture}
+                alt=""
+              />
+            </Grid>
+            <Grid item xs={10}>
+              <div style={styles.userProfileName}>
+                {userMap.get(publicKey)?.name}
+              </div>
+              <div style={styles.userProfileBtnGroup}>
+                <button onClick={followOrUnfollowOnClick}>
+                  {followOrUnfollowText}
+                </button>
+                &nbsp;
+                <button
+                  onClick={() => {
+                    alert('not impl 还没做');
+                  }}
+                >
+                  私信他
+                </button>
+                &nbsp;
+                <button
+                  onClick={() => {
+                    window.open(`/blog/${publicKey}`, '_blank');
+                  }}
+                >
+                  ta的公众号
+                </button>
+              </div>
+            </Grid>
             <div style={{ marginBottom: '10px' }}>
               <span
                 style={{ display: 'block', fontSize: '14px', margin: '5px' }}
@@ -567,7 +517,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   {Array.from(userContactList.keys()).length}
                 </span>
                 <span>
-                  <a style={styles.numberText} href={'/contact/' + publicKey}>
+                  <a style={styles.numberText} href="">
                     ta的关注
                   </a>
                 </span>
@@ -600,4 +550,4 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(ProfilePage);
+export default connect(mapStateToProps)(ContactPage);

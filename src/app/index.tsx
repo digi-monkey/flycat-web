@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { ProfilePage } from './pages/ProfilePage/Loadable';
 import { EventPage } from './pages/EventPage/Loadable';
 import { BlogPage } from './pages/BlogPage/Loadable';
+import { ContactPage } from './pages/ContactPage/Loadable';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -34,6 +35,9 @@ export function App() {
       <Switch>
         <Route path="/blog/:publicKey">
           <BlogPage />
+        </Route>
+        <Route path="/contact/:publicKey">
+          <ContactPage />
         </Route>
         <Route path="/user/:publicKey">
           <ProfilePage />
