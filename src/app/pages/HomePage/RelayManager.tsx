@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { RelayUrl } from 'service/api';
 import { defaultRelays } from 'service/relay';
+import { FromWorkerMessage } from 'service/worker/wsApi';
+import { addRelays, listenFromWsApiWorker } from 'service/worker/wsCall';
 import { RelayStoreType } from 'store/relayReducer';
 import RelayAdder from './RelayAdder';
 
@@ -46,21 +48,35 @@ export const styles = {
 };
 
 export interface RelayManagerProps {
-  setRelaysCallback?: (urls: string[]) => any;
-  wsConnectStatus: WsConnectStatus;
   isLoggedIn;
   myPublicKey;
   myCustomRelay: RelayStoreType;
 }
 
 export function RelayManager({
-  setRelaysCallback,
-  wsConnectStatus,
   isLoggedIn,
   myPublicKey,
   myCustomRelay,
 }: RelayManagerProps) {
   const [relays, setRelays] = useState<string[]>([]);
+  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
+    new Map(),
+  );
+
+  useEffect(() => {
+    listenFromWsApiWorker((message: FromWorkerMessage) => {
+      if (message.wsConnectStatus) {
+        const data = Array.from(message.wsConnectStatus.entries());
+        for (const d of data) {
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            newMap.set(d[0], d[1]);
+            return newMap;
+          });
+        }
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // remove duplicated relay
@@ -72,11 +88,11 @@ export function RelayManager({
     }
 
     setRelays(relays);
-    // callback
-    if (setRelaysCallback) {
-      setRelaysCallback(relays);
-    }
   }, [myPublicKey, myCustomRelay]);
+
+  useEffect(() => {
+    addRelays(relays);
+  }, [relays]);
 
   // show relay status
   const relayerStatusUI: any[] = [];

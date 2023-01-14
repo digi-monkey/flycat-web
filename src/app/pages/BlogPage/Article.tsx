@@ -1,6 +1,5 @@
 import ReactModal from 'react-modal';
 import React, { useState } from 'react';
-import { Content } from '../HomePage/Content';
 import {
   ArticleDataSchema,
   SiteMetaDataContentSchema,

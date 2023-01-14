@@ -1,5 +1,10 @@
+import EventEmitter from 'events';
 import { WsApi } from 'service/api';
 import { defaultRelays } from '../relay';
+
+export class WorkerEventEmitter extends EventEmitter {}
+
+export const workerEventEmitter = new WorkerEventEmitter();
 
 export enum ToWorkerMessageType {
   ADD_RELAY_URL = 'addRelayUrl',
@@ -8,7 +13,6 @@ export enum ToWorkerMessageType {
 }
 
 export interface ToWorkerMessage {
-  type: ToWorkerMessageType;
   urls?: string[];
   callMethod?: string;
   callData?: any[];
@@ -20,7 +24,6 @@ export enum FromWorkerMessageType {
 }
 
 export interface FromWorkerMessage {
-  type: FromWorkerMessageType;
   wsConnectStatus?: WsConnectStatus;
   nostrData?: any;
 }
@@ -28,26 +31,22 @@ export interface FromWorkerMessage {
 export type WsConnectStatus = Map<string, boolean>;
 
 export class WsApiWorker {
-  private connectedClients: MessagePort[] = [];
   private wsConnectStatus: WsConnectStatus = new Map();
   private wsApiList: WsApi[] = [];
-  onPortConnect?: (port: MessagePort) => void;
 
   constructor(private relayUrls: string[]) {
     this.setupWebSocketApis();
-    this.setupConnections();
+    this.listen();
   }
 
   private setupWebSocketApis() {
     this.relayUrls.forEach(relayUrl => {
-      const onmessage = (event: MessageEvent) =>
-        this.connectedClients.forEach(client => {
-          const msg: FromWorkerMessage = {
-            type: FromWorkerMessageType.NostrData,
-            nostrData: event.data,
-          };
-          client.postMessage(msg);
-        });
+      const onmessage = (event: MessageEvent) => {
+        const msg: FromWorkerMessage = {
+          nostrData: event.data,
+        };
+        workerEventEmitter.emit(FromWorkerMessageType.NostrData, msg);
+      };
       const onerror = (event: Event) => {
         console.error(`WebSocket error: ${event}`);
         this.wsConnectStatus.set(relayUrl, false);
@@ -78,93 +77,63 @@ export class WsApiWorker {
     });
   }
 
-  private setupConnections() {
-    globalThis.addEventListener('connect', (event: Event) => {
-      console.log('detect!!');
-      const port = (event as MessageEvent).ports[0];
-      port.start();
-      this.connectedClients.push(port);
-      this.connectPort(port);
+  private listen() {
+    workerEventEmitter.on(
+      ToWorkerMessageType.ADD_RELAY_URL,
+      (message: ToWorkerMessage) => {
+        if (message.urls) {
+          message.urls.forEach(url => {
+            if (!this.wsConnectStatus.has(url)) {
+              this.relayUrls.push(url);
+              this.setupWebSocketApis();
+            }
+          });
+        }
+      },
+    );
 
-      port.onmessage = (messageEvent: MessageEvent) => {
-        const message: ToWorkerMessage = messageEvent.data;
+    workerEventEmitter.on(
+      ToWorkerMessageType.CALL_API,
+      (message: ToWorkerMessage) => {
+        const callMethod = message.callMethod;
+        const callData = message.callData || [];
+        if (callMethod == null) {
+          console.error('callMethod can not be null for CALL_API');
+          return;
+        }
 
-        switch (message.type) {
-          case ToWorkerMessageType.ADD_RELAY_URL:
-            if (message.urls) {
-              message.urls.forEach(url => {
-                if (!this.wsConnectStatus.has(url)) {
-                  this.relayUrls.push(url);
-                  this.setupWebSocketApis();
+        this.wsConnectStatus.forEach((connected, url) => {
+          if (connected === true) {
+            this.wsApiList
+              .filter(ws => ws.url() === url)
+              .map(ws => {
+                const method = ws[callMethod];
+                if (typeof method === 'function') {
+                  method.apply(ws, callData);
+                } else {
+                  console.error(`method ${callMethod} not found`);
                 }
               });
-            }
-            break;
+          }
+        });
+      },
+    );
 
-          case ToWorkerMessageType.CALL_API:
-            const callMethod = message.callMethod;
-            const callData = message.callData || [];
-            if (callMethod == null) {
-              console.error('callMethod can not be null for CALL_API');
-              return;
-            }
-
-            this.wsConnectStatus.forEach((connected, url) => {
-              if (connected === true) {
-                this.wsApiList
-                  .filter(ws => ws.url() === url)
-                  .map(ws => {
-                    const method = ws[callMethod];
-                    if (typeof method === 'function') {
-                      method.apply(ws, ...callData);
-                    } else {
-                      console.error(`method ${callMethod} not found`);
-                    }
-                  });
-              }
-            });
-            break;
-
-          case ToWorkerMessageType.DISCONNECT:
-            this.connectedClients = this.connectedClients.filter(
-              client => client !== port,
-            );
-            port.close();
-            if (
-              this.connectedClients.length === 0 &&
-              this.wsApiList.every(ws => ws.isClose())
-            ) {
-              this.wsApiList.forEach(ws => ws.close());
-            }
-            break;
-
-          default:
-            console.log('Invalid message type');
-            break;
+    workerEventEmitter.on(
+      ToWorkerMessageType.DISCONNECT,
+      (message: ToWorkerMessage) => {
+        if (this.wsApiList.every(ws => ws.isClose())) {
+          this.wsApiList.forEach(ws => ws.close());
         }
-      };
-    });
+      },
+    );
   }
 
   private sendWsConnectStatusUpdate() {
-    this.connectedClients.forEach(client => {
-      const msg: FromWorkerMessage = {
-        type: FromWorkerMessageType.WS_CONN_STATUS,
-        wsConnectStatus: this.wsConnectStatus,
-      };
-      client.postMessage(msg);
-    });
-  }
-
-  private connectPort(port: MessagePort) {
-    if (this.onPortConnect) this.onPortConnect(port);
-  }
-
-  public connect(onConnect: (port: MessagePort) => void) {
-    globalThis.onconnect = (event: Event) => {
-      const port = (event as MessageEvent).ports[0];
-      onConnect(port);
+    const msg: FromWorkerMessage = {
+      wsConnectStatus: this.wsConnectStatus,
     };
+    workerEventEmitter.emit(FromWorkerMessageType.WS_CONN_STATUS, msg);
   }
 }
 

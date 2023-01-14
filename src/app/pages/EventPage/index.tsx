@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
   EventResponse,
   EventSetMetadataContent,
-  Filter,
   isEventResponse,
   WellKnownEventKind,
-  WsApi,
   PublicKey,
   PrivateKey,
   RelayUrl,
@@ -24,13 +22,13 @@ import { Content } from '../HomePage/Content';
 import ReplyButton from '../HomePage/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
+import { FromWorkerMessage } from 'service/worker/wsApi';
 import {
-  FromWorkerMessage,
-  ToWorkerMessage,
-  ToWorkerMessageType,
-  wsApiWorker,
-  FromWorkerMessageType,
-} from 'service/worker/wsApi';
+  listenFromWsApiWorker,
+  subMetadata,
+  subMsgByETags,
+  subMsgByEventIds,
+} from 'service/worker/wsCall';
 
 const mapStateToProps = state => {
   return {
@@ -204,68 +202,32 @@ interface UserParams {
 
 export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const { eventId } = useParams<UserParams>();
-  const [relays, setRelays] = useState<string[]>([]);
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
-  const [port, setPort] = useState<MessagePort | null>(null);
-
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
 
   useEffect(() => {
-    const worker = new SharedWorker('service/worker/wsApi');
-    setPort(worker.port);
-    wsApiWorker.connect(port => {
-      console.log('set port!');
-      setPort(port);
-    });
-    wsApiWorker.onPortConnect = port => {
-      console.log('set port222!');
-      setPort(port);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (port) {
-      // Listen for messages from the worker
-      port.onmessage = event => {
-        const message: FromWorkerMessage = event.data;
-        const type = message.type;
-
-        switch (type) {
-          case FromWorkerMessageType.WS_CONN_STATUS:
-            if (message.wsConnectStatus) {
-              setWsConnectStatus(message.wsConnectStatus);
-            }
-            break;
-
-          case FromWorkerMessageType.NostrData:
-            onMsgHandler(message.nostrData);
-            break;
-
-          default:
-            break;
+    listenFromWsApiWorker(
+      (message: FromWorkerMessage) => {
+        if (message.wsConnectStatus) {
+          const data = Array.from(message.wsConnectStatus.entries());
+          for (const d of data) {
+            setWsConnectStatus(prev => {
+              const newMap = new Map(prev);
+              newMap.set(d[0], d[1]);
+              return newMap;
+            });
+          }
         }
-      };
-    }
-  }, [port]);
-
-  useEffect(() => {
-    if (!port) return;
-
-    // connect to relayers
-    const msg: ToWorkerMessage = {
-      type: ToWorkerMessageType.ADD_RELAY_URL,
-      urls: relays,
-    };
-    port.postMessage(msg);
-  }, [relays, port]);
+      },
+      (message: FromWorkerMessage) => {
+        onMsgHandler(message.nostrData);
+      },
+    );
+  }, []);
 
   function onMsgHandler(data: any) {
     const msg = JSON.parse(data);
@@ -331,16 +293,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    subMsgByIds([eventId]);
+    subMsgByEventIds([eventId]);
   }, [Array.from(wsConnectStatus.values()), eventId]);
 
   useEffect(() => {
@@ -363,51 +316,16 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
     }
     if (newIds.length > 0) {
-      subMsgByIds(newIds);
+      subMsgByEventIds(newIds);
     }
   }, [Array.from(wsConnectStatus.values()), eventId, msgList.values()]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);
     if (msgIds.length > 0) {
-      subMsgByTags(msgIds);
+      subMsgByETags(msgIds);
     }
   }, [msgList]);
-
-  const subMsgByIds = async (eventIds: EventId[]) => {
-    const filter: Filter = {
-      ids: eventIds,
-      limit: 50,
-    };
-    const msg: ToWorkerMessage = {
-      type: ToWorkerMessageType.CALL_API,
-      callMethod: 'subFilter',
-      callData: [filter],
-    };
-    port?.postMessage(msg);
-  };
-
-  const subMsgByTags = async (tags: EventId[]) => {
-    const filter: Filter = {
-      '#e': tags,
-      limit: 50,
-    };
-    const msg: ToWorkerMessage = {
-      type: ToWorkerMessageType.CALL_API,
-      callMethod: 'subFilter',
-      callData: [filter],
-    };
-    port?.postMessage(msg);
-  };
-
-  const subMetadata = async (pks: PublicKey[]) => {
-    const msg: ToWorkerMessage = {
-      type: ToWorkerMessageType.CALL_API,
-      callMethod: 'subUserMetadata',
-      callData: [pks],
-    };
-    port?.postMessage(msg);
-  };
 
   const shortPublicKey = (key: PublicKey | undefined) => {
     if (key) {
@@ -429,15 +347,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const getEventIdsFromETags = (tags: any[]) => {
     const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
     return eventIds;
-  };
-
-  const getLastEventIdFromETags = (tags: any[]) => {
-    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1]);
-    if (eventIds.length > 0) {
-      return eventIds[eventIds.length - 1] as string;
-    } else {
-      return null;
-    }
   };
 
   return (
@@ -519,16 +428,14 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           </button>
                         </span>
                         <span style={styles.time}>
-                          {/**
-                           * 
                           <ReplyButton
                             replyToEventId={msg.id}
                             replyToPublicKey={msg.pubkey}
-                            wsConnectStatus={wsConnectStatus}
-                            wsApiList={wsApiList}
-                            myKeyPair={myKeyPair}
+                            myKeyPair={{
+                              publicKey: myPublicKey,
+                              privateKey: myPrivateKey,
+                            }}
                           />
-                           */}
                         </span>
                       </Grid>
                     </Grid>
@@ -540,10 +447,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <Grid item xs={4} style={styles.right}>
             <LoginForm />
             <hr />
-            <RelayManager
-              setRelaysCallback={setRelays}
-              wsConnectStatus={wsConnectStatus}
-            />
+            <RelayManager />
           </Grid>
         </Grid>
       </div>
