@@ -545,6 +545,14 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     >
                       私信他
                     </button>
+                    &nbsp;
+                    <button
+                      onClick={() => {
+                        window.open(`/blog/${publicKey}`, '_blank');
+                      }}
+                    >
+                      ta的公众号
+                    </button>
                   </div>
                 </Grid>
               </Grid>

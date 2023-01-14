@@ -139,6 +139,7 @@ export enum WellKnownEventKind {
   text_note,
   recommend_server,
   contact_list,
+  flycat_site_metadata = 10000,
 }
 export enum EventTags {
   E = 'e',
@@ -167,7 +168,7 @@ export interface Event {
   pubkey: PublicKey;
   created_at: number; // unix timestamp in seconds,
   kind: EventKind;
-  tags: (EventETag | EventPTag | EventContactListPTag)[];
+  tags: (EventETag | EventPTag | EventContactListPTag | string[])[];
   content: string;
   sig: Signature;
 }
@@ -368,6 +369,15 @@ export class WsApi {
       authors: [publicKey],
       kinds: [WellKnownEventKind.recommend_server],
       limit: 1,
+    };
+    return await this.subFilter(filter);
+  }
+
+  async subUserSiteMetadata(publicKeys: PublicKey[]) {
+    const filter: Filter = {
+      authors: publicKeys,
+      kinds: [WellKnownEventKind.flycat_site_metadata],
+      limit: publicKeys.length,
     };
     return await this.subFilter(filter);
   }

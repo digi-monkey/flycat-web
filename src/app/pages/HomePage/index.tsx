@@ -28,6 +28,7 @@ import { matchKeyPair } from 'service/crypto';
 import RelayManager, { WsConnectStatus } from './RelayManager';
 import { Content } from './Content';
 import ReplyButton from './ReplyBtn';
+import Logo from '../../../resource/logo512.png';
 
 const mapStateToProps = state => {
   return {
@@ -436,6 +437,11 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <Grid container spacing={2}>
         <Grid item xs={4}>
           <div style={styles.title}>
+            <img
+              src={Logo}
+              style={{ width: '48px', height: '48px', marginRight: '5px' }}
+              alt=""
+            />
             飞猫FlyCat{' '}
             <span style={{ fontSize: '14px', color: 'red' }}>测试版</span>{' '}
           </div>
@@ -452,7 +458,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 <a href="">首页</a>
               </li>
               <li style={styles.li}>
-                <a href="">我的主页</a>
+                <a href={'blog/' + myPublicKey}>我的公众号</a>
               </li>
               <li style={styles.li}>
                 <a href="">私信</a>

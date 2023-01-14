@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { normalizeContent } from 'service/helper';
 
-export function Content({ text }: { text: string }) {
+export function Content({
+  text,
+  classNames,
+}: {
+  text: string;
+  classNames?: string;
+}) {
   const { modifiedText, imageUrls } = normalizeContent(text);
   return (
-    <span>
+    <span className={classNames}>
       <span
+        className={classNames}
         style={{ whiteSpace: 'pre-line' as const }}
         dangerouslySetInnerHTML={{ __html: modifiedText }}
       ></span>
