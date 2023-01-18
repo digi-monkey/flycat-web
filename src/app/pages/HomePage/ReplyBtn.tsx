@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   EventETag,
   EventId,
@@ -10,7 +10,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import { matchKeyPair } from 'service/crypto';
-import { pubEvent } from 'service/worker/wsCall';
+import { CallWorker } from 'service/worker/callWorker';
 
 const styles = {
   smallBtn: {
@@ -42,6 +42,12 @@ function ReplyButton({
 }) {
   const [showPopup, setShowPopup] = useState(false);
   const [textareaValue, setTextareaValue] = useState('');
+  const [worker, setWorker] = useState<CallWorker>();
+
+  useEffect(() => {
+    const worker = new CallWorker();
+    setWorker(worker);
+  }, []);
 
   const handleClick = () => {
     setShowPopup(!showPopup);
@@ -73,7 +79,7 @@ function ReplyButton({
     console.log(textareaValue, event);
 
     // publish to all connected relays
-    pubEvent(event);
+    worker?.pubEvent(event);
 
     // clear the textarea
     setTextareaValue('');

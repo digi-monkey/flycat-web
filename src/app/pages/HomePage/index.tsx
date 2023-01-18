@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
-  EventResponse,
+  EventSubResponse,
   EventSetMetadataContent,
-  isEventResponse,
+  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   PrivateKey,
@@ -14,8 +14,6 @@ import {
   EventContactListPTag,
   RawEvent,
   isEventPTag,
-  nip19Encode,
-  Nip19DataType,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
 import LoginForm from './LoginForm';
@@ -23,19 +21,18 @@ import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, { WsConnectStatus } from './RelayManager';
 import { Content } from './Content';
-import ReplyButton from './ReplyBtn';
 import NavHeader from 'app/components/layout/NavHeader';
-import { FromWorkerMessage } from 'service/worker/wsApi';
-import {
-  getLastPubKeyFromPTags,
-  listenFromWsApiWorker,
-  pubEvent,
-  subContactList,
-  subMetadata,
-  subMsg,
-  subUserRecommendServer,
-} from 'service/worker/wsCall';
+import { FromWorkerMessageData } from 'service/worker/type';
+import { getLastPubKeyFromPTags } from 'service/helper';
 import { UserMap } from 'service/type';
+import { CallWorker } from 'service/worker/callWorker';
+import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
+import { NoticeBox } from 'app/components/layout/NoticeBox';
+import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
+
+// don't move to useState inside components
+// it will trigger more times unnecessary
+let myContactEvent: Event;
 
 const mapStateToProps = state => {
   return {
@@ -131,37 +128,10 @@ export const styles = {
     fontSize: '12px',
     marginTop: '5px',
   },
-  myAvatar: {
-    width: '48px',
-    height: '48px',
-  },
-  numberSection: {
-    borderRight: '1px solid gray',
-    margin: '0 10px 0 0',
-  },
-  numberCount: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '380',
-  },
-  numberText: {
-    display: 'block',
-    fontSize: '12px',
-    textDecoration: 'underline',
-    color: 'blue',
-  },
   smallBtn: {
     fontSize: '12px',
     marginLeft: '5px',
     border: 'none' as const,
-  },
-  simpleUl: {
-    padding: '0px',
-    margin: '20px 0px',
-    listStyle: 'none' as const,
-  },
-  rightMenuLi: {
-    padding: '0px',
   },
   connected: {
     fontSize: '18px',
@@ -200,10 +170,11 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
   });
+  const [worker, setWorker] = useState<CallWorker>();
 
   useEffect(() => {
-    listenFromWsApiWorker(
-      (message: FromWorkerMessage) => {
+    const worker = new CallWorker(
+      (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
           const data = Array.from(message.wsConnectStatus.entries());
           for (const d of data) {
@@ -215,16 +186,23 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
         }
       },
-      (message: FromWorkerMessage) => {
+      (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData);
       },
+      'homeIndex',
     );
+    setWorker(worker);
+    worker.pullWsConnectStatus();
+
+    return () => {
+      worker.removeListeners();
+    };
   }, []);
 
   function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
-    if (isEventResponse(msg)) {
-      const event = (msg as EventResponse)[2];
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
@@ -269,28 +247,22 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             }
           }
           if (newPks.length > 0) {
-            subMetadata(newPks);
+            worker?.subMetadata(newPks);
           }
           break;
 
         case WellKnownEventKind.contact_list:
           if (event.pubkey === myKeyPair.publicKey) {
-            const contacts = event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[];
-            contacts.forEach(c =>
-              setMyContactList(
-                myContactList.set(c[1], {
-                  relayer: c[2],
-                  name: c[3],
-                }),
-              ),
-            );
+            if (
+              myContactEvent == null ||
+              myContactEvent?.created_at! < event.created_at
+            ) {
+              const contacts = event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[];
+              myContactEvent = event;
+            }
           }
-          break;
-
-        case WellKnownEventKind.recommend_server:
-          console.log('recommend_server: ', event.content);
           break;
 
         default:
@@ -313,9 +285,32 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (myKeyPair.publicKey == null) return;
 
     subSelfMetadata();
-    subSelfRecommendServer();
-    subContactList(myKeyPair.publicKey);
-  }, [Array.from(wsConnectStatus.values()), myKeyPair]);
+    worker?.subContactList(myKeyPair.publicKey);
+  }, [myKeyPair, wsConnectStatus]);
+
+  useEffect(() => {
+    if (myContactEvent == null) return;
+
+    const contacts = myContactEvent.tags.filter(
+      t => t[0] === EventTags.P,
+    ) as EventContactListPTag[];
+
+    let cList: ContactList = new Map(myContactList);
+
+    contacts.forEach(c => {
+      const pk = c[1];
+      const relayer = c[2];
+      const name = c[3];
+      if (!cList.has(pk)) {
+        cList.set(pk, {
+          relayer,
+          name,
+        });
+      }
+    });
+
+    setMyContactList(cList);
+  }, [myContactEvent]);
 
   useEffect(() => {
     const pks = Array.from(myContactList.keys());
@@ -323,16 +318,12 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     // subscibe myself msg too
     pks.push(myKeyPair.publicKey);
-    subMetadata(pks);
-    subMsg(pks);
-  }, [myContactList.keys()]);
+    worker?.subMetadata(pks);
+    worker?.subMsg(pks);
+  }, [myContactList.size]);
 
   const subSelfMetadata = async () => {
-    subMetadata([myKeyPair.publicKey]);
-  };
-
-  const subSelfRecommendServer = async () => {
-    subUserRecommendServer([myKeyPair.publicKey]);
+    worker?.subMetadata([myKeyPair.publicKey]);
   };
 
   const handleSubmitText = async (formEvt: React.FormEvent) => {
@@ -357,7 +348,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     console.log(text, event);
 
     // publish to all connected relays
-    pubEvent(event);
+    worker?.pubEvent(event);
 
     // clear the textarea
     setText('');
@@ -374,23 +365,10 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   return (
     <div style={styles.root}>
       <NavHeader />
-
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <div style={styles.postBox}>
-              <form onSubmit={handleSubmitText}>
-                <div style={styles.postHintText}>你在想什么？</div>
-                <textarea
-                  style={styles.postTextArea}
-                  value={text}
-                  onChange={event => setText(event.target.value)}
-                ></textarea>
-                <div style={styles.btn}>
-                  <button type="submit">发送</button>
-                </div>
-              </form>
-            </div>
+            <PubNoteTextarea handleSubmitText={handleSubmitText} />
 
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
@@ -469,6 +447,10 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             点赞
                           </button>
                         </span>
+                        {/**
+                         
+                         
+                         
                         <span style={styles.time}>
                           <ReplyButton
                             replyToEventId={msg.id}
@@ -476,6 +458,8 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             myKeyPair={myKeyPair}
                           />
                         </span>
+
+                        */}
                       </Grid>
                     </Grid>
                   </li>
@@ -484,94 +468,20 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
-            <div style={{ marginBottom: '10px' }}>
-              <img
-                style={styles.myAvatar}
-                src={userMap.get(myKeyPair.publicKey)?.picture}
-                alt=""
+            {isLoggedIn && (
+              <UserBox
+                pk={myKeyPair.publicKey}
+                followCount={myContactList.size}
+                avatar={userMap.get(myKeyPair.publicKey)?.picture}
+                name={userMap.get(myKeyPair.publicKey)?.name}
+                about={userMap.get(myKeyPair.publicKey)?.about}
               />
-              <span
-                style={{
-                  marginLeft: '20px',
-                  fontSize: '20px',
-                  fontWeight: '500',
-                }}
-              >
-                {isLoggedIn == true
-                  ? userMap.get(myKeyPair.publicKey)?.name
-                  : '请先登录'}
-              </span>
-              <span
-                style={{ display: 'block', fontSize: '14px', margin: '5px' }}
-              >
-                {isLoggedIn == true
-                  ? userMap.get(myKeyPair.publicKey)?.about
-                  : ''}
-              </span>
-            </div>
-
-            <div
-              style={{
-                padding: '2px 3px 1px 8px',
-                borderBottom: '2px solid #ffed00',
-                fontSize: '14px',
-                color: 'gray',
-                background: '#fffcaa',
-              }}
-            >
-              公钥：
-              {isLoggedIn &&
-                myKeyPair.publicKey &&
-                shortPublicKey(
-                  nip19Encode(myKeyPair.publicKey, Nip19DataType.Pubkey),
-                )}
-            </div>
-
-            <Grid container style={{ marginTop: '20px' }}>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>
-                  {Array.from(myContactList.keys()).length}
-                </span>
-                <span>
-                  <a style={styles.numberText} href={'/contact/' + myPublicKey}>
-                    关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    被关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    消息
-                  </a>
-                </span>
-              </Grid>
-            </Grid>
+            )}
+            {!isLoggedIn && <UserRequiredLoginBox />}
             <hr />
             <LoginForm />
             <hr />
-            <ul style={styles.simpleUl}>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">@提到我的</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">私信</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">互动</a>
-              </li>
-              <li style={styles.rightMenuLi}>
-                <a href="http://">公众号</a>
-              </li>
-            </ul>
+            <NoticeBox />
             <hr />
             <RelayManager />
           </Grid>

@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import { isEventETag, isEventPTag, PublicKey } from 'service/api';
 
 export function normalizeContent(text: string): {
   imageUrls: string[];
@@ -22,7 +23,7 @@ export function normalizeContent(text: string): {
   // Replace all the image URLs with an empty string
   let modifiedText = text;
   for (const url of imageUrls) {
-    modifiedText = text.replace(url, '');
+    modifiedText = modifiedText.replace(url, '');
   }
 
   // Add link to url
@@ -63,3 +64,29 @@ export function isValidWssUrl(url: string): boolean {
     /^wss:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
   return domainNameRegex.test(url);
 }
+
+export const getLastPubKeyFromPTags = (tags: any[]) => {
+  const pks = tags.filter(t => isEventPTag(t)).map(t => t[1]);
+  if (pks.length > 0) {
+    return pks[pks.length - 1] as string;
+  } else {
+    return null;
+  }
+};
+
+export const getLastEventIdFromETags = (tags: any[]) => {
+  const ids = tags.filter(t => isEventETag(t)).map(t => t[1]);
+  if (ids.length > 0) {
+    return ids[ids.length - 1] as string;
+  } else {
+    return null;
+  }
+};
+
+export const shortPublicKey = (key: PublicKey | undefined) => {
+  if (key) {
+    return key.slice(0, 8) + '..' + key.slice(48);
+  } else {
+    return 'unknown';
+  }
+};

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import {
-  EventResponse,
+  EventSubResponse,
   EventSetMetadataContent,
   Filter,
-  isEventResponse,
+  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   PrivateKey,
   RelayUrl,
   PetName,
+  Event,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
 import LoginForm from '../HomePage/LoginForm';
@@ -28,21 +29,13 @@ import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
 import { Article } from './Article';
 import NavHeader from 'app/components/layout/NavHeader';
-import {
-  workerEventEmitter,
-  FromWorkerMessageType,
-  FromWorkerMessage,
-  ToWorkerMessage,
-  ToWorkerMessageType,
-} from 'service/worker/wsApi';
-import {
-  listenFromWsApiWorker,
-  pubEvent,
-  subBlogSiteMetadata,
-  subFilter,
-  subMetadata,
-} from 'service/worker/wsCall';
+import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
+import { CallWorker } from 'service/worker/callWorker';
+
+// don't move to useState inside components
+// it will trigger more times unnecessary
+let siteMetaDataEvent: Event;
 
 const mapStateToProps = state => {
   return {
@@ -138,37 +131,10 @@ export const styles = {
     fontSize: '12px',
     marginTop: '5px',
   },
-  myAvatar: {
-    width: '48px',
-    height: '48px',
-  },
-  numberSection: {
-    borderRight: '1px solid gray',
-    margin: '0 10px 0 0',
-  },
-  numberCount: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '380',
-  },
-  numberText: {
-    display: 'block',
-    fontSize: '12px',
-    textDecoration: 'underline',
-    color: 'blue',
-  },
   smallBtn: {
     fontSize: '12px',
     marginLeft: '5px',
     border: 'none' as const,
-  },
-  simpleUl: {
-    padding: '0px',
-    margin: '20px 0px',
-    listStyle: 'none' as const,
-  },
-  rightMenuLi: {
-    padding: '0px',
   },
   connected: {
     fontSize: '18px',
@@ -226,6 +192,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     (ArticleDataSchema & { page_id: number })[]
   >([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [worker, setWorker] = useState<CallWorker>();
 
   const flycat = new Flycat({
     publicKey: myPublicKey,
@@ -235,8 +202,8 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
-    if (isEventResponse(msg)) {
-      const event = (msg as EventResponse)[2];
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
 
       if (event.pubkey !== publicKey) {
         return;
@@ -262,10 +229,16 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
 
       if (event.kind === WellKnownEventKind.flycat_site_metadata) {
-        const data = Flycat.deserialize(
-          event.content,
-        ) as SiteMetaDataContentSchema;
-        setSiteMetaData(data);
+        if (
+          siteMetaDataEvent == null ||
+          siteMetaDataEvent.created_at < event.created_at
+        ) {
+          const data = Flycat.deserialize(
+            event.content,
+          ) as SiteMetaDataContentSchema;
+          siteMetaDataEvent = event;
+          setSiteMetaData(data);
+        }
         return;
       }
 
@@ -316,8 +289,8 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    listenFromWsApiWorker(
-      (message: FromWorkerMessage) => {
+    const worker = new CallWorker(
+      (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
           const data = Array.from(message.wsConnectStatus.entries());
           for (const d of data) {
@@ -329,22 +302,24 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
         }
       },
-      (message: FromWorkerMessage) => {
+      (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData);
       },
     );
+    setWorker(worker);
+    worker.pullWsConnectStatus();
   }, []);
 
   useEffect(() => {
-    subMetadata([publicKey]);
-    subBlogSiteMetadata([publicKey]);
-  }, [Array.from(wsConnectStatus.values()), publicKey]);
+    worker?.subMetadata([publicKey]);
+    worker?.subBlogSiteMetadata([publicKey]);
+  }, [wsConnectStatus, publicKey]);
 
   useEffect(() => {
     if (siteMetaData) {
       subArticlePages(siteMetaData);
     }
-  }, [Array.from(wsConnectStatus.values()), siteMetaData]);
+  }, [wsConnectStatus, siteMetaData]);
 
   const subArticlePages = async (siteMetaData: SiteMetaDataContentSchema) => {
     const filter: Filter = {
@@ -354,15 +329,15 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       ),
       limit: 50,
     };
-    subFilter(filter);
-
-    // refresh blog data
-    subBlogSiteMetadata([publicKey]);
+    worker?.subFilter(filter);
   };
 
   const submitSiteMetaData = async (name: string, description: string) => {
     const event = await flycat.newSite({ name, description });
-    pubEvent(event);
+    worker?.pubEvent(event);
+
+    // refresh blog data
+    worker?.subBlogSiteMetadata([publicKey]);
   };
 
   const submitArticle = async (form: ArticlePostForm) => {
@@ -390,7 +365,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       { ...articleDataSchema, ...{ page_id: pageId } },
     ]);
     const apEvent = await flycat.updateArticlePage(ap);
-    pubEvent(apEvent);
+    worker?.pubEvent(apEvent);
 
     // remember to update the site metadata with new page id
     if (!siteMetaData?.page_ids.includes(pageId)) {
@@ -399,7 +374,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const siteEvent = await flycat.updateSite(
         metaData as SiteMetaDataContentSchema,
       );
-      pubEvent(siteEvent);
+      worker?.pubEvent(siteEvent);
     }
   };
 
@@ -443,7 +418,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     const event = await flycat.updateArticlePage(articlePage);
 
-    pubEvent(event);
+    worker?.pubEvent(event);
   };
 
   return (

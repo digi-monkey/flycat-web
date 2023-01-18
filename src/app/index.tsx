@@ -19,6 +19,8 @@ import { ProfilePage } from './pages/ProfilePage/Loadable';
 import { EventPage } from './pages/EventPage/Loadable';
 import { BlogPage } from './pages/BlogPage/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
+import RelayManager from './pages/HomePage/RelayManager';
+import { Test } from './pages/HomePage/Test';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -33,6 +35,12 @@ export function App() {
       </Helmet>
 
       <Switch>
+        <Route path="/test">
+          <Test />
+        </Route>
+        <Route path="/relay">
+          <RelayManager />
+        </Route>
         <Route path="/blog/:publicKey">
           <BlogPage />
         </Route>

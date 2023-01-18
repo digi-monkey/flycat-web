@@ -1,7 +1,6 @@
 import CryptoJS from 'crypto-js';
 import AES from 'crypto-js/aes';
 import { Base64Str, HexStr, Utf8Str } from '../types';
-import { JSEncrypt } from 'jsencrypt';
 import * as secp256k1 from '@noble/secp256k1';
 import { utils as secpUtils, schnorr } from '@noble/secp256k1';
 import { Buffer } from 'buffer';
@@ -134,45 +133,4 @@ export function generateRandomIv() {
 
 export function generateRandomBytes(length: number) {
   return '0x' + CryptoJS.lib.WordArray.random(length).toString(HEX_ENCODING);
-}
-
-export function generateRandomRsaKeys() {
-  const key = new JSEncrypt();
-  const info = key.getKey();
-  return {
-    privateKey: info.getPrivateBaseKeyB64(),
-    publicKey: info.getPublicBaseKeyB64(),
-  };
-}
-
-export function getPublicKeyFromPrivateKey(privateKey: Base64Str): Base64Str {
-  const key = new JSEncrypt();
-  key.setPrivateKey(privateKey);
-  return key.getPublicKeyB64();
-}
-
-// aes key and iv
-export function encryptTextToPk(encryptionPublicKey: string, text: Utf8Str) {
-  console.info(`pk: ${encryptionPublicKey}, text: ${text}`);
-  const encrypt = new JSEncrypt();
-  encrypt.setPublicKey(encryptionPublicKey);
-  const encrypted = encrypt.encrypt(text);
-  if (encrypted === false || encrypted == null)
-    throw new Error('encrypt failed..');
-  return encrypted;
-}
-
-export function decryptWithPrivateKey(
-  encryptedText: string,
-  privateKey: HexStr,
-) {
-  console.info(
-    `[decryptWithPrivateKey] encryptedText: ${encryptedText}, privateKey: ${privateKey}`,
-  );
-  const decrypt = new JSEncrypt();
-  decrypt.setPrivateKey(privateKey);
-  const decrypted = decrypt.decrypt(encryptedText);
-  if (decrypted === false || decrypted == null)
-    throw new Error('decrypt failed..');
-  return decrypted;
 }

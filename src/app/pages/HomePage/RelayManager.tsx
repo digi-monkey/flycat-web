@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { RelayUrl } from 'service/api';
 import { defaultRelays } from 'service/relay';
-import { FromWorkerMessage } from 'service/worker/wsApi';
-import { addRelays, listenFromWsApiWorker } from 'service/worker/wsCall';
+import { CallWorker } from 'service/worker/callWorker';
+import { FromWorkerMessageData } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
 import RelayAdder from './RelayAdder';
 
@@ -63,8 +63,14 @@ export function RelayManager({
     new Map(),
   );
 
+  const [worker, setWorker] = useState<CallWorker>();
+  let initCount = 0;
+  let pubCount = 0;
   useEffect(() => {
-    listenFromWsApiWorker((message: FromWorkerMessage) => {
+    console.log('init worker', initCount++);
+  }, []);
+  useEffect(() => {
+    const worker = new CallWorker((message: FromWorkerMessageData) => {
       if (message.wsConnectStatus) {
         const data = Array.from(message.wsConnectStatus.entries());
         for (const d of data) {
@@ -76,6 +82,7 @@ export function RelayManager({
         }
       }
     });
+    setWorker(worker);
   }, []);
 
   useEffect(() => {
@@ -90,10 +97,15 @@ export function RelayManager({
     setRelays(relays);
   }, [myPublicKey, myCustomRelay]);
 
-  useEffect(() => {
-    addRelays(relays);
-  }, [relays]);
+  {
+    useEffect(() => {
+      if (relays.length === 0) return;
+      if (worker == null) return;
 
+      console.log('addrelay count:', pubCount++);
+      worker?.addRelays(relays);
+    }, [relays]);
+  }
   // show relay status
   const relayerStatusUI: any[] = [];
   const relayerStatusIds: string[] = [];

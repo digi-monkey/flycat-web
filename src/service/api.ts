@@ -128,6 +128,9 @@ export type Hash32Bytes = string;
 export type RelayUrl = string;
 export type PetName = string;
 export type SubscriptionId = HexStr;
+export type ErrorReason = Utf8Str;
+export type Reason = Utf8Str;
+export type Challenge = string;
 
 export type EventId = Hash32Bytes;
 export type PublicKey = Hash32Bytes;
@@ -149,8 +152,63 @@ export enum EventTags {
 export type EventETag = [EventTags.E, EventId, RelayUrl];
 export type EventPTag = [EventTags.P, PublicKey, RelayUrl];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
-export type EventResponse = ['EVENT', SubscriptionId, Event];
-export type EventCLoseResponse = ['EOSE', SubscriptionId];
+
+// relay response
+export enum RelayResponseType {
+  SubEvent = 'EVENT',
+  SubReachEnd = 'EOSE',
+  SubAuth = 'AUTH',
+  PubEvent = 'OK',
+  Notice = 'NOTICE',
+}
+
+export type EventSubResponse = [
+  RelayResponseType.SubEvent,
+  SubscriptionId,
+  Event,
+];
+export type EventSubReachEndResponse = [
+  RelayResponseType.SubReachEnd,
+  SubscriptionId,
+];
+export type AuthSubResponse = [RelayResponseType.SubAuth, Challenge];
+export type EventPubResponse = [
+  RelayResponseType.PubEvent,
+  EventId,
+  boolean,
+  Reason,
+];
+export type NoticeResponse = [RelayResponseType.Notice, ErrorReason];
+
+export type RelayResponse =
+  | EventSubResponse
+  | EventSubReachEndResponse
+  | AuthSubResponse
+  | EventPubResponse
+  | NoticeResponse;
+
+// client request
+export enum ClientRequestType {
+  PubEvent = 'EVENT',
+  PubAuth = 'AUTH',
+  SubFilter = 'REQ',
+  Close = 'CLOSE',
+}
+
+export type EventPubRequest = [ClientRequestType.PubEvent, Event];
+export type EventSubRequest = [
+  ClientRequestType.SubFilter,
+  SubscriptionId,
+  Filter,
+];
+export type SubCloseRequest = [ClientRequestType.Close, SubscriptionId];
+export type AuthPubRequest = [ClientRequestType.PubAuth, Event];
+
+export type ClientRequest =
+  | EventPubRequest
+  | EventSubRequest
+  | SubCloseRequest
+  | AuthPubRequest;
 
 export interface Filter {
   ids?: EventId[];
@@ -249,18 +307,20 @@ export interface EventSetMetadataContent {
 }
 
 export interface WsApiHandler {
-  onMsgHandler?: (msg: any) => any;
-  onOpenHandler?: (event: WsEvent) => any;
-  onCloseHandler?: (event: WsEvent) => any;
-  onErrHandler?: (event: WsEvent) => any;
+  onMsgHandler?: (evt: any) => any;
+  onOpenHandler?: (evt: WsEvent) => any;
+  onCloseHandler?: (evt: WsEvent) => any;
+  onErrHandler?: (evt: WsEvent) => any;
 }
 
 export type WsEvent = globalThis.Event;
 
 export class WsApi {
   private ws: WebSocket;
+  public maxSub: number;
+  public subPool: Queue<SubscriptionId>;
 
-  constructor(url?: string, wsHandler?: WsApiHandler) {
+  constructor(url?: string, wsHandler?: WsApiHandler, maxSub: number = 10) {
     this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
 
     this.ws.addEventListener('open', event => {
@@ -270,9 +330,14 @@ export class WsApi {
     });
 
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
-    this.ws.onmessage = wsHandler?.onMsgHandler || this.handleMessage;
+    this.ws.onmessage = evt => {
+      this.handleResponse(evt, wsHandler?.onMsgHandler);
+    };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
     this.ws.onclose = wsHandler?.onCloseHandler || this.handleClose;
+
+    this.maxSub = maxSub;
+    this.subPool = new Queue();
   }
 
   url() {
@@ -330,36 +395,148 @@ export class WsApi {
       this.ws.close();
     }
   }
+  /******* above is websocket handling */
 
-  handleMessage(event: any, callback?: (msg: any) => any) {
-    const msg: EventResponse | EventCLoseResponse = event.data;
-    console.log('msg received =>', msg);
-    if (callback != null) {
-      callback(msg);
+  /******* below is nostr handling */
+  handleResponse(evt: MessageEvent, onEventSubCallback?: (msg: any) => any) {
+    const msg: RelayResponse = JSON.parse(evt.data);
+    const type = msg[0];
+    switch (type) {
+      case RelayResponseType.Notice:
+        this.handleNotice(evt);
+        break;
+
+      case RelayResponseType.PubEvent:
+        this.handleEventPub(evt);
+        break;
+
+      case RelayResponseType.SubAuth:
+        this.handleAuthSub(evt);
+        break;
+
+      case RelayResponseType.SubEvent:
+        this.handleEventSub(evt, onEventSubCallback);
+        break;
+
+      case RelayResponseType.SubReachEnd:
+        this.handleSubReachEnd(evt);
+        break;
+
+      default:
+        break;
     }
   }
 
-  handleEventResponse(event: any, callback?: (msg: Event) => any) {
-    const msg: any = event.data;
-
-    if (isEventResponse(msg)) {
-      console.log('event: ', (msg as EventResponse)[2]);
+  // handle relay response message
+  handleEventPub(
+    evt: any,
+    callback?: ({
+      eventId,
+      isSuccess,
+      reason,
+    }: {
+      eventId: EventId;
+      isSuccess: boolean;
+      reason: Reason;
+    }) => any,
+  ) {
+    const res = JSON.parse(evt.data);
+    const type = (res as RelayResponse)[0];
+    if (type !== RelayResponseType.PubEvent) {
+      return;
     }
 
-    if (callback != null) {
-      callback((msg as EventResponse)[2]);
+    const msg: EventPubResponse = res;
+    const eventId = msg[1];
+    const isSuccess = msg[2];
+    const reason = msg[3];
+    if (callback) {
+      callback({ eventId, isSuccess, reason });
     }
+  }
+
+  handleNotice(evt: any, callback?: (reason: ErrorReason) => any) {
+    const res = JSON.parse(evt.data);
+    const type = (res as RelayResponse)[0];
+    if (type !== RelayResponseType.Notice) {
+      return;
+    }
+
+    const msg: NoticeResponse = res;
+    const reason = this.url() + ' => ' + msg[1];
+    const cb = callback || console.log;
+    cb(reason);
+  }
+
+  handleSubReachEnd(evt: any, callback?: (subId: SubscriptionId) => any) {
+    const res = JSON.parse(evt.data);
+    const type = (res as RelayResponse)[0];
+    if (type !== RelayResponseType.SubReachEnd) {
+      return;
+    }
+
+    const msg: EventSubReachEndResponse = res;
+    const subId = msg[1];
+    const defaultCb = (subId: SubscriptionId) => {
+      this.closeSub(subId);
+    };
+    const cb = callback || defaultCb;
+    cb(subId);
+  }
+
+  handleAuthSub(evt: any, callback?: (challenge: Challenge) => any) {
+    const res = JSON.parse(evt.data);
+    const type = (res as RelayResponse)[0];
+    if (type !== RelayResponseType.SubAuth) {
+      return;
+    }
+
+    const msg: AuthSubResponse = res;
+    const challenge = msg[1];
+    const defaultCb = (challenge: Challenge) => {
+      // todo: sign this challenge and send it
+    };
+    const cb = callback || defaultCb;
+    cb(challenge);
+  }
+
+  handleEventSub(evt: any, callback?: (msg: WsEvent) => any) {
+    const msg: any = JSON.parse(evt.data);
+    if (isEventSubResponse(msg)) {
+      if (callback != null) {
+        callback(evt);
+      }
+    }
+  }
+
+  // do request to relay
+  async pubAuth(event: Event) {
+    const data: AuthPubRequest = [ClientRequestType.PubAuth, event];
+    return await this._send(JSON.stringify(data));
   }
 
   async pubEvent(event: Event) {
-    const pub = ['EVENT', event];
-    return await this._send(JSON.stringify(pub));
+    const data: EventPubRequest = [ClientRequestType.PubEvent, event];
+    return await this._send(JSON.stringify(data));
   }
 
   async subFilter(filter: Filter) {
+    if (this.subPool.length >= this.maxSub) {
+      // close some first
+      this.closeSub(this.subPool.peek()!);
+      this.subPool.dequeue();
+    }
+
     const subId = randomSubId();
-    const sub = ['REQ', subId, filter];
-    return await this._send(JSON.stringify(sub));
+    this.subPool.enqueue(subId);
+
+    const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
+    return await this._send(JSON.stringify(data));
+  }
+
+  async closeSub(subId: SubscriptionId) {
+    const data: SubCloseRequest = [ClientRequestType.Close, subId];
+    return await this._send(JSON.stringify(data));
   }
 
   async subUserMetadata(publicKeys: PublicKey[]) {
@@ -380,9 +557,9 @@ export class WsApi {
     return await this.subFilter(filter);
   }
 
-  async subUserRelayer(publicKey: PublicKey) {
+  async subUserRelayer(publicKeys: PublicKey[]) {
     const filter: Filter = {
-      authors: [publicKey],
+      authors: publicKeys,
       kinds: [WellKnownEventKind.recommend_server],
       limit: 1,
     };
@@ -399,7 +576,7 @@ export class WsApi {
   }
 }
 
-export function isEventResponse(data: any): data is EventResponse {
+export function isEventSubResponse(data: any): data is EventSubResponse {
   return (
     Array.isArray(data) &&
     data[0] === 'EVENT' &&
@@ -529,4 +706,28 @@ export function bufferToUtf8Str(buf: Buffer) {
   const decoder = new TextDecoder();
   const string = decoder.decode(buf);
   return string;
+}
+
+class Queue<T> {
+  private data: T[] = [];
+
+  enqueue(item: T) {
+    this.data.push(item);
+  }
+
+  dequeue(): T | undefined {
+    return this.data.shift();
+  }
+
+  peek(): T | undefined {
+    return this.data[0];
+  }
+
+  get length(): number {
+    return this.data.length;
+  }
+
+  isEmpty(): boolean {
+    return this.length === 0;
+  }
 }

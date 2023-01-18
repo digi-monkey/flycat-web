@@ -2878,6 +2878,11 @@
     "@types/mime" "*"
     "@types/node" "*"
 
+"@types/sharedworker@0.0.88":
+  version "0.0.88"
+  resolved "https://registry.yarnpkg.com/@types/sharedworker/-/sharedworker-0.0.88.tgz#e43e50effea853078244a1955a1b687175d6b5f4"
+  integrity sha512-UEvYhnw1XGa52+jJnQ7MWZbZcfrHxk8ZTtoZyW+7pxgEFBOoF79EcZWXM2Pa05BQO+sNpbTq4AU2oj/6Cr2Mqw==
+
 "@types/shelljs@0.8.11":
   version "0.8.11"
   resolved "https://registry.yarnpkg.com/@types/shelljs/-/shelljs-0.8.11.tgz#17a5696c825974e96828e96e89585d685646fcb8"
@@ -8419,11 +8424,6 @@ jsdom@^16.6.0:
     whatwg-url "^8.5.0"
     ws "^7.4.6"
     xml-name-validator "^3.0.0"
-
-jsencrypt@3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/jsencrypt/-/jsencrypt-3.2.1.tgz#09766983cc760088ff26b12fe7e574252af97727"
-  integrity sha512-k1sD5QV0KPn+D8uG9AdGzTQuamt82QZ3A3l6f7TRwMU6Oi2Vg0BsL+wZIQBONcraO1pc78ExMdvmBBJ8WhNYUA==
 
 jsesc@^2.5.1:
   version "2.5.2"

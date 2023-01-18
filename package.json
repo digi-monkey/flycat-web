@@ -45,7 +45,6 @@
     "inquirer": "7.3.3",
     "inquirer-directory": "2.2.0",
     "jest-styled-components": "7.0.8",
-    "jsencrypt": "3.2.1",
     "lint-staged": "12.1.7",
     "node-plop": "0.26.2",
     "papercss": "1.8.3",
@@ -135,5 +134,8 @@
         "statements": 90
       }
     }
+  },
+  "devDependencies": {
+    "@types/sharedworker": "0.0.88"
   }
 }

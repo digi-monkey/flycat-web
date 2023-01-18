@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
-  EventResponse,
+  EventSubResponse,
   EventSetMetadataContent,
-  isEventResponse,
+  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   PrivateKey,
@@ -12,30 +12,24 @@ import {
   PetName,
   EventTags,
   EventContactListPTag,
-  isEventPTag,
-  nip19Encode,
-  Nip19DataType,
-  RawEvent,
 } from 'service/api';
-import { timeSince } from 'utils/helper';
 import LoginForm from '../HomePage/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
 import { Content } from '../HomePage/Content';
-import ReplyButton from '../HomePage/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
-import { FromWorkerMessage } from 'service/worker/wsApi';
-import {
-  getLastPubKeyFromPTags,
-  listenFromWsApiWorker,
-  pubEvent,
-  shortPublicKey,
-  subContactList,
-  subMetadata,
-  subMsg,
-} from 'service/worker/wsCall';
+import { FromWorkerMessageData } from 'service/worker/type';
+import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
+import { CallWorker } from 'service/worker/callWorker';
+import defaultAvatar from '../../../resource/logo512.png';
+import { UserBox } from 'app/components/layout/UserBox';
+
+// don't move to useState inside components
+// it will trigger more times unnecessary
+let myContactEvent: Event;
+let userContactEvent: Event;
 
 const mapStateToProps = state => {
   return {
@@ -131,37 +125,10 @@ export const styles = {
     fontSize: '12px',
     marginTop: '5px',
   },
-  myAvatar: {
-    width: '48px',
-    height: '48px',
-  },
-  numberSection: {
-    borderRight: '1px solid gray',
-    margin: '0 10px 0 0',
-  },
-  numberCount: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '380',
-  },
-  numberText: {
-    display: 'block',
-    fontSize: '12px',
-    textDecoration: 'underline',
-    color: 'blue',
-  },
   smallBtn: {
     fontSize: '12px',
     marginLeft: '5px',
     border: 'none' as const,
-  },
-  simpleUl: {
-    padding: '0px',
-    margin: '20px 0px',
-    listStyle: 'none' as const,
-  },
-  rightMenuLi: {
-    padding: '0px',
   },
   connected: {
     fontSize: '18px',
@@ -212,7 +179,6 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     new Map(),
   );
 
-  const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
   const [userContactList, setUserContactList] = useState<ContactList>(
@@ -222,10 +188,11 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
   });
+  const [worker, setWorker] = useState<CallWorker>();
 
   useEffect(() => {
-    listenFromWsApiWorker(
-      (message: FromWorkerMessage) => {
+    const worker = new CallWorker(
+      (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
           const data = Array.from(message.wsConnectStatus.entries());
           for (const d of data) {
@@ -237,16 +204,22 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
         }
       },
-      (message: FromWorkerMessage) => {
+      (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData);
       },
     );
+    setWorker(worker);
+    worker.pullWsConnectStatus();
+
+    return () => {
+      worker.removeListeners();
+    };
   }, []);
 
   function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
-    if (isEventResponse(msg)) {
-      const event = (msg as EventResponse)[2];
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
@@ -266,65 +239,24 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           });
           break;
 
-        case WellKnownEventKind.text_note:
-          setMsgList(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
-              const newItems = [...oldArray, event];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return sortedItems;
-            }
-            return oldArray;
-          });
-
-          // check if need to sub new user metadata
-          const newPks: string[] = [];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null) {
-                newPks.push(pk);
-              }
-            }
-          }
-          if (newPks.length > 0) {
-            subMetadata(newPks);
-          }
-          break;
-
         case WellKnownEventKind.contact_list:
-          if (event.pubkey === publicKey) {
-            const contacts = event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[];
-            contacts.forEach(c =>
-              setUserContactList(
-                userContactList.set(c[1], {
-                  relayer: c[2],
-                  name: c[3],
-                }),
-              ),
-            );
-          } else if (event.pubkey === myKeyPair.publicKey) {
-            const contacts = event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[];
-            contacts.forEach(c =>
-              setMyContactList(
-                myContactList.set(c[1], {
-                  relayer: c[2],
-                  name: c[3],
-                }),
-              ),
-            );
+          if (event.pubkey === myKeyPair.publicKey) {
+            if (
+              myContactEvent == null ||
+              myContactEvent?.created_at! < event.created_at
+            ) {
+              myContactEvent = event;
+            }
           }
-          break;
 
-        case WellKnownEventKind.recommend_server:
-          console.log('recommend_server: ', event.content);
+          if (event.pubkey === publicKey) {
+            if (
+              userContactEvent == null ||
+              userContactEvent?.created_at! < event.created_at
+            ) {
+              userContactEvent = event;
+            }
+          }
           break;
 
         default:
@@ -343,79 +275,65 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [isLoggedIn]);
 
   useEffect(() => {
+    if (myContactEvent == null) return;
+
+    const contacts = myContactEvent.tags.filter(
+      t => t[0] === EventTags.P,
+    ) as EventContactListPTag[];
+
+    let cList: ContactList = new Map(myContactList);
+
+    contacts.forEach(c => {
+      const pk = c[1];
+      const relayer = c[2];
+      const name = c[3];
+      if (!cList.has(pk)) {
+        cList.set(pk, {
+          relayer,
+          name,
+        });
+      }
+    });
+
+    setMyContactList(cList);
+  }, [myContactEvent]);
+
+  useEffect(() => {
+    if (userContactEvent == null) return;
+
+    const contacts = userContactEvent.tags.filter(
+      t => t[0] === EventTags.P,
+    ) as EventContactListPTag[];
+
+    let cList: ContactList = new Map(userContactList);
+
+    contacts.forEach(c => {
+      const pk = c[1];
+      const relayer = c[2];
+      const name = c[3];
+      if (!cList.has(pk)) {
+        cList.set(pk, {
+          relayer,
+          name,
+        });
+      }
+    });
+
+    setUserContactList(cList);
+  }, [userContactEvent]);
+
+  useEffect(() => {
     if (isLoggedIn !== true) return;
     if (myKeyPair.publicKey == null) return;
 
-    subSelfMetadata();
-    subContactList(myKeyPair.publicKey);
-    subContactList(publicKey);
-  }, [Array.from(wsConnectStatus.values()), myKeyPair]);
+    worker?.subMetadata([myKeyPair.publicKey]);
+    worker?.subContactList(myKeyPair.publicKey);
+    worker?.subContactList(publicKey);
+  }, [wsConnectStatus, myKeyPair]);
 
   useEffect(() => {
-    subMetadata(Array.from(userContactList.keys()));
-  }, [
-    Array.from(wsConnectStatus.values()),
-    Array.from(userContactList.keys()),
-  ]);
-
-  const subSelfMetadata = async () => {
-    subMetadata([myKeyPair.publicKey]);
-  };
-
-  const followUser = async () => {
-    const contacts = Array.from(myContactList.entries());
-    const tags = contacts.map(
-      c =>
-        [
-          EventTags.P,
-          c[0],
-          c[1].relayer ?? '',
-          c[1].name ?? '',
-        ] as EventContactListPTag,
-    );
-    tags.push([EventTags.P, publicKey, '', '']);
-    if (tags.length != contacts.length + 1) {
-      return alert('something went wrong with contact list');
-    }
-
-    const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
-      WellKnownEventKind.contact_list,
-      tags,
-    );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
-    pubEvent(event);
-  };
-  const unfollowUser = async () => {
-    const contacts = Array.from(myContactList.entries());
-    const tags = contacts
-      .filter(c => c[0] !== publicKey)
-      .map(
-        c =>
-          [
-            EventTags.P,
-            c[0],
-            c[1].relayer ?? '',
-            c[1].name ?? '',
-          ] as EventContactListPTag,
-      );
-    if (tags.length != contacts.length - 1) {
-      return alert('something went wrong with contact list');
-    }
-
-    const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
-      WellKnownEventKind.contact_list,
-      tags,
-    );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
-    pubEvent(event);
-  };
-
-  const followOrUnfollowText =
-    isLoggedIn && myContactList.get(publicKey) ? '取消关注' : '关注他';
-  const followOrUnfollowOnClick =
-    isLoggedIn && myContactList.get(publicKey) ? unfollowUser : followUser;
+    worker?.subMetadata(Array.from(userContactList.keys()));
+  }, [wsConnectStatus]);
 
   return (
     <div style={styles.root}>
@@ -434,8 +352,8 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                         <Grid item xs={2}>
                           <img
                             style={styles.userProfileAvatar}
-                            src={user.picture}
-                            alt=""
+                            src={user.picture || defaultAvatar}
+                            alt={'user-avatar'}
                           />
                         </Grid>
                         <Grid item xs={10}>
@@ -456,89 +374,13 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
-            <Grid item xs={2}>
-              <img
-                style={styles.userProfileAvatar}
-                src={userMap.get(publicKey)?.picture}
-                alt=""
-              />
-            </Grid>
-            <Grid item xs={10}>
-              <div style={styles.userProfileName}>
-                {userMap.get(publicKey)?.name}
-              </div>
-              <div style={styles.userProfileBtnGroup}>
-                <button onClick={followOrUnfollowOnClick}>
-                  {followOrUnfollowText}
-                </button>
-                &nbsp;
-                <button
-                  onClick={() => {
-                    alert('not impl 还没做');
-                  }}
-                >
-                  私信他
-                </button>
-                &nbsp;
-                <button
-                  onClick={() => {
-                    window.open(`/blog/${publicKey}`, '_blank');
-                  }}
-                >
-                  ta的公众号
-                </button>
-              </div>
-            </Grid>
-            <div style={{ marginBottom: '10px' }}>
-              <span
-                style={{ display: 'block', fontSize: '14px', margin: '5px' }}
-              >
-                ta的自述：
-                {isLoggedIn == true ? userMap.get(publicKey)?.about : ''}
-              </span>
-            </div>
-
-            <div
-              style={{
-                padding: '2px 3px 1px 8px',
-                borderBottom: '2px solid #ffed00',
-                fontSize: '14px',
-                color: 'gray',
-                background: '#fffcaa',
-              }}
-            >
-              ta的公钥：
-              {shortPublicKey(nip19Encode(publicKey, Nip19DataType.Pubkey))}
-            </div>
-
-            <Grid container style={{ marginTop: '20px' }}>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>
-                  {Array.from(userContactList.keys()).length}
-                </span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    ta的关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3} style={styles.numberSection}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    ta被关注
-                  </a>
-                </span>
-              </Grid>
-              <Grid item xs={3}>
-                <span style={styles.numberCount}>未知</span>
-                <span>
-                  <a style={styles.numberText} href="">
-                    ta的消息
-                  </a>
-                </span>
-              </Grid>
-            </Grid>
+            <UserBox
+              pk={publicKey}
+              name={userMap.get(publicKey)?.name}
+              about={userMap.get(publicKey)?.about}
+              avatar={userMap.get(publicKey)?.picture}
+              followCount={userContactList.size}
+            />
             <hr />
             <LoginForm />
             <hr />

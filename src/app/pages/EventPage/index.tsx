@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
-  EventResponse,
+  EventSubResponse,
   EventSetMetadataContent,
-  isEventResponse,
+  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   PrivateKey,
@@ -22,14 +22,10 @@ import { Content } from '../HomePage/Content';
 import ReplyButton from '../HomePage/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
-import { FromWorkerMessage } from 'service/worker/wsApi';
-import {
-  listenFromWsApiWorker,
-  subMetadata,
-  subMsgByETags,
-  subMsgByEventIds,
-} from 'service/worker/wsCall';
+import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
+import { CallWorker } from 'service/worker/callWorker';
+import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 
 const mapStateToProps = state => {
   return {
@@ -129,33 +125,10 @@ export const styles = {
     width: '48px',
     height: '48px',
   },
-  numberSection: {
-    borderRight: '1px solid gray',
-    margin: '0 10px 0 0',
-  },
-  numberCount: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '380',
-  },
-  numberText: {
-    display: 'block',
-    fontSize: '12px',
-    textDecoration: 'underline',
-    color: 'blue',
-  },
   smallBtn: {
     fontSize: '12px',
     marginLeft: '5px',
     border: 'none' as const,
-  },
-  simpleUl: {
-    padding: '0px',
-    margin: '20px 0px',
-    listStyle: 'none' as const,
-  },
-  rightMenuLi: {
-    padding: '0px',
   },
   connected: {
     fontSize: '18px',
@@ -208,10 +181,11 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [worker, setWorker] = useState<CallWorker>();
 
   useEffect(() => {
-    listenFromWsApiWorker(
-      (message: FromWorkerMessage) => {
+    const worker = new CallWorker(
+      (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
           const data = Array.from(message.wsConnectStatus.entries());
           for (const d of data) {
@@ -223,16 +197,18 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
         }
       },
-      (message: FromWorkerMessage) => {
+      (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData);
       },
     );
+    worker.pullWsConnectStatus();
+    setWorker(worker);
   }, []);
 
   function onMsgHandler(data: any) {
     const msg = JSON.parse(data);
-    if (isEventResponse(msg)) {
-      const event = (msg as EventResponse)[2];
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
           const metadata: EventSetMetadataContent = JSON.parse(event.content);
@@ -253,26 +229,26 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.text_note:
-          setMsgList(oldArray => {
-            const replyToEventIds = oldArray
-              .map(e => getEventIdsFromETags(e.tags))
-              .reduce((prev, current) => prev.concat(current), []);
-
-            if (
-              !oldArray.map(e => e.id).includes(event.id) &&
-              (replyToEventIds.length === 0 ||
-                replyToEventIds.includes(event.id))
-            ) {
-              // only add un-duplicated and replyTo msg
-              const newItems = [...oldArray, event];
-              // sort by timestamp in asc
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? 1 : -1,
-              );
-              return sortedItems;
-            }
-            return oldArray;
-          });
+          {
+            setMsgList(oldArray => {
+              const replyToEventIds = oldArray
+                .map(e => getEventIdsFromETags(e.tags))
+                .reduce((prev, current) => prev.concat(current), []);
+              if (
+                !oldArray.map(e => e.id).includes(event.id) &&
+                (replyToEventIds.includes(event.id) || event.id === eventId)
+              ) {
+                // only add un-duplicated and replyTo msg
+                const newItems = [...oldArray, event];
+                // sort by timestamp in asc
+                const sortedItems = newItems.sort((a, b) =>
+                  a.created_at >= b.created_at ? 1 : -1,
+                );
+                return sortedItems;
+              }
+              return oldArray;
+            });
+          }
 
           // check if need to sub new user metadata
           const newPks: PublicKey[] = [];
@@ -302,14 +278,14 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    subMsgByEventIds([eventId]);
-  }, [Array.from(wsConnectStatus.values()), eventId]);
+    worker?.subMsgByEventIds([eventId]);
+  }, [wsConnectStatus, eventId]);
 
   useEffect(() => {
     if (unknownPks.length > 0) {
-      subMetadata(unknownPks);
+      worker?.subMetadata(unknownPks);
     }
-  }, [unknownPks, Array.from(wsConnectStatus.values())]);
+  }, [unknownPks, wsConnectStatus]);
 
   useEffect(() => {
     const replyToEventIds = msgList
@@ -325,16 +301,16 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
     }
     if (newIds.length > 0) {
-      subMsgByEventIds(newIds);
+      worker?.subMsgByEventIds(newIds);
     }
-  }, [Array.from(wsConnectStatus.values()), eventId, msgList.values()]);
+  }, [wsConnectStatus, eventId, msgList.length]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);
     if (msgIds.length > 0) {
-      subMsgByETags(msgIds);
+      worker?.subMsgByETags(msgIds);
     }
-  }, [msgList]);
+  }, [msgList.length]);
 
   const shortPublicKey = (key: PublicKey | undefined) => {
     if (key) {
@@ -454,6 +430,15 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
+            {isLoggedIn && (
+              <UserBox
+                pk={myPublicKey}
+                avatar={userMap.get(myPublicKey)?.picture}
+                name={userMap.get(myPublicKey)?.name}
+                about={userMap.get(myPublicKey)?.about}
+              />
+            )}
+            {!isLoggedIn && <UserRequiredLoginBox />}
             <LoginForm />
             <hr />
             <RelayManager />
