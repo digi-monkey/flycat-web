@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const styles = {
   postBox: {},
@@ -23,11 +23,20 @@ const styles = {
 };
 
 interface Props {
-  handleSubmitText: (e: React.FormEvent) => any;
+  onSubmitText: (text: string) => Promise<any>;
 }
 
-export const PubNoteTextarea: React.FC<Props> = ({ handleSubmitText }) => {
+export const PubNoteTextarea: React.FC<Props> = ({ onSubmitText }) => {
   const [text, setText] = useState('');
+
+  const handleSubmitText = async (formEvt: React.FormEvent) => {
+    formEvt.preventDefault();
+
+    await onSubmitText(text);
+
+    // clear the textarea
+    setText('');
+  };
 
   return (
     <div style={styles.postBox}>

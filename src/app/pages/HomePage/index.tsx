@@ -29,6 +29,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { NoticeBox } from 'app/components/layout/NoticeBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
+import ReplyButton from './ReplyBtn';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -162,7 +163,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     new Map(),
   );
 
-  const [text, setText] = useState('');
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
@@ -326,9 +326,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     worker?.subMetadata([myKeyPair.publicKey]);
   };
 
-  const handleSubmitText = async (formEvt: React.FormEvent) => {
-    formEvt.preventDefault();
-
+  const onSubmitText = async (text: string) => {
     if (myKeyPair.privateKey === '') {
       alert('set privateKey first!');
       return;
@@ -349,9 +347,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     // publish to all connected relays
     worker?.pubEvent(event);
-
-    // clear the textarea
-    setText('');
   };
 
   const shortPublicKey = (key: PublicKey | undefined) => {
@@ -368,7 +363,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <PubNoteTextarea handleSubmitText={handleSubmitText} />
+            <PubNoteTextarea onSubmitText={onSubmitText} />
 
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
@@ -447,10 +442,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             点赞
                           </button>
                         </span>
-                        {/**
-                         
-                         
-                         
                         <span style={styles.time}>
                           <ReplyButton
                             replyToEventId={msg.id}
@@ -458,8 +449,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                             myKeyPair={myKeyPair}
                           />
                         </span>
-
-                        */}
                       </Grid>
                     </Grid>
                   </li>
