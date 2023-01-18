@@ -57,6 +57,10 @@ const styles = {
   userProfileBtnGroup: {
     marginTop: '20px',
   },
+  simpleBtn: {
+    border: '0px',
+    background: 'white',
+  },
 };
 
 export interface UserBoxPros {
@@ -203,22 +207,30 @@ export const UserHeader = ({
         <Grid item xs={10}>
           <div style={styles.userProfileName}>{name}</div>
           <div style={styles.userProfileBtnGroup}>
-            <button onClick={followOrUnfollowOnClick}>
+            <button onClick={followOrUnfollowOnClick} style={styles.simpleBtn}>
               {followOrUnfollowText}
             </button>
             &nbsp;
+            {/**
+           
             <button
               onClick={() => {
                 alert('not impl 还没做');
-              }}
+              }
+              
+            }
+            style={styles.simpleBtn}
             >
-              私信他
+              私信
             </button>
             &nbsp;
+
+             */}
             <button
               onClick={() => {
                 window.open(`/blog/${pk}`, '_blank');
               }}
+              style={styles.simpleBtn}
             >
               ta的公众号
             </button>

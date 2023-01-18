@@ -433,6 +433,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           >
                             查看对话
                           </button>
+                          {/** 
                           <button
                             onClick={() => {
                               alert('not impl 还没做');
@@ -441,6 +442,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           >
                             点赞
                           </button>
+                          */}
                         </span>
                         <span style={styles.time}>
                           <ReplyButton
