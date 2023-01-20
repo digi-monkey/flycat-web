@@ -144,6 +144,14 @@ export const styles = {
     fontWeight: '500',
     color: 'red',
   },
+  userProfileAvatar: {
+    width: '60px',
+    height: '60px',
+  },
+  userProfileName: {
+    fontSize: '20px',
+    fontWeight: '500',
+  },
 };
 
 export type ContactList = Map<

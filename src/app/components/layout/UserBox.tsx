@@ -240,3 +240,53 @@ export const UserHeader = ({
     </div>
   );
 };
+
+export interface UserBlogHeaderProps {
+  pk: PublicKey;
+  avatar?: string;
+  name?: string;
+  siteName?: string;
+  siteDescription?: string;
+}
+export const UserBlogHeader = ({
+  pk,
+  avatar,
+  name,
+  siteName,
+  siteDescription,
+}: UserBlogHeaderProps) => {
+  return (
+    <div style={styles.userProfile}>
+      <Grid container style={{ background: '#F7F5EB' }}>
+        <Grid item xs={2}>
+          <img
+            style={styles.userProfileAvatar}
+            src={avatar || defaultAvatar}
+            alt=""
+          />
+        </Grid>
+        <Grid item xs={10}>
+          <div style={styles.userProfileName}>{siteName || '未知'}</div>
+          <div
+            style={{
+              fontSize: '14px',
+              color: 'gray',
+              marginTop: '5px',
+            }}
+          >
+            {siteDescription}
+          </div>
+          <div
+            style={{
+              fontSize: '14px',
+              marginTop: '6px',
+            }}
+          >
+            <a href={'/user/' + pk}>{name || '用户'}</a>
+            {siteName ? '的公众号' : '还没有公众号'}
+          </div>
+        </Grid>
+      </Grid>
+    </div>
+  );
+};

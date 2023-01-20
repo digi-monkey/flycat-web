@@ -32,6 +32,7 @@ import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
+import { UserBlogHeader } from 'app/components/layout/UserBox';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -428,32 +429,13 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <div style={styles.userProfile}>
-              <Grid container style={{ background: '#F7F5EB' }}>
-                <Grid item xs={2}>
-                  <img
-                    style={styles.userProfileAvatar}
-                    src={userMap.get(publicKey)?.picture}
-                    alt=""
-                  />
-                </Grid>
-                <Grid item xs={10}>
-                  <div style={styles.userProfileName}>
-                    {siteMetaData?.site_name || '未知'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '16px',
-                      color: 'gray',
-                      marginTop: '10px',
-                    }}
-                  >
-                    {userMap.get(publicKey)?.name}
-                    {siteMetaData?.site_name ? '的公众号' : '还没有公众号'}
-                  </div>
-                </Grid>
-              </Grid>
-            </div>
+            <UserBlogHeader
+              pk={publicKey}
+              avatar={userMap.get(publicKey)?.picture}
+              name={userMap.get(publicKey)?.name}
+              siteName={siteMetaData?.site_name}
+              siteDescription={siteMetaData?.site_description}
+            />
             <div style={styles.message}>
               {isOwner && siteMetaData && (
                 <>
