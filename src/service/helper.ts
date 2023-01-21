@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
 import { isEventETag, isEventPTag, PublicKey } from 'service/api';
+import { FlycatShareHeader } from './flycat-protocol';
 
 export function normalizeContent(text: string): {
   imageUrls: string[];
@@ -46,6 +47,19 @@ export function linkify(content: string): string {
   return content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
 }
 
+// only return the last url
+export function getShareContentUrl(text: string): string | null {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const match = text.match(urlRegex);
+  if (match) {
+    const matches = Array.from(match);
+    if (matches.length > 0) {
+      return matches[matches.length - 1];
+    }
+  }
+  return null;
+}
+
 export function isValidWssUrl(url: string): boolean {
   // First, check if the URL starts with "wss://"
   if (!url.startsWith('wss://')) {
@@ -81,6 +95,10 @@ export const getLastEventIdFromETags = (tags: any[]) => {
   } else {
     return null;
   }
+};
+
+export const getPkFromFlycatShareHeader = (header: FlycatShareHeader) => {
+  return header[4];
 };
 
 export const shortPublicKey = (key: PublicKey | undefined) => {

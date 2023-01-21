@@ -23,21 +23,141 @@ import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
 import NavHeader from 'app/components/layout/NavHeader';
-import { styles } from '../HomePage';
 import LoginForm from '../HomePage/LoginForm';
 import RelayManager from '../HomePage/RelayManager';
+import { ShareArticle } from 'app/components/layout/Share';
+import { connect } from 'react-redux';
+
+const styles = {
+  root: {
+    maxWidth: '900px',
+    margin: '0 auto',
+  },
+  title: {
+    color: 'black',
+    fontSize: '2em',
+    fontWeight: '380',
+    diplay: 'block',
+    width: '100%',
+    margin: '5px',
+  },
+  ul: {
+    padding: '10px',
+    background: 'white',
+    borderRadius: '5px',
+  },
+  li: {
+    display: 'inline',
+    padding: '10px',
+  },
+  content: {
+    margin: '5px 0px',
+    minHeight: '700px',
+    background: 'white',
+    borderRadius: '5px',
+  },
+  left: {
+    height: '100%',
+    minHeight: '700px',
+    padding: '20px',
+  },
+  right: {
+    minHeight: '700px',
+    backgroundColor: '#E1D7C6',
+    padding: '20px',
+  },
+  postBox: {},
+  postHintText: {
+    color: '#acdae5',
+    marginBottom: '5px',
+  },
+  postTextArea: {
+    resize: 'none' as const,
+    boxShadow: 'inset 0 0 1px #aaa',
+    border: '1px solid #b9bcbe',
+    width: '100%',
+    height: '80px',
+    fontSize: '14px',
+    padding: '5px',
+    overflow: 'auto',
+  },
+  btn: {
+    display: 'box',
+    textAlign: 'right' as const,
+  },
+  message: {
+    marginTop: '5px',
+  },
+  msgsUl: {
+    padding: '5px',
+  },
+  msgItem: {
+    display: 'block',
+    borderBottom: '1px dashed #ddd',
+    padding: '15px 0',
+  },
+  avatar: {
+    display: 'block',
+    width: '60px',
+    height: '60px',
+  },
+  msgWord: {
+    fontSize: '14px',
+    display: 'block',
+  },
+  userName: {
+    textDecoration: 'underline',
+    marginRight: '5px',
+  },
+  time: {
+    color: 'gray',
+    fontSize: '12px',
+    marginTop: '5px',
+  },
+  smallBtn: {
+    fontSize: '12px',
+    marginLeft: '5px',
+    border: 'none' as const,
+  },
+  connected: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: 'green',
+  },
+  disconnected: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: 'red',
+  },
+  userProfileAvatar: {
+    width: '60px',
+    height: '60px',
+  },
+  userProfileName: {
+    fontSize: '20px',
+    fontWeight: '500',
+  },
+};
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let siteMetaDataEvent: Event;
 let articlePageEvent: Event;
 
+const mapStateToProps = state => {
+  return {
+    isLoggedIn: state.loginReducer.isLoggedIn,
+    myPublicKey: state.loginReducer.publicKey,
+    myPrivateKey: state.loginReducer.privateKey,
+  };
+};
+
 interface UserParams {
   publicKey: string;
   articleId: string;
 }
 
-export function ArticleRead() {
+export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
   const { articleId, publicKey } = useParams<UserParams>();
 
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
@@ -48,6 +168,7 @@ export function ArticleRead() {
   const [article, setArticle] = useState<ArticleDataSchema>();
   const [siteMetaData, setSiteMetaData] = useState<SiteMetaDataContentSchema>();
   const [comments, setComments] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleCommentSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -120,6 +241,24 @@ export function ArticleRead() {
     }
   }
 
+  const onSubmitShare = (event: Event) => {
+    console.log('pub share event: ', event);
+    worker?.pubEvent(event);
+  };
+
+  const shareUrl = () => {
+    return (
+      ' ' +
+      window.location.protocol +
+      '//' +
+      window.location.host +
+      '/article/' +
+      publicKey +
+      '/' +
+      articleId
+    );
+  };
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
@@ -190,15 +329,36 @@ export function ArticleRead() {
                   </Grid>
                   <Grid item xs={8}>
                     <div>
-                      <span style={{ float: 'right', padding: '0px 5px' }}>
-                        收藏
+                      <span
+                        style={{
+                          float: 'right',
+                          padding: '0px 5px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => setIsShareModalOpen(true)}
+                      >
+                        转发到主页
                       </span>
-                      <span style={{ float: 'right', padding: '0px 5px' }}>
-                        分享
-                      </span>
-                      <span style={{ float: 'right', padding: '0px 5px' }}>
-                        转发
-                      </span>
+                      <ShareArticle
+                        suffix={' ' + shareUrl()}
+                        url={shareUrl()}
+                        title={article?.title}
+                        blogName={siteMetaData?.site_name || ''}
+                        blogAvatar={userMap.get(publicKey)?.picture}
+                        isOpen={isShareModalOpen}
+                        onClose={() => setIsShareModalOpen(false)}
+                        pk={publicKey}
+                        id={articleId}
+                        loginUser={
+                          isLoggedIn
+                            ? {
+                                publicKey: myPublicKey,
+                                privateKey: myPrivateKey,
+                              }
+                            : undefined
+                        }
+                        onSubmit={onSubmitShare}
+                      />
                       <span
                         style={{
                           float: 'right',
@@ -206,13 +366,7 @@ export function ArticleRead() {
                           cursor: 'pointer',
                         }}
                         onClick={() => {
-                          navigator.clipboard.writeText(
-                            window.location +
-                              '/article/' +
-                              publicKey +
-                              '/' +
-                              articleId,
-                          );
+                          navigator.clipboard.writeText(shareUrl());
                           const msg = document.getElementById('copy-msg');
                           if (msg) {
                             msg.style.display = 'block';
@@ -350,19 +504,11 @@ export function ArticleRead() {
                       fontSize: '14px',
                       color: 'gray',
                       float: 'right',
+                      cursor: 'pointer',
                     }}
+                    onClick={() => setIsShareModalOpen(true)}
                   >
-                    <span>点赞</span>
-                  </span>
-                  <span
-                    style={{
-                      margin: '0px 5px',
-                      fontSize: '14px',
-                      color: 'gray',
-                      float: 'right',
-                    }}
-                  >
-                    <span>转发</span>
+                    <span>转发到主页</span>
                   </span>
                 </div>
               </div>
@@ -410,3 +556,5 @@ export function ArticleRead() {
     </div>
   );
 }
+
+export default connect(mapStateToProps)(ArticleRead);

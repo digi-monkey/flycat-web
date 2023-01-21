@@ -221,12 +221,19 @@ export interface Filter {
   limit?: number;
 }
 
+export type Tags = (
+  | EventETag
+  | EventPTag
+  | EventContactListPTag
+  | string[]
+  | any[]
+)[];
 export interface Event {
   id: EventId;
   pubkey: PublicKey;
   created_at: number; // unix timestamp in seconds,
   kind: EventKind;
-  tags: (EventETag | EventPTag | EventContactListPTag | string[])[];
+  tags: Tags;
   content: string;
   sig: Signature;
 }
@@ -236,7 +243,7 @@ export interface RawEvent {
   pubkey: PublicKey;
   created_at: number; // unix timestamp in seconds,
   kind: EventKind;
-  tags: (EventETag | EventPTag | EventContactListPTag)[];
+  tags: Tags;
   content: string;
 }
 
@@ -245,13 +252,13 @@ export class RawEvent implements RawEvent {
   public pubkey: PublicKey;
   public created_at: number; // unix timestamp in seconds,
   public kind: EventKind;
-  public tags: (EventETag | EventPTag | EventContactListPTag)[];
+  public tags: Tags;
   public content: string;
 
   constructor(
     pubkey: PublicKey,
     kind: EventKind,
-    tags?: (EventETag | EventPTag | EventContactListPTag)[],
+    tags?: Tags,
     content?: string,
     created_at?: number,
   ) {
