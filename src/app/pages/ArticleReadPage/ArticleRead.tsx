@@ -451,6 +451,9 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                           {...props}
                         />
                       ),
+                      img: ({ node, ...props }) => (
+                        <img style={{ width: '100%' }} {...props} />
+                      ),
                     }}
                   >
                     {article?.content ?? ''}

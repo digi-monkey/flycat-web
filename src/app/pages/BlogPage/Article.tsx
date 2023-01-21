@@ -177,7 +177,14 @@ export function Article(props: ArticleProps) {
               发表{timeSince(article.created_at)}
             </span>
             <hr />
-            <ReactMarkdown className="heti heti--classic">
+            <ReactMarkdown
+              components={{
+                img: ({ node, ...props }) => (
+                  <img style={{ width: '100%' }} {...props} />
+                ),
+              }}
+              className="heti heti--classic"
+            >
               {article.content}
             </ReactMarkdown>
           </span>
