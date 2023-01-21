@@ -1,4 +1,6 @@
 import { Grid } from '@mui/material';
+import { useCommitId } from 'hooks/useCommitId';
+import { useVersion } from 'hooks/useVersion';
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { PrivateKey, PublicKey } from 'service/api';
@@ -13,9 +15,8 @@ const styles = {
     color: 'black',
     fontSize: '2em',
     fontWeight: '380',
-    diplay: 'block',
+    diplay: 'inline-flex;',
     width: '100%',
-    margin: '5px',
   },
   ul: {
     padding: '10px',
@@ -42,26 +43,27 @@ const mapStateToProps = state => {
 };
 
 export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
+  const version = useVersion() + '-' + useCommitId();
   return (
     <Grid container spacing={2}>
       <Grid item xs={4}>
-        <div style={styles.title}>
-          <img
-            src={logo}
-            style={{ width: '48px', height: '48px', marginRight: '5px' }}
-            alt=""
-          />
-          飞猫FlyCat{' '}
-          <span style={{ fontSize: '14px', color: 'red' }}>测试版</span>{' '}
+        <div>
+          <Grid container>
+            <Grid item xs={3} style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={logo} style={{ width: '60px' }} alt="" />
+            </Grid>
+            <Grid item xs={9}>
+              <span style={{ fontSize: '10px', color: 'gray' }}>
+                v{version}
+              </span>
+              <br />
+              <span style={styles.title}>飞猫FlyCat </span>
+            </Grid>
+          </Grid>
         </div>
-        <small style={{ color: 'black' }}>开源的 nostr 中文客户端</small>
-        &nbsp;
-        <small>
-          <a href="https://github.com/digi-monkey/flycat-web">Github</a>
-        </small>
       </Grid>
-      <Grid item xs={8}>
-        <div className="menu">
+      <Grid item xs={8} style={{ textAlign: 'right' }}>
+        <div className="menu" style={{ width: 'fit-content', float: 'right' }}>
           <ul style={styles.ul}>
             <li style={styles.li}>
               <a href="/">首页</a>
@@ -73,10 +75,13 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
               <a href={'/blog/' + myPublicKey}>公众号</a>
             </li>
             <li style={styles.li}>
-              <a href="">私信</a>
-            </li>
-            <li style={styles.li}>
-              <a href="">连接器</a>
+              <a
+                href="https://github.com/digi-monkey/flycat-web"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Github
+              </a>
             </li>
             <li style={styles.li}>
               <a href="">随便看看</a>
