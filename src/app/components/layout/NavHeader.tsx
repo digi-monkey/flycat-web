@@ -15,7 +15,7 @@ const styles = {
     color: 'black',
     fontSize: '2em',
     fontWeight: '380',
-    diplay: 'inline-flex;',
+    display: 'inline-flex',
     width: '100%',
   },
   ul: {

@@ -159,8 +159,8 @@ export const TextMsg = ({
             {replyTo.length > 0 && (
               <span>
                 {t('textMsg.replyTo')}{' '}
-                {replyTo.map(r => (
-                  <a style={styles.userName} href={'/user/' + r.pk}>
+                {replyTo.map((r, i) => (
+                  <a key={i} style={styles.userName} href={'/user/' + r.pk}>
                     @{r.name || shortPublicKey(r.pk!)}
                   </a>
                 ))}
@@ -206,8 +206,8 @@ export const ProfileTextMsg = ({
             {replyTo.length > 0 && (
               <span>
                 {t('textMsg.replyTo')}{' '}
-                {replyTo.map(r => (
-                  <a style={styles.userName} href={'/user/' + r.pk}>
+                {replyTo.map((r, i) => (
+                  <a key={i} style={styles.userName} href={'/user/' + r.pk}>
                     @{r.name || shortPublicKey(r.pk!)}
                   </a>
                 ))}
