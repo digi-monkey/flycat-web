@@ -16,11 +16,13 @@ import {
   RawEvent,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
-import LoginForm from '../HomePage/LoginForm';
+import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
-import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
-import { Content } from '../HomePage/Content';
-import ReplyButton from '../HomePage/ReplyBtn';
+import RelayManager, {
+  WsConnectStatus,
+} from '../../components/layout/RelayManager';
+import { Content } from '../../components/layout/Content';
+import ReplyButton from '../../components/layout/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';

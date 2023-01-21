@@ -1,5 +1,6 @@
 import { Grid } from '@mui/material';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { nip19Encode, Nip19DataType, PublicKey } from 'service/api';
 import defaultAvatar from '../../../resource/logo512.png';
 
@@ -78,6 +79,7 @@ export const UserBox = ({
   about,
   followCount,
 }: UserBoxPros) => {
+  const { t } = useTranslation();
   return (
     <>
       <div style={styles.userInfo}>
@@ -87,25 +89,31 @@ export const UserBox = ({
       </div>
 
       <div style={styles.publicKey}>
-        公钥：{nip19Encode(pk, Nip19DataType.Pubkey)}
+        {t('userBox.pubKey')}：{nip19Encode(pk, Nip19DataType.Pubkey)}
       </div>
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{followCount ?? '未知'}</span>
+          <span style={styles.numberCount}>
+            {followCount ?? t('util.unknown')}
+          </span>
           <span>
             <a style={styles.numberText} href={'/contact/' + pk}>
-              关注
+              {t('userBox.follow')}
             </a>
           </span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>未知</span>
-          <span style={styles.numberTextUnClickable}>被关注</span>
+          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberTextUnClickable}>
+            {t('userBox.followed')}
+          </span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>未知</span>
-          <span style={styles.numberTextUnClickable}>消息</span>
+          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberTextUnClickable}>
+            {t('userBox.noteMsg')}
+          </span>
         </Grid>
       </Grid>
     </>
@@ -113,28 +121,29 @@ export const UserBox = ({
 };
 
 export const UserRequiredLoginBox = () => {
+  const { t } = useTranslation();
   return (
     <>
       <div style={styles.userInfo}>
         <img style={styles.avatar} src={defaultAvatar} alt="user avatar" />
-        <span style={styles.name}>{'请先登录'}</span>
-        <span style={styles.about}>{'这个用户还没有写任何的自述'}</span>
+        <span style={styles.name}>{t('UserRequiredLoginBox.loginFirst')}</span>
+        <span style={styles.about}>{t('UserRequiredLoginBox.noAbout')}</span>
       </div>
 
-      <div style={styles.publicKey}>公钥：{'登陆后显示公钥'}</div>
+      <div style={styles.publicKey}>t('UserRequiredLoginBox.noPubKey')</div>
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>{0}</span>
-          <span>关注</span>
+          <span>{t('userBox.follow')}</span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>未知</span>
-          <span>被关注</span>
+          <span>{t('userBox.followed')}</span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>未知</span>
-          <span>消息</span>
+          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span>{t('userBox.noteMsg')}</span>
         </Grid>
       </Grid>
     </>
@@ -147,33 +156,40 @@ export interface UserProfileBoxProps {
   followCount?: number;
 }
 export const UserProfileBox = ({ pk, about, followCount }: UserBoxPros) => {
+  const { t } = useTranslation();
   return (
     <>
       <div style={styles.userInfo}>
-        <p>ta的自述：</p>
+        <p>{t('UserProfileBox.hisAbout')}：</p>
         <span style={styles.about}>{about}</span>
       </div>
 
       <div style={styles.publicKey}>
-        ta的公钥：{nip19Encode(pk, Nip19DataType.Pubkey)}
+        {t('UserProfileBox.hisPubKey')}：{nip19Encode(pk, Nip19DataType.Pubkey)}
       </div>
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{followCount ?? '未知'}</span>
+          <span style={styles.numberCount}>
+            {followCount ?? t('util.unknown')}
+          </span>
           <span>
             <a style={styles.numberText} href={'/contact/' + pk}>
-              ta的关注
+              {t('UserProfileBox.hisFollow')}
             </a>
           </span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>未知</span>
-          <span style={styles.numberTextUnClickable}>ta被关注</span>
+          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberTextUnClickable}>
+            {t('UserProfileBox.hisFollower')}
+          </span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>未知</span>
-          <span style={styles.numberTextUnClickable}>ta的消息</span>
+          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberTextUnClickable}>
+            {t('UserProfileBox.hisNoteMsg')}
+          </span>
         </Grid>
       </Grid>
     </>
@@ -194,6 +210,7 @@ export const UserHeader = ({
   followOrUnfollowOnClick,
   followOrUnfollowText,
 }: UserHeaderProps) => {
+  const { t } = useTranslation();
   return (
     <div style={styles.userProfile}>
       <Grid container style={{ background: '#F7F5EB' }}>
@@ -211,28 +228,13 @@ export const UserHeader = ({
               {followOrUnfollowText}
             </button>
             &nbsp;
-            {/**
-           
-            <button
-              onClick={() => {
-                alert('not impl 还没做');
-              }
-              
-            }
-            style={styles.simpleBtn}
-            >
-              私信
-            </button>
-            &nbsp;
-
-             */}
             <button
               onClick={() => {
                 window.open(`/blog/${pk}`, '_blank');
               }}
               style={styles.simpleBtn}
             >
-              ta的公众号
+              {t('UserHeader.hisBlog')}
             </button>
           </div>
         </Grid>
@@ -255,6 +257,7 @@ export const UserBlogHeader = ({
   siteName,
   siteDescription,
 }: UserBlogHeaderProps) => {
+  const { t } = useTranslation();
   return (
     <div style={styles.userProfile}>
       <Grid container style={{ background: '#F7F5EB' }}>
@@ -266,7 +269,9 @@ export const UserBlogHeader = ({
           />
         </Grid>
         <Grid item xs={10}>
-          <div style={styles.userProfileName}>{siteName || '未知'}</div>
+          <div style={styles.userProfileName}>
+            {siteName || t('util.unknown')}
+          </div>
           <div
             style={{
               fontSize: '14px',
@@ -282,8 +287,10 @@ export const UserBlogHeader = ({
               marginTop: '6px',
             }}
           >
-            <a href={'/user/' + pk}>{name || '用户'}</a>
-            {siteName ? '的公众号' : '还没有公众号'}
+            <a href={'/user/' + pk}>{name || t('UserBlogHeader.noUserName')}</a>
+            {siteName
+              ? t('UserBlogHeader.hisBlog')
+              : t('UserBlogHeader.noBlog')}
           </div>
         </Grid>
       </Grid>

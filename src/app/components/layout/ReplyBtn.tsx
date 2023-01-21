@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   EventETag,
   EventId,
@@ -40,6 +41,7 @@ function ReplyButton({
   replyToPublicKey: PublicKey;
   myKeyPair?: KeyPair;
 }) {
+  const { t } = useTranslation();
   const [showPopup, setShowPopup] = useState(false);
   const [textareaValue, setTextareaValue] = useState('');
   const [worker, setWorker] = useState<CallWorker>();
@@ -95,7 +97,7 @@ function ReplyButton({
   return (
     <>
       <button style={styles.smallBtn} onClick={handleClick}>
-        回复
+        {t('replyBtn.reply')}
       </button>
       {showPopup && (
         <form onSubmit={handleSubmit}>
@@ -107,7 +109,7 @@ function ReplyButton({
             />
           </label>
           <button style={styles.smallBtn} type="submit" disabled={!myKeyPair}>
-            提交
+            {t('replyBtn.submit')}
           </button>
         </form>
       )}

@@ -19,7 +19,7 @@ import { ProfilePage } from './pages/ProfilePage/Loadable';
 import { EventPage } from './pages/EventPage/Loadable';
 import { BlogPage } from './pages/BlogPage/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
-import RelayManager from './pages/HomePage/RelayManager';
+import RelayManager from './components/layout/RelayManager';
 import ArticleRead from './pages/ArticleReadPage/ArticleRead';
 
 export function App() {

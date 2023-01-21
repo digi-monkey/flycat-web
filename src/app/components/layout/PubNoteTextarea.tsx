@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const styles = {
   postBox: {},
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export const PubNoteTextarea: React.FC<Props> = ({ onSubmitText }) => {
+  const { t } = useTranslation();
   const [text, setText] = useState('');
 
   const handleSubmitText = async (formEvt: React.FormEvent) => {
@@ -41,14 +43,14 @@ export const PubNoteTextarea: React.FC<Props> = ({ onSubmitText }) => {
   return (
     <div style={styles.postBox}>
       <form onSubmit={handleSubmitText}>
-        <div style={styles.postHintText}>你在想什么？</div>
+        <div style={styles.postHintText}>{t('pubNoteBox.hintText')}</div>
         <textarea
           style={styles.postTextArea}
           value={text}
           onChange={event => setText(event.target.value)}
         ></textarea>
         <div style={styles.btn}>
-          <button type="submit">发送</button>
+          <button type="submit">{t('pubNoteBox.submit')}</button>
         </div>
       </form>
     </div>

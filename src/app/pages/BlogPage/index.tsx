@@ -13,9 +13,11 @@ import {
   Event,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
-import LoginForm from '../HomePage/LoginForm';
+import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
-import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
+import RelayManager, {
+  WsConnectStatus,
+} from '../../components/layout/RelayManager';
 import { useParams } from 'react-router-dom';
 import {
   ArticleDataSchema,
