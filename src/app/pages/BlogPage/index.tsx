@@ -12,7 +12,7 @@ import {
   PetName,
   Event,
 } from 'service/api';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, {
@@ -35,6 +35,7 @@ import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
+import { ArticleMsg } from 'app/components/layout/ArticleMsg';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -446,39 +447,16 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               )}
               <ul style={styles.msgsUl}>
                 {articles.map((article, index) => (
-                  <li key={index} style={styles.msgItem}>
-                    <Grid container>
-                      <Grid item xs={12}>
-                        <span style={styles.msgWord}>
-                          {/* 
-    <a
-                            style={styles.userName}
-                            href={
-                              '/article/' + article.page_id + '/' + article.id
-                            }
-                          >
-                            {article.title}
-                          </a>
-  */}
-
-                          <Article
-                            isOwner={isOwner}
-                            publicKey={publicKey}
-                            author={userMap.get(publicKey)}
-                            siteMetaData={siteMetaData!}
-                            article={article}
-                            onUpdateSubmit={submitUpdateArticle}
-                            onRefreshArticlePage={() => {
-                              subArticlePages(siteMetaData!);
-                            }}
-                          />
-                        </span>
-                        <span style={styles.time}>
-                          {timeSince(article.created_at)}
-                        </span>
-                      </Grid>
-                    </Grid>
-                  </li>
+                  <ArticleMsg
+                    key={index}
+                    isOwner={isOwner}
+                    author={userMap.get(publicKey)!}
+                    publicKey={publicKey}
+                    siteMetaData={siteMetaData!}
+                    article={article}
+                    submitUpdateArticle={submitUpdateArticle}
+                    subArticlePages={subArticlePages}
+                  />
                 ))}
               </ul>
             </div>

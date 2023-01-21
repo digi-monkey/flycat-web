@@ -4,10 +4,11 @@ import {
   ArticleDataSchema,
   SiteMetaDataContentSchema,
 } from 'service/flycat-protocol';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import { EventSetMetadataContent, PublicKey } from 'service/api';
 import ReactMarkdown from 'react-markdown';
 import PostUpdate from './PostUpdate';
+import { useTranslation } from 'react-i18next';
 
 export interface ArticleProps {
   article: ArticleDataSchema & { page_id: number };
@@ -31,6 +32,8 @@ export function Article(props: ArticleProps) {
     isOwner,
     onRefreshArticlePage,
   } = props;
+
+  const { t } = useTranslation();
   const [readModalIsOpen, setReadModalIsOpen] = useState(false);
 
   const [updateModalIsOpen, seUpdateModalIsOpen] = useState(false);
@@ -92,7 +95,7 @@ export function Article(props: ArticleProps) {
       {isOwner && (
         <span style={{ float: 'right' as const }}>
           <a href="#" onClick={() => seUpdateModalIsOpen(true)}>
-            修改
+            {t('blog.edit')}
           </a>
           &nbsp;
           <a
@@ -146,9 +149,9 @@ export function Article(props: ArticleProps) {
           }}
         >
           <span style={{ marginTop: '35px' }}>
-            <span style={{ float: 'right', padding: '0px 5px' }}>转发</span>
-            <span style={{ float: 'right', padding: '0px 5px' }}>收藏</span>
-            <span style={{ float: 'right', padding: '0px 5px' }}>分享</span>
+            <span style={{ float: 'right', padding: '0px 5px' }}>
+              {t('blog.rePostShare')}
+            </span>
             <span style={{ float: 'right', padding: '0px 5px' }}>🔗</span>
           </span>
         </div>
@@ -162,19 +165,11 @@ export function Article(props: ArticleProps) {
                 marginTop: '5px',
               }}
             >
-              <span
-                style={{
-                  background: 'gray',
-                  color: 'white',
-                  marginRight: '5px',
-                }}
-              >
-                原创
-              </span>
               <a href={'/user/' + publicKey}>
                 <span style={{ marginRight: '5px' }}>{author?.name}</span>
               </a>
-              发表{timeSince(article.created_at)}
+              {t('blog.postOn') + ' '}
+              {useTimeSince(article.created_at)}
             </span>
             <hr />
             <ReactMarkdown
@@ -217,8 +212,8 @@ export function Article(props: ArticleProps) {
             <span
               style={{ margin: '0px 5px', fontSize: '14px', color: 'gray' }}
             >
-              上次更新
-              {timeSince(article.updated_at)}
+              {t('blog.lastUpdatedAt') + ' '}
+              {useTimeSince(article.updated_at)}
             </span>
             <span
               style={{
@@ -227,9 +222,7 @@ export function Article(props: ArticleProps) {
                 color: 'gray',
                 float: 'right',
               }}
-            >
-              <span>点赞</span>
-            </span>
+            ></span>
             <span
               style={{
                 margin: '0px 5px',
@@ -238,7 +231,7 @@ export function Article(props: ArticleProps) {
                 float: 'right',
               }}
             >
-              <span>转发</span>
+              <span>{t('blog.rePostShare')}</span>
             </span>
           </div>
         </div>
@@ -257,7 +250,7 @@ export function Article(props: ArticleProps) {
               value={comments}
               onChange={e => setComments(e.target.value)}
             />
-            <button type="submit">发布</button>
+            <button type="submit">{t('blog.submit')}</button>
           </form>
         </div>
       </ReactModal>

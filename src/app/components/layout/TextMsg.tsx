@@ -3,9 +3,9 @@ import { Content } from 'app/components/layout/Content';
 import ReplyButton from 'app/components/layout/ReplyBtn';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { PrivateKey, PublicKey, Tags } from 'service/api';
-import { getLastPubKeyFromPTags, shortPublicKey } from 'service/helper';
-import { timeSince } from 'utils/helper';
+import { PrivateKey, PublicKey } from 'service/api';
+import { shortPublicKey } from 'service/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
 const styles = {
   root: {
@@ -168,7 +168,54 @@ export const TextMsg = ({
             )}
             <Content text={content} />
           </span>
-          <span style={styles.time}>{timeSince(createdAt)}</span>
+          <span style={styles.time}>{useTimeSince(createdAt)}</span>
+          <span style={styles.time}>
+            <ShowThread eventId={eventId} />
+          </span>
+          <span style={styles.time}>
+            <ReplyButton
+              replyToEventId={eventId}
+              replyToPublicKey={pk}
+              myKeyPair={keyPair}
+            />
+          </span>
+        </Grid>
+      </Grid>
+    </li>
+  );
+};
+
+export const ProfileTextMsg = ({
+  replyTo,
+  name,
+  pk,
+  content,
+  createdAt,
+  eventId,
+  keyPair,
+}: Omit<TextMsgProps, 'avatar'>) => {
+  const { t } = useTranslation();
+  return (
+    <li style={styles.msgItem}>
+      <Grid container>
+        <Grid item xs={12}>
+          <span style={styles.msgWord}>
+            <a style={styles.userName} href={'/user/' + pk}>
+              @{name}
+            </a>
+            {replyTo.length > 0 && (
+              <span>
+                {t('textMsg.replyTo')}{' '}
+                {replyTo.map(r => (
+                  <a style={styles.userName} href={'/user/' + r.pk}>
+                    @{r.name || shortPublicKey(r.pk!)}
+                  </a>
+                ))}
+              </span>
+            )}
+            <Content text={content} />
+          </span>
+          <span style={styles.time}>{useTimeSince(createdAt)}</span>
           <span style={styles.time}>
             <ShowThread eventId={eventId} />
           </span>

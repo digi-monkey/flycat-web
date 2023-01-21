@@ -2,6 +2,13 @@
   "util": {
     "unknown": "未知"
   },
+  "timeSince": {
+    "seconds": "秒钟前",
+    "minutes": "分钟前",
+    "hours": "小时前",
+    "days": "天前",
+    "month": "月前"
+  },
   "nav": {
     "menu": {
       "home": "首页",
@@ -80,5 +87,38 @@
     "title": "交谈消息",
     "noArticleShareTitle": "未知标题",
     "noBlogShareName": "未知公众号"
+  },
+  "blog": {
+    "edit": "修改",
+    "postOn": "发表",
+    "lastUpdatedAt": "上次更新",
+    "rePostShare": "转发到主页",
+    "submit": "发布"
+  },
+  "postArticle": {
+    "titlePlaceHolder": "标题",
+    "contentPlaceHolder": "正文..",
+    "submit": "发布"
+  },
+  "postUpdate": {
+    "submit": "发布",
+    "cancel": "取消"
+  },
+  "siteMeta": {
+    "noBlog": "这个用户还没有公众号",
+    "createNewBlog": "创建一个新公众号",
+    "namePlaceHolder": "公众号名称",
+    "aboutPlaceHolder": "公众号介绍描述",
+    "submit": "创建"
+  },
+  "articleRead": {
+    "article": "的文章",
+    "post": "发表",
+    "rePostShare": "转发到主页",
+    "lastUpdatedAt": "上次更新",
+    "submit": "发布"
+  },
+  "contact": {
+    "noAbout": "暂无介绍"
   }
 }

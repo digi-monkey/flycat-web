@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SiteMetaDataContentSchema } from 'service/flycat-protocol';
 
 export interface SiteMetaProps {
@@ -8,6 +9,7 @@ export interface SiteMetaProps {
 }
 
 export function SiteMeta(props: SiteMetaProps) {
+  const { t } = useTranslation();
   const { isOwner, siteMetaData, onSubmit } = props;
 
   return (
@@ -19,7 +21,7 @@ export function SiteMeta(props: SiteMetaProps) {
         </>
       )}
 
-      {!siteMetaData && !isOwner && <span>这个用户还没有公众号</span>}
+      {!siteMetaData && !isOwner && <span>{t('siteMeta.noBlog')}</span>}
 
       {!siteMetaData && isOwner && <SiteCreateForm onSubmit={onSubmit} />}
     </>
@@ -31,6 +33,7 @@ export interface SiteCreateFormProps {
 }
 
 const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
+  const { t } = useTranslation();
   const [siteName, setSiteName] = useState('');
   const [siteDescription, setSiteDescription] = useState('');
 
@@ -44,12 +47,12 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h3>创建一个新公众号</h3>
+      <h3>{t('siteMeta.createNewBlog')}</h3>
       <label>
         <input
           type="text"
           value={siteName}
-          placeholder="公众号名称"
+          placeholder={t('siteMeta.namePlaceHolder')}
           onChange={e => setSiteName(e.target.value)}
         />
       </label>
@@ -58,12 +61,12 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
         <input
           type="text"
           value={siteDescription}
-          placeholder="公众号介绍描述"
+          placeholder={t('siteMeta.aboutPlaceHolder')}
           onChange={e => setSiteDescription(e.target.value)}
         />
       </label>
       <br />
-      <button type="submit">创建</button>
+      <button type="submit">{t('siteMeta.submit')}</button>
     </form>
   );
 };

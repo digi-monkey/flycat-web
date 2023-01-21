@@ -15,7 +15,7 @@ import {
   EventId,
   EventTags,
 } from 'service/api';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, {

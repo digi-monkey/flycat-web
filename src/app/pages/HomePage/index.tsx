@@ -15,7 +15,7 @@ import {
   RawEvent,
   isEventPTag,
 } from 'service/api';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
@@ -45,6 +45,7 @@ import {
   isFlycatShareHeader,
 } from 'service/flycat-protocol';
 import { ShareMsg } from 'app/components/layout/ShareMsg';
+import { useTranslation } from 'react-i18next';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -182,6 +183,7 @@ export interface KeyPair {
 }
 
 export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { t } = useTranslation();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
@@ -402,9 +404,9 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                       t => t[0] === CacheIdentifier,
                     );
                     let articleCache = {
-                      title: '未知标题',
+                      title: t('thread.noArticleShareTitle'),
                       url: '',
-                      blogName: '未知公众号',
+                      blogName: t('thread.noBlogShareName'),
                       blogPicture: '',
                     };
                     if (cacheHeaders.length > 0) {
@@ -426,7 +428,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                         userAvatar={userMap.get(msg.pubkey)?.picture}
                         username={userMap.get(msg.pubkey)?.name}
                         createdAt={msg.created_at}
-                        blogName={articleCache.blogName || '公众号'} //todo: fallback to query title
+                        blogName={articleCache.blogName} //todo: fallback to query title
                         blogAvatar={
                           articleCache.blogPicture ||
                           userMap.get(blogPk)?.picture

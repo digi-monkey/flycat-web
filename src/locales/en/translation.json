@@ -2,6 +2,13 @@
   "util": {
     "unknown": "unknown"
   },
+  "timeSince": {
+    "seconds": "seconds ago",
+    "minutes": "minutes ago",
+    "hours": "hours ago",
+    "days": "days ago",
+    "month": "month ago"
+  },
   "nav": {
     "menu": {
       "home": "Home",
@@ -80,5 +87,38 @@
     "title": "Thread",
     "noArticleShareTitle": "unknown article title",
     "noBlogShareName": "unknown blog name"
+  },
+  "blog": {
+    "edit": "edit",
+    "postOn": "submit",
+    "lastUpdatedAt": "last updated at",
+    "rePostShare": "share to feed",
+    "submit": "submit"
+  },
+  "postArticle": {
+    "titlePlaceHolder": "title",
+    "contentPlaceHolder": "content..",
+    "submit": "submit"
+  },
+  "postUpdate": {
+    "submit": "submit",
+    "cancel": "cancel"
+  },
+  "siteMeta": {
+    "noBlog": "the user has no blog",
+    "createNewBlog": "create a new blog",
+    "namePlaceHolder": "blog name",
+    "aboutPlaceHolder": "blog description",
+    "submit": "submit"
+  },
+  "articleRead": {
+    "article": "'s article",
+    "post": "posted",
+    "rePostShare": "share to feed",
+    "lastUpdatedAt": "last updated at",
+    "submit": "submit"
+  },
+  "contact": {
+    "noAbout": "no about"
   }
 }

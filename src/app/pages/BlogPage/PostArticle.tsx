@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onSubmit?: (FormData) => any;
@@ -10,6 +11,8 @@ export interface ArticlePostForm {
 }
 
 const PostArticle: React.FC<Props> = ({ onSubmit }) => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState<ArticlePostForm>({
     title: '',
     content: '',
@@ -44,7 +47,7 @@ const PostArticle: React.FC<Props> = ({ onSubmit }) => {
         type="text"
         id="title"
         name="title"
-        placeholder="标题"
+        placeholder={t('postArticle.titlePlaceHolder')}
         value={formData.title}
         onChange={handleChange}
         style={{ width: '100%' }}
@@ -53,13 +56,13 @@ const PostArticle: React.FC<Props> = ({ onSubmit }) => {
       <textarea
         id="content"
         name="content"
-        placeholder="正文.."
+        placeholder={t('postArticle.contentPlaceHolder')}
         value={formData.content}
         onChange={handleChange}
         style={{ width: '100%', minHeight: '200px' }}
       />
       <br />
-      <button type="submit">发布</button>
+      <button type="submit">{t('postArticle.submit')}</button>
     </form>
   );
 };

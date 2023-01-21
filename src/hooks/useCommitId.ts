@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import execa from 'execa';
 
 export function useCommitId(): string {
   const [commitId, setCommitId] = useState<string>('');

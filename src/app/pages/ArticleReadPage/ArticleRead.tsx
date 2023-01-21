@@ -7,7 +7,7 @@ import {
   SiteMetaDataContentSchema,
   validateArticlePageKind,
 } from 'service/flycat-protocol';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import {
   Event,
   EventSetMetadataContent,
@@ -27,6 +27,7 @@ import LoginForm from '../../components/layout/LoginForm';
 import RelayManager from '../../components/layout/RelayManager';
 import { ShareArticle } from 'app/components/layout/Share';
 import { connect } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 const styles = {
   root: {
@@ -158,6 +159,7 @@ interface UserParams {
 }
 
 export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
+  const { t } = useTranslation();
   const { articleId, publicKey } = useParams<UserParams>();
 
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
@@ -172,7 +174,7 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
 
   const handleCommentSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    alert('not supported还没做');
+    alert('not supported');
   };
 
   function onMsgHandler(res: any) {
@@ -325,7 +327,10 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
               >
                 <Grid container style={{ color: 'gray', fontSize: '12px' }}>
                   <Grid item xs={4}>
-                    <div>{siteMetaData?.site_name}的文章</div>
+                    <div>
+                      {siteMetaData?.site_name}
+                      {t('articleRead.article')}
+                    </div>
                   </Grid>
                   <Grid item xs={8}>
                     <div>
@@ -337,7 +342,7 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                         }}
                         onClick={() => setIsShareModalOpen(true)}
                       >
-                        转发到主页
+                        {t('articleRead.rePostShare')}
                       </span>
                       <ShareArticle
                         suffix={' ' + shareUrl()}
@@ -420,7 +425,8 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                           {userMap.get(publicKey)?.name}
                         </span>
                       </a>
-                      {timeSince(article?.created_at ?? 10000)}发表
+                      {useTimeSince(article?.created_at!) + ' '}
+                      {t('articleRead.post')}
                     </div>
                   </div>
 
@@ -498,8 +504,8 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                       color: 'gray',
                     }}
                   >
-                    上次更新
-                    {timeSince(article?.updated_at ?? 10000)}
+                    {t('articleRead.lastUpdatedAt') + ' '}
+                    {useTimeSince(article?.updated_at ?? 10000)}
                   </span>
                   <span
                     style={{
@@ -511,7 +517,7 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                     }}
                     onClick={() => setIsShareModalOpen(true)}
                   >
-                    <span>转发到主页</span>
+                    <span>{t('articleRead.rePostShare')}</span>
                   </span>
                 </div>
               </div>
@@ -530,14 +536,14 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                     value={comments}
                     onChange={e => setComments(e.target.value)}
                   />
-                  <button type="submit">发布</button>
+                  <button type="submit">{t('articleRead.submit')}</button>
                 </form>
               </div>
             </div>
           </Grid>
           <Grid item xs={4} style={styles.right}>
             <div style={styles.userProfileName}>
-              {siteMetaData?.site_name || '未知'}
+              {siteMetaData?.site_name || t('util.unknown')}
             </div>
             <div
               style={{

@@ -27,6 +27,7 @@ import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import defaultAvatar from '../../../resource/logo512.png';
 import { UserBox } from 'app/components/layout/UserBox';
+import { useTranslation } from 'react-i18next';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -176,6 +177,7 @@ interface UserParams {
 }
 
 export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -366,7 +368,9 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                               </a>
                             </span>
                             <br />
-                            <Content text={user.about || '暂无介绍'} />
+                            <Content
+                              text={user.about || t('contact.noAbout')}
+                            />
                           </span>
                         </Grid>
                       </Grid>

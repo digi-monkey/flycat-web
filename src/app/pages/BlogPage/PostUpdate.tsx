@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from 'react-modal';
 
 interface PostUpdateProps {
@@ -16,6 +17,7 @@ const PostUpdate: React.FC<PostUpdateProps> = ({
   title,
   content,
 }) => {
+  const { t } = useTranslation();
   const [newTitle, setNewTitle] = useState(title);
   const [newContent, setNewContent] = useState(content);
 
@@ -69,10 +71,10 @@ const PostUpdate: React.FC<PostUpdateProps> = ({
               marginBottom: '10px',
             }}
           />
-          <button type="submit">发布</button>
+          <button type="submit">{t('postUpdate.submit')}</button>
           &nbsp;
           <button type="button" onClick={onCancel}>
-            取消
+            {t('postUpdate.cancel')}
           </button>
         </form>
       </div>

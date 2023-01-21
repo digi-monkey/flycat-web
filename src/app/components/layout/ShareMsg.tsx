@@ -2,10 +2,9 @@ import { Grid } from '@mui/material';
 import { ArticleShareContent, Content } from 'app/components/layout/Content';
 import ReplyButton from 'app/components/layout/ReplyBtn';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { PrivateKey, PublicKey } from 'service/api';
 import { getShareContentUrl } from 'service/helper';
-import { timeSince } from 'utils/helper';
+import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
 
 const styles = {
@@ -151,8 +150,9 @@ export const ShareMsg = ({
   blogName,
   articleTitle,
 }: ShareMsgProps) => {
-  const { t } = useTranslation();
   const contentUrl = getShareContentUrl(content);
+
+  const time = useTimeSince(createdAt);
 
   if (contentUrl == null) {
     return <div>unsupported type!</div>;
@@ -178,7 +178,7 @@ export const ShareMsg = ({
                 avatar={blogAvatar}
               />
             </span>
-            <span style={styles.time}>{timeSince(createdAt)}</span>
+            <span style={styles.time}>{time}</span>
             <span style={styles.time}>
               <ShowThread eventId={eventId} />
             </span>
