@@ -1,3 +1,84 @@
 {
-  "title": "welcome"
+  "util": {
+    "unknown": "unknown"
+  },
+  "nav": {
+    "menu": {
+      "home": "Home",
+      "profile": "Profile",
+      "blog": "Blog",
+      "github": "Github",
+      "globalFeed": "Global",
+      "setting": "Setting",
+      "signOut": "SignOut",
+      "signIn": "SignIn"
+    }
+  },
+  "noticeBox": {
+    "blog": "blog message",
+    "mention": "@mentioned By",
+    "msg": "interactive Message"
+  },
+  "pubNoteBox": {
+    "hintText": "what's up",
+    "submit": "send"
+  },
+  "share": {
+    "rePostShare": "rePost To Home Page",
+    "cancel": "cancel"
+  },
+  "showThread": {
+    "open": "view thread"
+  },
+  "textMsg": {
+    "replyTo": "reply to"
+  },
+  "userBox": {
+    "pubKey": "publicKey",
+    "follow": "follow",
+    "followed": "followedBy",
+    "noteMsg": "message"
+  },
+  "UserRequiredLoginBox": {
+    "loginFirst": "please Login First",
+    "noAbout": "this User Has Not Written Any Self Description",
+    "noPubKey": "publicKey:{'login To View PublicKey'}"
+  },
+  "UserProfileBox": {
+    "hisAbout": "their about",
+    "hisPubKey": "their PublicKey",
+    "hisFollow": "their Follow",
+    "hisFollower": "they Are Followed By",
+    "hisNoteMsg": "their Messages"
+  },
+  "UserHeader": {
+    "hisBlog": "their blog"
+  },
+  "UserBlogHeader": {
+    "noUserName": "user",
+    "hisBlog": "'s blog",
+    "noBlog": "has no blog yet"
+  },
+  "relayManager": {
+    "title": "Relays"
+  },
+  "relayAdder": {
+    "add": "add"
+  },
+  "replyBtn": {
+    "reply": "reply",
+    "submit": "submit"
+  },
+  "loginForm": {
+    "welcome": "Welcome 👏",
+    "signOut": "Sign Out",
+    "pubKey": "PublicKey",
+    "privKey": "PrivateKey",
+    "signIn": "Sign In"
+  },
+  "thread": {
+    "title": "Thread",
+    "noArticleShareTitle": "unknown article title",
+    "noBlogShareName": "unknown blog name"
+  }
 }

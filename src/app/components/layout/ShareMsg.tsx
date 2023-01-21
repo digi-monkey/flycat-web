@@ -1,14 +1,12 @@
 import { Grid } from '@mui/material';
-import { ArticleShareContent, Content } from 'app/pages/HomePage/Content';
-import ReplyButton from 'app/pages/HomePage/ReplyBtn';
+import { ArticleShareContent, Content } from 'app/components/layout/Content';
+import ReplyButton from 'app/components/layout/ReplyBtn';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PrivateKey, PublicKey } from 'service/api';
-import {
-  getLastPubKeyFromPTags,
-  getShareContentUrl,
-  shortPublicKey,
-} from 'service/helper';
+import { getShareContentUrl } from 'service/helper';
 import { timeSince } from 'utils/helper';
+import { ShowThread } from './ShowThread';
 
 const styles = {
   root: {
@@ -153,6 +151,7 @@ export const ShareMsg = ({
   blogName,
   articleTitle,
 }: ShareMsgProps) => {
+  const { t } = useTranslation();
   const contentUrl = getShareContentUrl(content);
 
   if (contentUrl == null) {
@@ -181,12 +180,7 @@ export const ShareMsg = ({
             </span>
             <span style={styles.time}>{timeSince(createdAt)}</span>
             <span style={styles.time}>
-              <button
-                onClick={() => window.open(`/event/${eventId}`, '_blank')}
-                style={styles.smallBtn}
-              >
-                查看对话
-              </button>
+              <ShowThread eventId={eventId} />
             </span>
             <span style={styles.time}>
               <ReplyButton

@@ -1,10 +1,12 @@
 import { Grid } from '@mui/material';
-import { Content } from 'app/pages/HomePage/Content';
-import ReplyButton from 'app/pages/HomePage/ReplyBtn';
+import { Content } from 'app/components/layout/Content';
+import ReplyButton from 'app/components/layout/ReplyBtn';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PrivateKey, PublicKey, Tags } from 'service/api';
 import { getLastPubKeyFromPTags, shortPublicKey } from 'service/helper';
 import { timeSince } from 'utils/helper';
+import { ShowThread } from './ShowThread';
 const styles = {
   root: {
     maxWidth: '900px',
@@ -142,6 +144,7 @@ export const TextMsg = ({
   eventId,
   keyPair,
 }: TextMsgProps) => {
+  const { t } = useTranslation();
   return (
     <li style={styles.msgItem}>
       <Grid container>
@@ -155,7 +158,7 @@ export const TextMsg = ({
             </a>
             {replyTo.length > 0 && (
               <span>
-                回复{' '}
+                {t('textMsg.replyTo')}{' '}
                 {replyTo.map(r => (
                   <a style={styles.userName} href={'/user/' + r.pk}>
                     @{r.name || shortPublicKey(r.pk!)}
@@ -167,12 +170,7 @@ export const TextMsg = ({
           </span>
           <span style={styles.time}>{timeSince(createdAt)}</span>
           <span style={styles.time}>
-            <button
-              onClick={() => window.open(`/event/${eventId}`, '_blank')}
-              style={styles.smallBtn}
-            >
-              查看对话
-            </button>
+            <ShowThread eventId={eventId} />
           </span>
           <span style={styles.time}>
             <ReplyButton

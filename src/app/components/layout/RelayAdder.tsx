@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { isValidWssUrl } from 'service/helper';
 import { ADD_URL_TO_PUBLIC_KEY } from '../../../store/relayReducer';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 const RelayAdder: React.FC<Props> = ({ publicKey, addUrlToPublicKey }) => {
+  const { t } = useTranslation();
   const [url, setUrl] = useState('');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +45,7 @@ const RelayAdder: React.FC<Props> = ({ publicKey, addUrlToPublicKey }) => {
           onChange={handleChange}
         />
       </label>
-      &nbsp;<button type="submit">添加</button>
+      &nbsp;<button type="submit">{t('relayAdder.add')}</button>
     </form>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const styles = {
   simpleUl: {
@@ -12,21 +13,17 @@ const styles = {
 };
 
 export const NoticeBox = () => {
+  const { t } = useTranslation();
   return (
     <ul style={styles.simpleUl}>
       <li style={styles.menu}>
-        <a href="http://">订阅号消息</a>
+        <a href="http://">{t('noticeBox.blog')}</a>
       </li>
       <li style={styles.menu}>
-        <a href="http://">@提到我的</a>
+        <a href="http://">{t('noticeBox.mention')}</a>
       </li>
-      {/** 
       <li style={styles.menu}>
-        <a href="http://">私信</a>
-      </li>
-      */}
-      <li style={styles.menu}>
-        <a href="http://">互动消息</a>
+        <a href="http://">{t('noticeBox.msg')}</a>
       </li>
     </ul>
   );

@@ -1,9 +1,9 @@
 import { Grid } from '@mui/material';
 import { useCommitId } from 'hooks/useCommitId';
 import { useVersion } from 'hooks/useVersion';
-import React, { useState } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
-import { PrivateKey, PublicKey } from 'service/api';
+import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
 
 const styles = {
@@ -29,11 +29,6 @@ const styles = {
   },
 };
 
-interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 const mapStateToProps = state => {
   return {
     isLoggedIn: state.loginReducer.isLoggedIn,
@@ -43,6 +38,7 @@ const mapStateToProps = state => {
 };
 
 export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
+  const { t } = useTranslation();
   const version = useVersion() + '-' + useCommitId();
   return (
     <Grid container spacing={2}>
@@ -66,13 +62,13 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
         <div className="menu" style={{ width: 'fit-content', float: 'right' }}>
           <ul style={styles.ul}>
             <li style={styles.li}>
-              <a href="/">首页</a>
+              <a href="/">{t('nav.menu.home')}</a>
             </li>
             <li style={styles.li}>
-              <a href={'/user/' + myPublicKey}>我的空间</a>
+              <a href={'/user/' + myPublicKey}>{t('nav.menu.profile')}</a>
             </li>
             <li style={styles.li}>
-              <a href={'/blog/' + myPublicKey}>公众号</a>
+              <a href={'/blog/' + myPublicKey}>{t('nav.menu.blog')}</a>
             </li>
             <li style={styles.li}>
               <a
@@ -80,24 +76,24 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Github
+                {t('nav.menu.github')}
               </a>
             </li>
             <li style={styles.li}>
-              <a href="">随便看看</a>
+              <a href="">{t('nav.menu.globalFeed')}</a>
             </li>
             <li style={styles.li}>
-              <a href="">设置</a>
+              <a href="">{t('nav.menu.setting')}</a>
             </li>
             {isLoggedIn && (
               <li style={styles.li}>
-                <a href="">退出</a>
+                <a href="">{t('nav.menu.signOut')}</a>
               </li>
             )}
 
             {!isLoggedIn && (
               <li style={styles.li}>
-                <a href="">登陆</a>
+                <a href="">{t('nav.menu.signOut')}</a>
               </li>
             )}
           </ul>

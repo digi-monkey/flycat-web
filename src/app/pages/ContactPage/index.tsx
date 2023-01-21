@@ -13,10 +13,12 @@ import {
   EventTags,
   EventContactListPTag,
 } from 'service/api';
-import LoginForm from '../HomePage/LoginForm';
+import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
-import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
-import { Content } from '../HomePage/Content';
+import RelayManager, {
+  WsConnectStatus,
+} from '../../components/layout/RelayManager';
+import { Content } from '../../components/layout/Content';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';

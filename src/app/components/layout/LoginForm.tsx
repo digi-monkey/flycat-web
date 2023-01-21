@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { Nip19DataPrefix, Nip19DataType, nip19Decode } from 'service/api';
 import { matchKeyPair } from 'service/crypto';
@@ -10,11 +11,12 @@ const LoginForm = ({
   doLogin,
   doLogout,
 }) => {
+  const { t } = useTranslation();
   if (isLoggedIn) {
     return (
       <div>
-        <h2> 欢迎光临👏</h2>
-        <button onClick={doLogout}>登出</button>
+        <h2>{t('loginForm.welcome')}</h2>
+        <button onClick={doLogout}>{t('loginForm.signOut')}</button>
       </div>
     );
   } else {
@@ -72,14 +74,14 @@ const LoginForm = ({
         }}
       >
         <label>
-          公钥:
+          {t('loginForm.pubKey')}:
           <input type="text" placeholder="必填" name="publicKey" />
           <br />
-          私钥:
+          {t('loginForm.privKey')}:
           <input type="text" placeholder="只读模式可不填" name="privateKey" />
         </label>
         <br />
-        <button type="submit">登陆</button>
+        <button type="submit">{t('loginForm.signIn')}</button>
       </form>
     );
   }

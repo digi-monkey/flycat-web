@@ -13,19 +13,27 @@ import {
   isEventETag,
   isEventPTag,
   EventId,
+  EventTags,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
-import LoginForm from '../HomePage/LoginForm';
+import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
-import RelayManager, { WsConnectStatus } from '../HomePage/RelayManager';
-import { Content } from '../HomePage/Content';
-import ReplyButton from '../HomePage/ReplyBtn';
+import RelayManager, {
+  WsConnectStatus,
+} from '../../components/layout/RelayManager';
+import { Content } from '../../components/layout/Content';
+import ReplyButton from '../../components/layout/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
+import { TextMsg } from 'app/components/layout/TextMsg';
+import { ShareMsg } from 'app/components/layout/ShareMsg';
+import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
+import { getPkFromFlycatShareHeader } from 'service/helper';
+import { useTranslation } from 'react-i18next';
 
 const mapStateToProps = state => {
   return {
@@ -174,6 +182,7 @@ interface UserParams {
 }
 
 export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { t } = useTranslation();
   const { eventId } = useParams<UserParams>();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -312,22 +321,19 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   }, [msgList.length]);
 
-  const shortPublicKey = (key: PublicKey | undefined) => {
-    if (key) {
-      return key.slice(0, 8) + '..' + key.slice(48);
-    } else {
-      return 'unknown';
-    }
-  };
+  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
+    publicKey: myPublicKey,
+    privateKey: myPrivateKey,
+  });
 
-  const getLastPubKeyFromPTags = (tags: any[]) => {
-    const pks = tags.filter(t => isEventPTag(t)).map(t => t[1]);
-    if (pks.length > 0) {
-      return pks[pks.length - 1] as string;
-    } else {
-      return null;
-    }
-  };
+  useEffect(() => {
+    if (isLoggedIn !== true) return;
+
+    setMyKeyPair({
+      publicKey: myPublicKey,
+      privateKey: myPrivateKey,
+    });
+  }, [isLoggedIn]);
 
   const getEventIdsFromETags = (tags: any[]) => {
     const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
@@ -342,92 +348,76 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         <Grid container>
           <Grid item xs={8} style={styles.left}>
             <div style={styles.message}>
-              <h3>交谈消息</h3>
+              <h3>{t('thread.title')}</h3>
               <hr />
               <ul style={styles.msgsUl}>
-                {msgList.map((msg, index) => (
-                  <li key={index} style={styles.msgItem}>
-                    <Grid container>
-                      <Grid item xs={2} style={{ textAlign: 'left' as const }}>
-                        <img
-                          style={styles.avatar}
-                          src={userMap.get(msg.pubkey)?.picture}
-                          alt=""
-                        />
-                      </Grid>
-                      <Grid item xs={10}>
-                        <span style={styles.msgWord}>
-                          <a
-                            style={styles.userName}
-                            href={'/user/' + msg?.pubkey}
-                          >
-                            @{userMap.get(msg.pubkey)?.name}
-                          </a>
-                          {getLastPubKeyFromPTags(msg.tags) && (
-                            <span>
-                              回复
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/user/' + getLastPubKeyFromPTags(msg.tags)
-                                }
-                              >
-                                @
-                                {userMap.get(getLastPubKeyFromPTags(msg.tags)!)
-                                  ?.name ||
-                                  shortPublicKey(
-                                    getLastPubKeyFromPTags(msg.tags)!,
-                                  )}
-                              </a>
-                              {/* 
-                              的
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/msg/' +
-                                  getLastEventIdFromETags(msg.tags)?.slice(
-                                    0,
-                                    10,
-                                  )
-                                }
-                              >
-                                发言
-                              </a>
-            
-                              */}
-                            </span>
-                          )}
-                          <Content text={msg.content} />
-                        </span>
-                        <span style={styles.time}>
-                          {timeSince(msg?.created_at)}
-                        </span>
-                        <span style={styles.time}>
-                          {/*
-                          <button
-                            onClick={() => {
-                              alert('not impl 还没做');
-                            }}
-                            style={styles.smallBtn}
-                          >
-                            点赞
-                          </button>
-                          */}
-                        </span>
-                        <span style={styles.time}>
-                          <ReplyButton
-                            replyToEventId={msg.id}
-                            replyToPublicKey={msg.pubkey}
-                            myKeyPair={{
-                              publicKey: myPublicKey,
-                              privateKey: myPrivateKey,
-                            }}
-                          />
-                        </span>
-                      </Grid>
-                    </Grid>
-                  </li>
-                ))}
+                {msgList.map((msg, index) => {
+                  //@ts-ignore
+                  const flycatShareHeaders: FlycatShareHeader[] =
+                    msg.tags.filter(t => isFlycatShareHeader(t));
+                  if (flycatShareHeaders.length > 0) {
+                    const blogPk = getPkFromFlycatShareHeader(
+                      flycatShareHeaders[flycatShareHeaders.length - 1],
+                    );
+                    const cacheHeaders = msg.tags.filter(
+                      t => t[0] === CacheIdentifier,
+                    );
+                    let articleCache = {
+                      title: t('thread.noArticleShareTitle'),
+                      url: '',
+                      blogName: t('thread.noBlogShareName'),
+                      blogPicture: '',
+                    };
+                    if (cacheHeaders.length > 0) {
+                      const cache = cacheHeaders[cacheHeaders.length - 1];
+                      articleCache = {
+                        title: cache[1],
+                        url: cache[2],
+                        blogName: cache[3],
+                        blogPicture: cache[4],
+                      };
+                    }
+                    return (
+                      <ShareMsg
+                        key={index}
+                        content={msg.content}
+                        eventId={msg.id}
+                        keyPair={myKeyPair}
+                        userPk={msg.pubkey}
+                        userAvatar={userMap.get(msg.pubkey)?.picture}
+                        username={userMap.get(msg.pubkey)?.name}
+                        createdAt={msg.created_at}
+                        blogName={articleCache.blogName} //todo: fallback to query title
+                        blogAvatar={
+                          articleCache.blogPicture ||
+                          userMap.get(blogPk)?.picture
+                        }
+                        articleTitle={articleCache.title} //todo: fallback to query title
+                      />
+                    );
+                  } else {
+                    return (
+                      <TextMsg
+                        key={index}
+                        pk={msg.pubkey}
+                        avatar={userMap.get(msg.pubkey)?.picture}
+                        name={userMap.get(msg.pubkey)?.name}
+                        content={msg.content}
+                        eventId={msg.id}
+                        keyPair={myKeyPair}
+                        replyTo={msg.tags
+                          .filter(t => t[0] === EventTags.P)
+                          .map(t => {
+                            return {
+                              name: userMap.get(t[1])?.name,
+                              pk: t[1],
+                            };
+                          })}
+                        createdAt={msg.created_at}
+                      />
+                    );
+                  }
+                })}
               </ul>
             </div>
           </Grid>

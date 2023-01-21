@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { RelayUrl } from 'service/api';
 import { defaultRelays } from 'service/relay';
@@ -58,6 +59,7 @@ export function RelayManager({
   myPublicKey,
   myCustomRelay,
 }: RelayManagerProps) {
+  const { t } = useTranslation();
   const [relays, setRelays] = useState<string[]>([]);
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -139,7 +141,9 @@ export function RelayManager({
 
   return (
     <div>
-      <h3>连接器({relays.length})</h3>
+      <h3>
+        {t('relayManager.title')}({relays.length})
+      </h3>
       <ul style={styles.simpleUl}>{relayerStatusUI}</ul>
       <RelayAdder publicKey={myPublicKey} />
     </div>

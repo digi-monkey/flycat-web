@@ -16,11 +16,13 @@ import {
   isEventPTag,
 } from 'service/api';
 import { timeSince } from 'utils/helper';
-import LoginForm from './LoginForm';
+import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
-import RelayManager, { WsConnectStatus } from './RelayManager';
-import { Content } from './Content';
+import RelayManager, {
+  WsConnectStatus,
+} from '../../components/layout/RelayManager';
+import { Content } from '../../components/layout/Content';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import {
@@ -32,7 +34,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { NoticeBox } from 'app/components/layout/NoticeBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
-import ReplyButton from './ReplyBtn';
+import ReplyButton from '../../components/layout/ReplyBtn';
 import { TextMsg } from 'app/components/layout/TextMsg';
 import {
   CacheIdentifier,

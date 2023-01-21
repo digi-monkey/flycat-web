@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   PrivateKey,
   PublicKey,
@@ -41,6 +42,7 @@ export const ShareArticle = ({
   loginUser,
   onSubmit,
 }: ShareArticleProps) => {
+  const { t } = useTranslation();
   const [text, setText] = useState<string>('');
 
   const genShareEvent = async () => {
@@ -104,10 +106,10 @@ export const ShareArticle = ({
               style={{ width: '100%', height: '150px', padding: '5px' }}
             ></textarea>
             <button onClick={submitText} disabled={!loginUser}>
-              转发到主页
+              {t('share.rePostShare')}
             </button>
             &nbsp;&nbsp;&nbsp;
-            <button onClick={onClose}>取消</button>
+            <button onClick={onClose}>{t('share.cancel')}</button>
           </div>
         )}
         <div

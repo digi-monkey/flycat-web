@@ -1,0 +1,84 @@
+{
+  "util": {
+    "unknown": "未知"
+  },
+  "nav": {
+    "menu": {
+      "home": "首页",
+      "profile": "我的空间",
+      "blog": "公众号",
+      "github": "开源",
+      "globalFeed": "随便看看",
+      "setting": "设置",
+      "signOut": "退出",
+      "signIn": "登陆"
+    }
+  },
+  "noticeBox": {
+    "blog": "订阅号消息",
+    "mention": "@提到我的",
+    "msg": "互动消息"
+  },
+  "pubNoteBox": {
+    "hintText": "你在想什么？",
+    "submit": "发送"
+  },
+  "share": {
+    "rePostShare": "转发到主页",
+    "cancel": "取消"
+  },
+  "showThread": {
+    "open": "查看对话"
+  },
+  "textMsg": {
+    "replyTo": "回复"
+  },
+  "userBox": {
+    "pubKey": "公钥",
+    "follow": "关注",
+    "followed": "被关注",
+    "noteMsg": "消息"
+  },
+  "UserRequiredLoginBox": {
+    "loginFirst": "请先登录",
+    "noAbout": "这个用户还没有写任何的自述",
+    "noPubKey": "公钥：{'登陆后显示公钥'}"
+  },
+  "UserProfileBox": {
+    "hisAbout": "ta的自述",
+    "hisPubKey": "ta的公钥",
+    "hisFollow": "ta的关注",
+    "hisFollower": "ta被关注",
+    "hisNoteMsg": "ta的消息"
+  },
+  "UserHeader": {
+    "hisBlog": "ta的公众号"
+  },
+  "UserBlogHeader": {
+    "noUserName": "用户",
+    "hisBlog": "的公众号",
+    "noBlog": "还没有公众号"
+  },
+  "relayManager": {
+    "title": "连接器"
+  },
+  "relayAdder": {
+    "add": "添加"
+  },
+  "replyBtn": {
+    "reply": "回复",
+    "submit": "提交"
+  },
+  "loginForm": {
+    "welcome": "欢迎光临👏",
+    "signOut": "退出",
+    "pubKey": "公钥",
+    "privKey": "私钥",
+    "signIn": "登陆"
+  },
+  "thread": {
+    "title": "交谈消息",
+    "noArticleShareTitle": "未知标题",
+    "noBlogShareName": "未知公众号"
+  }
+}
