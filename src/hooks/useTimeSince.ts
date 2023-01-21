@@ -28,7 +28,7 @@ export function useTimeSince(timestamp: number): string {
         `${Math.floor(timeDifference / 2592000)} ${t('timeSince.month')}`,
       );
     }
-  }, []);
+  }, [timestamp]);
 
   return timeSince;
 }

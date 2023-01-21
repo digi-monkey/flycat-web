@@ -201,14 +201,14 @@ export interface UserHeaderProps {
   avatar?: string;
   name?: string;
   followOrUnfollowOnClick: () => any;
-  followOrUnfollowText: string;
+  followOrUnfollow: boolean;
 }
 export const UserHeader = ({
   pk,
   avatar,
   name,
   followOrUnfollowOnClick,
-  followOrUnfollowText,
+  followOrUnfollow,
 }: UserHeaderProps) => {
   const { t } = useTranslation();
   return (
@@ -225,7 +225,9 @@ export const UserHeader = ({
           <div style={styles.userProfileName}>{name}</div>
           <div style={styles.userProfileBtnGroup}>
             <button onClick={followOrUnfollowOnClick} style={styles.simpleBtn}>
-              {followOrUnfollowText}
+              {followOrUnfollow
+                ? t('UserBlogHeader.toFollow')
+                : t('UserBlogHeader.toUnFollow')}
             </button>
             &nbsp;
             <button

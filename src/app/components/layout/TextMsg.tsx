@@ -187,22 +187,18 @@ export const TextMsg = ({
 
 export const ProfileTextMsg = ({
   replyTo,
-  name,
   pk,
   content,
   createdAt,
   eventId,
   keyPair,
-}: Omit<TextMsgProps, 'avatar'>) => {
+}: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
   return (
     <li style={styles.msgItem}>
       <Grid container>
         <Grid item xs={12}>
           <span style={styles.msgWord}>
-            <a style={styles.userName} href={'/user/' + pk}>
-              @{name}
-            </a>
             {replyTo.length > 0 && (
               <span>
                 {t('textMsg.replyTo')}{' '}

@@ -62,6 +62,8 @@
     "hisBlog": "their blog"
   },
   "UserBlogHeader": {
+    "toFollow": "follow this user",
+    "toUnFollow": "unfollow",
     "noUserName": "user",
     "hisBlog": "'s blog",
     "noBlog": "has no blog yet"

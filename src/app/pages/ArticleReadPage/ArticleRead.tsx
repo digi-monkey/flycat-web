@@ -235,6 +235,7 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
               event.created_at > articlePageEvent.created_at)
           ) {
             articlePageEvent = event;
+            console.log(article);
             setArticle(article);
           }
         }

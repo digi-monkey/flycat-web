@@ -62,6 +62,8 @@
     "hisBlog": "ta的公众号"
   },
   "UserBlogHeader": {
+    "toFollow": "关注ta",
+    "toUnFollow": "取消关注",
     "noUserName": "用户",
     "hisBlog": "的公众号",
     "noBlog": "还没有公众号"

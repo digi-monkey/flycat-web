@@ -35,7 +35,7 @@ import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
 import { ShowThread } from 'app/components/layout/ShowThread';
-import { ShareMsg } from 'app/components/layout/ShareMsg';
+import { ProfileShareMsg, ShareMsg } from 'app/components/layout/ShareMsg';
 import { ProfileTextMsg } from 'app/components/layout/TextMsg';
 import { t } from 'i18next';
 import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
@@ -430,8 +430,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     alert('done, refresh page please!');
   };
-  const followOrUnfollowText =
-    isLoggedIn && myContactList.get(publicKey) ? '取消关注' : '关注他';
   const followOrUnfollowOnClick =
     isLoggedIn && myContactList.get(publicKey) ? unfollowUser : followUser;
 
@@ -445,7 +443,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             <div style={styles.userProfile}>
               <UserHeader
                 pk={publicKey}
-                followOrUnfollowText={followOrUnfollowText}
+                followOrUnfollow={!(isLoggedIn && myContactList.get(publicKey))}
                 followOrUnfollowOnClick={followOrUnfollowOnClick}
                 avatar={userMap.get(publicKey)?.picture}
                 name={userMap.get(publicKey)?.name}
@@ -481,14 +479,12 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                       };
                     }
                     return (
-                      <ShareMsg
+                      <ProfileShareMsg
                         key={index}
                         content={msg.content}
                         eventId={msg.id}
                         keyPair={myKeyPair}
                         userPk={msg.pubkey}
-                        userAvatar={userMap.get(msg.pubkey)?.picture}
-                        username={userMap.get(msg.pubkey)?.name}
                         createdAt={msg.created_at}
                         blogName={articleCache.blogName} //todo: fallback to query title
                         blogAvatar={
@@ -503,7 +499,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                       <ProfileTextMsg
                         key={index}
                         pk={msg.pubkey}
-                        name={userMap.get(msg.pubkey)?.name}
                         content={msg.content}
                         eventId={msg.id}
                         keyPair={myKeyPair}

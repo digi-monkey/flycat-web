@@ -195,3 +195,53 @@ export const ShareMsg = ({
     );
   }
 };
+
+export const ProfileShareMsg = ({
+  keyPair,
+  eventId,
+  userPk,
+  content,
+  createdAt,
+  blogAvatar,
+  blogName,
+  articleTitle,
+}: Omit<ShareMsgProps, 'userAvatar' | 'username'>) => {
+  const contentUrl = getShareContentUrl(content);
+
+  const time = useTimeSince(createdAt);
+
+  if (contentUrl == null) {
+    return <div>unsupported type!</div>;
+  } else {
+    content = content.replace(contentUrl, '');
+
+    return (
+      <li style={styles.msgItem}>
+        <Grid container>
+          <Grid item xs={12}>
+            <span style={styles.msgWord}>
+              <ArticleShareContent
+                blogName={blogName}
+                text={content}
+                shareUrl={contentUrl}
+                title={articleTitle}
+                avatar={blogAvatar}
+              />
+            </span>
+            <span style={styles.time}>{time}</span>
+            <span style={styles.time}>
+              <ShowThread eventId={eventId} />
+            </span>
+            <span style={styles.time}>
+              <ReplyButton
+                replyToEventId={eventId}
+                replyToPublicKey={userPk}
+                myKeyPair={keyPair}
+              />
+            </span>
+          </Grid>
+        </Grid>
+      </li>
+    );
+  }
+};
