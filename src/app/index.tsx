@@ -20,7 +20,7 @@ import { EventPage } from './pages/EventPage/Loadable';
 import { BlogPage } from './pages/BlogPage/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
 import RelayManager from './pages/HomePage/RelayManager';
-import { Test } from './pages/HomePage/Test';
+import ArticleRead from './pages/ArticleReadPage/ArticleRead';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -35,8 +35,8 @@ export function App() {
       </Helmet>
 
       <Switch>
-        <Route path="/test">
-          <Test />
+        <Route path="/article/:publicKey/:articleId">
+          <ArticleRead />
         </Route>
         <Route path="/relay">
           <RelayManager />

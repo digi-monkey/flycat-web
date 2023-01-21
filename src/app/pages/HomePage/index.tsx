@@ -23,13 +23,26 @@ import RelayManager, { WsConnectStatus } from './RelayManager';
 import { Content } from './Content';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
-import { getLastPubKeyFromPTags } from 'service/helper';
+import {
+  getLastPubKeyFromPTags,
+  getPkFromFlycatShareHeader,
+} from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { NoticeBox } from 'app/components/layout/NoticeBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
 import ReplyButton from './ReplyBtn';
+import { TextMsg } from 'app/components/layout/TextMsg';
+import {
+  CacheIdentifier,
+  DataType,
+  FlagType,
+  FlycatShareHeader,
+  isFlycatHeader,
+  isFlycatShareHeader,
+} from 'service/flycat-protocol';
+import { ShareMsg } from 'app/components/layout/ShareMsg';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -43,7 +56,7 @@ const mapStateToProps = state => {
   };
 };
 
-export const styles = {
+const styles = {
   root: {
     maxWidth: '900px',
     margin: '0 auto',
@@ -143,6 +156,14 @@ export const styles = {
     fontSize: '18px',
     fontWeight: '500',
     color: 'red',
+  },
+  userProfileAvatar: {
+    width: '60px',
+    height: '60px',
+  },
+  userProfileName: {
+    fontSize: '20px',
+    fontWeight: '500',
   },
 };
 
@@ -367,92 +388,73 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
-                {msgList.map((msg, index) => (
-                  <li key={index} style={styles.msgItem}>
-                    <Grid container>
-                      <Grid item xs={2} style={{ textAlign: 'left' as const }}>
-                        <img
-                          style={styles.avatar}
-                          src={userMap.get(msg.pubkey)?.picture}
-                          alt=""
-                        />
-                      </Grid>
-                      <Grid item xs={10}>
-                        <span style={styles.msgWord}>
-                          <a
-                            style={styles.userName}
-                            href={'/user/' + msg?.pubkey}
-                          >
-                            @{userMap.get(msg.pubkey)?.name}
-                          </a>
-                          {getLastPubKeyFromPTags(msg.tags) && (
-                            <span>
-                              回复
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/user/' + getLastPubKeyFromPTags(msg.tags)
-                                }
-                              >
-                                @
-                                {userMap.get(getLastPubKeyFromPTags(msg.tags)!)
-                                  ?.name ||
-                                  shortPublicKey(
-                                    getLastPubKeyFromPTags(msg.tags)!,
-                                  )}
-                              </a>
-                              {/* 
-                              的
-                              <a
-                                style={styles.userName}
-                                href={
-                                  '/msg/' +
-                                  getLastEventIdFromETags(msg.tags)?.slice(
-                                    0,
-                                    10,
-                                  )
-                                }
-                              >
-                                发言
-                              </a>
-            
-                              */}
-                            </span>
-                          )}
-                          <Content text={msg.content} />
-                        </span>
-                        <span style={styles.time}>
-                          {timeSince(msg?.created_at)}
-                        </span>
-                        <span style={styles.time}>
-                          <button
-                            onClick={() =>
-                              window.open(`/event/${msg.id}`, '_blank')
-                            }
-                            style={styles.smallBtn}
-                          >
-                            查看对话
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert('not impl 还没做');
-                            }}
-                            style={styles.smallBtn}
-                          >
-                            点赞
-                          </button>
-                        </span>
-                        <span style={styles.time}>
-                          <ReplyButton
-                            replyToEventId={msg.id}
-                            replyToPublicKey={msg.pubkey}
-                            myKeyPair={myKeyPair}
-                          />
-                        </span>
-                      </Grid>
-                    </Grid>
-                  </li>
-                ))}
+                {msgList.map((msg, index) => {
+                  //@ts-ignore
+                  const flycatShareHeaders: FlycatShareHeader[] =
+                    msg.tags.filter(t => isFlycatShareHeader(t));
+                  if (flycatShareHeaders.length > 0) {
+                    const blogPk = getPkFromFlycatShareHeader(
+                      flycatShareHeaders[flycatShareHeaders.length - 1],
+                    );
+                    const cacheHeaders = msg.tags.filter(
+                      t => t[0] === CacheIdentifier,
+                    );
+                    let articleCache = {
+                      title: '未知标题',
+                      url: '',
+                      blogName: '未知公众号',
+                      blogPicture: '',
+                    };
+                    if (cacheHeaders.length > 0) {
+                      const cache = cacheHeaders[cacheHeaders.length - 1];
+                      articleCache = {
+                        title: cache[1],
+                        url: cache[2],
+                        blogName: cache[3],
+                        blogPicture: cache[4],
+                      };
+                    }
+                    return (
+                      <ShareMsg
+                        key={index}
+                        content={msg.content}
+                        eventId={msg.id}
+                        keyPair={myKeyPair}
+                        userPk={msg.pubkey}
+                        userAvatar={userMap.get(msg.pubkey)?.picture}
+                        username={userMap.get(msg.pubkey)?.name}
+                        createdAt={msg.created_at}
+                        blogName={articleCache.blogName || '公众号'} //todo: fallback to query title
+                        blogAvatar={
+                          articleCache.blogPicture ||
+                          userMap.get(blogPk)?.picture
+                        }
+                        articleTitle={articleCache.title} //todo: fallback to query title
+                      />
+                    );
+                  } else {
+                    return (
+                      <TextMsg
+                        key={index}
+                        pk={msg.pubkey}
+                        avatar={userMap.get(msg.pubkey)?.picture}
+                        name={userMap.get(msg.pubkey)?.name}
+                        content={msg.content}
+                        eventId={msg.id}
+                        keyPair={myKeyPair}
+                        replyTo={msg.tags
+                          .filter(t => t[0] === EventTags.P)
+                          .map(t => {
+                            return {
+                              name: userMap.get(t[1])?.name,
+                              pk: t[1],
+                            };
+                          })}
+                        createdAt={msg.created_at}
+                      />
+                    );
+                  }
+                })}
               </ul>
             </div>
           </Grid>

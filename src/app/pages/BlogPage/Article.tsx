@@ -45,6 +45,14 @@ export function Article(props: ArticleProps) {
     alert('not supported还没做');
   };
 
+  const onClickArticle = () => {
+    if (isOwner) {
+      return openModal();
+    } else {
+      return window.open('/article/' + publicKey + '/' + article.id, '_blank');
+    }
+  };
+
   const openModal = () => {
     setReadModalIsOpen(true);
   };
@@ -77,22 +85,27 @@ export function Article(props: ArticleProps) {
 
   return (
     <div>
-      <a
-        href="#"
-        data-pro={'/article/' + article.page_id + '/' + article.id}
-        onClick={openModal}
-      >
+      <a href="#" onClick={onClickArticle}>
         {article.title}
       </a>
+
       {isOwner && (
-        <a
-          href="#"
-          style={{ float: 'right' as const }}
-          onClick={() => seUpdateModalIsOpen(true)}
-        >
-          修改
-        </a>
+        <span style={{ float: 'right' as const }}>
+          <a href="#" onClick={() => seUpdateModalIsOpen(true)}>
+            修改
+          </a>
+          &nbsp;
+          <a
+            href={'/article/' + publicKey + '/' + article.id}
+            target="_blank"
+            rel="noreferrer"
+          >
+            🔗
+          </a>
+          &nbsp;
+        </span>
       )}
+
       <PostUpdate
         isOpen={updateModalIsOpen}
         onSubmit={onUpdateSubmitCb}

@@ -1,7 +1,8 @@
-import { Event, RawEvent } from './api';
+import { Event, PublicKey, RawEvent } from './api';
 import { generateRandomBytes } from './crypto';
 
 export type Version = string;
+export type ShareContentId = string; // <flag(first byte)|id>
 
 export enum DataType {
   Storage = '01', //	storage	keep stored in Nostr, might be update later
@@ -12,9 +13,107 @@ export enum FlagType {
   SiteMetaData = '01', //	site metadata, contains site content-ids
   ArticlePage = '02', // article page, a list of articles
   PhotoPage = '03', // photo page, a list of photo url
+
+  // util flag
+  Share = 'f0', // sharing of flycat content(eg: an article/a photo)
+  Comment = 'f1', // comment to flycat content(eg: an article/a photo)
 }
 
-export type FlycatHeader = ['flycat', Version, DataType, FlagType];
+export type FlycatHeader = ['flycat', Version, DataType, FlagType]; // can have extra data append, we only check 4 for compatibility
+
+export type FlycatSiteMetaDataHeader = [
+  'flycat',
+  Version,
+  DataType.Storage,
+  FlagType.SiteMetaData,
+];
+export type FlycatArticlePageHeader = [
+  'flycat',
+  Version,
+  DataType.Storage,
+  FlagType.ArticlePage,
+];
+export type FlycatShareHeader = [
+  'flycat',
+  Version,
+  DataType.Memory,
+  FlagType.Share,
+  PublicKey,
+  ShareContentId,
+];
+export type FlycatCommentHeader = [
+  'flycat',
+  Version,
+  DataType.Memory,
+  FlagType.Comment,
+];
+
+export type ShareArticleTitle = string;
+export type ShareBlogName = string;
+export type ShareBlogPicture = string;
+export type ShareArticleUrl = string;
+
+export const CacheIdentifier = 'cache';
+// FlycatCacheHeader = ['cache', ...any]
+export type FlycatShareArticleCacheHeader = [
+  'cache',
+  ShareArticleTitle,
+  ShareArticleUrl,
+  ShareBlogName,
+  ShareBlogPicture,
+];
+
+export function isFlycatSiteMetaDataHeader(
+  data: any,
+): data is FlycatSiteMetaDataHeader {
+  return (
+    isFlycatHeader(data) &&
+    data[2] === DataType.Storage &&
+    data[3] === FlagType.SiteMetaData
+  );
+}
+
+export function isFlycatArticlePageHeader(
+  data: any,
+): data is FlycatArticlePageHeader {
+  return (
+    isFlycatHeader(data) &&
+    data[2] === DataType.Storage &&
+    data[3] === FlagType.ArticlePage
+  );
+}
+
+export function isFlycatShareHeader(data: any): data is FlycatShareHeader {
+  return (
+    isFlycatHeader(data) &&
+    data.length >= 6 &&
+    data[2] === DataType.Memory &&
+    data[3] === FlagType.Share &&
+    // @ts-ignore
+    typeof data[4] === 'string' &&
+    // @ts-ignore
+    typeof data[5] === 'string'
+  );
+}
+
+export function isFlycatCommentHeader(data: any): data is FlycatCommentHeader {
+  return (
+    isFlycatHeader(data) &&
+    data[2] === DataType.Memory &&
+    data[3] === FlagType.Comment
+  );
+}
+
+export function isFlycatHeader(data: any): data is FlycatHeader {
+  return (
+    Array.isArray(data) &&
+    data.length >= 4 &&
+    data[0] === 'flycat' &&
+    typeof data[1] === 'string' &&
+    Object.values(DataType).includes(data[2]) &&
+    Object.values(FlagType).includes(data[3])
+  );
+}
 
 export enum FlycatWellKnownEventKind {
   SiteMetaData = 10000,
@@ -111,6 +210,49 @@ export class Flycat {
     return ['flycat', this.version, dataType, flagType];
   }
 
+  newShareContentId(type: FlagType, contentId: string) {
+    return type + contentId;
+  }
+
+  newShareHeader(pk: PublicKey, id: ShareContentId) {
+    const dataType = DataType.Memory;
+    const flagType = FlagType.Share;
+    const header = this.newHeader({ dataType, flagType });
+    header.push(pk);
+    header.push(id);
+    return header;
+  }
+
+  newShareArticleCacheHeader(
+    title: ShareArticleTitle,
+    url: ShareArticleUrl,
+    name: ShareBlogName,
+    avatar: ShareBlogPicture,
+  ): FlycatShareArticleCacheHeader {
+    return [CacheIdentifier, title, url, name, avatar];
+  }
+
+  newCommentHeader() {
+    const dataType = DataType.Storage;
+    const flagType = FlagType.SiteMetaData;
+    const header = this.newHeader({ dataType, flagType });
+    return header;
+  }
+
+  newSiteMetaDataHeader() {
+    const dataType = DataType.Storage;
+    const flagType = FlagType.SiteMetaData;
+    const header = this.newHeader({ dataType, flagType });
+    return header;
+  }
+
+  newArticlePageHeader() {
+    const dataType = DataType.Storage;
+    const flagType = FlagType.ArticlePage;
+    const header = this.newHeader({ dataType, flagType });
+    return header;
+  }
+
   static isPageFull(
     pageId: number,
     articles: (ArticleDataSchema & { page_id: number })[],
@@ -165,9 +307,7 @@ export class Flycat {
     };
     const content = Flycat.serialize(metaData);
 
-    const dataType = DataType.Storage;
-    const flagType = FlagType.SiteMetaData;
-    const header = this.newHeader({ dataType, flagType });
+    const header = this.newSiteMetaDataHeader();
 
     const e = new RawEvent(
       this.publicKey,
@@ -180,9 +320,7 @@ export class Flycat {
 
   async updateSite(metaData: SiteMetaDataContentSchema): Promise<Event> {
     const content = Flycat.serialize(metaData);
-    const dataType = DataType.Storage;
-    const flagType = FlagType.SiteMetaData;
-    const header = this.newHeader({ dataType, flagType });
+    const header = this.newSiteMetaDataHeader();
 
     const e = new RawEvent(
       this.publicKey,
@@ -200,9 +338,7 @@ export class Flycat {
     }
 
     const content = Flycat.serialize(ap);
-    const dataType = DataType.Storage;
-    const flagType = FlagType.ArticlePage;
-    const header = this.newHeader({ dataType, flagType });
+    const header = this.newArticlePageHeader();
 
     const e = new RawEvent(this.publicKey, kind, [header as any], content);
     return await e.toEvent(this.privateKey);

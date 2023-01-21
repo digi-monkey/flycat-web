@@ -389,6 +389,8 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     );
     const event = await rawEvent.toEvent(myKeyPair.privateKey);
     worker?.pubEvent(event);
+
+    alert('done, refresh page please!');
   };
   const unfollowUser = async () => {
     const contacts = Array.from(myContactList.entries());
@@ -414,6 +416,8 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     );
     const event = await rawEvent.toEvent(myKeyPair.privateKey);
     worker?.pubEvent(event);
+
+    alert('done, refresh page please!');
   };
   const followOrUnfollowText =
     isLoggedIn && myContactList.get(publicKey) ? '取消关注' : '关注他';
@@ -476,6 +480,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           >
                             查看对话
                           </button>
+                          {/*
                           <button
                             onClick={() => {
                               alert('not impl 还没做');
@@ -484,6 +489,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           >
                             点赞
                           </button>
+                          */}
                         </span>
                         <span style={styles.time}>
                           <ReplyButton

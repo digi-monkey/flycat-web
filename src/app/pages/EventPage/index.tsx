@@ -403,6 +403,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           {timeSince(msg?.created_at)}
                         </span>
                         <span style={styles.time}>
+                          {/*
                           <button
                             onClick={() => {
                               alert('not impl 还没做');
@@ -411,6 +412,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                           >
                             点赞
                           </button>
+                          */}
                         </span>
                         <span style={styles.time}>
                           <ReplyButton

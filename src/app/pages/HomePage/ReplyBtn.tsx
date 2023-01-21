@@ -38,7 +38,7 @@ function ReplyButton({
 }: {
   replyToEventId: EventId;
   replyToPublicKey: PublicKey;
-  myKeyPair: KeyPair;
+  myKeyPair?: KeyPair;
 }) {
   const [showPopup, setShowPopup] = useState(false);
   const [textareaValue, setTextareaValue] = useState('');
@@ -56,6 +56,11 @@ function ReplyButton({
   const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
     evt.preventDefault();
     console.log(textareaValue, replyToEventId, replyToPublicKey);
+
+    if (!myKeyPair) {
+      alert('login first!');
+      return;
+    }
 
     if (myKeyPair.privateKey === '') {
       alert('set privateKey first!');
@@ -101,7 +106,7 @@ function ReplyButton({
               onChange={e => setTextareaValue(e.target.value)}
             />
           </label>
-          <button style={styles.smallBtn} type="submit">
+          <button style={styles.smallBtn} type="submit" disabled={!myKeyPair}>
             提交
           </button>
         </form>
