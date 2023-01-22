@@ -42,28 +42,33 @@ const PostArticle: React.FC<Props> = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        id="title"
-        name="title"
-        placeholder={t('postArticle.titlePlaceHolder')}
-        value={formData.title}
-        onChange={handleChange}
-        style={{ width: '100%' }}
-      />
-      <br />
-      <textarea
-        id="content"
-        name="content"
-        placeholder={t('postArticle.contentPlaceHolder')}
-        value={formData.content}
-        onChange={handleChange}
-        style={{ width: '100%', minHeight: '200px' }}
-      />
-      <br />
-      <button type="submit">{t('postArticle.submit')}</button>
-    </form>
+    <span style={{ margin: '20px 0px', background: 'gray' }}>
+      <span style={{ display: 'block', fontSize: '16px' }}>
+        {t('postArticle.newArticle')}
+      </span>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          placeholder={t('postArticle.titlePlaceHolder')}
+          value={formData.title}
+          onChange={handleChange}
+          style={{ width: '100%' }}
+        />
+        <br />
+        <textarea
+          id="content"
+          name="content"
+          placeholder={t('postArticle.contentPlaceHolder')}
+          value={formData.content}
+          onChange={handleChange}
+          style={{ width: '100%', minHeight: '200px' }}
+        />
+        <br />
+        <button type="submit">{t('postArticle.submit')}</button>
+      </form>
+    </span>
   );
 };
 

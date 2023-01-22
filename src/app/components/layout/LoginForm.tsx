@@ -1,8 +1,43 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { Nip19DataPrefix, Nip19DataType, nip19Decode } from 'service/api';
+import {
+  Nip19DataPrefix,
+  Nip19DataType,
+  nip19Decode,
+  nip19Encode,
+} from 'service/api';
 import { matchKeyPair } from 'service/crypto';
+
+const styles = {
+  pk: {
+    fontSize: '12px',
+    color: 'gray',
+    display: 'block',
+    marginBottom: '10px',
+  },
+  title: {
+    fontSize: '20px',
+    fontWeight: '500',
+    display: 'block',
+    margin: '10px 0px',
+  },
+  input: {
+    width: '100%',
+    display: 'block',
+    marginBottom: '5px',
+    padding: '5px',
+  },
+};
+
+export interface LoginFormProps {
+  isLoggedIn;
+  publicKey;
+  privateKey;
+  doLogin;
+  doLogout;
+  onCancel: () => any;
+}
 
 const LoginForm = ({
   isLoggedIn,
@@ -10,13 +45,20 @@ const LoginForm = ({
   privateKey,
   doLogin,
   doLogout,
-}) => {
+  onCancel,
+}: LoginFormProps) => {
   const { t } = useTranslation();
   if (isLoggedIn) {
     return (
       <div>
-        <h2>{t('loginForm.welcome')}</h2>
-        <button onClick={doLogout}>{t('loginForm.signOut')}</button>
+        <span style={styles.title}>{t('loginForm.welcome')}</span>
+        <span style={styles.pk}>
+          {t('loginForm.signAs') +
+            ' ' +
+            nip19Encode(publicKey, Nip19DataType.Pubkey)}
+        </span>
+        <button onClick={doLogout}>{t('loginForm.signOut')}</button>&nbsp;&nbsp;
+        <button onClick={onCancel}>{t('loginForm.cancel')}</button>
       </div>
     );
   } else {
@@ -73,15 +115,25 @@ const LoginForm = ({
           doLogin(pubKey, privKey);
         }}
       >
+        <span style={styles.title}>Sign In</span>
         <label>
-          {t('loginForm.pubKey')}:
-          <input type="text" placeholder="必填" name="publicKey" />
-          <br />
-          {t('loginForm.privKey')}:
-          <input type="text" placeholder="只读模式可不填" name="privateKey" />
+          <input
+            type="text"
+            placeholder={t('loginForm.pubKey') + t('loginForm.pkHint')}
+            name="publicKey"
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder={t('loginForm.privKey') + t('loginForm.privHint')}
+            name="privateKey"
+            style={styles.input}
+          />
         </label>
         <br />
         <button type="submit">{t('loginForm.signIn')}</button>
+        &nbsp;&nbsp;
+        <button onClick={onCancel}>{t('loginForm.cancel')}</button>
       </form>
     );
   }

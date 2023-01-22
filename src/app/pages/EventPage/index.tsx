@@ -431,7 +431,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}
-            <LoginForm />
             <hr />
             <RelayManager />
           </Grid>

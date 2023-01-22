@@ -1,6 +1,7 @@
 {
   "util": {
-    "unknown": "unknown"
+    "unknown": "unknown",
+    "noNumberData": "?"
   },
   "timeSince": {
     "seconds": "seconds ago",
@@ -42,9 +43,9 @@
   },
   "userBox": {
     "pubKey": "publicKey",
-    "follow": "follow",
-    "followed": "followedBy",
-    "noteMsg": "message"
+    "follow": "following",
+    "followed": "follower",
+    "noteMsg": "notes"
   },
   "UserRequiredLoginBox": {
     "loginFirst": "please Login First",
@@ -59,14 +60,14 @@
     "hisNoteMsg": "their Messages"
   },
   "UserHeader": {
-    "hisBlog": "their blog"
+    "hisBlog": "blog"
   },
   "UserBlogHeader": {
-    "toFollow": "follow this user",
+    "toFollow": "+follow",
     "toUnFollow": "unfollow",
     "noUserName": "user",
     "hisBlog": "'s blog",
-    "noBlog": "has no blog yet"
+    "noBlog": " has no blog yet"
   },
   "relayManager": {
     "title": "Relays"
@@ -79,11 +80,15 @@
     "submit": "submit"
   },
   "loginForm": {
-    "welcome": "Welcome 👏",
+    "welcome": "Welcome to Flycat 👏",
     "signOut": "Sign Out",
     "pubKey": "PublicKey",
     "privKey": "PrivateKey",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "cancel": "Cancel",
+    "signAs": "Hi, you are sign-in as",
+    "pkHint": ": required",
+    "privHint": ": optional for read-only"
   },
   "thread": {
     "title": "Thread",
@@ -98,6 +103,7 @@
     "submit": "submit"
   },
   "postArticle": {
+    "newArticle": "New Blog Post",
     "titlePlaceHolder": "title",
     "contentPlaceHolder": "content..",
     "submit": "submit"
@@ -122,5 +128,8 @@
   },
   "contact": {
     "noAbout": "no about"
+  },
+  "setting": {
+    "version": "Client Version: "
   }
 }

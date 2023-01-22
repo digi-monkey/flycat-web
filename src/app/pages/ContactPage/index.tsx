@@ -388,8 +388,6 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               followCount={userContactList.size}
             />
             <hr />
-            <LoginForm />
-            <hr />
             <RelayManager />
           </Grid>
         </Grid>

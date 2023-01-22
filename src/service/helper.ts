@@ -103,7 +103,7 @@ export const getPkFromFlycatShareHeader = (header: FlycatShareHeader) => {
 
 export const shortPublicKey = (key: PublicKey | undefined) => {
   if (key) {
-    return key.slice(0, 8) + '..' + key.slice(48);
+    return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   } else {
     return 'unknown';
   }

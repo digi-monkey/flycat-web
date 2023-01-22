@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { nip19Encode, Nip19DataType, PublicKey } from 'service/api';
 import defaultAvatar from '../../../resource/logo512.png';
+import { CopyText } from './util/CopyText';
 
 const styles = {
   userInfo: { marginBottom: '10px' },
@@ -15,7 +16,12 @@ const styles = {
     fontSize: '20px',
     fontWeight: '500',
   },
-  about: { display: 'block', fontSize: '14px', margin: '5px' },
+  about: {
+    color: 'gray',
+    margin: '10px 0px',
+    display: 'block',
+    fontSize: '14px',
+  },
   publicKey: {
     padding: '2px 3px 1px 8px',
     borderBottom: '2px solid #ffed00',
@@ -43,9 +49,7 @@ const styles = {
     fontSize: '12px',
     color: 'gray',
   },
-  userProfile: {
-    padding: '10px',
-  },
+  userProfile: {},
   userProfileAvatar: {
     width: '80px',
     height: '80px',
@@ -85,17 +89,20 @@ export const UserBox = ({
       <div style={styles.userInfo}>
         <img style={styles.avatar} src={avatar} alt="user avatar" />
         <span style={styles.name}>{name}</span>
-        <span style={styles.about}>{about}</span>
-      </div>
-
-      <div style={styles.publicKey}>
-        {t('userBox.pubKey')}：{nip19Encode(pk, Nip19DataType.Pubkey)}
+        <span style={styles.about}>
+          <CopyText
+            name={'🔑'}
+            textToCopy={nip19Encode(pk, Nip19DataType.Pubkey)}
+            successMsg={'PublicKey copied to clipboard!'}
+          />
+          {about}
+        </span>
       </div>
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>
-            {followCount ?? t('util.unknown')}
+            {followCount ?? t('util.noNumberData')}
           </span>
           <span>
             <a style={styles.numberText} href={'/contact/' + pk}>
@@ -104,13 +111,13 @@ export const UserBox = ({
           </span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span style={styles.numberTextUnClickable}>
             {t('userBox.followed')}
           </span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span style={styles.numberTextUnClickable}>
             {t('userBox.noteMsg')}
           </span>
@@ -134,15 +141,15 @@ export const UserRequiredLoginBox = () => {
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{0}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span>{t('userBox.follow')}</span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>未知</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span>{t('userBox.followed')}</span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span>{t('userBox.noteMsg')}</span>
         </Grid>
       </Grid>
@@ -160,35 +167,37 @@ export const UserProfileBox = ({ pk, about, followCount }: UserBoxPros) => {
   return (
     <>
       <div style={styles.userInfo}>
-        <p>{t('UserProfileBox.hisAbout')}：</p>
-        <span style={styles.about}>{about}</span>
-      </div>
-
-      <div style={styles.publicKey}>
-        {t('UserProfileBox.hisPubKey')}：{nip19Encode(pk, Nip19DataType.Pubkey)}
+        <span style={styles.about}>
+          <CopyText
+            name={'🔑'}
+            textToCopy={nip19Encode(pk, Nip19DataType.Pubkey)}
+            successMsg={'PublicKey copied to clipboard!'}
+          />
+          {about}
+        </span>
       </div>
 
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>
-            {followCount ?? t('util.unknown')}
+            {followCount ?? t('util.noNumberData')}
           </span>
           <span>
             <a style={styles.numberText} href={'/contact/' + pk}>
-              {t('UserProfileBox.hisFollow')}
+              {t('userBox.follow')}
             </a>
           </span>
         </Grid>
         <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span style={styles.numberTextUnClickable}>
-            {t('UserProfileBox.hisFollower')}
+            {t('userBox.followed')}
           </span>
         </Grid>
         <Grid item xs={3}>
-          <span style={styles.numberCount}>{t('util.unknown')}</span>
+          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
           <span style={styles.numberTextUnClickable}>
-            {t('UserProfileBox.hisNoteMsg')}
+            {t('userBox.noteMsg')}
           </span>
         </Grid>
       </Grid>

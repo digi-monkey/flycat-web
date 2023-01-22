@@ -1,6 +1,7 @@
 {
   "util": {
-    "unknown": "未知"
+    "unknown": "未知",
+    "noNumberData": "?"
   },
   "timeSince": {
     "seconds": "秒钟前",
@@ -79,11 +80,15 @@
     "submit": "提交"
   },
   "loginForm": {
-    "welcome": "欢迎光临👏",
+    "welcome": "欢迎光临飞猫 👏",
     "signOut": "退出",
     "pubKey": "公钥",
     "privKey": "私钥",
-    "signIn": "登陆"
+    "signIn": "登陆",
+    "cancel": "取消",
+    "signAs": "Hi, 你登录的公钥",
+    "pkHint": ": 必填",
+    "privHint": ": 只读模式可不填"
   },
   "thread": {
     "title": "交谈消息",
@@ -98,6 +103,7 @@
     "submit": "发布"
   },
   "postArticle": {
+    "newArticle": "写文章",
     "titlePlaceHolder": "标题",
     "contentPlaceHolder": "正文..",
     "submit": "发布"
@@ -122,5 +128,8 @@
   },
   "contact": {
     "noAbout": "暂无介绍"
+  },
+  "setting": {
+    "version": "客户端版本："
   }
 }

@@ -28,6 +28,7 @@ import RelayManager from '../../components/layout/RelayManager';
 import { ShareArticle } from 'app/components/layout/Share';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { CopyText } from 'app/components/layout/util/CopyText';
 
 const styles = {
   root: {
@@ -365,39 +366,13 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                         }
                         onSubmit={onSubmitShare}
                       />
-                      <span
-                        style={{
-                          float: 'right',
-                          padding: '0px 5px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => {
-                          navigator.clipboard.writeText(shareUrl());
-                          const msg = document.getElementById('copy-msg');
-                          if (msg) {
-                            msg.style.display = 'block';
-                            setTimeout(function () {
-                              msg.style.display = 'none';
-                            }, 2000);
-                          }
-                        }}
-                      >
-                        🔗
+                      <span style={{ float: 'right' }}>
+                        <CopyText
+                          name={'🔗'}
+                          textToCopy={shareUrl()}
+                          successMsg={'Link copied to clipboard!'}
+                        />
                       </span>
-                      <div
-                        id="copy-msg"
-                        style={{
-                          display: 'none',
-                          background: 'green',
-                          color: 'white',
-                          padding: '5px',
-                          position: 'absolute',
-                          top: '0',
-                          right: '0',
-                        }}
-                      >
-                        Link copied to clipboard!
-                      </div>
                     </div>
                   </Grid>
                 </Grid>
@@ -556,8 +531,6 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
               {siteMetaData?.site_description}
             </div>
 
-            <hr />
-            <LoginForm />
             <hr />
             <RelayManager />
           </Grid>

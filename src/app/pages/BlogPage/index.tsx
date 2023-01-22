@@ -470,8 +470,6 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               />
             </div>
             <hr />
-            <LoginForm />
-            <hr />
             <RelayManager />
           </Grid>
         </Grid>

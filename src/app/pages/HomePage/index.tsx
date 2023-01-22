@@ -374,14 +374,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     worker?.pubEvent(event);
   };
 
-  const shortPublicKey = (key: PublicKey | undefined) => {
-    if (key) {
-      return key.slice(0, 8) + '..' + key.slice(48);
-    } else {
-      return 'unknown';
-    }
-  };
-
   return (
     <div style={styles.root}>
       <NavHeader />
@@ -473,10 +465,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}
-            <hr />
-            <LoginForm />
-            <hr />
-            <NoticeBox />
             <hr />
             <RelayManager />
           </Grid>
