@@ -146,8 +146,14 @@ export const TextMsg = ({
   keyPair,
 }: TextMsgProps) => {
   const { t } = useTranslation();
+  const [hover, setHover] = React.useState(false);
+  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
   return (
-    <li style={styles.msgItem}>
+    <li
+      style={{ ...styles.msgItem, ...bg }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       <Grid container>
         <Grid item xs={2} style={{ textAlign: 'left' as const }}>
           <img style={styles.avatar} src={avatar} alt="" />
@@ -195,8 +201,15 @@ export const ProfileTextMsg = ({
   keyPair,
 }: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
+  const [hover, setHover] = React.useState(false);
+  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+
   return (
-    <li style={styles.msgItem}>
+    <li
+      style={{ ...styles.msgItem, ...bg }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       <Grid container>
         <Grid item xs={12}>
           <span style={styles.msgWord}>
@@ -254,6 +267,8 @@ export const BlogMsg = ({
 }: BlogMsgProps) => {
   const { t } = useTranslation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [hover, setHover] = React.useState(false);
+  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
 
   const shareUrl = () => {
     return (
@@ -269,7 +284,11 @@ export const BlogMsg = ({
   };
 
   return (
-    <li style={styles.msgItem}>
+    <li
+      style={{ ...styles.msgItem, ...bg }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       <Grid container>
         <Grid item xs={2} style={{ textAlign: 'left' as const }}>
           <img style={styles.avatar} src={avatar} alt="" />

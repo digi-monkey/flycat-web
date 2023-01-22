@@ -1,8 +1,7 @@
 import { Grid } from '@mui/material';
 import NavHeader from 'app/components/layout/NavHeader';
 import RelayManager from 'app/components/layout/RelayManager';
-import { ProfileShareMsg, ShareMsg } from 'app/components/layout/ShareMsg';
-import { BlogMsg, TextMsg } from 'app/components/layout/TextMsg';
+import { BlogMsg } from 'app/components/layout/TextMsg';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +9,6 @@ import { connect } from 'react-redux';
 import {
   EventTags,
   Event,
-  isEventPTag,
   EventContactListPTag,
   EventSetMetadataContent,
   EventSubResponse,
@@ -20,8 +18,6 @@ import {
   PublicKey,
 } from 'service/api';
 import {
-  isFlycatShareHeader,
-  CacheIdentifier,
   SiteMetaDataContentSchema,
   ArticleDataSchema,
   FlycatWellKnownEventKind,
@@ -29,7 +25,6 @@ import {
   validateArticlePageKind,
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
-import { getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
@@ -194,7 +189,6 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData);
       },
-      'homeIndex',
     );
     setWorker(worker);
     worker.pullWsConnectStatus();

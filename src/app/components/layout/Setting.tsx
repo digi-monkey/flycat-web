@@ -68,7 +68,7 @@ export const Setting = ({
           {t('nav.menu.github')}
         </a>
       </span>
-      <button onClick={onCancel}>{t('loginForm.cancel')}</button>
+      <button onClick={onCancel}>{t('setting.exit')}</button>
     </>
   );
 };
