@@ -123,7 +123,7 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
                 background: 'black',
                 opacity: 0.5,
                 filter: 'blur(5px)',
-                display: isOpenLoginForm ? 'block' : 'none',
+                display: isOpenSetting ? 'block' : 'none',
               }}
             ></div>
 
