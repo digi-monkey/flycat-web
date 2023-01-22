@@ -66,11 +66,6 @@ export function RelayManager({
   );
 
   const [worker, setWorker] = useState<CallWorker>();
-  let initCount = 0;
-  let pubCount = 0;
-  useEffect(() => {
-    console.log('init worker', initCount++);
-  }, []);
   useEffect(() => {
     const worker = new CallWorker((message: FromWorkerMessageData) => {
       if (message.wsConnectStatus) {
@@ -104,7 +99,6 @@ export function RelayManager({
       if (relays.length === 0) return;
       if (worker == null) return;
 
-      console.log('addrelay count:', pubCount++);
       worker?.addRelays(relays);
     }, [relays]);
   }

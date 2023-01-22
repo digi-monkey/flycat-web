@@ -71,10 +71,13 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
               <a href="/">{t('nav.menu.home')}</a>
             </li>
             <li style={styles.li}>
-              <a href={'/blog/' + myPublicKey}>{t('nav.menu.blog')}</a>
+              <a href={'/blog'}>{t('nav.menu.blog')}</a>
             </li>
             <li style={styles.li}>
               <a href={'/user/' + myPublicKey}>{t('nav.menu.profile')}</a>
+            </li>
+            <li style={styles.li}>
+              <a href={'/blog/' + myPublicKey}>{t('nav.menu.blogDashboard')}</a>
             </li>
             <li style={styles.li}>
               <a href="">{t('nav.menu.globalFeed')}</a>

@@ -78,6 +78,44 @@ export function ArticleShareContent({
   );
 }
 
+export function ArticleContentNoAvatar({
+  text,
+  shareUrl,
+  title,
+  blogName,
+  classNames,
+}: ArticleShareContentProps) {
+  return (
+    <span className={classNames}>
+      <span className={classNames} style={{ whiteSpace: 'pre-line' as const }}>
+        {text}
+      </span>
+      <div
+        style={{
+          margin: '10px 0px',
+          background: 'rgb(247, 245, 235)',
+          padding: '5px',
+        }}
+        onClick={() => {
+          window.open(shareUrl, '_blank');
+        }}
+      >
+        <Grid container>
+          <Grid
+            item
+            xs={12}
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          >
+            <span style={{ padding: '5px' }}>
+              {title} - {blogName}
+            </span>
+          </Grid>
+        </Grid>
+      </div>
+    </span>
+  );
+}
+
 export function ImagePlate({ url }: { url: string }) {
   // image click effect
   const [scale, setScale] = useState(1);
