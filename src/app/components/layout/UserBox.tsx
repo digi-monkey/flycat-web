@@ -137,8 +137,6 @@ export const UserRequiredLoginBox = () => {
         <span style={styles.about}>{t('UserRequiredLoginBox.noAbout')}</span>
       </div>
 
-      <div style={styles.publicKey}>t('UserRequiredLoginBox.noPubKey')</div>
-
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>{t('util.noNumberData')}</span>

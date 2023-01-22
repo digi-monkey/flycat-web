@@ -50,9 +50,9 @@
     "noteMsg": "notes"
   },
   "UserRequiredLoginBox": {
-    "loginFirst": "please Login First",
-    "noAbout": "this User Has Not Written Any Self Description",
-    "noPubKey": "publicKey:{'login To View PublicKey'}"
+    "loginFirst": "please sign in first",
+    "noAbout": "sign in to see user's about",
+    "noPubKey": "sign in to view publicKey"
   },
   "UserProfileBox": {
     "hisAbout": "their about",
