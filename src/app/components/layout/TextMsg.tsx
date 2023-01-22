@@ -1,12 +1,13 @@
 import { Grid } from '@mui/material';
-import { Content } from 'app/components/layout/Content';
+import { ArticleContentNoAvatar, Content } from 'app/components/layout/Content';
 import ReplyButton from 'app/components/layout/ReplyBtn';
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PrivateKey, PublicKey } from 'service/api';
+import { Event, PrivateKey, PublicKey } from 'service/api';
 import { shortPublicKey } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
+import { ShareArticle } from './Share';
 const styles = {
   root: {
     maxWidth: '900px',
@@ -222,6 +223,91 @@ export const ProfileTextMsg = ({
               myKeyPair={keyPair}
             />
           </span>
+        </Grid>
+      </Grid>
+    </li>
+  );
+};
+
+export interface BlogMsgProps {
+  name?: string;
+  avatar?: string;
+  pk: string;
+  title: string;
+  blogName: string;
+  articleId: string;
+  createdAt: number;
+  keyPair?: KeyPair;
+  onSubmitShare: (event: Event) => any;
+}
+
+export const BlogMsg = ({
+  avatar,
+  name,
+  pk,
+  title,
+  blogName,
+  articleId,
+  createdAt,
+  keyPair,
+  onSubmitShare,
+}: BlogMsgProps) => {
+  const { t } = useTranslation();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const shareUrl = () => {
+    return (
+      ' ' +
+      window.location.protocol +
+      '//' +
+      window.location.host +
+      '/article/' +
+      pk +
+      '/' +
+      articleId
+    );
+  };
+
+  return (
+    <li style={styles.msgItem}>
+      <Grid container>
+        <Grid item xs={2} style={{ textAlign: 'left' as const }}>
+          <img style={styles.avatar} src={avatar} alt="" />
+        </Grid>
+        <Grid item xs={10}>
+          <span style={styles.msgWord}>
+            <a style={styles.userName} href={'/user/' + pk}>
+              @{name}
+            </a>
+            <ArticleContentNoAvatar
+              text={''}
+              shareUrl={shareUrl()}
+              title={title}
+              blogName={blogName}
+            />
+          </span>
+          <span style={styles.time}>{useTimeSince(createdAt)}</span>
+          <span style={styles.time}>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              style={styles.smallBtn}
+            >
+              {t('blog.rePostShare')}
+            </button>
+          </span>
+          <ShareArticle
+            suffix={' ' + shareUrl()}
+            url={shareUrl()}
+            title={title}
+            blogName={blogName}
+            blogAvatar={avatar}
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            pk={pk}
+            id={articleId}
+            loginUser={keyPair}
+            onSubmit={onSubmitShare}
+          />
         </Grid>
       </Grid>
     </li>

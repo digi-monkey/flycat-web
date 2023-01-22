@@ -21,6 +21,7 @@ import { BlogPage } from './pages/BlogPage/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
 import RelayManager from './components/layout/RelayManager';
 import ArticleRead from './pages/ArticleReadPage/ArticleRead';
+import BlogFeed from './pages/BlogPage/Feed';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -52,6 +53,9 @@ export function App() {
         </Route>
         <Route path="/event/:eventId">
           <EventPage />
+        </Route>
+        <Route exact path="/blog">
+          <BlogFeed />
         </Route>
         <Route exact path="/" component={HomePage} />
         <Route component={NotFoundPage} />

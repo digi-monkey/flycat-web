@@ -15,6 +15,7 @@
       "home": "首页",
       "profile": "我的空间",
       "blog": "公众号",
+      "blogDashboard": "公众号后台",
       "github": "开源",
       "globalFeed": "随便看看",
       "setting": "设置",
@@ -39,7 +40,8 @@
     "open": "查看对话"
   },
   "textMsg": {
-    "replyTo": "回复"
+    "replyTo": "回复",
+    "postArticle": "发表文章"
   },
   "userBox": {
     "pubKey": "公钥",
@@ -130,6 +132,7 @@
     "noAbout": "暂无介绍"
   },
   "setting": {
-    "version": "客户端版本："
+    "version": "客户端版本：",
+    "exit": "关闭"
   }
 }

@@ -197,9 +197,9 @@ export function Article(props: ArticleProps) {
                 alt=""
                 style={{ width: '80px', height: '80px', display: 'block' }}
               />
-              <h3>{siteMetaData.site_name}</h3>
+              <h3>{siteMetaData?.site_name}</h3>
               <span style={{ fontSize: '14px', color: 'gray' }}>
-                {siteMetaData.site_description}
+                {siteMetaData?.site_description}
               </span>
               <br />
               <br />
