@@ -33,7 +33,7 @@ export class Pool {
         workerEventEmitter.emit(FromWorkerMessageType.NostrData, msg);
       };
       const onerror = (event: Event) => {
-        console.error(`WebSocket error: ${event}`);
+        console.error(`WebSocket error: `, event);
         this.wsConnectStatus.set(relayUrl, false);
         this.sendWsConnectStatusUpdate();
       };

@@ -10,7 +10,7 @@ import {
 } from './crypto';
 const { version } = require('../../package.json');
 
-export const DEFAULT_API_URL = 'http://accu.cc:8080';
+export const DEFAULT_API_URL = 'http://localhost:8080';
 export const DEFAULT_WS_API_URL = 'wss://nostr.v0l.io'; //"wss://nostr.v0l.io"//"wss://relay.nostr.bg";//'wss://nostr-relay.digitalmob.ro'//'wss://relay.damus.io'; //'wss://jiggytom.ddns.net';// "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"/
 
 //axios.defaults.withCredentials = true;
@@ -327,24 +327,51 @@ export class WsApi {
   public maxSub: number;
   public subPool: Queue<SubscriptionId>;
 
-  constructor(url?: string, wsHandler?: WsApiHandler, maxSub: number = 10) {
+  constructor(
+    url?: string,
+    wsHandler?: WsApiHandler,
+    maxSub: number = 10,
+    reconnectIntervalSecs = 10,
+  ) {
     this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    this.updateListeners(url, wsHandler, reconnectIntervalSecs);
+    this.maxSub = maxSub;
+    this.subPool = new Queue();
+  }
+
+  private updateListeners(
+    url?: string,
+    wsHandler?: WsApiHandler,
+    reconnectIntervalSecs = 3,
+  ) {
+    const that = this;
+    if (that.ws.readyState === WebSocket.CLOSED) {
+      that.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    }
+
+    const reconnect = (e: CloseEvent) => {
+      that.handleClose(e, () => {
+        setTimeout(() => {
+          if (wsHandler?.onCloseHandler) {
+            wsHandler?.onCloseHandler(e);
+          }
+          console.log('try reconnect..');
+          that.updateListeners(url, wsHandler, reconnectIntervalSecs);
+        }, reconnectIntervalSecs * 1000);
+      });
+    };
 
     this.ws.addEventListener('open', event => {
       if (wsHandler?.onOpenHandler) {
         wsHandler?.onOpenHandler(event);
       }
     });
-
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
     this.ws.onmessage = evt => {
       this.handleResponse(evt, wsHandler?.onMsgHandler);
     };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = wsHandler?.onCloseHandler || this.handleClose;
-
-    this.maxSub = maxSub;
-    this.subPool = new Queue();
+    this.ws.onclose = reconnect;
   }
 
   url() {
@@ -380,7 +407,9 @@ export class WsApi {
       await this.ws.send(data);
     } else {
       console.log(
-        `ws not open, abort send msg.., ws.readState: ${this.ws.readyState}`,
+        `${this.url()} not open, abort send msg.., ws.readState: ${
+          this.ws.readyState
+        }`,
       );
     }
   }
