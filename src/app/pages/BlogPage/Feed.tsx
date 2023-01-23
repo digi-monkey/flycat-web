@@ -405,7 +405,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         <Grid container>
           <Grid item xs={8} style={styles.left}>
             <div style={styles.message}>
-              <div>Blog Post</div>
+              <div>{t('blogFeed.title')}</div>
               <hr />
               <ul style={styles.msgsUl}>
                 {articles.length === 0 && (
