@@ -207,6 +207,8 @@ export interface UserHeaderProps {
   pk: PublicKey;
   avatar?: string;
   name?: string;
+  articleCount?: number;
+  blogName?: string;
   followOrUnfollowOnClick: () => any;
   followOrUnfollow: boolean;
 }
@@ -216,6 +218,8 @@ export const UserHeader = ({
   name,
   followOrUnfollowOnClick,
   followOrUnfollow,
+  articleCount,
+  blogName,
 }: UserHeaderProps) => {
   const { t } = useTranslation();
   return (
@@ -244,6 +248,16 @@ export const UserHeader = ({
               style={styles.simpleBtn}
             >
               {t('UserHeader.hisBlog')}
+              {blogName && (
+                <span style={{ color: 'gray', fontSize: '14px' }}>
+                  {'（' +
+                    t('profile.postArticles', {
+                      count: articleCount,
+                      siteName: blogName,
+                    }) +
+                    ')'}
+                </span>
+              )}
             </button>
           </div>
         </Grid>

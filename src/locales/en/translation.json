@@ -62,7 +62,7 @@
     "hisNoteMsg": "their Messages"
   },
   "UserHeader": {
-    "hisBlog": "blog"
+    "hisBlog": "view blog"
   },
   "UserBlogHeader": {
     "toFollow": "+follow",
@@ -138,5 +138,8 @@
   "blogFeed": {
     "title": "Blog Post",
     "noPostYet": "nothing here.."
+  },
+  "profile": {
+    "postArticles": "{{count}} post on {{siteName}}"
   }
 }

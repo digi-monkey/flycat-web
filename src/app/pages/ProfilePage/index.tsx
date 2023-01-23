@@ -14,31 +14,32 @@ import {
   EventContactListPTag,
   isEventPTag,
   RawEvent,
+  Filter,
 } from 'service/api';
-import { useTimeSince } from 'hooks/useTimeSince';
-import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/RelayManager';
-import { Content } from '../../components/layout/Content';
-import ReplyButton from '../../components/layout/ReplyBtn';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
-import {
-  getLastPubKeyFromPTags,
-  getPkFromFlycatShareHeader,
-  shortPublicKey,
-} from 'service/helper';
+import { getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
-import { ShowThread } from 'app/components/layout/ShowThread';
 import { ProfileShareMsg, ShareMsg } from 'app/components/layout/ShareMsg';
 import { ProfileTextMsg } from 'app/components/layout/TextMsg';
 import { t } from 'i18next';
-import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
+import {
+  isFlycatShareHeader,
+  CacheIdentifier,
+  SiteMetaDataContentSchema,
+  Flycat,
+  ArticleDataSchema,
+  validateArticlePageKind,
+  ArticlePageContentSchema,
+} from 'service/flycat-protocol';
+import { useTranslation } from 'react-i18next';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -188,6 +189,7 @@ interface UserParams {
 }
 
 export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -199,6 +201,12 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [userContactList, setUserContactList] = useState<ContactList>(
     new Map(),
   );
+  const [siteMetaData, setSiteMetaData] = useState<
+    SiteMetaDataContentSchema & { created_at: number }
+  >();
+  const [articles, setArticles] = useState<
+    (ArticleDataSchema & { page_id: number; pageCreatedAt: number })[]
+  >([]);
   const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
@@ -223,6 +231,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         onMsgHandler(message.nostrData);
       },
     );
+    worker.pullWsConnectStatus();
     setWorker(worker);
   }, []);
 
@@ -300,7 +309,84 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
           break;
 
+        case WellKnownEventKind.flycat_site_metadata:
+          if (
+            siteMetaData != null &&
+            siteMetaData.created_at >= event.created_at
+          ) {
+            // outdated data
+            return;
+          }
+
+          try {
+            const site = Flycat.deserialize(
+              event.content,
+            ) as SiteMetaDataContentSchema;
+            const data = { ...site, ...{ created_at: event.created_at } };
+            setSiteMetaData(data);
+          } catch (error: any) {
+            console.log('Flycat.deserialize failed', error.message);
+          }
+          break;
+
         default:
+          try {
+            if (validateArticlePageKind(event.kind)) {
+              const ap = Flycat.deserialize(
+                event.content,
+              ) as ArticlePageContentSchema;
+              if (ap.article_ids.length !== ap.data.length) {
+                throw new Error('unexpected data');
+              }
+
+              // set new articles
+              setArticles(oldArray => {
+                let updatedArray = [...oldArray];
+
+                // check if there is old article updated
+                for (const newItem of ap.data) {
+                  let index = updatedArray.findIndex(
+                    item => item.id === newItem.id,
+                  );
+                  if (index !== -1) {
+                    if (newItem.updated_at > updatedArray[index].updated_at) {
+                      updatedArray[index] = {
+                        ...newItem,
+                        ...{
+                          page_id: updatedArray[index].page_id,
+                          pageCreatedAt: event.created_at,
+                        },
+                      };
+                    }
+                  }
+                }
+
+                // check if there is new article added
+                const newData: (ArticleDataSchema & {
+                  page_id: number;
+                  pageCreatedAt: number;
+                })[] = [];
+                for (const a of ap.data) {
+                  if (!updatedArray.map(o => o.id).includes(a.id)) {
+                    newData.push({
+                      ...a,
+                      ...{
+                        page_id: ap.page_id,
+                        pageCreatedAt: event.created_at,
+                      },
+                    });
+                  }
+                }
+
+                // sort by timestamp
+                const unsorted = [...updatedArray, ...newData];
+                const sorted = unsorted.sort((a, b) =>
+                  a.created_at >= b.created_at ? -1 : 1,
+                );
+                return sorted;
+              });
+            }
+          } catch (error) {}
           break;
       }
     }
@@ -372,10 +458,26 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [wsConnectStatus, myKeyPair, worker]);
 
   useEffect(() => {
+    if (publicKey.length === 0) return;
+
     worker?.subContactList(publicKey);
     worker?.subMetadata([publicKey]);
     worker?.subMsg([publicKey]);
+    worker?.subBlogSiteMetadata([publicKey]);
   }, [wsConnectStatus, worker]);
+
+  useEffect(() => {
+    if (siteMetaData == null) return;
+
+    const pageIds = siteMetaData.page_ids;
+    if (pageIds.length === 0) return;
+
+    const filter: Filter = {
+      authors: [publicKey],
+      kinds: pageIds,
+    };
+    worker?.subFilter(filter);
+  }, [siteMetaData]);
 
   const followUser = async () => {
     const contacts = Array.from(myContactList.entries());
@@ -447,6 +549,8 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 followOrUnfollowOnClick={followOrUnfollowOnClick}
                 avatar={userMap.get(publicKey)?.picture}
                 name={userMap.get(publicKey)?.name}
+                blogName={siteMetaData?.site_name}
+                articleCount={articles.length}
               />
             </div>
 

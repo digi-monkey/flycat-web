@@ -79,9 +79,11 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
             <li style={styles.li}>
               <a href={'/blog/' + myPublicKey}>{t('nav.menu.blogDashboard')}</a>
             </li>
+            {/** 
             <li style={styles.li}>
               <a href="">{t('nav.menu.globalFeed')}</a>
             </li>
+            */}
             <li style={styles.li}>
               <a
                 href="#"
