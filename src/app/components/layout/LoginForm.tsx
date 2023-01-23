@@ -53,9 +53,10 @@ const LoginForm = ({
       <div>
         <span style={styles.title}>{t('loginForm.welcome')}</span>
         <span style={styles.pk}>
-          {t('loginForm.signAs') +
-            ' ' +
-            nip19Encode(publicKey, Nip19DataType.Pubkey)}
+          {publicKey &&
+            t('loginForm.signAs') +
+              ' ' +
+              nip19Encode(publicKey, Nip19DataType.Pubkey)}
         </span>
         <button onClick={doLogout}>{t('loginForm.signOut')}</button>&nbsp;&nbsp;
         <button onClick={onCancel}>{t('loginForm.cancel')}</button>

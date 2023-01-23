@@ -24,10 +24,14 @@ const styles = {
 };
 
 interface Props {
+  disabled: boolean;
   onSubmitText: (text: string) => Promise<any>;
 }
 
-export const PubNoteTextarea: React.FC<Props> = ({ onSubmitText }) => {
+export const PubNoteTextarea: React.FC<Props> = ({
+  disabled,
+  onSubmitText,
+}) => {
   const { t } = useTranslation();
   const [text, setText] = useState('');
 
@@ -50,7 +54,9 @@ export const PubNoteTextarea: React.FC<Props> = ({ onSubmitText }) => {
           onChange={event => setText(event.target.value)}
         ></textarea>
         <div style={styles.btn}>
-          <button type="submit">{t('pubNoteBox.submit')}</button>
+          <button type="submit" disabled={disabled}>
+            {t('pubNoteBox.submit')}
+          </button>
         </div>
       </form>
     </div>

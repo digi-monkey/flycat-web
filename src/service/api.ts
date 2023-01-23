@@ -635,6 +635,10 @@ export enum Nip19DataPrefix {
 }
 
 export function nip19Encode(data: string, type: Nip19DataType) {
+  if (data.length === 0) {
+    return '';
+  }
+
   switch (type) {
     case Nip19DataType.Pubkey:
       return bech32Encode(data, Nip19DataPrefix.Pubkey);

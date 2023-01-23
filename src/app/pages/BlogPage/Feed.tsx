@@ -405,7 +405,12 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         <Grid container>
           <Grid item xs={8} style={styles.left}>
             <div style={styles.message}>
+              <div>Blog Post</div>
+              <hr />
               <ul style={styles.msgsUl}>
+                {articles.length === 0 && (
+                  <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                )}
                 {articles.map((a, index) => (
                   <BlogMsg
                     key={index}

@@ -12,6 +12,7 @@ import {
 export class CallWorker {
   resolvers: { [key: string]: (arg: any) => unknown } = {};
   rejectors: { [key: string]: (arg: any) => unknown } = {};
+  public workerId: string = 'defaultCallWorker';
 
   msgCount = 0;
   receiveCount = 0;
@@ -23,6 +24,9 @@ export class CallWorker {
     onNostrData?: (message: FromWorkerMessageData) => any,
     workerId?: string,
   ) {
+    if (workerId) {
+      this.workerId = workerId;
+    }
     this.worker.onerror = e => {
       console.log('worker error: ', e);
     };
@@ -59,6 +63,38 @@ export class CallWorker {
 
     // get ws status
     //this.pullWsConnectStatus();
+  }
+
+  updateMsgListener(
+    onWsConnStatus?: (message: FromWorkerMessageData) => any,
+    onNostrData?: (message: FromWorkerMessageData) => any,
+  ) {
+    this.worker.port.onmessage = (event: MessageEvent) => {
+      // const id = workerId ? workerId : "unNamedWorker";
+      if (this.workerId) {
+        console.debug(`received port message on ${this.workerId}`);
+      }
+      this.receiveCount++;
+      //console.log("client receive post message count=>", this.receiveCount, event.data.type);
+      const res: FromPostMsg = event.data;
+      const data = res.data;
+
+      switch (res.type) {
+        case FromWorkerMessageType.WS_CONN_STATUS:
+          if (onWsConnStatus) {
+            onWsConnStatus(data);
+          }
+          break;
+
+        case FromWorkerMessageType.NostrData:
+          if (onNostrData) {
+            onNostrData(data);
+          }
+          break;
+        default:
+          break;
+      }
+    };
   }
 
   removeListeners() {

@@ -277,14 +277,11 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.contact_list:
-          if (event.pubkey === myKeyPair.publicKey) {
+          if (event.pubkey === myPublicKey) {
             if (
               myContactEvent == null ||
               myContactEvent?.created_at! < event.created_at
             ) {
-              const contacts = event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[];
               myContactEvent = event;
             }
           }
@@ -303,15 +300,35 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       publicKey: myPublicKey,
       privateKey: myPrivateKey,
     });
+
+    // update worker listener
+    // update some deps like myPublicKey in the listener
+    worker?.updateMsgListener(
+      (message: FromWorkerMessageData) => {
+        if (message.wsConnectStatus) {
+          const data = Array.from(message.wsConnectStatus.entries());
+          for (const d of data) {
+            setWsConnectStatus(prev => {
+              const newMap = new Map(prev);
+              newMap.set(d[0], d[1]);
+              return newMap;
+            });
+          }
+        }
+      },
+      (message: FromWorkerMessageData) => {
+        onMsgHandler(message.nostrData);
+      },
+    );
   }, [isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn !== true) return;
-    if (myKeyPair.publicKey == null) return;
+    if (myPublicKey.length === 0) return;
 
     subSelfMetadata();
-    worker?.subContactList(myKeyPair.publicKey);
-  }, [myKeyPair, wsConnectStatus]);
+    worker?.subContactList(myPublicKey);
+  }, [myPublicKey, wsConnectStatus]);
 
   useEffect(() => {
     if (myContactEvent == null) return;
@@ -342,13 +359,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (pks.length === 0) return;
 
     // subscibe myself msg too
-    pks.push(myKeyPair.publicKey);
+    if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
+      pks.push(myPublicKey);
+    }
+
     worker?.subMetadata(pks);
     worker?.subMsg(pks);
   }, [myContactList.size]);
 
   const subSelfMetadata = async () => {
-    worker?.subMetadata([myKeyPair.publicKey]);
+    worker?.subMetadata([myPublicKey]);
   };
 
   const onSubmitText = async (text: string) => {
@@ -380,10 +400,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={8} style={styles.left}>
-            <PubNoteTextarea onSubmitText={onSubmitText} />
+            <PubNoteTextarea
+              disabled={!myPrivateKey}
+              onSubmitText={onSubmitText}
+            />
 
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
+                {msgList.length === 0 && (
+                  <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                )}
                 {msgList.map((msg, index) => {
                   //@ts-ignore
                   const flycatShareHeaders: FlycatShareHeader[] =
@@ -457,11 +483,11 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <Grid item xs={4} style={styles.right}>
             {isLoggedIn && (
               <UserBox
-                pk={myKeyPair.publicKey}
+                pk={myPublicKey}
                 followCount={myContactList.size}
-                avatar={userMap.get(myKeyPair.publicKey)?.picture}
-                name={userMap.get(myKeyPair.publicKey)?.name}
-                about={userMap.get(myKeyPair.publicKey)?.about}
+                avatar={userMap.get(myPublicKey)?.picture}
+                name={userMap.get(myPublicKey)?.name}
+                about={userMap.get(myPublicKey)?.about}
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}

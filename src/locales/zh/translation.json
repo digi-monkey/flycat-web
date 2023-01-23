@@ -134,5 +134,9 @@
   "setting": {
     "version": "客户端版本：",
     "exit": "关闭"
+  },
+  "blogFeed": {
+    "title": "公众号文章",
+    "noPostYet": "还没有文章.."
   }
 }

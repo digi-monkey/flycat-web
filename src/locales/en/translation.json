@@ -134,5 +134,9 @@
   "setting": {
     "version": "Client Version: ",
     "exit": "exit"
+  },
+  "blogFeed": {
+    "title": "Blog Post",
+    "noPostYet": "nothing here.."
   }
 }
