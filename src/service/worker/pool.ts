@@ -1,4 +1,4 @@
-import { WsApi } from 'service/api';
+import { SubscriptionId, WsApi } from 'service/api';
 import { defaultRelays } from 'service/relay';
 import { WorkerEventEmitter } from './bus';
 import {
@@ -15,6 +15,7 @@ export class Pool {
   private wsConnectStatus: WsConnectStatus = new Map();
   private wsApiList: WsApi[] = [];
   public maxSub: number;
+  private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to subIds
 
   constructor(private relayUrls: string[], maxSub: number = 10) {
     console.log('init Pool..');
@@ -30,7 +31,7 @@ export class Pool {
         const msg: FromWorkerMessageData = {
           nostrData: event.data,
         };
-        workerEventEmitter.emit(FromWorkerMessageType.NostrData, msg);
+        workerEventEmitter.emit(FromWorkerMessageType.NOSTR_DATA, msg);
       };
       const onerror = (event: Event) => {
         console.error(`WebSocket error: `, event);
@@ -91,6 +92,7 @@ export class Pool {
     workerEventEmitter.on(
       ToWorkerMessageType.CALL_API,
       (message: ToWorkerMessageData) => {
+        const portId = message.portId;
         const callMethod = message.callMethod;
         const callData = message.callData || [];
         if (callMethod == null) {
@@ -105,6 +107,23 @@ export class Pool {
               .map(ws => {
                 const method = ws[callMethod];
                 if (typeof method === 'function') {
+                  // record custom sub id to port id
+                  // todo: maybe also record random subscription id to portId
+                  const keepAlive = callData[1];
+                  const customSubId = callData[2];
+                  if (
+                    method === 'subFilter' &&
+                    keepAlive === true &&
+                    customSubId != null
+                  ) {
+                    if (this.portSubs.get(portId) != null) {
+                      const data = this.portSubs.get(portId)!;
+                      data.push(customSubId);
+                      this.portSubs.set(portId, data);
+                    } else {
+                      this.portSubs.set(portId, [customSubId]);
+                    }
+                  }
                   method.apply(ws, callData);
                 } else {
                   console.error(`method ${callMethod} not found`);
@@ -123,6 +142,22 @@ export class Pool {
         }
       },
     );
+
+    workerEventEmitter.on(
+      ToWorkerMessageType.CLOSE_PORT,
+      (message: ToWorkerMessageData) => {
+        const portId = message.portId;
+        const subIds = this.portSubs.get(portId);
+        if (subIds && subIds.length > 0) {
+          for (const id of subIds) {
+            this.wsApiList
+              .filter(ws => ws.isConnected())
+              .every(ws => ws.closeSub(id, true));
+          }
+        }
+        this.portSubs.delete(portId);
+      },
+    );
   }
 
   private sendWsConnectStatusUpdate() {
@@ -136,29 +171,42 @@ export class Pool {
 export const pool = new Pool(defaultRelays);
 
 /*** helper functions */
-export const addRelays = (relays: string[]) => {
+export const addRelays = (relays: string[], portId: number) => {
   const msg: ToWorkerMessageData = {
     urls: relays,
+    portId,
   };
   workerEventEmitter.emit(ToWorkerMessageType.ADD_RELAY_URL, msg);
 };
 
-export const pullRelayStatus = () => {
-  const msg: ToWorkerMessageData = {};
+export const pullRelayStatus = (portId: number) => {
+  const msg: ToWorkerMessageData = { portId };
   workerEventEmitter.emit(ToWorkerMessageType.PULL_RELAY_STATUS, msg);
 };
 
-export const callApi = (callMethod: string, callData: any[]) => {
+export const callApi = (
+  callMethod: string,
+  callData: any[],
+  portId: number,
+) => {
   const msg: ToWorkerMessageData = {
     callMethod,
     callData,
+    portId,
   };
   workerEventEmitter.emit(ToWorkerMessageType.CALL_API, msg);
 };
 
-export const disconnect = () => {
-  const msg: ToWorkerMessageData = {};
+export const disconnect = (portId: number) => {
+  const msg: ToWorkerMessageData = { portId };
   workerEventEmitter.emit(ToWorkerMessageType.DISCONNECT, msg);
+};
+
+export const closePort = (portId: number) => {
+  const msg: ToWorkerMessageData = {
+    portId,
+  };
+  workerEventEmitter.emit(ToWorkerMessageType.CLOSE_PORT, msg);
 };
 
 export const listenFromPool = async (
@@ -169,6 +217,6 @@ export const listenFromPool = async (
     workerEventEmitter.on(FromWorkerMessageType.WS_CONN_STATUS, onWsConnStatus);
   }
   if (!!onNostrData) {
-    workerEventEmitter.on(FromWorkerMessageType.NostrData, onNostrData);
+    workerEventEmitter.on(FromWorkerMessageType.NOSTR_DATA, onNostrData);
   }
 };

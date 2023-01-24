@@ -14,9 +14,8 @@ import {
   EventContactListPTag,
   RawEvent,
   isEventPTag,
+  Filter,
 } from 'service/api';
-import { useTimeSince } from 'hooks/useTimeSince';
-import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
@@ -326,8 +325,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (isLoggedIn !== true) return;
     if (myPublicKey.length === 0) return;
 
-    subSelfMetadata();
-    worker?.subContactList(myPublicKey);
+    subMetaDataAndContactList([myPublicKey], false, 'userMetaAndContact');
   }, [myPublicKey, wsConnectStatus]);
 
   useEffect(() => {
@@ -363,12 +361,45 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       pks.push(myPublicKey);
     }
 
-    worker?.subMetadata(pks);
-    worker?.subMsg(pks);
+    subMsg(pks, true, 'homeMsg');
+    subMetadata(pks, true, 'homeMetaData');
   }, [myContactList.size]);
 
-  const subSelfMetadata = async () => {
-    worker?.subMetadata([myPublicKey]);
+  const subMetaDataAndContactList = (
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) => {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.contact_list],
+      limit: 50,
+    };
+    worker?.subFilter(filter, keepAlive, customId);
+  };
+
+  const subMsg = (pks: PublicKey[], keepAlive?: boolean, customId?: string) => {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.text_note],
+      limit: 50,
+    };
+    console.log('...', filter);
+    worker?.subFilter(filter, keepAlive, customId);
+  };
+
+  const subMetadata = (
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) => {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.set_metadata],
+      limit: 50,
+    };
+    console.log('...', filter);
+    worker?.subFilter(filter, keepAlive, customId);
   };
 
   const onSubmitText = async (text: string) => {

@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import {
+  FromPostMsg,
   FromWorkerMessageData,
   FromWorkerMessageType,
   ToPostMsg,
@@ -8,6 +9,7 @@ import {
 import {
   addRelays,
   callApi,
+  closePort,
   disconnect,
   listenFromPool,
   pullRelayStatus,
@@ -20,7 +22,7 @@ import {
  * while the worker and Pool(ws manager) instance (1-to-1) are communicating through eventEmitter
  */
 
-const connectedPorts: MessagePort[] = [];
+const connectedPorts: (MessagePort | null)[] = [];
 
 self.onconnect = (evt: MessageEvent) => {
   const port = evt.ports[0];
@@ -32,48 +34,66 @@ self.onconnect = (evt: MessageEvent) => {
     switch (res.type) {
       case ToWorkerMessageType.ADD_RELAY_URL:
         console.log('ADD_RELAY_URL');
-        addRelays(data.urls!);
+        addRelays(data.urls!, data.portId);
         break;
 
       case ToWorkerMessageType.PULL_RELAY_STATUS:
         console.log('PULL_RELAY_STATUS');
-        pullRelayStatus();
+        pullRelayStatus(data.portId);
         break;
 
       case ToWorkerMessageType.CALL_API:
         //console.log('CALL_API', data.callMethod!, data.callData!);
-        callApi(data.callMethod!, data.callData!);
+        callApi(data.callMethod!, data.callData!, data.portId);
         break;
 
       case ToWorkerMessageType.DISCONNECT:
         console.log('DISCONNECT');
-        disconnect();
+        disconnect(data.portId);
         break;
+
+      case ToWorkerMessageType.CLOSE_PORT:
+        // console.log("port close!!!", data.portId);
+        connectedPorts[data.portId] = null;
+        closePort(data.portId);
+        break;
+
       default:
         break;
     }
   };
   connectedPorts.push(port);
+
+  // post the portId to callWorker
+  const msg: FromPostMsg = {
+    type: FromWorkerMessageType.PORT_ID,
+    data: {
+      portId: connectedPorts.length - 1,
+    },
+  };
+  port.postMessage(msg);
 };
 
 listenFromPool(
   (message: FromWorkerMessageData) => {
     if (message.wsConnectStatus) {
       connectedPorts.forEach(port => {
-        port.postMessage({
-          data: message,
-          type: FromWorkerMessageType.WS_CONN_STATUS,
-        });
+        if (port != null)
+          port.postMessage({
+            data: message,
+            type: FromWorkerMessageType.WS_CONN_STATUS,
+          });
       });
     }
   },
   (message: FromWorkerMessageData) => {
     if (message.nostrData) {
       connectedPorts.forEach(port => {
-        port.postMessage({
-          data: message,
-          type: FromWorkerMessageType.NostrData,
-        });
+        if (port != null)
+          port.postMessage({
+            data: message,
+            type: FromWorkerMessageType.NOSTR_DATA,
+          });
       });
     }
   },

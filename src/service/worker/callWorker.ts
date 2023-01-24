@@ -13,6 +13,7 @@ export class CallWorker {
   resolvers: { [key: string]: (arg: any) => unknown } = {};
   rejectors: { [key: string]: (arg: any) => unknown } = {};
   public workerId: string = 'defaultCallWorker';
+  public _portId: number | undefined;
 
   msgCount = 0;
   receiveCount = 0;
@@ -48,10 +49,17 @@ export class CallWorker {
           }
           break;
 
-        case FromWorkerMessageType.NostrData:
+        case FromWorkerMessageType.NOSTR_DATA:
           if (onNostrData) {
             onNostrData(data);
           }
+          break;
+
+        case FromWorkerMessageType.PORT_ID:
+          if (data.portId == null) {
+            throw new Error('missing data.portId');
+          }
+          this._portId = data.portId;
           break;
         default:
           break;
@@ -63,6 +71,14 @@ export class CallWorker {
 
     // get ws status
     //this.pullWsConnectStatus();
+    var that = this;
+    window.addEventListener('beforeunload', function () {
+      that.closePort();
+    });
+  }
+
+  get portId(): number {
+    return this._portId!;
   }
 
   updateMsgListener(
@@ -86,7 +102,7 @@ export class CallWorker {
           }
           break;
 
-        case FromWorkerMessageType.NostrData:
+        case FromWorkerMessageType.NOSTR_DATA:
           if (onNostrData) {
             onNostrData(data);
           }
@@ -103,6 +119,14 @@ export class CallWorker {
     this.worker.port.onmessageerror = null;
   }
 
+  closePort() {
+    const msg: ToPostMsg = {
+      type: ToWorkerMessageType.CLOSE_PORT,
+      data: { portId: this.portId },
+    };
+    this.worker.port.postMessage(msg);
+  }
+
   call(msg: ToPostMsg) {
     const __messageId = this.msgCount++;
     this.worker.port.postMessage(msg);
@@ -113,7 +137,9 @@ export class CallWorker {
   }
 
   pullWsConnectStatus() {
-    const data: ToWorkerMessageData = {};
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+    };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.PULL_RELAY_STATUS,
       data,
@@ -123,6 +149,7 @@ export class CallWorker {
 
   addRelays(relays: string[]) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       urls: relays,
     };
     const msg: ToPostMsg = {
@@ -133,7 +160,9 @@ export class CallWorker {
   }
 
   disconnect() {
-    const data: ToWorkerMessageData = {};
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+    };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.DISCONNECT,
       data,
@@ -141,10 +170,11 @@ export class CallWorker {
     return this.call(msg);
   }
 
-  subFilter(filter: Filter) {
+  subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subFilter',
-      callData: [filter],
+      callData: [filter, keepAlive, customId],
     };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.CALL_API,
@@ -159,6 +189,7 @@ export class CallWorker {
       limit: 50,
     };
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subFilter',
       callData: [filter],
     };
@@ -175,6 +206,7 @@ export class CallWorker {
       limit: 50,
     };
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subFilter',
       callData: [filter],
     };
@@ -191,6 +223,7 @@ export class CallWorker {
       limit: 50,
     };
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subFilter',
       callData: [filter],
     };
@@ -203,6 +236,7 @@ export class CallWorker {
 
   subMetadata(pks: PublicKey[]) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subUserMetadata',
       callData: [pks],
     };
@@ -215,6 +249,7 @@ export class CallWorker {
 
   subContactList(publicKey: PublicKey) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subUserContactList',
       callData: [publicKey],
     };
@@ -227,6 +262,7 @@ export class CallWorker {
 
   subUserRecommendServer(pks: PublicKey[]) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subUserRelayer',
       callData: [pks],
     };
@@ -239,6 +275,7 @@ export class CallWorker {
 
   subBlogSiteMetadata(pks: PublicKey[]) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callData: [pks],
       callMethod: 'subUserSiteMetadata',
     };
@@ -251,6 +288,7 @@ export class CallWorker {
 
   pubEvent(event: Event) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'pubEvent',
       callData: [event],
     };

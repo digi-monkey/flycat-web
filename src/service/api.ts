@@ -322,21 +322,35 @@ export interface WsApiHandler {
 
 export type WsEvent = globalThis.Event;
 
+interface SubItem {
+  id: SubscriptionId;
+  filter: Filter;
+}
+
 export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
-  public subPool: Queue<SubscriptionId>;
+  private maxKeepAlive: number;
+  public subPool: Queue<SubItem>;
+  public keepAlivePool: SubItem[];
 
   constructor(
     url?: string,
     wsHandler?: WsApiHandler,
     maxSub: number = 10,
+    maxKeepAlive: number = 5,
     reconnectIntervalSecs = 10,
   ) {
+    if (maxSub <= maxKeepAlive) {
+      throw new Error('maxSub <= maxKeepAlive');
+    }
+
     this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
     this.updateListeners(url, wsHandler, reconnectIntervalSecs);
     this.maxSub = maxSub;
+    this.maxKeepAlive = maxKeepAlive;
     this.subPool = new Queue();
+    this.keepAlivePool = [];
   }
 
   private updateListeners(
@@ -556,21 +570,77 @@ export class WsApi {
     return await this._send(JSON.stringify(data));
   }
 
-  async subFilter(filter: Filter) {
-    if (this.subPool.length >= this.maxSub) {
+  subPoolLength() {
+    return this.subPool.length + this.keepAlivePool.length;
+  }
+
+  isKeepAlive(subId: SubscriptionId) {
+    return this.keepAlivePool.filter(s => s.id === subId).length > 0;
+  }
+
+  async subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
+    if (keepAlive === true) {
+      const isDuplicated =
+        this.keepAlivePool.filter(a => isFilterEqual(a.filter, filter)).length >
+        0;
+      const isReplaceId =
+        customId != null &&
+        this.keepAlivePool.filter(a => a.id === customId).length > 0;
+      if (isReplaceId) {
+        const index = this.keepAlivePool.findIndex(a => a.id === customId);
+        if (index === -1) {
+          throw new Error('keepAlivePool.findIndex went wrong');
+        }
+        this.closeSub(customId);
+        // replace in pool
+        this.keepAlivePool[index] = { id: customId, filter: filter };
+        // send new
+        const data: EventSubRequest = [
+          ClientRequestType.SubFilter,
+          customId,
+          filter,
+        ];
+        console.log('replace!');
+        return await this._send(JSON.stringify(data));
+      }
+
+      if (!isDuplicated && this.keepAlivePool.length < this.maxKeepAlive) {
+        const subId = customId || randomSubId();
+        if (customId) this.closeSub(subId);
+
+        this.keepAlivePool.push({ id: subId, filter: filter });
+        const data: EventSubRequest = [
+          ClientRequestType.SubFilter,
+          subId,
+          filter,
+        ];
+        return await this._send(JSON.stringify(data));
+      }
+    }
+
+    if (this.subPoolLength() >= this.maxSub) {
       // close some first
-      this.closeSub(this.subPool.peek()!);
+      const id = this.subPool.peek()?.id!;
+      this.closeSub(id);
       this.subPool.dequeue();
     }
 
-    const subId = randomSubId();
-    this.subPool.enqueue(subId);
+    const subId = customId || randomSubId();
+    if (customId) this.closeSub(subId);
+    this.subPool.enqueue({
+      id: subId,
+      filter,
+    });
 
     const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
     return await this._send(JSON.stringify(data));
   }
 
-  async closeSub(subId: SubscriptionId) {
+  async closeSub(subId: SubscriptionId, closeKeepAlive = true) {
+    if (!closeKeepAlive && this.isKeepAlive(subId)) {
+      return;
+    }
+
     const data: SubCloseRequest = [ClientRequestType.Close, subId];
     return await this._send(JSON.stringify(data));
   }
@@ -611,6 +681,36 @@ export class WsApi {
     return await this.subFilter(filter);
   }
 }
+
+export function isFilterEqual(f1: Filter, f2: Filter): boolean {
+  return isDeepEqual(f1, f2);
+}
+
+export const isDeepEqual = (object1, object2) => {
+  const objKeys1 = Object.keys(object1);
+  const objKeys2 = Object.keys(object2);
+
+  if (objKeys1.length !== objKeys2.length) return false;
+
+  for (var key of objKeys1) {
+    const value1 = object1[key];
+    const value2 = object2[key];
+
+    const isObjects = isObject(value1) && isObject(value2);
+
+    if (
+      (isObjects && !isDeepEqual(value1, value2)) ||
+      (!isObjects && value1 !== value2)
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const isObject = object => {
+  return object != null && typeof object === 'object';
+};
 
 export function isEventSubResponse(data: any): data is EventSubResponse {
   return (
