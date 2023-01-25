@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import {
@@ -7,7 +7,7 @@ import {
   nip19Decode,
   nip19Encode,
 } from 'service/api';
-import { matchKeyPair } from 'service/crypto';
+import { matchKeyPair, randomKeyPair } from 'service/crypto';
 
 const styles = {
   pk: {
@@ -48,6 +48,16 @@ const LoginForm = ({
   onCancel,
 }: LoginFormProps) => {
   const { t } = useTranslation();
+
+  const [pubKeyInputValue, setPubKeyInputValue] = useState<string>('');
+  const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
+
+  const newKeyPair = () => {
+    const data = randomKeyPair();
+    setPubKeyInputValue(data.pubKey);
+    setPrivKeyInputValue(data.privKey);
+  };
+
   if (isLoggedIn) {
     return (
       <div>
@@ -116,25 +126,33 @@ const LoginForm = ({
           doLogin(pubKey, privKey);
         }}
       >
-        <span style={styles.title}>Sign In</span>
+        <span style={styles.title}>{t('nav.menu.signIn')}</span>
         <label>
           <input
             type="text"
             placeholder={t('loginForm.pubKey') + t('loginForm.pkHint')}
             name="publicKey"
             style={styles.input}
+            value={pubKeyInputValue}
           />
           <input
             type="text"
             placeholder={t('loginForm.privKey') + t('loginForm.privHint')}
             name="privateKey"
             style={styles.input}
+            value={privKeyInputValue}
           />
         </label>
         <br />
         <button type="submit">{t('loginForm.signIn')}</button>
         &nbsp;&nbsp;
-        <button onClick={onCancel}>{t('loginForm.cancel')}</button>
+        <button type="button" onClick={newKeyPair}>
+          {t('loginForm.genNewKey')}
+        </button>
+        &nbsp;&nbsp;
+        <button type="button" onClick={onCancel}>
+          {t('loginForm.cancel')}
+        </button>
       </form>
     );
   }

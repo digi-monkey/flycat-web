@@ -15,7 +15,7 @@
       "home": "Home",
       "profile": "Profile",
       "blog": "Blog",
-      "blogDashboard": "Dashboard",
+      "blogDashboard": "Write",
       "github": "Github",
       "globalFeed": "Global",
       "setting": "Setting",
@@ -90,7 +90,8 @@
     "cancel": "Cancel",
     "signAs": "Hi, you are sign-in as",
     "pkHint": ": required",
-    "privHint": ": optional for read-only"
+    "privHint": ": optional for read-only",
+    "genNewKey": "New Key Pair"
   },
   "thread": {
     "title": "Thread",
@@ -137,6 +138,9 @@
   },
   "blogFeed": {
     "title": "Blog Post",
+    "noPostYet": "nothing here.."
+  },
+  "homeFeed": {
     "noPostYet": "nothing here.."
   },
   "profile": {

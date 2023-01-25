@@ -402,6 +402,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     // refresh
     if (siteMetaData) {
       subArticlePages(siteMetaData);
+      alert("if you don't see it, refresh the page. sorry, will fix it soon");
     }
   };
 

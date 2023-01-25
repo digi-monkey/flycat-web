@@ -14,34 +14,23 @@ import {
   EventContactListPTag,
   RawEvent,
   isEventPTag,
-  Filter,
 } from 'service/api';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/RelayManager';
-import { Content } from '../../components/layout/Content';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
-import {
-  compareMaps,
-  getLastPubKeyFromPTags,
-  getPkFromFlycatShareHeader,
-} from 'service/helper';
+import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
-import { NoticeBox } from 'app/components/layout/NoticeBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
-import ReplyButton from '../../components/layout/ReplyBtn';
 import { TextMsg } from 'app/components/layout/TextMsg';
 import {
   CacheIdentifier,
-  DataType,
-  FlagType,
   FlycatShareHeader,
-  isFlycatHeader,
   isFlycatShareHeader,
 } from 'service/flycat-protocol';
 import { ShareMsg } from 'app/components/layout/ShareMsg';
@@ -430,7 +419,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
                 {msgList.length === 0 && (
-                  <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                  <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
                 )}
                 {msgList.map((msg, index) => {
                   //@ts-ignore
