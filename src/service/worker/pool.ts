@@ -162,9 +162,7 @@ export class Pool {
     workerEventEmitter.on(
       ToWorkerMessageType.DISCONNECT,
       (_message: ToWorkerMessageData) => {
-        if (this.wsApiList.every(ws => ws.isClose())) {
-          this.wsApiList.forEach(ws => ws.close());
-        }
+        this.wsApiList.forEach(ws => ws.close());
       },
     );
 
@@ -177,7 +175,7 @@ export class Pool {
           for (const id of subIds) {
             this.wsApiList
               .filter(ws => ws.isConnected())
-              .every(ws => ws.killKeepAliveSub(id));
+              .forEach(ws => ws.killKeepAliveSub(id));
           }
         }
         this.portSubs.delete(portId);

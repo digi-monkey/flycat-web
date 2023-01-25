@@ -636,6 +636,7 @@ export class WsApi {
   }
 
   killKeepAliveSub(id: SubscriptionId) {
+    console.debug('call killKeepAliveSub', this.url());
     if (this.keepAlivePool.has(id)) {
       this.sendCloseSub(id, true);
       this.keepAlivePool.delete(id);
