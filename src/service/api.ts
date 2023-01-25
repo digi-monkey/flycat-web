@@ -10,7 +10,7 @@ import {
 } from './crypto';
 const { version } = require('../../package.json');
 
-export const DEFAULT_API_URL = 'http://accu.cc:8080';
+export const DEFAULT_API_URL = 'http://localhost:8080';
 export const DEFAULT_WS_API_URL = 'wss://nostr.v0l.io'; //"wss://nostr.v0l.io"//"wss://relay.nostr.bg";//'wss://nostr-relay.digitalmob.ro'//'wss://relay.damus.io'; //'wss://jiggytom.ddns.net';// "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"/
 
 //axios.defaults.withCredentials = true;
@@ -325,26 +325,73 @@ export type WsEvent = globalThis.Event;
 export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
-  public subPool: Queue<SubscriptionId>;
+  private maxKeepAlive: number;
+  private maxInstant: number;
+  public instantPool: Map<SubscriptionId, Filter>;
+  public keepAlivePool: Map<SubscriptionId, Filter>;
 
-  constructor(url?: string, wsHandler?: WsApiHandler, maxSub: number = 10) {
+  constructor(
+    url?: string,
+    wsHandler?: WsApiHandler,
+    maxSub: number = 10,
+    maxKeepAlive: number = 5,
+    reconnectIntervalSecs = 10,
+  ) {
+    if (maxSub <= maxKeepAlive) {
+      throw new Error('maxSub <= maxKeepAlive');
+    }
+
     this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    this.updateListeners(url, wsHandler, reconnectIntervalSecs);
+    this.maxSub = maxSub;
+    this.maxKeepAlive = maxKeepAlive;
+    this.maxInstant = maxSub - maxKeepAlive;
+    this.instantPool = new Map();
+    this.keepAlivePool = new Map();
+  }
+
+  isDuplicatedFilter(
+    map: Map<SubscriptionId, Filter>,
+    filter: Filter,
+  ): boolean {
+    return (
+      Array.from(map.values()).filter(f => isFilterEqual(f, filter)).length > 0
+    );
+  }
+
+  private updateListeners(
+    url?: string,
+    wsHandler?: WsApiHandler,
+    reconnectIntervalSecs = 3,
+  ) {
+    const that = this;
+    if (!that.ws || that.ws.readyState === WebSocket.CLOSED) {
+      that.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    }
+
+    const reconnect = (e: CloseEvent) => {
+      that.handleClose(e, () => {
+        setTimeout(() => {
+          if (wsHandler?.onCloseHandler) {
+            wsHandler?.onCloseHandler(e);
+          }
+          console.log('try reconnect..');
+          that.updateListeners(url, wsHandler, reconnectIntervalSecs);
+        }, reconnectIntervalSecs * 1000);
+      });
+    };
 
     this.ws.addEventListener('open', event => {
       if (wsHandler?.onOpenHandler) {
         wsHandler?.onOpenHandler(event);
       }
     });
-
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
     this.ws.onmessage = evt => {
       this.handleResponse(evt, wsHandler?.onMsgHandler);
     };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = wsHandler?.onCloseHandler || this.handleClose;
-
-    this.maxSub = maxSub;
-    this.subPool = new Queue();
+    this.ws.onclose = reconnect;
   }
 
   url() {
@@ -380,7 +427,9 @@ export class WsApi {
       await this.ws.send(data);
     } else {
       console.log(
-        `ws not open, abort send msg.., ws.readState: ${this.ws.readyState}`,
+        `${this.url()} not open, abort send msg.., ws.readState: ${
+          this.ws.readyState
+        }`,
       );
     }
   }
@@ -485,7 +534,9 @@ export class WsApi {
     const msg: EventSubReachEndResponse = res;
     const subId = msg[1];
     const defaultCb = (subId: SubscriptionId) => {
-      this.closeSub(subId);
+      if (this.instantPool.has(subId)) {
+        this.killInstantSub(subId);
+      }
     };
     const cb = callback || defaultCb;
     cb(subId);
@@ -527,61 +578,115 @@ export class WsApi {
     return await this._send(JSON.stringify(data));
   }
 
-  async subFilter(filter: Filter) {
-    if (this.subPool.length >= this.maxSub) {
-      // close some first
-      this.closeSub(this.subPool.peek()!);
-      this.subPool.dequeue();
+  async subFilter(filter: Filter, keepAlive?: boolean, _subId?: string) {
+    const subId = _subId || randomSubId();
+    if (keepAlive === true) {
+      const isDuplicated = this.isDuplicatedFilter(this.keepAlivePool, filter);
+      const isReplaceId = _subId != null && this.keepAlivePool.has(_subId);
+      if (isReplaceId) {
+        // replace in pool
+        this.killKeepAliveSub(subId);
+        this.keepAlivePool.set(_subId, filter);
+        // send new
+        const data: EventSubRequest = [
+          ClientRequestType.SubFilter,
+          _subId,
+          filter,
+        ];
+        console.log('replace keep-alive sub!');
+        return await this._send(JSON.stringify(data));
+      }
+
+      if (!isDuplicated && this.keepAlivePool.size < this.maxKeepAlive) {
+        this.keepAlivePool.set(subId, filter);
+        const data: EventSubRequest = [
+          ClientRequestType.SubFilter,
+          subId,
+          filter,
+        ];
+        return await this._send(JSON.stringify(data));
+      }
     }
 
-    const subId = randomSubId();
-    this.subPool.enqueue(subId);
+    // for instant subs, we just replace with new
+    if (this.instantPool.has(subId)) {
+      this.killInstantSub(subId);
+    }
 
+    if (this.instantPool.size >= this.maxInstant) {
+      // randomly close some first
+      const id = this.instantPool.keys().next().value;
+      this.killInstantSub(id);
+    }
+
+    this.instantPool.set(subId, filter);
     const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
     return await this._send(JSON.stringify(data));
   }
 
-  async closeSub(subId: SubscriptionId) {
+  killInstantSub(id: SubscriptionId) {
+    if (this.instantPool.has(id)) {
+      this.sendCloseSub(id);
+      this.instantPool.delete(id);
+      console.debug(`${this.url()} kill instant sub ${id}`);
+    }
+  }
+
+  killKeepAliveSub(id: SubscriptionId) {
+    if (this.keepAlivePool.has(id)) {
+      this.sendCloseSub(id, true);
+      this.keepAlivePool.delete(id);
+      console.debug(`${this.url()} kill keep-alive sub ${id}`);
+    }
+  }
+
+  async sendCloseSub(subId: SubscriptionId, closeKeepAlive = false) {
+    if (!closeKeepAlive && this.isKeepAlive(subId)) {
+      return;
+    }
+
     const data: SubCloseRequest = [ClientRequestType.Close, subId];
     return await this._send(JSON.stringify(data));
   }
 
-  async subUserMetadata(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.set_metadata],
-      limit: publicKeys.length,
-    };
-    return await this.subFilter(filter);
+  subPoolLength() {
+    return this.instantPool.size + this.keepAlivePool.size;
   }
 
-  async subUserContactList(publicKey: PublicKey) {
-    const filter: Filter = {
-      authors: [publicKey],
-      kinds: [WellKnownEventKind.contact_list],
-      limit: 1,
-    };
-    return await this.subFilter(filter);
-  }
-
-  async subUserRelayer(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.recommend_server],
-      limit: 1,
-    };
-    return await this.subFilter(filter);
-  }
-
-  async subUserSiteMetadata(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.flycat_site_metadata],
-      limit: publicKeys.length,
-    };
-    return await this.subFilter(filter);
+  isKeepAlive(subId: SubscriptionId) {
+    return this.keepAlivePool.has(subId);
   }
 }
+
+export function isFilterEqual(f1: Filter, f2: Filter): boolean {
+  return isDeepEqual(f1, f2);
+}
+
+export const isDeepEqual = (object1, object2) => {
+  const objKeys1 = Object.keys(object1);
+  const objKeys2 = Object.keys(object2);
+
+  if (objKeys1.length !== objKeys2.length) return false;
+
+  for (var key of objKeys1) {
+    const value1 = object1[key];
+    const value2 = object2[key];
+
+    const isObjects = isObject(value1) && isObject(value2);
+
+    if (
+      (isObjects && !isDeepEqual(value1, value2)) ||
+      (!isObjects && value1 !== value2)
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const isObject = object => {
+  return object != null && typeof object === 'object';
+};
 
 export function isEventSubResponse(data: any): data is EventSubResponse {
   return (
@@ -668,6 +773,19 @@ export function nip19Decode(data: string) {
     default:
       throw new Error(`unsupported prefix type ${prefix}`);
   }
+}
+
+export function newSubId(portId: number, subId: string) {
+  // todo: fix the patch
+  if (subId.includes(':')) return subId;
+
+  return `${portId}:${subId}`;
+}
+
+export function getPortIdFomSubId(subId: string): number | null {
+  if (!subId.includes(':')) return null;
+
+  return +subId.split(':')[0];
 }
 
 export function randomSubId(size = 8): HexStr {

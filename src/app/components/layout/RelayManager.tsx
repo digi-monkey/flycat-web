@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { RelayUrl } from 'service/api';
+import { compareMaps } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData } from 'service/worker/type';
@@ -66,17 +67,35 @@ export function RelayManager({
   );
 
   const [worker, setWorker] = useState<CallWorker>();
+
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker((message: FromWorkerMessageData) => {
       if (message.wsConnectStatus) {
-        const data = Array.from(message.wsConnectStatus.entries());
-        for (const d of data) {
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            newMap.set(d[0], d[1]);
-            return newMap;
-          });
+        if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          // no changed
+          console.debug('[wsConnectStatus] same, not updating');
+          return;
         }
+
+        const data = Array.from(message.wsConnectStatus.entries());
+        setWsConnectStatus(prev => {
+          const newMap = new Map(prev);
+          for (const d of data) {
+            const relayUrl = d[0];
+            const isConnected = d[1];
+            if (newMap.get(relayUrl) && newMap.get(relayUrl) === isConnected) {
+              continue; // no changed
+            }
+
+            newMap.set(relayUrl, isConnected);
+          }
+
+          return newMap;
+        });
       }
     });
     setWorker(worker);

@@ -5,22 +5,26 @@ export enum ToWorkerMessageType {
   PULL_RELAY_STATUS = 'pullRelayStatus',
   DISCONNECT = 'disconnect',
   CALL_API = 'execApiMethod',
+  CLOSE_PORT = 'closePort',
 }
 
 export interface ToWorkerMessageData {
   urls?: string[];
   callMethod?: string;
   callData?: any[];
+  portId: number;
 }
 
 export enum FromWorkerMessageType {
+  PORT_ID = 'portId',
   WS_CONN_STATUS = 'wsConnectStatus',
-  NostrData = 'nostrData',
+  NOSTR_DATA = 'nostrData',
 }
 
 export interface FromWorkerMessageData {
   wsConnectStatus?: WsConnectStatus;
   nostrData?: any;
+  portId?: number;
 }
 
 export interface ToPostMsg {

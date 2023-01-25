@@ -25,6 +25,7 @@ import {
   validateArticlePageKind,
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
+import { compareMaps } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
@@ -172,18 +173,38 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     (ArticleDataSchema & { pk: PublicKey; pageCreatedAt: number })[]
   >([]);
 
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {
@@ -343,10 +364,10 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     if (isLoggedIn !== true) return;
-    if (myKeyPair.publicKey == null) return;
+    if (myPublicKey == null) return;
 
-    worker?.subMetadata([myKeyPair.publicKey]);
-    worker?.subContactList(myKeyPair.publicKey);
+    worker?.subMetadata([myPublicKey]);
+    worker?.subContactList([myPublicKey]);
   }, [myKeyPair, wsConnectStatus]);
 
   useEffect(() => {

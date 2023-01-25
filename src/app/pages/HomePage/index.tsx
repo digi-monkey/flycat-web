@@ -14,9 +14,8 @@ import {
   EventContactListPTag,
   RawEvent,
   isEventPTag,
+  Filter,
 } from 'service/api';
-import { useTimeSince } from 'hooks/useTimeSince';
-import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
@@ -26,6 +25,7 @@ import { Content } from '../../components/layout/Content';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import {
+  compareMaps,
   getLastPubKeyFromPTags,
   getPkFromFlycatShareHeader,
 } from 'service/helper';
@@ -197,18 +197,39 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   });
   const [worker, setWorker] = useState<CallWorker>();
 
+  // use in listener to get runtime updated value
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {
@@ -326,8 +347,12 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (isLoggedIn !== true) return;
     if (myPublicKey.length === 0) return;
 
-    subSelfMetadata();
-    worker?.subContactList(myPublicKey);
+    console.log('triggerd');
+    worker?.subMetaDataAndContactList(
+      [myPublicKey],
+      false,
+      'userMetaAndContact',
+    );
   }, [myPublicKey, wsConnectStatus]);
 
   useEffect(() => {
@@ -356,20 +381,17 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     const pks = Array.from(myContactList.keys());
-    if (pks.length === 0) return;
-
     // subscibe myself msg too
     if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
-    worker?.subMetadata(pks);
-    worker?.subMsg(pks);
+    if (pks.length > 0) {
+      worker?.subMetadata(pks, false, 'homeMetadata');
+      worker?.subMsg(pks, true, 'homeMsg');
+      //worker?.subMsgAndMetaData(pks, true, 'homeMsgAndMetadata');
+    }
   }, [myContactList.size]);
-
-  const subSelfMetadata = async () => {
-    worker?.subMetadata([myPublicKey]);
-  };
 
   const onSubmitText = async (text: string) => {
     if (myKeyPair.privateKey === '') {

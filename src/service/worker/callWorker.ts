@@ -1,4 +1,10 @@
-import { Event, EventId, Filter, PublicKey } from 'service/api';
+import {
+  Event,
+  EventId,
+  Filter,
+  PublicKey,
+  WellKnownEventKind,
+} from 'service/api';
 import {
   FromPostMsg,
   FromWorkerMessageData,
@@ -13,6 +19,7 @@ export class CallWorker {
   resolvers: { [key: string]: (arg: any) => unknown } = {};
   rejectors: { [key: string]: (arg: any) => unknown } = {};
   public workerId: string = 'defaultCallWorker';
+  public _portId: number | undefined;
 
   msgCount = 0;
   receiveCount = 0;
@@ -48,10 +55,17 @@ export class CallWorker {
           }
           break;
 
-        case FromWorkerMessageType.NostrData:
+        case FromWorkerMessageType.NOSTR_DATA:
           if (onNostrData) {
             onNostrData(data);
           }
+          break;
+
+        case FromWorkerMessageType.PORT_ID:
+          if (data.portId == null) {
+            throw new Error('missing data.portId');
+          }
+          this._portId = data.portId;
           break;
         default:
           break;
@@ -63,6 +77,15 @@ export class CallWorker {
 
     // get ws status
     //this.pullWsConnectStatus();
+    var that = this;
+    window.addEventListener('beforeunload', function () {
+      that.closePort();
+    });
+  }
+
+  get portId(): number {
+    console.log('worker portId', this._portId);
+    return this._portId!;
   }
 
   updateMsgListener(
@@ -86,7 +109,7 @@ export class CallWorker {
           }
           break;
 
-        case FromWorkerMessageType.NostrData:
+        case FromWorkerMessageType.NOSTR_DATA:
           if (onNostrData) {
             onNostrData(data);
           }
@@ -103,9 +126,18 @@ export class CallWorker {
     this.worker.port.onmessageerror = null;
   }
 
+  closePort() {
+    const msg: ToPostMsg = {
+      type: ToWorkerMessageType.CLOSE_PORT,
+      data: { portId: this.portId },
+    };
+    this.worker.port.postMessage(msg);
+  }
+
   call(msg: ToPostMsg) {
     const __messageId = this.msgCount++;
     this.worker.port.postMessage(msg);
+    console.debug('post..', msg);
     return new Promise((resolve, reject) => {
       this.resolvers[__messageId] = resolve;
       this.rejectors[__messageId] = reject;
@@ -113,7 +145,9 @@ export class CallWorker {
   }
 
   pullWsConnectStatus() {
-    const data: ToWorkerMessageData = {};
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+    };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.PULL_RELAY_STATUS,
       data,
@@ -123,6 +157,7 @@ export class CallWorker {
 
   addRelays(relays: string[]) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       urls: relays,
     };
     const msg: ToPostMsg = {
@@ -133,7 +168,9 @@ export class CallWorker {
   }
 
   disconnect() {
-    const data: ToWorkerMessageData = {};
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+    };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.DISCONNECT,
       data,
@@ -141,10 +178,11 @@ export class CallWorker {
     return this.call(msg);
   }
 
-  subFilter(filter: Filter) {
+  subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'subFilter',
-      callData: [filter],
+      callData: [filter, keepAlive, customId],
     };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.CALL_API,
@@ -153,104 +191,104 @@ export class CallWorker {
     return this.call(msg);
   }
 
-  subMsg(pks: PublicKey[]) {
+  subMsg(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
       authors: pks,
       limit: 50,
     };
-    const data: ToWorkerMessageData = {
-      callMethod: 'subFilter',
-      callData: [filter],
-    };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subMsgByEventIds(eventIds: EventId[]) {
+  subMsgByEventIds(
+    eventIds: EventId[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) {
     const filter: Filter = {
       ids: eventIds,
-      limit: 50,
+      limit: eventIds.length,
     };
-    const data: ToWorkerMessageData = {
-      callMethod: 'subFilter',
-      callData: [filter],
-    };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subMsgByETags(eventIds: EventId[]) {
+  subMsgByETags(eventIds: EventId[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
       '#e': eventIds,
-      limit: 50,
+      limit: eventIds.length,
     };
-    const data: ToWorkerMessageData = {
-      callMethod: 'subFilter',
-      callData: [filter],
-    };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subMetadata(pks: PublicKey[]) {
-    const data: ToWorkerMessageData = {
-      callMethod: 'subUserMetadata',
-      callData: [pks],
+  subMetadata(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.set_metadata],
+      limit: pks.length,
     };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subContactList(publicKey: PublicKey) {
-    const data: ToWorkerMessageData = {
-      callMethod: 'subUserContactList',
-      callData: [publicKey],
+  subContactList(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.contact_list],
+      limit: pks.length,
     };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subUserRecommendServer(pks: PublicKey[]) {
-    const data: ToWorkerMessageData = {
-      callMethod: 'subUserRelayer',
-      callData: [pks],
+  subMetaDataAndContactList(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.set_metadata, WellKnownEventKind.contact_list],
+      limit: pks.length * 2,
     };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
-    };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
   }
 
-  subBlogSiteMetadata(pks: PublicKey[]) {
-    const data: ToWorkerMessageData = {
-      callData: [pks],
-      callMethod: 'subUserSiteMetadata',
+  subMsgAndMetaData(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.set_metadata, WellKnownEventKind.text_note],
+      limit: pks.length + 50,
     };
-    const msg: ToPostMsg = {
-      type: ToWorkerMessageType.CALL_API,
-      data,
+    return this.subFilter(filter, keepAlive, customId);
+  }
+
+  subUserRecommendServer(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.recommend_server],
+      limit: pks.length,
     };
-    return this.call(msg);
+    return this.subFilter(filter, keepAlive, customId);
+  }
+
+  subBlogSiteMetadata(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+  ) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [WellKnownEventKind.flycat_site_metadata],
+      limit: pks.length,
+    };
+    return this.subFilter(filter, keepAlive, customId);
   }
 
   pubEvent(event: Event) {
     const data: ToWorkerMessageData = {
+      portId: this.portId,
       callMethod: 'pubEvent',
       callData: [event],
     };
