@@ -579,6 +579,7 @@ export class WsApi {
   }
 
   async subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
+    const subId = customId || randomSubId();
     if (keepAlive === true) {
       const isDuplicated =
         this.keepAlivePool.filter(a => isFilterEqual(a.filter, filter)).length >
@@ -605,7 +606,6 @@ export class WsApi {
       }
 
       if (!isDuplicated && this.keepAlivePool.length < this.maxKeepAlive) {
-        const subId = customId || randomSubId();
         if (customId) this.closeSub(subId);
 
         this.keepAlivePool.push({ id: subId, filter: filter });
@@ -625,7 +625,6 @@ export class WsApi {
       this.subPool.dequeue();
     }
 
-    const subId = customId || randomSubId();
     if (customId) this.closeSub(subId);
     this.subPool.enqueue({
       id: subId,
@@ -797,6 +796,19 @@ export function nip19Decode(data: string) {
     default:
       throw new Error(`unsupported prefix type ${prefix}`);
   }
+}
+
+export function newSubId(portId: number, subId: string) {
+  // todo: fix the patch
+  if (subId.includes(':')) return subId;
+
+  return `${portId}:${subId}`;
+}
+
+export function getPortIdFomSubId(subId: string): number | null {
+  if (!subId.includes(':')) return null;
+
+  return +subId.split(':')[0];
 }
 
 export function randomSubId(size = 8): HexStr {

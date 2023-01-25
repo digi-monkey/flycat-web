@@ -1,4 +1,4 @@
-import { SubscriptionId, WsApi } from 'service/api';
+import { newSubId, randomSubId, SubscriptionId, WsApi } from 'service/api';
 import { defaultRelays } from 'service/relay';
 import { WorkerEventEmitter } from './bus';
 import {
@@ -108,22 +108,26 @@ export class Pool {
                 const method = ws[callMethod];
                 if (typeof method === 'function') {
                   // record custom sub id to port id
-                  // todo: maybe also record random subscription id to portId
-                  const keepAlive = callData[1];
-                  const customSubId = callData[2];
-                  if (
-                    method === 'subFilter' &&
-                    keepAlive === true &&
-                    customSubId != null
-                  ) {
-                    if (this.portSubs.get(portId) != null) {
-                      const data = this.portSubs.get(portId)!;
-                      data.push(customSubId);
-                      this.portSubs.set(portId, data);
-                    } else {
-                      this.portSubs.set(portId, [customSubId]);
+                  // todo: maybe also record non-keep-alive subscription id to portId
+                  if (callMethod === 'subFilter') {
+                    const keepAlive = callData[1];
+                    const customSubId = callData[2];
+                    const subId = newSubId(
+                      message.portId,
+                      customSubId || randomSubId(),
+                    );
+                    callData[2] = subId; // update with portId packed;
+                    if (keepAlive === true) {
+                      if (this.portSubs.get(portId) != null) {
+                        const data = this.portSubs.get(portId)!;
+                        data.push(subId);
+                        this.portSubs.set(portId, data);
+                      } else {
+                        this.portSubs.set(portId, [subId]);
+                      }
                     }
                   }
+
                   method.apply(ws, callData);
                 } else {
                   console.error(`method ${callMethod} not found`);

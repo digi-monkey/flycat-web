@@ -14,6 +14,11 @@ import {
   listenFromPool,
   pullRelayStatus,
 } from './pool';
+import {
+  EventSubResponse,
+  getPortIdFomSubId,
+  RelayResponse,
+} from 'service/api';
 
 //let count = 0;
 
@@ -88,12 +93,28 @@ listenFromPool(
   },
   (message: FromWorkerMessageData) => {
     if (message.nostrData) {
+      // currently we only relay the EventSubResponse
+      // todo: maybe all types?
+      const msg: EventSubResponse = JSON.parse(message.nostrData);
+      const subId = msg[1];
+      const portId = getPortIdFomSubId(subId);
+      if (portId) {
+        console.log('only send to port ', portId);
+        connectedPorts[portId]?.postMessage({
+          data: message,
+          type: FromWorkerMessageType.NOSTR_DATA,
+        });
+        return;
+      }
+
+      // send to all ports
       connectedPorts.forEach(port => {
-        if (port != null)
+        if (port != null) {
           port.postMessage({
             data: message,
             type: FromWorkerMessageType.NOSTR_DATA,
           });
+        }
       });
     }
   },
