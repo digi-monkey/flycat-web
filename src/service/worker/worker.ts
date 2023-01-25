@@ -55,7 +55,6 @@ self.onconnect = (evt: MessageEvent) => {
         break;
 
       case ToWorkerMessageType.CLOSE_PORT:
-        console.debug('port closed, id: ', data.portId);
         connectedPorts[data.portId] = null;
         closePort(data.portId);
         break;

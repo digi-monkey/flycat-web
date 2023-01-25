@@ -331,8 +331,8 @@ export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
   private maxKeepAlive: number;
-  public instantPool: Queue<SubItem>;
-  public keepAlivePool: SubItem[];
+  public instantPool: Map<SubscriptionId, Filter>;
+  public keepAlivePool: Map<SubscriptionId, Filter>;
 
   constructor(
     url?: string,
@@ -349,8 +349,17 @@ export class WsApi {
     this.updateListeners(url, wsHandler, reconnectIntervalSecs);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
-    this.instantPool = new Queue();
-    this.keepAlivePool = [];
+    this.instantPool = new Map();
+    this.keepAlivePool = new Map();
+  }
+
+  isDuplicatedFilter(
+    map: Map<SubscriptionId, Filter>,
+    filter: Filter,
+  ): boolean {
+    return (
+      Array.from(map.values()).filter(f => isFilterEqual(f, filter)).length > 0
+    );
   }
 
   private updateListeners(
@@ -528,7 +537,9 @@ export class WsApi {
     const msg: EventSubReachEndResponse = res;
     const subId = msg[1];
     const defaultCb = (subId: SubscriptionId) => {
-      this.closeSub(subId);
+      if (this.instantPool.has(subId)) {
+        this.killInstantSub(subId);
+      }
     };
     const cb = callback || defaultCb;
     cb(subId);
@@ -573,34 +584,24 @@ export class WsApi {
   async subFilter(filter: Filter, keepAlive?: boolean, _subId?: string) {
     const subId = _subId || randomSubId();
     if (keepAlive === true) {
-      const isDuplicated =
-        this.keepAlivePool.filter(a => isFilterEqual(a.filter, filter)).length >
-        0;
-      const isReplaceId =
-        _subId != null &&
-        this.keepAlivePool.filter(a => a.id === _subId).length > 0;
+      const isDuplicated = this.isDuplicatedFilter(this.keepAlivePool, filter);
+      const isReplaceId = _subId != null && this.keepAlivePool.has(_subId);
       if (isReplaceId) {
-        const index = this.keepAlivePool.findIndex(a => a.id === _subId);
-        if (index === -1) {
-          throw new Error('keepAlivePool.findIndex went wrong');
-        }
         // replace in pool
-        this.closeSub(_subId, true);
-        this.keepAlivePool[index] = { id: _subId, filter: filter };
+        this.killKeepAliveSub(subId);
+        this.keepAlivePool.set(_subId, filter);
         // send new
         const data: EventSubRequest = [
           ClientRequestType.SubFilter,
           _subId,
           filter,
         ];
-        console.log('replace!');
+        console.log('replace keep-alive sub!');
         return await this._send(JSON.stringify(data));
       }
 
-      if (!isDuplicated && this.keepAlivePool.length < this.maxKeepAlive) {
-        if (_subId) this.closeSub(subId);
-
-        this.keepAlivePool.push({ id: subId, filter: filter });
+      if (!isDuplicated && this.keepAlivePool.size < this.maxKeepAlive) {
+        this.keepAlivePool.set(subId, filter);
         const data: EventSubRequest = [
           ClientRequestType.SubFilter,
           subId,
@@ -610,25 +611,39 @@ export class WsApi {
       }
     }
 
-    if (this.subPoolLength() >= this.maxSub) {
-      // close some first
-      const id = this.instantPool.peek()?.id!;
-      this.closeSub(id);
-      this.instantPool.dequeue();
-      console.debug('close some', id);
+    // instant subs, we just replace with new
+    if (this.instantPool.has(subId)) {
+      this.killInstantSub(subId);
     }
 
-    if (_subId) this.closeSub(subId);
-    this.instantPool.enqueue({
-      id: subId,
-      filter,
-    });
+    if (this.subPoolLength() >= this.maxSub) {
+      // randomly close some first
+      const id = this.instantPool.keys().next().value;
+      this.killInstantSub(id);
+    }
 
+    this.instantPool.set(subId, filter);
     const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
     return await this._send(JSON.stringify(data));
   }
 
-  async closeSub(subId: SubscriptionId, closeKeepAlive = false) {
+  killInstantSub(id: SubscriptionId) {
+    if (this.instantPool.has(id)) {
+      this.sendCloseSub(id);
+      this.instantPool.delete(id);
+      console.debug(`${this.url()} kill instant sub ${id}`);
+    }
+  }
+
+  killKeepAliveSub(id: SubscriptionId) {
+    if (this.keepAlivePool.has(id)) {
+      this.sendCloseSub(id, true);
+      this.keepAlivePool.delete(id);
+      console.debug(`${this.url()} kill keep-alive sub ${id}`);
+    }
+  }
+
+  async sendCloseSub(subId: SubscriptionId, closeKeepAlive = false) {
     if (!closeKeepAlive && this.isKeepAlive(subId)) {
       return;
     }
@@ -638,11 +653,11 @@ export class WsApi {
   }
 
   subPoolLength() {
-    return this.instantPool.length + this.keepAlivePool.length;
+    return this.instantPool.size + this.keepAlivePool.size;
   }
 
   isKeepAlive(subId: SubscriptionId) {
-    return this.keepAlivePool.filter(s => s.id === subId).length > 0;
+    return this.keepAlivePool.has(subId);
   }
 }
 

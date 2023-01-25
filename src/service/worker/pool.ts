@@ -36,9 +36,9 @@ export class Pool {
         .filter(ws => ws.isConnected())
         .forEach(ws => {
           console.debug(
-            `url: ${ws.url()}, keep-alive subs: total ${ws.subPoolLength()}, keep-alive ${
-              ws.keepAlivePool.length
-            }, instant ${ws.instantPool.length}`,
+            `${ws.url()} subs: total ${ws.subPoolLength()}, keep-alive ${
+              ws.keepAlivePool.size
+            }, instant ${ws.instantPool.size}`,
           );
         });
     }, 10 * 1000);
@@ -177,7 +177,7 @@ export class Pool {
           for (const id of subIds) {
             this.wsApiList
               .filter(ws => ws.isConnected())
-              .every(ws => ws.closeSub(id, true));
+              .every(ws => ws.killKeepAliveSub(id));
           }
         }
         this.portSubs.delete(portId);
