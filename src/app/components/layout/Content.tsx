@@ -121,7 +121,6 @@ export function ImagePlate({ url }: { url: string }) {
   const [scale, setScale] = useState(1);
 
   const handleFocus = () => {
-    console.log('foucs...');
     setScale(10);
   };
   const handleBlur = () => {

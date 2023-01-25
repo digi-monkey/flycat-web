@@ -84,7 +84,6 @@ export class CallWorker {
   }
 
   get portId(): number {
-    console.log('worker portId', this._portId);
     return this._portId!;
   }
 

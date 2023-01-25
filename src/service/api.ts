@@ -10,7 +10,7 @@ import {
 } from './crypto';
 const { version } = require('../../package.json');
 
-export const DEFAULT_API_URL = 'http://localhost:8080';
+export const DEFAULT_API_URL = 'https://nostr.build';
 export const DEFAULT_WS_API_URL = 'wss://nostr.v0l.io'; //"wss://nostr.v0l.io"//"wss://relay.nostr.bg";//'wss://nostr-relay.digitalmob.ro'//'wss://relay.damus.io'; //'wss://jiggytom.ddns.net';// "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"/
 
 //axios.defaults.withCredentials = true;
@@ -25,12 +25,17 @@ export enum HttpProtocolMethod {
   'option',
 }
 export type HttpRequest = (
-  method: string,
+  subPath: string,
   params?: Params,
   type?: HttpProtocolMethod,
+  cfg?: Cfg,
 ) => Promise<any>;
 
 export interface Params {
+  [key: string]: any;
+}
+
+export interface Cfg {
   [key: string]: any;
 }
 
@@ -39,21 +44,22 @@ export class base {
   httpRequest: HttpRequest;
 
   constructor(baseUrl: string, httpRequest?: HttpRequest) {
-    this.url = baseUrl;
+    this.url = baseUrl.endsWith('/')
+      ? baseUrl.slice(0, baseUrl.length - 1)
+      : baseUrl;
     this.httpRequest = httpRequest || this.newHttpRequest();
   }
 
   newHttpRequest() {
     return async (
-      method: string,
-      _params: Params = {},
+      subPath: string,
+      params: Params = {},
       type: HttpProtocolMethod = HttpProtocolMethod.get,
-      cfg: {} = {},
+      cfg: Cfg = {},
     ) => {
       const baseUrl = this.url;
-      const params = { ..._params, version };
       let axiosRes;
-      const url = encodeURI(`${baseUrl}/${method}`);
+      const url = encodeURI(`${baseUrl}/${subPath}`);
       switch (type) {
         case HttpProtocolMethod.get:
           axiosRes = await axios.get(url, {
@@ -63,13 +69,7 @@ export class base {
           break;
 
         case HttpProtocolMethod.post:
-          axiosRes = await axios.post(
-            url,
-            {
-              data: params,
-            },
-            cfg,
-          );
+          axiosRes = await axios.post(url, params, cfg);
           break;
 
         default:
@@ -104,12 +104,12 @@ export class base {
 export class Api extends base {
   constructor(url?: string, httpRequest?: HttpRequest) {
     const newHttpRequest = async (
-      method: string,
+      subPath: string,
       params: Object = {},
       type: HttpProtocolMethod = HttpProtocolMethod.get,
     ) => {
       const response: ApiHttpResponse = await super.newHttpRequest()(
-        method,
+        subPath,
         params,
         type,
       );
@@ -120,6 +120,24 @@ export class Api extends base {
 
   async getVersion(): Promise<string | null> {
     return await this.httpRequest('version', {}, HttpProtocolMethod.get);
+  }
+
+  async uploadImage(formData: FormData) {
+    const headers = {
+      'Content-Type': 'multipart/form-data',
+    };
+    const response = await this.httpRequest(
+      'upload.php',
+      formData,
+      HttpProtocolMethod.post,
+      {
+        headers,
+      },
+    );
+    const regExp = new RegExp(/(https?:\/\/[^ ]*)/, 'g');
+    let imageUrl: string = response.match(regExp)[9];
+    imageUrl = imageUrl.slice(0, imageUrl.indexOf('<'));
+    return imageUrl;
   }
 }
 

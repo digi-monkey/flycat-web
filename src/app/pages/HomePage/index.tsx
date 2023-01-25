@@ -336,7 +336,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (isLoggedIn !== true) return;
     if (myPublicKey.length === 0) return;
 
-    console.log('triggerd');
     worker?.subMetaDataAndContactList(
       [myPublicKey],
       false,
