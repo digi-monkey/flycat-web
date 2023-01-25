@@ -116,7 +116,7 @@
     "cancel": "取消"
   },
   "siteMeta": {
-    "noBlog": "这个用户还没有公众号",
+    "noBlog": "这个用户还没有创建公众号",
     "createNewBlog": "创建一个新公众号",
     "namePlaceHolder": "公众号名称",
     "aboutPlaceHolder": "公众号介绍描述",

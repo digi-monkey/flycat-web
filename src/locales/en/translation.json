@@ -69,7 +69,7 @@
     "toUnFollow": "unfollow",
     "noUserName": "user",
     "hisBlog": "'s blog",
-    "noBlog": " has no blog yet"
+    "noBlog": " has not create a blog yet"
   },
   "relayManager": {
     "title": "Relays"
