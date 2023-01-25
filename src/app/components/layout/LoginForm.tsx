@@ -134,6 +134,7 @@ const LoginForm = ({
             name="publicKey"
             style={styles.input}
             value={pubKeyInputValue}
+            onChange={event => setPubKeyInputValue(event.target.value)}
           />
           <input
             type="text"
@@ -141,6 +142,7 @@ const LoginForm = ({
             name="privateKey"
             style={styles.input}
             value={privKeyInputValue}
+            onChange={event => setPrivKeyInputValue(event.target.value)}
           />
         </label>
         <br />
