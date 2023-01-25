@@ -108,3 +108,20 @@ export const shortPublicKey = (key: PublicKey | undefined) => {
     return 'unknown';
   }
 };
+
+export function compareMaps(map1: Map<string, any>, map2: Map<string, any>) {
+  var testVal;
+  if (map1.size !== map2.size) {
+    return false;
+  }
+  const map1Arr = Array.from(map1.entries());
+  for (var [key, val] of map1Arr) {
+    testVal = map2.get(key);
+    // in cases of an undefined value, make sure the key
+    // actually exists on the object so there are no false positives
+    if (testVal !== val || (testVal === undefined && !map2.has(key))) {
+      return false;
+    }
+  }
+  return true;
+}

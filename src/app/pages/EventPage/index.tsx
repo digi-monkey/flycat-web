@@ -32,7 +32,7 @@ import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { TextMsg } from 'app/components/layout/TextMsg';
 import { ShareMsg } from 'app/components/layout/ShareMsg';
 import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
-import { getPkFromFlycatShareHeader } from 'service/helper';
+import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { useTranslation } from 'react-i18next';
 
 const mapStateToProps = state => {
@@ -192,18 +192,38 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [worker, setWorker] = useState<CallWorker>();
 
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {
@@ -288,7 +308,13 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     worker?.subMsgByEventIds([eventId]);
-  }, [wsConnectStatus, eventId]);
+  }, [wsConnectStatus]);
+
+  useEffect(() => {
+    if (myPublicKey.length > 0) {
+      worker?.subMetadata([myPublicKey]);
+    }
+  }, [myPublicKey, wsConnectStatus]);
 
   useEffect(() => {
     if (unknownPks.length > 0) {
@@ -312,7 +338,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (newIds.length > 0) {
       worker?.subMsgByEventIds(newIds);
     }
-  }, [wsConnectStatus, eventId, msgList.length]);
+  }, [wsConnectStatus, msgList.length]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);

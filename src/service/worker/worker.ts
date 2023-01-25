@@ -13,12 +13,9 @@ import {
   disconnect,
   listenFromPool,
   pullRelayStatus,
+  pool,
 } from './pool';
-import {
-  EventSubResponse,
-  getPortIdFomSubId,
-  RelayResponse,
-} from 'service/api';
+import { EventSubResponse, getPortIdFomSubId } from 'service/api';
 
 //let count = 0;
 
@@ -58,7 +55,7 @@ self.onconnect = (evt: MessageEvent) => {
         break;
 
       case ToWorkerMessageType.CLOSE_PORT:
-        // console.log("port close!!!", data.portId);
+        console.debug('port closed, id: ', data.portId);
         connectedPorts[data.portId] = null;
         closePort(data.portId);
         break;
@@ -124,5 +121,15 @@ self.addEventListener('disconnect', e => {
   // todo: seems not triggering?
   console.log('port disconnected', e);
 });
+
+setInterval(() => {
+  console.debug(
+    `Ports: total ${connectedPorts.length}, connected ${
+      connectedPorts.filter(p => p != null).length
+    }`,
+  );
+}, 10 * 1000);
+
+pool.startMonitor();
 
 export {};

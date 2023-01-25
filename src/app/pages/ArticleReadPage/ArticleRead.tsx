@@ -23,12 +23,12 @@ import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
 import NavHeader from 'app/components/layout/NavHeader';
-import LoginForm from '../../components/layout/LoginForm';
 import RelayManager from '../../components/layout/RelayManager';
 import { ShareArticle } from 'app/components/layout/Share';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { CopyText } from 'app/components/layout/util/CopyText';
+import { compareMaps } from 'service/helper';
 
 const styles = {
   root: {
@@ -263,18 +263,38 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
     );
   };
 
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {

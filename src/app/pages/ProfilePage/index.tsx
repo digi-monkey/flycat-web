@@ -23,7 +23,7 @@ import RelayManager, {
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
-import { getPkFromFlycatShareHeader } from 'service/helper';
+import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
@@ -213,18 +213,38 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   });
   const [worker, setWorker] = useState<CallWorker>();
 
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {
@@ -450,21 +470,19 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [userContactEvent]);
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-    if (myKeyPair.publicKey == null) return;
-
-    worker?.subMetadata([myKeyPair.publicKey]);
-    worker?.subContactList(myKeyPair.publicKey);
-  }, [wsConnectStatus, myKeyPair, worker]);
-
-  useEffect(() => {
+    // todo: validate publicKey
     if (publicKey.length === 0) return;
 
-    worker?.subContactList(publicKey);
-    worker?.subMetadata([publicKey]);
+    const pks = [publicKey];
+    if (isLoggedIn && myPublicKey.length > 0) {
+      pks.push(myPublicKey);
+    }
+
+    worker?.subContactList(pks);
+    worker?.subMetadata(pks);
     worker?.subMsg([publicKey]);
     worker?.subBlogSiteMetadata([publicKey]);
-  }, [wsConnectStatus, worker]);
+  }, [wsConnectStatus]);
 
   useEffect(() => {
     if (siteMetaData == null) return;

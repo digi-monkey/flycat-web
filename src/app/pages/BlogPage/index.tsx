@@ -33,6 +33,7 @@ import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
 import { ArticleMsg } from 'app/components/layout/ArticleMsg';
+import { compareMaps } from 'service/helper';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -289,18 +290,38 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   }
 
+  function _wsConnectStatus() {
+    return wsConnectStatus;
+  }
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
+          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
+
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
+
+              newMap.set(relayUrl, isConnected);
+            }
+
+            return newMap;
+          });
         }
       },
       (message: FromWorkerMessageData) => {

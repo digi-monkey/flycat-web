@@ -331,7 +331,7 @@ export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
   private maxKeepAlive: number;
-  public subPool: Queue<SubItem>;
+  public instantPool: Queue<SubItem>;
   public keepAlivePool: SubItem[];
 
   constructor(
@@ -349,7 +349,7 @@ export class WsApi {
     this.updateListeners(url, wsHandler, reconnectIntervalSecs);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
-    this.subPool = new Queue();
+    this.instantPool = new Queue();
     this.keepAlivePool = [];
   }
 
@@ -359,7 +359,7 @@ export class WsApi {
     reconnectIntervalSecs = 3,
   ) {
     const that = this;
-    if (that.ws.readyState === WebSocket.CLOSED) {
+    if (!that.ws || that.ws.readyState === WebSocket.CLOSED) {
       that.ws = new WebSocket(url || DEFAULT_WS_API_URL);
     }
 
@@ -570,35 +570,27 @@ export class WsApi {
     return await this._send(JSON.stringify(data));
   }
 
-  subPoolLength() {
-    return this.subPool.length + this.keepAlivePool.length;
-  }
-
-  isKeepAlive(subId: SubscriptionId) {
-    return this.keepAlivePool.filter(s => s.id === subId).length > 0;
-  }
-
-  async subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
-    const subId = customId || randomSubId();
+  async subFilter(filter: Filter, keepAlive?: boolean, _subId?: string) {
+    const subId = _subId || randomSubId();
     if (keepAlive === true) {
       const isDuplicated =
         this.keepAlivePool.filter(a => isFilterEqual(a.filter, filter)).length >
         0;
       const isReplaceId =
-        customId != null &&
-        this.keepAlivePool.filter(a => a.id === customId).length > 0;
+        _subId != null &&
+        this.keepAlivePool.filter(a => a.id === _subId).length > 0;
       if (isReplaceId) {
-        const index = this.keepAlivePool.findIndex(a => a.id === customId);
+        const index = this.keepAlivePool.findIndex(a => a.id === _subId);
         if (index === -1) {
           throw new Error('keepAlivePool.findIndex went wrong');
         }
-        this.closeSub(customId);
         // replace in pool
-        this.keepAlivePool[index] = { id: customId, filter: filter };
+        this.closeSub(_subId, true);
+        this.keepAlivePool[index] = { id: _subId, filter: filter };
         // send new
         const data: EventSubRequest = [
           ClientRequestType.SubFilter,
-          customId,
+          _subId,
           filter,
         ];
         console.log('replace!');
@@ -606,7 +598,7 @@ export class WsApi {
       }
 
       if (!isDuplicated && this.keepAlivePool.length < this.maxKeepAlive) {
-        if (customId) this.closeSub(subId);
+        if (_subId) this.closeSub(subId);
 
         this.keepAlivePool.push({ id: subId, filter: filter });
         const data: EventSubRequest = [
@@ -620,13 +612,14 @@ export class WsApi {
 
     if (this.subPoolLength() >= this.maxSub) {
       // close some first
-      const id = this.subPool.peek()?.id!;
+      const id = this.instantPool.peek()?.id!;
       this.closeSub(id);
-      this.subPool.dequeue();
+      this.instantPool.dequeue();
+      console.debug('close some', id);
     }
 
-    if (customId) this.closeSub(subId);
-    this.subPool.enqueue({
+    if (_subId) this.closeSub(subId);
+    this.instantPool.enqueue({
       id: subId,
       filter,
     });
@@ -635,7 +628,7 @@ export class WsApi {
     return await this._send(JSON.stringify(data));
   }
 
-  async closeSub(subId: SubscriptionId, closeKeepAlive = true) {
+  async closeSub(subId: SubscriptionId, closeKeepAlive = false) {
     if (!closeKeepAlive && this.isKeepAlive(subId)) {
       return;
     }
@@ -644,40 +637,12 @@ export class WsApi {
     return await this._send(JSON.stringify(data));
   }
 
-  async subUserMetadata(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.set_metadata],
-      limit: publicKeys.length,
-    };
-    return await this.subFilter(filter);
+  subPoolLength() {
+    return this.instantPool.length + this.keepAlivePool.length;
   }
 
-  async subUserContactList(publicKey: PublicKey) {
-    const filter: Filter = {
-      authors: [publicKey],
-      kinds: [WellKnownEventKind.contact_list],
-      limit: 1,
-    };
-    return await this.subFilter(filter);
-  }
-
-  async subUserRelayer(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.recommend_server],
-      limit: 1,
-    };
-    return await this.subFilter(filter);
-  }
-
-  async subUserSiteMetadata(publicKeys: PublicKey[]) {
-    const filter: Filter = {
-      authors: publicKeys,
-      kinds: [WellKnownEventKind.flycat_site_metadata],
-      limit: publicKeys.length,
-    };
-    return await this.subFilter(filter);
+  isKeepAlive(subId: SubscriptionId) {
+    return this.keepAlivePool.filter(s => s.id === subId).length > 0;
   }
 }
 

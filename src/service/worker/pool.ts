@@ -15,7 +15,7 @@ export class Pool {
   private wsConnectStatus: WsConnectStatus = new Map();
   private wsApiList: WsApi[] = [];
   public maxSub: number;
-  private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to subIds
+  private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
   constructor(private relayUrls: string[], maxSub: number = 10) {
     console.log('init Pool..');
@@ -23,6 +23,25 @@ export class Pool {
     this.listen();
 
     this.maxSub = maxSub;
+  }
+
+  startMonitor() {
+    const that = this;
+    setInterval(() => {
+      console.debug(
+        `portSubs(only keep-alive): ${that.portSubs.size}`,
+        this.portSubs,
+      );
+      this.wsApiList
+        .filter(ws => ws.isConnected())
+        .forEach(ws => {
+          console.debug(
+            `url: ${ws.url()}, keep-alive subs: total ${ws.subPoolLength()}, keep-alive ${
+              ws.keepAlivePool.length
+            }, instant ${ws.instantPool.length}`,
+          );
+        });
+    }, 10 * 1000);
   }
 
   private setupWebSocketApis() {
@@ -36,12 +55,13 @@ export class Pool {
       const onerror = (event: Event) => {
         console.error(`WebSocket error: `, event);
         this.wsConnectStatus.set(relayUrl, false);
-        this.sendWsConnectStatusUpdate();
       };
       const onclose = () => {
-        console.log(`WebSocket connection to ${relayUrl} closed`);
-        this.wsConnectStatus.set(relayUrl, false);
-        this.sendWsConnectStatusUpdate();
+        if (this.wsConnectStatus.get(relayUrl) === true) {
+          console.log(`WebSocket connection to ${relayUrl} closed`);
+          this.wsConnectStatus.set(relayUrl, false);
+          this.sendWsConnectStatusUpdate();
+        }
       };
 
       if (!this.wsConnectStatus.has(relayUrl)) {
@@ -118,11 +138,12 @@ export class Pool {
                     );
                     callData[2] = subId; // update with portId packed;
                     if (keepAlive === true) {
-                      if (this.portSubs.get(portId) != null) {
-                        const data = this.portSubs.get(portId)!;
+                      const data = this.portSubs.get(portId);
+                      if (data != null && !data.includes(subId)) {
                         data.push(subId);
                         this.portSubs.set(portId, data);
                       } else {
+                        console.debug('create new portSub', portId);
                         this.portSubs.set(portId, [subId]);
                       }
                     }
