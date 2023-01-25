@@ -95,7 +95,6 @@ listenFromPool(
       const subId = msg[1];
       const portId = getPortIdFomSubId(subId);
       if (portId) {
-        console.log('only send to port ', portId);
         connectedPorts[portId]?.postMessage({
           data: message,
           type: FromWorkerMessageType.NOSTR_DATA,

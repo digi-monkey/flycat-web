@@ -322,15 +322,11 @@ export interface WsApiHandler {
 
 export type WsEvent = globalThis.Event;
 
-interface SubItem {
-  id: SubscriptionId;
-  filter: Filter;
-}
-
 export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
   private maxKeepAlive: number;
+  private maxInstant: number;
   public instantPool: Map<SubscriptionId, Filter>;
   public keepAlivePool: Map<SubscriptionId, Filter>;
 
@@ -349,6 +345,7 @@ export class WsApi {
     this.updateListeners(url, wsHandler, reconnectIntervalSecs);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
+    this.maxInstant = maxSub - maxKeepAlive;
     this.instantPool = new Map();
     this.keepAlivePool = new Map();
   }
@@ -611,12 +608,12 @@ export class WsApi {
       }
     }
 
-    // instant subs, we just replace with new
+    // for instant subs, we just replace with new
     if (this.instantPool.has(subId)) {
       this.killInstantSub(subId);
     }
 
-    if (this.subPoolLength() >= this.maxSub) {
+    if (this.instantPool.size >= this.maxInstant) {
       // randomly close some first
       const id = this.instantPool.keys().next().value;
       this.killInstantSub(id);
@@ -636,7 +633,6 @@ export class WsApi {
   }
 
   killKeepAliveSub(id: SubscriptionId) {
-    console.debug('call killKeepAliveSub', this.url());
     if (this.keepAlivePool.has(id)) {
       this.sendCloseSub(id, true);
       this.keepAlivePool.delete(id);

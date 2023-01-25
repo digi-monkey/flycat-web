@@ -398,6 +398,11 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       );
       worker?.pubEvent(siteEvent);
     }
+
+    // refresh
+    if (siteMetaData) {
+      subArticlePages(siteMetaData);
+    }
   };
 
   const submitUpdateArticle = async (
