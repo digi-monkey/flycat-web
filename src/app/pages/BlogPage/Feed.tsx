@@ -429,8 +429,19 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               <div>{t('blogFeed.title')}</div>
               <hr />
               <ul style={styles.msgsUl}>
+                {articles.length === 0 && !isLoggedIn && (
+                  <div>
+                    <p style={{ color: 'gray' }}>
+                      {t('UserRequiredLoginBox.loginFirst')}
+                    </p>
+                    <hr />
+                  </div>
+                )}
                 {articles.length === 0 && (
-                  <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                  <div>
+                    <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                    <p style={{ color: 'gray' }}>{t('blogFeed.followHint')}</p>
+                  </div>
                 )}
                 {articles.map((a, index) => (
                   <BlogMsg

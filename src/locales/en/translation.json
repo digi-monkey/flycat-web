@@ -138,10 +138,12 @@
   },
   "blogFeed": {
     "title": "Blog Post",
-    "noPostYet": "nothing here.."
+    "noPostYet": "nothing here..",
+    "followHint": "articles posted by you and your following will show up here"
   },
   "homeFeed": {
-    "noPostYet": "nothing here.."
+    "noPostYet": "nothing here..",
+    "followHint": "notes posted by you and your following will show up here"
   },
   "profile": {
     "postArticles": "{{count}} post on {{siteName}}"
