@@ -46,6 +46,7 @@ export const relayReducer: Reducer<RelayStoreType, ActionTypes> = (
     }
     case REMOVE_URL_FROM_PUBLIC_KEY: {
       const { publicKey, url } = action.payload;
+      console.log(action.payload);
       const relay: RelayStoreType = deepCopy(state); // deep copy
       const urls = state[publicKey];
       if (!urls) {

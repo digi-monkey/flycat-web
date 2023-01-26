@@ -21,6 +21,9 @@ const RelayAdder: React.FC<Props> = ({ publicKey, addUrlToPublicKey }) => {
     event.preventDefault();
 
     let wsUrl = url.trim();
+    if (wsUrl.endsWith('/')) {
+      wsUrl = wsUrl.slice(0, wsUrl.length - 1);
+    }
 
     if (!isValidWssUrl(wsUrl)) {
       return alert('invalid wss url!');
