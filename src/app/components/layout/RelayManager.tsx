@@ -8,6 +8,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
 import RelayAdder from './RelayAdder';
+import RelayRemover from './RelayRemover';
 
 export interface State {
   loginReducer: {
@@ -140,6 +141,9 @@ export function RelayManager({
         <a href={url} target="_blank" rel="noreferrer">
           {url}
         </a>
+        {myPublicKey && !defaultRelays.includes(url) && (
+          <RelayRemover publicKey={myPublicKey} url={url} />
+        )}
       </li>
     );
 
