@@ -135,7 +135,8 @@ export class Api extends base {
       },
     );
     const regExp = new RegExp(/(https?:\/\/[^ ]*)/, 'g');
-    let imageUrl: string = response.match(regExp)[9];
+
+    let imageUrl: string = response.match(regExp)[10];
     imageUrl = imageUrl.slice(0, imageUrl.indexOf('<'));
     return imageUrl;
   }
