@@ -35,6 +35,7 @@ import {
 } from 'service/flycat-protocol';
 import { ShareMsg } from 'app/components/layout/ShareMsg';
 import { useTranslation } from 'react-i18next';
+import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -405,119 +406,118 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   };
 
   return (
-    <div style={styles.root}>
-      <NavHeader />
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={8} style={styles.left}>
-            <PubNoteTextarea
-              disabled={!myPrivateKey}
-              onSubmitText={onSubmitText}
-            />
+    <BaseLayout>
+      <Left>
+        <>
+          <PubNoteTextarea
+            disabled={!myPrivateKey}
+            onSubmitText={onSubmitText}
+          />
 
-            <div style={styles.message}>
-              <ul style={styles.msgsUl}>
-                {msgList.length === 0 && !isLoggedIn && (
-                  <div>
-                    <p style={{ color: 'gray' }}>
-                      {t('UserRequiredLoginBox.loginFirst')}
-                    </p>
-                    <hr />
-                  </div>
-                )}
-                {msgList.length === 0 && (
-                  <div>
-                    <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
-                    <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
-                  </div>
-                )}
-                {msgList.map((msg, index) => {
-                  //@ts-ignore
-                  const flycatShareHeaders: FlycatShareHeader[] =
-                    msg.tags.filter(t => isFlycatShareHeader(t));
-                  if (flycatShareHeaders.length > 0) {
-                    const blogPk = getPkFromFlycatShareHeader(
-                      flycatShareHeaders[flycatShareHeaders.length - 1],
-                    );
-                    const cacheHeaders = msg.tags.filter(
-                      t => t[0] === CacheIdentifier,
-                    );
-                    let articleCache = {
-                      title: t('thread.noArticleShareTitle'),
-                      url: '',
-                      blogName: t('thread.noBlogShareName'),
-                      blogPicture: '',
+          <div style={styles.message}>
+            <ul style={styles.msgsUl}>
+              {msgList.length === 0 && !isLoggedIn && (
+                <div>
+                  <p style={{ color: 'gray' }}>
+                    {t('UserRequiredLoginBox.loginFirst')}
+                  </p>
+                  <hr />
+                </div>
+              )}
+              {msgList.length === 0 && (
+                <div>
+                  <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
+                  <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
+                </div>
+              )}
+              {msgList.map((msg, index) => {
+                //@ts-ignore
+                const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(
+                  t => isFlycatShareHeader(t),
+                );
+                if (flycatShareHeaders.length > 0) {
+                  const blogPk = getPkFromFlycatShareHeader(
+                    flycatShareHeaders[flycatShareHeaders.length - 1],
+                  );
+                  const cacheHeaders = msg.tags.filter(
+                    t => t[0] === CacheIdentifier,
+                  );
+                  let articleCache = {
+                    title: t('thread.noArticleShareTitle'),
+                    url: '',
+                    blogName: t('thread.noBlogShareName'),
+                    blogPicture: '',
+                  };
+                  if (cacheHeaders.length > 0) {
+                    const cache = cacheHeaders[cacheHeaders.length - 1];
+                    articleCache = {
+                      title: cache[1],
+                      url: cache[2],
+                      blogName: cache[3],
+                      blogPicture: cache[4],
                     };
-                    if (cacheHeaders.length > 0) {
-                      const cache = cacheHeaders[cacheHeaders.length - 1];
-                      articleCache = {
-                        title: cache[1],
-                        url: cache[2],
-                        blogName: cache[3],
-                        blogPicture: cache[4],
-                      };
-                    }
-                    return (
-                      <ShareMsg
-                        key={index}
-                        content={msg.content}
-                        eventId={msg.id}
-                        keyPair={myKeyPair}
-                        userPk={msg.pubkey}
-                        userAvatar={userMap.get(msg.pubkey)?.picture}
-                        username={userMap.get(msg.pubkey)?.name}
-                        createdAt={msg.created_at}
-                        blogName={articleCache.blogName} //todo: fallback to query title
-                        blogAvatar={
-                          articleCache.blogPicture ||
-                          userMap.get(blogPk)?.picture
-                        }
-                        articleTitle={articleCache.title} //todo: fallback to query title
-                      />
-                    );
-                  } else {
-                    return (
-                      <TextMsg
-                        key={index}
-                        pk={msg.pubkey}
-                        avatar={userMap.get(msg.pubkey)?.picture}
-                        name={userMap.get(msg.pubkey)?.name}
-                        content={msg.content}
-                        eventId={msg.id}
-                        keyPair={myKeyPair}
-                        replyTo={msg.tags
-                          .filter(t => t[0] === EventTags.P)
-                          .map(t => {
-                            return {
-                              name: userMap.get(t[1])?.name,
-                              pk: t[1],
-                            };
-                          })}
-                        createdAt={msg.created_at}
-                      />
-                    );
                   }
-                })}
-              </ul>
-            </div>
-          </Grid>
-          <Grid item xs={4} style={styles.right}>
-            {isLoggedIn && (
-              <UserBox
-                pk={myPublicKey}
-                followCount={myContactList.size}
-                avatar={userMap.get(myPublicKey)?.picture}
-                name={userMap.get(myPublicKey)?.name}
-                about={userMap.get(myPublicKey)?.about}
-              />
-            )}
-            {!isLoggedIn && <UserRequiredLoginBox />}
-            <hr />
-            <RelayManager />
-          </Grid>
-        </Grid>
-      </div>
-    </div>
+                  return (
+                    <ShareMsg
+                      key={index}
+                      content={msg.content}
+                      eventId={msg.id}
+                      keyPair={myKeyPair}
+                      userPk={msg.pubkey}
+                      userAvatar={userMap.get(msg.pubkey)?.picture}
+                      username={userMap.get(msg.pubkey)?.name}
+                      createdAt={msg.created_at}
+                      blogName={articleCache.blogName} //todo: fallback to query title
+                      blogAvatar={
+                        articleCache.blogPicture || userMap.get(blogPk)?.picture
+                      }
+                      articleTitle={articleCache.title} //todo: fallback to query title
+                    />
+                  );
+                } else {
+                  return (
+                    <TextMsg
+                      key={index}
+                      pk={msg.pubkey}
+                      avatar={userMap.get(msg.pubkey)?.picture}
+                      name={userMap.get(msg.pubkey)?.name}
+                      content={msg.content}
+                      eventId={msg.id}
+                      keyPair={myKeyPair}
+                      replyTo={msg.tags
+                        .filter(t => t[0] === EventTags.P)
+                        .map(t => {
+                          return {
+                            name: userMap.get(t[1])?.name,
+                            pk: t[1],
+                          };
+                        })}
+                      createdAt={msg.created_at}
+                    />
+                  );
+                }
+              })}
+            </ul>
+          </div>
+        </>
+      </Left>
+      <Right>
+        <>
+          {isLoggedIn && (
+            <UserBox
+              pk={myPublicKey}
+              followCount={myContactList.size}
+              avatar={userMap.get(myPublicKey)?.picture}
+              name={userMap.get(myPublicKey)?.name}
+              about={userMap.get(myPublicKey)?.about}
+            />
+          )}
+          {!isLoggedIn && <UserRequiredLoginBox />}
+          <hr />
+          <RelayManager />
+        </>
+      </Right>
+    </BaseLayout>
   );
 };
 

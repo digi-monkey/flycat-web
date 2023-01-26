@@ -27,6 +27,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import defaultAvatar from '../../../resource/logo512.png';
 import { UserBox } from 'app/components/layout/UserBox';
 import { useTranslation } from 'react-i18next';
+import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -361,59 +362,51 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [wsConnectStatus, myPublicKey]);
 
   return (
-    <div style={styles.root}>
-      <NavHeader />
-
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={8} style={styles.left}>
-            <div style={styles.message}>
-              <ul style={styles.msgsUl}>
-                {Array.from(userMap.entries())
-                  .filter(u => u[0] !== myPublicKey && u[0] !== publicKey)
-                  .map(([pk, user], index) => (
-                    <li key={index} style={styles.msgItem}>
-                      <Grid container>
-                        <Grid item xs={2}>
-                          <img
-                            style={styles.userProfileAvatar}
-                            src={user.picture || defaultAvatar}
-                            alt={'user-avatar'}
-                          />
-                        </Grid>
-                        <Grid item xs={10}>
-                          <span style={styles.msgWord}>
-                            <span>
-                              <a style={styles.userName} href={'/user/' + pk}>
-                                @{user.name || shortPublicKey(pk)}
-                              </a>
-                            </span>
-                            <br />
-                            <Content
-                              text={user.about || t('contact.noAbout')}
-                            />
-                          </span>
-                        </Grid>
-                      </Grid>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          </Grid>
-          <Grid item xs={4} style={styles.right}>
-            <UserBox
-              pk={publicKey}
-              name={userMap.get(publicKey)?.name}
-              about={userMap.get(publicKey)?.about}
-              avatar={userMap.get(publicKey)?.picture}
-              followCount={userContactList.size}
-            />
-            <hr />
-            <RelayManager />
-          </Grid>
-        </Grid>
-      </div>
-    </div>
+    <BaseLayout>
+      <Left>
+        <div style={styles.message}>
+          <ul style={styles.msgsUl}>
+            {Array.from(userMap.entries())
+              .filter(u => u[0] !== myPublicKey && u[0] !== publicKey)
+              .map(([pk, user], index) => (
+                <li key={index} style={styles.msgItem}>
+                  <Grid container>
+                    <Grid item xs={2}>
+                      <img
+                        style={styles.userProfileAvatar}
+                        src={user.picture || defaultAvatar}
+                        alt={'user-avatar'}
+                      />
+                    </Grid>
+                    <Grid item xs={10}>
+                      <span style={styles.msgWord}>
+                        <span>
+                          <a style={styles.userName} href={'/user/' + pk}>
+                            @{user.name || shortPublicKey(pk)}
+                          </a>
+                        </span>
+                        <br />
+                        <Content text={user.about || t('contact.noAbout')} />
+                      </span>
+                    </Grid>
+                  </Grid>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </Left>
+      <Right>
+        <UserBox
+          pk={publicKey}
+          name={userMap.get(publicKey)?.name}
+          about={userMap.get(publicKey)?.about}
+          avatar={userMap.get(publicKey)?.picture}
+          followCount={userContactList.size}
+        />
+        <hr />
+        <RelayManager />
+      </Right>
+    </BaseLayout>
   );
 };
 

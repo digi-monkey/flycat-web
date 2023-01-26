@@ -51,8 +51,9 @@ const styles = {
   },
   userProfile: {},
   userProfileAvatar: {
-    width: '80px',
-    height: '80px',
+    width: '100%',
+    maxWidth: '80px',
+    maxHeight: '80px',
     marginRight: '10px',
   },
   userProfileName: {
@@ -224,11 +225,11 @@ export const UserHeader = ({
   const { t } = useTranslation();
   return (
     <div style={styles.userProfile}>
-      <Grid container style={{ background: '#F7F5EB' }}>
+      <Grid container spacing={1} style={{ background: '#F7F5EB' }}>
         <Grid item xs={2}>
           <img
-            style={styles.userProfileAvatar ?? defaultAvatar}
-            src={avatar}
+            style={styles.userProfileAvatar}
+            src={avatar ?? defaultAvatar}
             alt=""
           />
         </Grid>

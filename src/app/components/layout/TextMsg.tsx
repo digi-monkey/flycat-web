@@ -154,8 +154,8 @@ export const TextMsg = ({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <Grid container>
-        <Grid item xs={2} style={{ textAlign: 'left' as const }}>
+      <Grid container spacing={1}>
+        <Grid item xs={2}>
           <img style={styles.avatar} src={avatar} alt="" />
         </Grid>
         <Grid item xs={10}>
@@ -290,10 +290,10 @@ export const BlogMsg = ({
       onMouseLeave={() => setHover(false)}
     >
       <Grid container>
-        <Grid item xs={2} style={{ textAlign: 'left' as const }}>
+        <Grid item xs={12} sm={2} style={{ textAlign: 'left' as const }}>
           <img style={styles.avatar} src={avatar} alt="" />
         </Grid>
-        <Grid item xs={10}>
+        <Grid item xs={12} sm={10}>
           <span style={styles.msgWord}>
             <a style={styles.userName} href={'/user/' + pk}>
               @{name}

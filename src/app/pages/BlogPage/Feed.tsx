@@ -1,4 +1,5 @@
 import { Grid } from '@mui/material';
+import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import NavHeader from 'app/components/layout/NavHeader';
 import RelayManager from 'app/components/layout/RelayManager';
 import { BlogMsg } from 'app/components/layout/TextMsg';
@@ -420,65 +421,58 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [siteMetaData.length]);
 
   return (
-    <div style={styles.root}>
-      <NavHeader />
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={8} style={styles.left}>
-            <div style={styles.message}>
-              <div>{t('blogFeed.title')}</div>
-              <hr />
-              <ul style={styles.msgsUl}>
-                {articles.length === 0 && !isLoggedIn && (
-                  <div>
-                    <p style={{ color: 'gray' }}>
-                      {t('UserRequiredLoginBox.loginFirst')}
-                    </p>
-                    <hr />
-                  </div>
-                )}
-                {articles.length === 0 && (
-                  <div>
-                    <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
-                    <p style={{ color: 'gray' }}>{t('blogFeed.followHint')}</p>
-                  </div>
-                )}
-                {articles.map((a, index) => (
-                  <BlogMsg
-                    key={index}
-                    keyPair={myKeyPair}
-                    name={userMap.get(a.pk)?.name}
-                    avatar={userMap.get(a.pk)?.picture}
-                    pk={a.pk}
-                    title={a.title}
-                    blogName={
-                      siteMetaData.filter(s => s.pk === a.pk)[0]?.site_name
-                    }
-                    articleId={a.id?.toString()}
-                    createdAt={a.created_at}
-                    onSubmitShare={(e: Event) => worker?.pubEvent(e)}
-                  />
-                ))}
-              </ul>
-            </div>
-          </Grid>
-          <Grid item xs={4} style={styles.right}>
-            {isLoggedIn && (
-              <UserBox
-                pk={myKeyPair.publicKey}
-                followCount={myContactList.size}
-                avatar={userMap.get(myKeyPair.publicKey)?.picture}
-                name={userMap.get(myKeyPair.publicKey)?.name}
-                about={userMap.get(myKeyPair.publicKey)?.about}
-              />
+    <BaseLayout>
+      <Left>
+        <div style={styles.message}>
+          <div>{t('blogFeed.title')}</div>
+          <hr />
+          <ul style={styles.msgsUl}>
+            {articles.length === 0 && !isLoggedIn && (
+              <div>
+                <p style={{ color: 'gray' }}>
+                  {t('UserRequiredLoginBox.loginFirst')}
+                </p>
+                <hr />
+              </div>
             )}
-            {!isLoggedIn && <UserRequiredLoginBox />}
-            <hr />
-            <RelayManager />
-          </Grid>
-        </Grid>
-      </div>
-    </div>
+            {articles.length === 0 && (
+              <div>
+                <p style={{ color: 'gray' }}>{t('blogFeed.noPostYet')}</p>
+                <p style={{ color: 'gray' }}>{t('blogFeed.followHint')}</p>
+              </div>
+            )}
+            {articles.map((a, index) => (
+              <BlogMsg
+                key={index}
+                keyPair={myKeyPair}
+                name={userMap.get(a.pk)?.name}
+                avatar={userMap.get(a.pk)?.picture}
+                pk={a.pk}
+                title={a.title}
+                blogName={siteMetaData.filter(s => s.pk === a.pk)[0]?.site_name}
+                articleId={a.id?.toString()}
+                createdAt={a.created_at}
+                onSubmitShare={(e: Event) => worker?.pubEvent(e)}
+              />
+            ))}
+          </ul>
+        </div>
+      </Left>
+      <Right>
+        {isLoggedIn && (
+          <UserBox
+            pk={myKeyPair.publicKey}
+            followCount={myContactList.size}
+            avatar={userMap.get(myKeyPair.publicKey)?.picture}
+            name={userMap.get(myKeyPair.publicKey)?.name}
+            about={userMap.get(myKeyPair.publicKey)?.about}
+          />
+        )}
+        {!isLoggedIn && <UserRequiredLoginBox />}
+        <hr />
+        <RelayManager />
+      </Right>
+    </BaseLayout>
   );
 };
 
