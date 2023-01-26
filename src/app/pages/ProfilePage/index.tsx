@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Grid } from '@mui/material';
 import {
   Event,
   EventSubResponse,
@@ -40,6 +39,7 @@ import {
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
 import { useTranslation } from 'react-i18next';
+import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -156,7 +156,7 @@ export const styles = {
     color: 'red',
   },
   userProfile: {
-    padding: '10px',
+    //padding: '10px',
   },
   userProfileAvatar: {
     width: '80px',
@@ -554,104 +554,98 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     isLoggedIn && myContactList.get(publicKey) ? unfollowUser : followUser;
 
   return (
-    <div style={styles.root}>
-      <NavHeader />
+    <BaseLayout>
+      <Left>
+        <div style={styles.userProfile}>
+          <UserHeader
+            pk={publicKey}
+            followOrUnfollow={!(isLoggedIn && myContactList.get(publicKey))}
+            followOrUnfollowOnClick={followOrUnfollowOnClick}
+            avatar={userMap.get(publicKey)?.picture}
+            name={userMap.get(publicKey)?.name}
+            blogName={siteMetaData?.site_name}
+            articleCount={articles.length}
+          />
+        </div>
 
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={8} style={styles.left}>
-            <div style={styles.userProfile}>
-              <UserHeader
-                pk={publicKey}
-                followOrUnfollow={!(isLoggedIn && myContactList.get(publicKey))}
-                followOrUnfollowOnClick={followOrUnfollowOnClick}
-                avatar={userMap.get(publicKey)?.picture}
-                name={userMap.get(publicKey)?.name}
-                blogName={siteMetaData?.site_name}
-                articleCount={articles.length}
-              />
-            </div>
-
-            <div style={styles.message}>
-              <ul style={styles.msgsUl}>
-                {msgList.map((msg, index) => {
-                  //@ts-ignore
-                  const flycatShareHeaders: FlycatShareHeader[] =
-                    msg.tags.filter(t => isFlycatShareHeader(t));
-                  if (flycatShareHeaders.length > 0) {
-                    const blogPk = getPkFromFlycatShareHeader(
-                      flycatShareHeaders[flycatShareHeaders.length - 1],
-                    );
-                    const cacheHeaders = msg.tags.filter(
-                      t => t[0] === CacheIdentifier,
-                    );
-                    let articleCache = {
-                      title: t('thread.noArticleShareTitle'),
-                      url: '',
-                      blogName: t('thread.noBlogShareName'),
-                      blogPicture: '',
-                    };
-                    if (cacheHeaders.length > 0) {
-                      const cache = cacheHeaders[cacheHeaders.length - 1];
-                      articleCache = {
-                        title: cache[1],
-                        url: cache[2],
-                        blogName: cache[3],
-                        blogPicture: cache[4],
-                      };
+        <div style={styles.message}>
+          <ul style={styles.msgsUl}>
+            {msgList.map((msg, index) => {
+              //@ts-ignore
+              const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(
+                t => isFlycatShareHeader(t),
+              );
+              if (flycatShareHeaders.length > 0) {
+                const blogPk = getPkFromFlycatShareHeader(
+                  flycatShareHeaders[flycatShareHeaders.length - 1],
+                );
+                const cacheHeaders = msg.tags.filter(
+                  t => t[0] === CacheIdentifier,
+                );
+                let articleCache = {
+                  title: t('thread.noArticleShareTitle'),
+                  url: '',
+                  blogName: t('thread.noBlogShareName'),
+                  blogPicture: '',
+                };
+                if (cacheHeaders.length > 0) {
+                  const cache = cacheHeaders[cacheHeaders.length - 1];
+                  articleCache = {
+                    title: cache[1],
+                    url: cache[2],
+                    blogName: cache[3],
+                    blogPicture: cache[4],
+                  };
+                }
+                return (
+                  <ProfileShareMsg
+                    key={index}
+                    content={msg.content}
+                    eventId={msg.id}
+                    keyPair={myKeyPair}
+                    userPk={msg.pubkey}
+                    createdAt={msg.created_at}
+                    blogName={articleCache.blogName} //todo: fallback to query title
+                    blogAvatar={
+                      articleCache.blogPicture || userMap.get(blogPk)?.picture
                     }
-                    return (
-                      <ProfileShareMsg
-                        key={index}
-                        content={msg.content}
-                        eventId={msg.id}
-                        keyPair={myKeyPair}
-                        userPk={msg.pubkey}
-                        createdAt={msg.created_at}
-                        blogName={articleCache.blogName} //todo: fallback to query title
-                        blogAvatar={
-                          articleCache.blogPicture ||
-                          userMap.get(blogPk)?.picture
-                        }
-                        articleTitle={articleCache.title} //todo: fallback to query title
-                      />
-                    );
-                  } else {
-                    return (
-                      <ProfileTextMsg
-                        key={index}
-                        pk={msg.pubkey}
-                        content={msg.content}
-                        eventId={msg.id}
-                        keyPair={myKeyPair}
-                        replyTo={msg.tags
-                          .filter(t => t[0] === EventTags.P)
-                          .map(t => {
-                            return {
-                              name: userMap.get(t[1])?.name,
-                              pk: t[1],
-                            };
-                          })}
-                        createdAt={msg.created_at}
-                      />
-                    );
-                  }
-                })}
-              </ul>
-            </div>
-          </Grid>
-          <Grid item xs={4} style={styles.right}>
-            <UserProfileBox
-              pk={publicKey}
-              about={userMap.get(publicKey)?.about}
-              followCount={userContactList.size}
-            />
-            <hr />
-            <RelayManager />
-          </Grid>
-        </Grid>
-      </div>
-    </div>
+                    articleTitle={articleCache.title} //todo: fallback to query title
+                  />
+                );
+              } else {
+                return (
+                  <ProfileTextMsg
+                    key={index}
+                    pk={msg.pubkey}
+                    content={msg.content}
+                    eventId={msg.id}
+                    keyPair={myKeyPair}
+                    replyTo={msg.tags
+                      .filter(t => t[0] === EventTags.P)
+                      .map(t => {
+                        return {
+                          name: userMap.get(t[1])?.name,
+                          pk: t[1],
+                        };
+                      })}
+                    createdAt={msg.created_at}
+                  />
+                );
+              }
+            })}
+          </ul>
+        </div>
+      </Left>
+      <Right>
+        <UserProfileBox
+          pk={publicKey}
+          about={userMap.get(publicKey)?.about}
+          followCount={userContactList.size}
+        />
+        <hr />
+        <RelayManager />
+      </Right>
+    </BaseLayout>
   );
 };
 

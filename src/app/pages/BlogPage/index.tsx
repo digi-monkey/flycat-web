@@ -34,6 +34,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
 import { ArticleMsg } from 'app/components/layout/ArticleMsg';
 import { compareMaps } from 'service/helper';
+import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -450,55 +451,49 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   };
 
   return (
-    <div style={styles.root}>
-      <NavHeader />
-
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={8} style={styles.left}>
-            <UserBlogHeader
-              pk={publicKey}
-              avatar={userMap.get(publicKey)?.picture}
-              name={userMap.get(publicKey)?.name}
-              siteName={siteMetaData?.site_name}
-              siteDescription={siteMetaData?.site_description}
-            />
-            <div style={styles.message}>
-              {isOwner && siteMetaData && (
-                <>
-                  <PostArticle onSubmit={submitArticle} />
-                </>
-              )}
-              <ul style={styles.msgsUl}>
-                {articles.map((article, index) => (
-                  <ArticleMsg
-                    key={index}
-                    isOwner={isOwner}
-                    author={userMap.get(publicKey)!}
-                    publicKey={publicKey}
-                    siteMetaData={siteMetaData!}
-                    article={article}
-                    submitUpdateArticle={submitUpdateArticle}
-                    subArticlePages={subArticlePages}
-                  />
-                ))}
-              </ul>
-            </div>
-          </Grid>
-          <Grid item xs={4} style={styles.right}>
-            <div>
-              <SiteMeta
+    <BaseLayout>
+      <Left>
+        <UserBlogHeader
+          pk={publicKey}
+          avatar={userMap.get(publicKey)?.picture}
+          name={userMap.get(publicKey)?.name}
+          siteName={siteMetaData?.site_name}
+          siteDescription={siteMetaData?.site_description}
+        />
+        <div style={styles.message}>
+          {isOwner && siteMetaData && (
+            <>
+              <PostArticle onSubmit={submitArticle} />
+            </>
+          )}
+          <ul style={styles.msgsUl}>
+            {articles.map((article, index) => (
+              <ArticleMsg
+                key={index}
                 isOwner={isOwner}
-                siteMetaData={siteMetaData}
-                onSubmit={submitSiteMetaData}
+                author={userMap.get(publicKey)!}
+                publicKey={publicKey}
+                siteMetaData={siteMetaData!}
+                article={article}
+                submitUpdateArticle={submitUpdateArticle}
+                subArticlePages={subArticlePages}
               />
-            </div>
-            <hr />
-            <RelayManager />
-          </Grid>
-        </Grid>
-      </div>
-    </div>
+            ))}
+          </ul>
+        </div>
+      </Left>
+      <Right>
+        <div>
+          <SiteMeta
+            isOwner={isOwner}
+            siteMetaData={siteMetaData}
+            onSubmit={submitSiteMetaData}
+          />
+        </div>
+        <hr />
+        <RelayManager />
+      </Right>
+    </BaseLayout>
   );
 };
 

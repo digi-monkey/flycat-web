@@ -48,7 +48,7 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={4}>
+      <Grid item xs={12} sm={4}>
         <div>
           <Grid container>
             <Grid item xs={3} style={{ display: 'flex', alignItems: 'center' }}>
@@ -64,7 +64,7 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
           </Grid>
         </div>
       </Grid>
-      <Grid item xs={8} style={{ textAlign: 'right' }}>
+      <Grid item xs={12} sm={8} style={{ textAlign: 'right' }}>
         <div className="menu" style={{ width: 'fit-content', float: 'right' }}>
           <ul style={styles.ul}>
             <li style={styles.li}>
