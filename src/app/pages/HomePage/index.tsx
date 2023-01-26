@@ -417,8 +417,19 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
             <div style={styles.message}>
               <ul style={styles.msgsUl}>
+                {msgList.length === 0 && !isLoggedIn && (
+                  <div>
+                    <p style={{ color: 'gray' }}>
+                      {t('UserRequiredLoginBox.loginFirst')}
+                    </p>
+                    <hr />
+                  </div>
+                )}
                 {msgList.length === 0 && (
-                  <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
+                  <div>
+                    <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
+                    <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
+                  </div>
                 )}
                 {msgList.map((msg, index) => {
                   //@ts-ignore

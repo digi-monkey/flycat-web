@@ -136,7 +136,7 @@ export class CallWorker {
   call(msg: ToPostMsg) {
     const __messageId = this.msgCount++;
     this.worker.port.postMessage(msg);
-    console.debug('post..', msg);
+    //console.debug('post..', msg);
     return new Promise((resolve, reject) => {
       this.resolvers[__messageId] = resolve;
       this.rejectors[__messageId] = reject;
