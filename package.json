@@ -26,6 +26,7 @@
     "@types/testing-library__jest-dom": "5.14.2",
     "@types/webpack": "5.28.0",
     "@types/webpack-env": "1.16.3",
+    "@vercel/analytics": "0.1.8",
     "axios": "0.27.2",
     "bech32": "2.0.0",
     "buffer": "6.0.3",
