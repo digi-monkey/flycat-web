@@ -214,7 +214,7 @@ export class CallWorker {
   subMsgByETags(eventIds: EventId[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
       '#e': eventIds,
-      limit: eventIds.length,
+      limit: 50,
     };
     return this.subFilter(filter, keepAlive, customId);
   }

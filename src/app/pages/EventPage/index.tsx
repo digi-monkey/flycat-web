@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Grid } from '@mui/material';
 import {
   Event,
   EventSubResponse,
@@ -15,16 +14,11 @@ import {
   EventId,
   EventTags,
 } from 'service/api';
-import { useTimeSince } from 'hooks/useTimeSince';
-import LoginForm from '../../components/layout/LoginForm';
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/RelayManager';
-import { Content } from '../../components/layout/Content';
-import ReplyButton from '../../components/layout/ReplyBtn';
 import { useParams } from 'react-router-dom';
-import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
@@ -264,9 +258,12 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               const replyToEventIds = oldArray
                 .map(e => getEventIdsFromETags(e.tags))
                 .reduce((prev, current) => prev.concat(current), []);
+              const eTags = getEventIdsFromETags(event.tags);
               if (
                 !oldArray.map(e => e.id).includes(event.id) &&
-                (replyToEventIds.includes(event.id) || event.id === eventId)
+                (replyToEventIds.includes(event.id) ||
+                  eTags.includes(eventId) ||
+                  event.id === eventId)
               ) {
                 // only add un-duplicated and replyTo msg
                 const newItems = [...oldArray, event];
@@ -309,6 +306,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     worker?.subMsgByEventIds([eventId]);
+    worker?.subMsgByETags([eventId]);
   }, [wsConnectStatus]);
 
   useEffect(() => {
@@ -437,6 +435,11 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                         };
                       })}
                     createdAt={msg.created_at}
+                    style={
+                      msg.id === eventId
+                        ? { border: '2px solid rgb(225, 215, 198)' }
+                        : {}
+                    }
                   />
                 );
               }

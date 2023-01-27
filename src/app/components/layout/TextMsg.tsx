@@ -133,6 +133,7 @@ export interface TextMsgProps {
   createdAt: number;
   eventId: string;
   keyPair?: KeyPair;
+  style?: React.CSSProperties;
 }
 
 export const TextMsg = ({
@@ -144,13 +145,14 @@ export const TextMsg = ({
   createdAt,
   eventId,
   keyPair,
+  style,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
   const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
   return (
     <li
-      style={{ ...styles.msgItem, ...bg }}
+      style={{ ...styles.msgItem, ...bg, ...style }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
