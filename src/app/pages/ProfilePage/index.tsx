@@ -248,14 +248,14 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData);
       },
     );
     worker.pullWsConnectStatus();
     setWorker(worker);
   }, []);
 
-  function onMsgHandler(res: any) {
+  function onMsgHandler(this, res: any) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -304,7 +304,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               }
             }
             if (newPks.length > 0) {
-              worker?.subMetadata(newPks);
+              this.subMetadata(newPks);
             }
           }
           break;
