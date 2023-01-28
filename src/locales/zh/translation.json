@@ -143,7 +143,8 @@
   },
   "homeFeed": {
     "noPostYet": "还没有短消息..",
-    "followHint": "你发布的和关注的人的短消息会出现在这里"
+    "followHint": "你发布的和关注的人的短消息会出现在这里",
+    "globalFeed": "随便看看其他人"
   },
   "profile": {
     "postArticles": "发表了 {{count}} 篇文章于{{siteName}}"

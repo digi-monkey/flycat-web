@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Grid } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import {
   Event,
   EventSubResponse,
@@ -14,13 +13,13 @@ import {
   EventContactListPTag,
   RawEvent,
   isEventPTag,
+  Filter,
 } from 'service/api';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/RelayManager';
-import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
@@ -178,6 +177,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     new Map(),
   );
 
+  const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
@@ -223,7 +223,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData);
       },
       'homeIndex',
     );
@@ -235,7 +235,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     };
   }, []);
 
-  function onMsgHandler(res: any) {
+  function onMsgHandler(this, res: any) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -259,6 +259,36 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.text_note:
+          if (!isLoggedIn) {
+            setGlobalMsgList(oldArray => {
+              if (!oldArray.map(e => e.id).includes(event.id)) {
+                // do not add duplicated msg
+                const newItems = [...oldArray, event];
+                // sort by timestamp
+                const sortedItems = newItems.sort((a, b) =>
+                  a.created_at >= b.created_at ? -1 : 1,
+                );
+                return sortedItems;
+              }
+              return oldArray;
+            });
+
+            // check if need to sub new user metadata
+            const newPks: string[] = [event.pubkey];
+            for (const t of event.tags) {
+              if (isEventPTag(t)) {
+                const pk = t[1];
+                if (userMap.get(pk) == null) {
+                  newPks.push(pk);
+                }
+              }
+            }
+            if (newPks.length > 0) {
+              this.subMetadata(newPks, false, 'homeMetadata');
+            }
+            return;
+          }
+
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
@@ -283,7 +313,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             }
           }
           if (newPks.length > 0) {
-            worker?.subMetadata(newPks);
+            this.subMetadata(newPks);
           }
           break;
 
@@ -382,6 +412,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   }, [myContactList.size]);
 
+  useEffect(() => {
+    if (isLoggedIn) return;
+
+    const filter: Filter = {
+      kinds: [WellKnownEventKind.text_note],
+      limit: 50,
+    };
+    worker?.subFilter(filter);
+  }, [isLoggedIn, wsConnectStatus]);
+
   const onSubmitText = async (text: string) => {
     if (myKeyPair.privateKey === '') {
       alert('set privateKey first!');
@@ -405,6 +445,74 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     worker?.pubEvent(event);
   };
 
+  const msgs = (msgList: Event[]) => {
+    return msgList.map((msg, index) => {
+      //@ts-ignore
+      const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(t =>
+        isFlycatShareHeader(t),
+      );
+      if (flycatShareHeaders.length > 0) {
+        const blogPk = getPkFromFlycatShareHeader(
+          flycatShareHeaders[flycatShareHeaders.length - 1],
+        );
+        const cacheHeaders = msg.tags.filter(t => t[0] === CacheIdentifier);
+        let articleCache = {
+          title: t('thread.noArticleShareTitle'),
+          url: '',
+          blogName: t('thread.noBlogShareName'),
+          blogPicture: '',
+        };
+        if (cacheHeaders.length > 0) {
+          const cache = cacheHeaders[cacheHeaders.length - 1];
+          articleCache = {
+            title: cache[1],
+            url: cache[2],
+            blogName: cache[3],
+            blogPicture: cache[4],
+          };
+        }
+        return (
+          <ShareMsg
+            key={index}
+            content={msg.content}
+            eventId={msg.id}
+            keyPair={myKeyPair}
+            userPk={msg.pubkey}
+            userAvatar={userMap.get(msg.pubkey)?.picture}
+            username={userMap.get(msg.pubkey)?.name}
+            createdAt={msg.created_at}
+            blogName={articleCache.blogName} //todo: fallback to query title
+            blogAvatar={
+              articleCache.blogPicture || userMap.get(blogPk)?.picture
+            }
+            articleTitle={articleCache.title} //todo: fallback to query title
+          />
+        );
+      } else {
+        return (
+          <TextMsg
+            key={index}
+            pk={msg.pubkey}
+            avatar={userMap.get(msg.pubkey)?.picture}
+            name={userMap.get(msg.pubkey)?.name}
+            content={msg.content}
+            eventId={msg.id}
+            keyPair={myKeyPair}
+            replyTo={msg.tags
+              .filter(t => t[0] === EventTags.P)
+              .map(t => {
+                return {
+                  name: userMap.get(t[1])?.name,
+                  pk: t[1],
+                };
+              })}
+            createdAt={msg.created_at}
+          />
+        );
+      }
+    });
+  };
+
   return (
     <BaseLayout>
       <Left>
@@ -422,81 +530,19 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     {t('UserRequiredLoginBox.loginFirst')}
                   </p>
                   <hr />
+                  <p style={{ color: 'black', fontSize: '20px' }}>
+                    {t('homeFeed.globalFeed')}
+                  </p>
+                  {msgs(globalMsgList)}
                 </div>
               )}
-              {msgList.length === 0 && (
+              {msgList.length === 0 && isLoggedIn && (
                 <div>
                   <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
                   <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
                 </div>
               )}
-              {msgList.map((msg, index) => {
-                //@ts-ignore
-                const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(
-                  t => isFlycatShareHeader(t),
-                );
-                if (flycatShareHeaders.length > 0) {
-                  const blogPk = getPkFromFlycatShareHeader(
-                    flycatShareHeaders[flycatShareHeaders.length - 1],
-                  );
-                  const cacheHeaders = msg.tags.filter(
-                    t => t[0] === CacheIdentifier,
-                  );
-                  let articleCache = {
-                    title: t('thread.noArticleShareTitle'),
-                    url: '',
-                    blogName: t('thread.noBlogShareName'),
-                    blogPicture: '',
-                  };
-                  if (cacheHeaders.length > 0) {
-                    const cache = cacheHeaders[cacheHeaders.length - 1];
-                    articleCache = {
-                      title: cache[1],
-                      url: cache[2],
-                      blogName: cache[3],
-                      blogPicture: cache[4],
-                    };
-                  }
-                  return (
-                    <ShareMsg
-                      key={index}
-                      content={msg.content}
-                      eventId={msg.id}
-                      keyPair={myKeyPair}
-                      userPk={msg.pubkey}
-                      userAvatar={userMap.get(msg.pubkey)?.picture}
-                      username={userMap.get(msg.pubkey)?.name}
-                      createdAt={msg.created_at}
-                      blogName={articleCache.blogName} //todo: fallback to query title
-                      blogAvatar={
-                        articleCache.blogPicture || userMap.get(blogPk)?.picture
-                      }
-                      articleTitle={articleCache.title} //todo: fallback to query title
-                    />
-                  );
-                } else {
-                  return (
-                    <TextMsg
-                      key={index}
-                      pk={msg.pubkey}
-                      avatar={userMap.get(msg.pubkey)?.picture}
-                      name={userMap.get(msg.pubkey)?.name}
-                      content={msg.content}
-                      eventId={msg.id}
-                      keyPair={myKeyPair}
-                      replyTo={msg.tags
-                        .filter(t => t[0] === EventTags.P)
-                        .map(t => {
-                          return {
-                            name: userMap.get(t[1])?.name,
-                            pk: t[1],
-                          };
-                        })}
-                      createdAt={msg.created_at}
-                    />
-                  );
-                }
-              })}
+              {msgList.length > 0 && isLoggedIn && msgs(msgList)}
             </ul>
           </div>
         </>
