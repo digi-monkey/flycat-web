@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Api } from 'service/api';
+import { PhotoIcon } from './icon/Photo';
 
 const styles = {
   postBox: {},
@@ -21,8 +22,9 @@ const styles = {
   btn: {
     textAlign: 'right' as const,
   },
-  simpleBtn: {
+  imgIconBtn: {
     border: 'none',
+    color: 'lightsteelblue',
   },
 };
 
@@ -138,9 +140,9 @@ export const PubNoteTextarea: React.FC<Props> = ({
             type="button"
             onClick={selectAndUploadImg}
             disabled={isUploading}
-            style={styles.simpleBtn}
+            style={styles.imgIconBtn}
           >
-            🌃+{isUploading ? '↺' : ''}
+            <PhotoIcon />+{isUploading ? '↺' : ''}
           </button>
           &nbsp;&nbsp;
           <input
