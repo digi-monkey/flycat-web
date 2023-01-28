@@ -74,10 +74,34 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
               <a href={'/blog'}>{t('nav.menu.blog')}</a>
             </li>
             <li style={styles.li}>
-              <a href={'/user/' + myPublicKey}>{t('nav.menu.profile')}</a>
+              {isLoggedIn && myPublicKey.length > 0 ? (
+                <a href={'/blog/' + myPublicKey}>
+                  {t('nav.menu.blogDashboard')}
+                </a>
+              ) : (
+                <a
+                  href={'#'}
+                  onClick={() => {
+                    alert('you need to sign in first!');
+                  }}
+                >
+                  {t('nav.menu.blogDashboard')}
+                </a>
+              )}
             </li>
             <li style={styles.li}>
-              <a href={'/blog/' + myPublicKey}>{t('nav.menu.blogDashboard')}</a>
+              {isLoggedIn && myPublicKey.length > 0 ? (
+                <a href={'/user/' + myPublicKey}>{t('nav.menu.profile')}</a>
+              ) : (
+                <a
+                  href={'#'}
+                  onClick={() => {
+                    alert('you need to sign in first!');
+                  }}
+                >
+                  {t('nav.menu.profile')}
+                </a>
+              )}
             </li>
             {/** 
             <li style={styles.li}>
@@ -182,5 +206,64 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
     </Grid>
   );
 }
+
+export const LoginFormTip = ({
+  style = {},
+}: {
+  style?: React.CSSProperties;
+}) => {
+  const { t } = useTranslation();
+  const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
+  return (
+    <>
+      <button
+        style={{
+          ...{ border: 'none', background: 'lightsteelblue' },
+          ...style,
+        }}
+        type="button"
+        onClick={() => {
+          setIsOpenLoginForm(!isOpenLoginForm);
+        }}
+      >
+        {t('nav.menu.signIn')}
+      </button>
+      {isOpenLoginForm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'white',
+            padding: '20px',
+            zIndex: 999,
+            width: '400px',
+            height: 'auto',
+            boxShadow: '0px 0px 10px #ccc',
+            borderRadius: '5px',
+            textAlign: 'center',
+          }}
+        >
+          <LoginForm onCancel={() => setIsOpenLoginForm(false)} />
+        </div>
+      )}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 998,
+          background: 'black',
+          opacity: 0.5,
+          filter: 'blur(5px)',
+          display: isOpenLoginForm ? 'block' : 'none',
+        }}
+      ></div>
+    </>
+  );
+};
 
 export default connect(mapStateToProps)(NavHeader);

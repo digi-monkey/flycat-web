@@ -35,6 +35,7 @@ import {
 import { ShareMsg } from 'app/components/layout/ShareMsg';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
+import { LoginFormTip } from 'app/components/layout/NavHeader';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -527,10 +528,10 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               {msgList.length === 0 && !isLoggedIn && (
                 <div>
                   <p style={{ color: 'gray' }}>
-                    {t('UserRequiredLoginBox.loginFirst')}
+                    {t('UserRequiredLoginBox.loginFirst')} <LoginFormTip />
                   </p>
                   <hr />
-                  <p style={{ color: 'black', fontSize: '20px' }}>
+                  <p style={{ color: 'gray', fontSize: '14px' }}>
                     {t('homeFeed.globalFeed')}
                   </p>
                   {msgs(globalMsgList)}

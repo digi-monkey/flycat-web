@@ -139,12 +139,13 @@
   "blogFeed": {
     "title": "Blog Post",
     "noPostYet": "nothing here..",
-    "followHint": "articles posted by you and your following will show up here"
+    "followHint": "articles posted by you and your following will show up here",
+    "globalFeed": "below shows some example posts from flycat author's blog"
   },
   "homeFeed": {
     "noPostYet": "nothing here..",
     "followHint": "notes posted by you and your following will show up here",
-    "globalFeed": "Global Feed"
+    "globalFeed": "below shows some notes from global feed"
   },
   "profile": {
     "postArticles": "{{count}} post on {{siteName}}"
