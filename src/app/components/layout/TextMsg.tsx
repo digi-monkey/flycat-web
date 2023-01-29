@@ -8,6 +8,8 @@ import { shortPublicKey } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
 import { ShareArticle } from './Share';
+import defaultAvatar from '../../../resource/logo512.png';
+
 const styles = {
   root: {
     maxWidth: '900px',
@@ -158,7 +160,7 @@ export const TextMsg = ({
     >
       <Grid container spacing={1}>
         <Grid item xs={2}>
-          <img style={styles.avatar} src={avatar} alt="" />
+          <img style={styles.avatar} src={avatar || defaultAvatar} alt="" />
         </Grid>
         <Grid item xs={10}>
           <span style={styles.msgWord}>
@@ -166,10 +168,14 @@ export const TextMsg = ({
               @{name}
             </a>
             {replyTo.length > 0 && (
-              <span>
+              <span style={{ color: 'gray' }}>
                 {t('textMsg.replyTo')}{' '}
                 {replyTo.map((r, i) => (
-                  <a key={i} style={styles.userName} href={'/user/' + r.pk}>
+                  <a
+                    key={i}
+                    style={{ ...styles.userName, ...{ color: 'gray' } }}
+                    href={'/user/' + r.pk}
+                  >
                     @{r.name || shortPublicKey(r.pk!)}
                   </a>
                 ))}

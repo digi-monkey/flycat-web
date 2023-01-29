@@ -193,7 +193,7 @@ export class CallWorker {
   subMsg(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
       authors: pks,
-      limit: pks.length * 10,
+      limit: pks.length * 5,
     };
 
     return this.subFilter(filter, keepAlive, customId);
