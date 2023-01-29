@@ -120,42 +120,38 @@ export class Pool {
           return;
         }
 
-        this.wsConnectStatus.forEach((connected, url) => {
-          if (connected === true) {
-            this.wsApiList
-              .filter(ws => ws.url() === url)
-              .map(ws => {
-                const method = ws[callMethod];
-                if (typeof method === 'function') {
-                  // record custom sub id to port id
-                  // todo: maybe also record non-keep-alive subscription id to portId
-                  if (callMethod === 'subFilter') {
-                    const keepAlive = callData[1];
-                    const customSubId = callData[2];
-                    const subId = newSubId(
-                      message.portId,
-                      customSubId || randomSubId(),
-                    );
-                    callData[2] = subId; // update with portId packed;
-                    if (keepAlive === true) {
-                      const data = this.portSubs.get(portId);
-                      if (data != null && !data.includes(subId)) {
-                        data.push(subId);
-                        this.portSubs.set(portId, data);
-                      } else {
-                        console.debug('create new portSub', portId);
-                        this.portSubs.set(portId, [subId]);
-                      }
-                    }
+        this.wsApiList
+          .filter(ws => ws.isConnected())
+          .map(ws => {
+            const method = ws[callMethod];
+            if (typeof method === 'function') {
+              // record custom sub id to port id
+              // todo: maybe also record non-keep-alive subscription id to portId
+              if (callMethod === 'subFilter') {
+                const keepAlive = callData[1];
+                const customSubId = callData[2];
+                const subId = newSubId(
+                  message.portId,
+                  customSubId || randomSubId(),
+                );
+                callData[2] = subId; // update with portId packed;
+                if (keepAlive === true) {
+                  const data = this.portSubs.get(portId);
+                  if (data != null && !data.includes(subId)) {
+                    data.push(subId);
+                    this.portSubs.set(portId, data);
+                  } else {
+                    console.debug('create new portSub', portId);
+                    this.portSubs.set(portId, [subId]);
                   }
-
-                  method.apply(ws, callData);
-                } else {
-                  console.error(`method ${callMethod} not found`);
                 }
-              });
-          }
-        });
+              }
+
+              method.apply(ws, callData);
+            } else {
+              console.error(`method ${callMethod} not found`);
+            }
+          });
       },
     );
 
