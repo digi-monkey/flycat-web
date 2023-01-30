@@ -10,7 +10,7 @@ import {
 } from './crypto';
 const { version } = require('../../package.json');
 
-export const DEFAULT_API_URL = 'https://nostr.build';
+export const DEFAULT_API_URL = 'https://nostr.build/api';
 export const DEFAULT_WS_API_URL = 'wss://nostr.v0l.io'; //"wss://nostr.v0l.io"//"wss://relay.nostr.bg";//'wss://nostr-relay.digitalmob.ro'//'wss://relay.damus.io'; //'wss://jiggytom.ddns.net';// "wss://demo.piesocket.com/v3/channel_123?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self"/
 
 //axios.defaults.withCredentials = true;
@@ -126,19 +126,15 @@ export class Api extends base {
     const headers = {
       'Content-Type': 'multipart/form-data',
     };
-    const response = await this.httpRequest(
-      'upload.php',
+    const url: string = await this.httpRequest(
+      'upload/flycat.php',
       formData,
       HttpProtocolMethod.post,
       {
         headers,
       },
     );
-    const regExp = new RegExp(/(https?:\/\/[^ ]*)/, 'g');
-
-    let imageUrl: string = response.match(regExp)[10];
-    imageUrl = imageUrl.slice(0, imageUrl.indexOf('<'));
-    return imageUrl;
+    return url;
   }
 }
 
