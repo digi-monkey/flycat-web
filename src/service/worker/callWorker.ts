@@ -193,7 +193,8 @@ export class CallWorker {
   subMsg(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
       authors: pks,
-      limit: pks.length * 5,
+      limit: pks.length + 50,
+      kinds: [WellKnownEventKind.text_note],
     };
 
     return this.subFilter(filter, keepAlive, customId);
@@ -213,6 +214,7 @@ export class CallWorker {
 
   subMsgByETags(eventIds: EventId[], keepAlive?: boolean, customId?: string) {
     const filter: Filter = {
+      kinds: [WellKnownEventKind.text_note],
       '#e': eventIds,
       limit: 50,
     };
