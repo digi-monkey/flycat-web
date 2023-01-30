@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { PublicKey } from 'service/api';
 import { normalizeContent } from 'service/helper';
 
@@ -118,26 +118,62 @@ export function ArticleContentNoAvatar({
 
 export function ImagePlate({ url }: { url: string }) {
   // image click effect
-  const [scale, setScale] = useState(1);
+  const [showPopup, setShowPopup] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
 
-  const handleFocus = () => {
-    setScale(10);
-  };
-  const handleBlur = () => {
-    setScale(1);
+  const handleClick = (event: React.MouseEvent) => {
+    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      setShowPopup(false);
+    }
   };
 
   return (
-    <img
-      src={url}
-      alt=""
-      style={{
-        width: `${48 * scale}px`,
-        cursor: 'pointer',
-      }}
-      tabIndex={0}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-    />
+    <>
+      <img
+        src={url}
+        alt=""
+        style={{
+          maxWidth: '100%',
+          width: `48px`,
+          cursor: 'pointer',
+        }}
+        onClick={() => setShowPopup(true)}
+      />
+      {showPopup && (
+        <div style={{ width: '80%', maxWidth: '800px' }}>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'gray',
+              opacity: 0.6,
+            }}
+            onClick={handleClick}
+          />
+          <div
+            ref={popupRef}
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: '#fff',
+              border: '1px solid white',
+              padding: '2px',
+              boxShadow: '0 0 5px white',
+            }}
+          >
+            <div
+              style={{ position: 'relative', width: '100%', height: '100%' }}
+            >
+              <img src={url} style={{ width: '100%', height: '100%' }} />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
