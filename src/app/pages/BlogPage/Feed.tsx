@@ -17,6 +17,8 @@ import {
   WellKnownEventKind,
   Filter,
   PublicKey,
+  nip19Encode,
+  Nip19DataType,
 } from 'service/api';
 import {
   SiteMetaDataContentSchema,
@@ -26,11 +28,12 @@ import {
   validateArticlePageKind,
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
-import { compareMaps } from 'service/helper';
+import { compareMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { ContactList, KeyPair } from '.';
+import defaultAvatar from '../../../resource/logo512.png';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -175,6 +178,9 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [siteMetaData, setSiteMetaData] = useState<
     (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
   >([]);
+  const [globalSiteMetaData, setGlobalSiteMetaData] = useState<
+    (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
+  >([]);
   // todo can we rm this
   const [isSiteMetaDataLoading, setIsSiteMetaDataLoading] = useState(true);
 
@@ -225,7 +231,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(BlogFeed)(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData);
       },
     );
     worker.pullWsConnectStatus();
@@ -236,7 +242,11 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     };
   }, []);
 
-  function onMsgHandler(res: any) {
+  const getContactList = () => {
+    return myContactList;
+  };
+
+  function onMsgHandler(this, res: any) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -271,7 +281,39 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case FlycatWellKnownEventKind.SiteMetaData:
-          const oldData = siteMetaData.filter(s => s.pk === event.pubkey);
+          if (getContactList().has(event.pubkey)) {
+            //todo: fix, this is not working
+            const oldData = siteMetaData.filter(s => s.pk === event.pubkey);
+            if (
+              oldData.length > 0 &&
+              oldData[0].created_at >= event.created_at
+            ) {
+              // the new data is outdated
+              return;
+            }
+
+            const newMap = siteMetaData;
+            const siteMeta = Flycat.deserialize(
+              event.content,
+            ) as SiteMetaDataContentSchema;
+            const data = {
+              ...siteMeta,
+              ...{
+                created_at: event.created_at,
+                pk: event.pubkey,
+              },
+            };
+            if (!newMap.map(a => a.pk).includes(data.pk)) {
+              // don't add duplicate one
+              newMap.push(data);
+            }
+
+            setSiteMetaData(newMap);
+            setIsSiteMetaDataLoading(false);
+          }
+
+          // global blog sites
+          const oldData = globalSiteMetaData.filter(s => s.pk === event.pubkey);
           if (oldData.length > 0 && oldData[0].created_at >= event.created_at) {
             // the new data is outdated
             return;
@@ -293,8 +335,8 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             newMap.push(data);
           }
 
-          setSiteMetaData(newMap);
-          setIsSiteMetaDataLoading(false);
+          this.subMetadata([event.pubkey]);
+          setGlobalSiteMetaData(newMap);
           break;
 
         default:
@@ -429,8 +471,8 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     if (isLoggedIn !== true) return;
     if (myPublicKey == null) return;
 
-    worker?.subMetadata([myPublicKey]);
     worker?.subContactList([myPublicKey]);
+    worker?.subMetadata([myPublicKey]);
   }, [myKeyPair, wsConnectStatus]);
 
   useEffect(() => {
@@ -477,18 +519,42 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [isLoggedIn, wsConnectStatus]);
 
   useEffect(() => {
+    const globalBlogFilter: Filter = {
+      kinds: [WellKnownEventKind.flycat_site_metadata],
+      limit: 50,
+    };
+    worker?.subFilter(globalBlogFilter, true, 'globalBlogSites');
+  }, [wsConnectStatus]);
+
+  /*
+  useEffect(() => {
     if (!isSiteMetaDataLoading && siteMetaData.length > 0) {
       subArticles();
     }
   }, [isLoggedIn, isSiteMetaDataLoading, siteMetaData]);
+  */
+
+  useEffect(() => {
+    if (globalSiteMetaData.length > 0) {
+      subArticles();
+    }
+  }, [isLoggedIn, globalSiteMetaData]);
 
   const subArticles = () => {
-    const kinds: number[] = siteMetaData
+    const siteMetadata = globalSiteMetaData.filter(
+      s =>
+        myContactList.has(s.pk) ||
+        s.pk === myPublicKey ||
+        s.pk === hardCodedBlogPk,
+    );
+    const kinds: number[] = siteMetadata
       .reduce((prev: number[], cur) => prev.concat(cur.page_ids), [])
       .map(id => id + FlycatWellKnownEventKind.SiteMetaData);
     const uniqueKinds = kinds.filter((item, index) => {
       return kinds.indexOf(item) === index;
     });
+
+    if (uniqueKinds.length === 0) return;
 
     const authors = siteMetaData.map(s => s.pk);
     if (myPublicKey.length > 0) {
@@ -511,6 +577,47 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <Left>
         <div style={styles.message}>
           <div>{t('blogFeed.title')}</div>
+          <hr />
+          <div>
+            <p>{globalSiteMetaData.length} Total Blogs Created</p>
+            {globalSiteMetaData.map((s, index) => (
+              <a
+                href={'/blog/' + s.pk}
+                target="_blank"
+                style={{
+                  textDecoration: 'none',
+                  display: 'block',
+                  marginTop: '5px',
+                  border: '1px dotted gray',
+                }}
+                key={index}
+                rel="noreferrer"
+              >
+                <span>
+                  <img
+                    style={{ width: '48px', height: '48px' }}
+                    src={userMap.get(s.pk)?.picture || defaultAvatar}
+                    alt=""
+                  />
+                </span>
+                <span>{' ' + s.site_name}</span>
+                <span style={{ fontSize: '12px', color: 'gray' }}>
+                  {' by '}
+                  {userMap.get(s.pk)?.name ||
+                    shortPublicKey(nip19Encode(s.pk, Nip19DataType.Pubkey))}
+                </span>
+                <span
+                  style={{
+                    display: 'block',
+                    color: 'gray',
+                    margin: '10px 5px',
+                  }}
+                >
+                  {s.site_description}
+                </span>
+              </a>
+            ))}
+          </div>
           <hr />
           <ul style={styles.msgsUl}>
             {articles.length === 0 && !isLoggedIn && (
@@ -546,24 +653,28 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 <p style={{ color: 'gray' }}>{t('blogFeed.followHint')}</p>
               </div>
             )}
+            {articles.length > 0 && <p>Your following</p>}
             {articles.length > 0 &&
               isLoggedIn &&
-              articles.map((a, index) => (
-                <BlogMsg
-                  key={index}
-                  keyPair={myKeyPair}
-                  name={userMap.get(a.pk)?.name}
-                  avatar={userMap.get(a.pk)?.picture}
-                  pk={a.pk}
-                  title={a.title}
-                  blogName={
-                    siteMetaData.filter(s => s.pk === a.pk)[0]?.site_name
-                  }
-                  articleId={a.id?.toString()}
-                  createdAt={a.created_at}
-                  onSubmitShare={(e: Event) => worker?.pubEvent(e)}
-                />
-              ))}
+              // todo: fix the filter hack
+              articles
+                .filter(a => myContactList.has(a.pk) || a.pk === myPublicKey)
+                .map((a, index) => (
+                  <BlogMsg
+                    key={index}
+                    keyPair={myKeyPair}
+                    name={userMap.get(a.pk)?.name}
+                    avatar={userMap.get(a.pk)?.picture}
+                    pk={a.pk}
+                    title={a.title}
+                    blogName={
+                      siteMetaData.filter(s => s.pk === a.pk)[0]?.site_name
+                    }
+                    articleId={a.id?.toString()}
+                    createdAt={a.created_at}
+                    onSubmitShare={(e: Event) => worker?.pubEvent(e)}
+                  />
+                ))}
           </ul>
         </div>
       </Left>
