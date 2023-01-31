@@ -12,6 +12,7 @@ import {
 } from 'service/api';
 import { matchKeyPair } from 'service/crypto';
 import { CallWorker } from 'service/worker/callWorker';
+import { CommentIcon } from './icon/Comment';
 
 const styles = {
   smallBtn: {
@@ -97,7 +98,7 @@ function ReplyButton({
   return (
     <>
       <button style={styles.smallBtn} onClick={handleClick}>
-        {t('replyBtn.reply')}
+        <CommentIcon /> {t('replyBtn.reply')}
       </button>
       {showPopup && (
         <form onSubmit={handleSubmit}>
