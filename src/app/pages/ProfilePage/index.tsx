@@ -37,6 +37,7 @@ import {
   ArticleDataSchema,
   validateArticlePageKind,
   ArticlePageContentSchema,
+  FlycatWellKnownEventKind,
 } from 'service/flycat-protocol';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
@@ -487,7 +488,9 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   useEffect(() => {
     if (siteMetaData == null) return;
 
-    const pageIds = siteMetaData.page_ids;
+    const pageIds = siteMetaData.page_ids.map(
+      p => p + FlycatWellKnownEventKind.SiteMetaData,
+    );
     if (pageIds.length === 0) return;
 
     const filter: Filter = {
