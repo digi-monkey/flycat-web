@@ -4,6 +4,7 @@ import NavHeader from './NavHeader';
 
 const styles = {
   root: {
+    width: '100%',
     maxWidth: '900px',
     margin: '0 auto',
   },
@@ -25,20 +26,25 @@ const styles = {
     padding: '10px',
   },
   content: {
-    margin: '5px 0px',
+    //margin: '5px 0px',
     minHeight: '700px',
-    background: 'white',
+    //background: 'white',
     borderRadius: '5px',
+    width: '100%',
   },
   left: {
+    width: '100%',
     height: '100%',
     minHeight: '700px',
     padding: '3%',
+    background: 'white',
   },
   right: {
     minHeight: '700px',
-    backgroundColor: '#E1D7C6',
     padding: '3%',
+    background: 'white',
+    margin: '0px 0px 0px 5px',
+    borderRadius: '5px',
   },
   postBox: {},
   postHintText: {
@@ -136,8 +142,8 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
           <Grid item xs={12} sm={8} style={styles.left}>
             {left}
           </Grid>
-          <Grid item xs={12} sm={4} style={styles.right}>
-            {right}
+          <Grid item xs={12} sm={4}>
+            <div style={styles.right}>{right}</div>
           </Grid>
         </Grid>
       </div>
