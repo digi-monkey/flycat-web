@@ -43,8 +43,9 @@ const styles = {
     minHeight: '700px',
     padding: '3%',
     background: 'white',
-    margin: '0px 0px 0px 5px',
+    margin: '0px 0px 0px 20px',
     borderRadius: '5px',
+    //  position: "fixed" as const
   },
   postBox: {},
   postHintText: {
@@ -136,7 +137,17 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   });
   return (
     <div style={styles.root}>
-      <NavHeader />
+      <div
+        style={{
+          position: 'sticky' as const,
+          top: '0',
+          background: '#e0e0e0',
+          zIndex: '500',
+          margin: '20px 0px',
+        }}
+      >
+        <NavHeader />
+      </div>
       <div style={styles.content}>
         <Grid container>
           <Grid item xs={12} sm={8} style={styles.left}>

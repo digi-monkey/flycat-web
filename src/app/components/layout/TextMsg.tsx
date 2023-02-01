@@ -151,7 +151,8 @@ export const TextMsg = ({
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
-  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+  // const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+  const bg = { backgroundColor: 'white' };
   return (
     <li
       style={{ ...styles.msgItem, ...bg, ...style }}
