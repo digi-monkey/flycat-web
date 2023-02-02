@@ -1,4 +1,4 @@
-import { Grid } from '@mui/material';
+import { Grid, Link } from '@mui/material';
 import { useCommitId } from 'hooks/useCommitId';
 import { useVersion } from 'hooks/useVersion';
 import React, { useState } from 'react';
@@ -7,6 +7,16 @@ import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
 import LoginForm from './LoginForm';
 import Setting from './Setting';
+import {
+  Search,
+  Home,
+  Article,
+  Create,
+  AccountBox,
+  Settings,
+  Key,
+  Contacts,
+} from '@mui/icons-material';
 
 const styles = {
   root: {
@@ -15,19 +25,28 @@ const styles = {
   },
   title: {
     color: 'black',
-    fontSize: '2em',
+    fontSize: '20px',
     fontWeight: '380',
     display: 'inline-flex',
     width: '100%',
   },
   ul: {
-    padding: '10px',
-    background: 'white',
+    padding: '0px 10px',
     borderRadius: '5px',
+    listStyleType: 'none' as const,
   },
   li: {
-    display: 'inline',
-    padding: '10px',
+    padding: '10px 0px',
+    marginBottom: '5px',
+    // background: "gray",
+    //todo hover effect
+    // width: "fit-content" as const,
+    borderRadius: '5px',
+    color: 'gray',
+  },
+  link: {
+    color: 'white',
+    textDecoration: 'none' as const,
   },
 };
 
@@ -43,12 +62,9 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
   const { t } = useTranslation();
   const version = useVersion() + '-' + useCommitId();
 
-  const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
-  const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
-
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} sm={4}>
+    <Grid container>
+      <Grid item xs={12} sm={6}>
         <div>
           <Grid container>
             <Grid item xs={3} style={{ display: 'flex', alignItems: 'center' }}>
@@ -64,148 +80,263 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
           </Grid>
         </div>
       </Grid>
-      <Grid item xs={12} sm={8} style={{ textAlign: 'right' }}>
-        <div className="menu" style={{ width: 'fit-content', float: 'right' }}>
-          <ul style={styles.ul}>
-            <li style={styles.li}>
-              <a href="/">{t('nav.menu.home')}</a>
-            </li>
-            <li style={styles.li}>
-              <a href={'/blog'}>{t('nav.menu.blog')}</a>
-            </li>
-            <li style={styles.li}>
-              {isLoggedIn && myPublicKey.length > 0 ? (
-                <a href={'/blog/' + myPublicKey}>
-                  {t('nav.menu.blogDashboard')}
-                </a>
-              ) : (
-                <a
-                  href={'#'}
-                  onClick={() => {
-                    alert('you need to sign in first!');
-                  }}
-                >
-                  {t('nav.menu.blogDashboard')}
-                </a>
-              )}
-            </li>
-            <li style={styles.li}>
-              {isLoggedIn && myPublicKey.length > 0 ? (
-                <a href={'/user/' + myPublicKey}>{t('nav.menu.profile')}</a>
-              ) : (
-                <a
-                  href={'#'}
-                  onClick={() => {
-                    alert('you need to sign in first!');
-                  }}
-                >
-                  {t('nav.menu.profile')}
-                </a>
-              )}
-            </li>
-            {/** 
-            <li style={styles.li}>
-              <a href="">{t('nav.menu.globalFeed')}</a>
-            </li>
-            */}
-            <li style={styles.li}>
-              <a
-                href="#"
-                onClick={() => {
-                  setIsOpenSetting(true);
-                }}
-              >
-                {t('nav.menu.setting')}
-              </a>
-            </li>
-            {isOpenSetting && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  background: 'white',
-                  padding: '20px',
-                  zIndex: 999,
-                  width: '400px',
-                  height: 'auto',
-                  boxShadow: '0px 0px 10px #ccc',
-                  borderRadius: '5px',
-                  textAlign: 'center',
-                }}
-              >
-                <Setting
-                  version={version}
-                  onCancel={() => setIsOpenSetting(false)}
-                />
-              </div>
-            )}
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 998,
-                background: 'black',
-                opacity: 0.5,
-                filter: 'blur(5px)',
-                display: isOpenSetting ? 'block' : 'none',
-              }}
-            ></div>
-
-            <li style={styles.li}>
-              <a
-                href="#"
-                onClick={() => {
-                  setIsOpenLoginForm(true);
-                }}
-              >
-                {isLoggedIn ? t('nav.menu.signOut') : t('nav.menu.signIn')}
-              </a>
-            </li>
-            {isOpenLoginForm && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  background: 'white',
-                  padding: '20px',
-                  zIndex: 999,
-                  width: '400px',
-                  height: 'auto',
-                  boxShadow: '0px 0px 10px #ccc',
-                  borderRadius: '5px',
-                  textAlign: 'center',
-                }}
-              >
-                <LoginForm onCancel={() => setIsOpenLoginForm(false)} />
-              </div>
-            )}
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 998,
-                background: 'black',
-                opacity: 0.5,
-                filter: 'blur(5px)',
-                display: isOpenLoginForm ? 'block' : 'none',
-              }}
-            ></div>
-          </ul>
+      <Grid item xs={12} sm={6}>
+        <div style={{ textAlign: 'right' }}>
+          <SearchBox />
         </div>
       </Grid>
     </Grid>
   );
 }
+
+export const SearchBox = () => {
+  return (
+    <div
+      style={{
+        boxShadow: 'inset 0 0 1px #aaa',
+        border: '1px solid rgb(216 222 226)',
+        borderRadius: '5px',
+        background: 'white',
+        padding: '5px',
+        margin: '5px 0px 0px 0px',
+        display: 'flex',
+      }}
+    >
+      <input
+        type="text"
+        //placeholder="unavailable"
+        style={{
+          border: 'none',
+          maxWidth: '85%',
+          width: '400px',
+          padding: '5px',
+          outline: 'none',
+        }}
+      />
+      <button
+        type="button"
+        style={{
+          border: 'none',
+          background: 'white',
+          padding: '0',
+          fontSize: 'small',
+          width: 'fit-content',
+        }}
+        disabled={true}
+      >
+        <Search />
+      </button>
+    </div>
+  );
+};
+
+export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+  const { t } = useTranslation();
+  const version = useVersion() + '-' + useCommitId();
+  const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
+  const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
+
+  return (
+    <div>
+      <ul style={styles.ul}>
+        <MenuItem href="/">
+          <div>
+            <Home /> &nbsp;
+            {t('nav.menu.home')}
+          </div>
+        </MenuItem>
+
+        <MenuItem href="/blog">
+          <div>
+            <Article /> &nbsp;
+            {t('nav.menu.blog')}
+          </div>
+        </MenuItem>
+
+        {isLoggedIn && myPublicKey.length > 0 ? (
+          <MenuItem href={'/blog/' + myPublicKey}>
+            <div>
+              <Create /> &nbsp;
+              {t('nav.menu.blogDashboard')}
+            </div>
+          </MenuItem>
+        ) : (
+          <MenuItem
+            href="/#"
+            onClick={() => {
+              alert('you need to sign in first!');
+            }}
+          >
+            <div>
+              <Create /> &nbsp;
+              {t('nav.menu.blogDashboard')}
+            </div>
+          </MenuItem>
+        )}
+
+        {isLoggedIn && myPublicKey.length > 0 && (
+          <MenuItem href={'/contact/' + myPublicKey}>
+            <div>
+              <Contacts /> &nbsp;
+              {t('nav.menu.contact')}
+            </div>
+          </MenuItem>
+        )}
+
+        {isLoggedIn && myPublicKey.length > 0 ? (
+          <MenuItem href={'/user/' + myPublicKey}>
+            <div>
+              <AccountBox /> &nbsp;
+              {t('nav.menu.profile')}
+            </div>
+          </MenuItem>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              alert('you need to sign in first!');
+            }}
+          >
+            <div>
+              <AccountBox /> &nbsp;
+              {t('nav.menu.profile')}
+            </div>
+          </MenuItem>
+        )}
+
+        <MenuItem
+          onClick={() => {
+            setIsOpenSetting(true);
+          }}
+        >
+          <div>
+            <Settings /> &nbsp;
+            {t('nav.menu.setting')}
+          </div>
+        </MenuItem>
+        {isOpenSetting && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'white',
+              padding: '20px',
+              zIndex: 999,
+              width: '400px',
+              height: 'auto',
+              boxShadow: '0px 0px 10px #ccc',
+              borderRadius: '5px',
+              textAlign: 'center',
+            }}
+          >
+            <Setting
+              version={version}
+              onCancel={() => setIsOpenSetting(false)}
+            />
+          </div>
+        )}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 2,
+            background: 'black',
+            opacity: 0.5,
+            filter: 'blur(5px)',
+            display: isOpenSetting ? 'block' : 'none',
+          }}
+        ></div>
+
+        <MenuItem
+          onClick={() => {
+            setIsOpenLoginForm(true);
+          }}
+        >
+          <div>
+            {' '}
+            <Key /> &nbsp;
+            {isLoggedIn ? t('nav.menu.signOut') : t('nav.menu.signIn')}
+          </div>
+        </MenuItem>
+        {isOpenLoginForm && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'white',
+              padding: '20px',
+              zIndex: 999,
+              width: '400px',
+              height: 'auto',
+              boxShadow: '0px 0px 10px #ccc',
+              borderRadius: '5px',
+              textAlign: 'center',
+            }}
+          >
+            <LoginForm onCancel={() => setIsOpenLoginForm(false)} />
+          </div>
+        )}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 998,
+            background: 'black',
+            opacity: 0.5,
+            filter: 'blur(5px)',
+            display: isOpenLoginForm ? 'block' : 'none',
+          }}
+        ></div>
+      </ul>
+    </div>
+  );
+};
+
+export const MenuListDefault = connect(mapStateToProps)(MenuList);
+
+interface MenuItemProps {
+  children: React.ReactNode;
+  href?: string;
+  target?: string;
+  onClick?: () => any;
+}
+
+const MenuItem = ({ children, href, target, onClick }: MenuItemProps) => {
+  const [isHover, setIsHover] = useState<boolean>(false);
+  const style = {
+    fontSize: '16px',
+    fontWeight: '400',
+    padding: '10px 5px',
+    marginBottom: '5px',
+    background: isHover ? 'rgb(141, 197, 63)' : 'none',
+    // width: "fit-content" as const,
+    borderRadius: '5px',
+    color: isHover ? 'white' : 'gray',
+    cursor: 'pointer',
+  };
+  const defaultOnClick = () => {
+    window.open(href || '#', target || '_self');
+  };
+  return (
+    <li
+      onClick={onClick || defaultOnClick}
+      style={style}
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+    >
+      {children}
+    </li>
+  );
+};
 
 export const LoginFormTip = ({
   style = {},

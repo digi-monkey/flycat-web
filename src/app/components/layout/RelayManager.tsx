@@ -1,3 +1,4 @@
+import { Grid } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -31,7 +32,9 @@ export type WsConnectStatus = Map<RelayUrl, boolean>;
 
 export const styles = {
   rightMenuLi: {
-    padding: '0px',
+    padding: '5px 0px',
+    width: '100%',
+    display: 'block',
   },
   simpleUl: {
     padding: '0px',
@@ -137,13 +140,17 @@ export function RelayManager({
     const style = status ? styles.connected : styles.disconnected;
     const item = (
       <li style={styles.rightMenuLi} key={url}>
-        <span style={style}> · </span>
-        <a href={url} target="_blank" rel="noreferrer">
-          {url}
-        </a>
-        {myPublicKey && !defaultRelays.includes(url) && (
-          <RelayRemover publicKey={myPublicKey} url={url} />
-        )}
+        <Grid container style={{ fontSize: '14px' }}>
+          <Grid item xs={12} sm={8}>
+            <span style={style}> · </span>
+            <span style={{ color: 'gray' }}>{url}</span>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            {myPublicKey && !defaultRelays.includes(url) && (
+              <RelayRemover publicKey={myPublicKey} url={url} />
+            )}
+          </Grid>
+        </Grid>
       </li>
     );
 

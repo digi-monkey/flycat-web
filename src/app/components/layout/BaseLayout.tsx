@@ -1,11 +1,11 @@
 import { Grid } from '@mui/material';
 import React from 'react';
-import NavHeader from './NavHeader';
+import NavHeader, { MenuList, MenuListDefault } from './NavHeader';
 
 const styles = {
   root: {
     width: '100%',
-    maxWidth: '900px',
+    maxWidth: '1400px',
     margin: '0 auto',
   },
   title: {
@@ -137,27 +137,51 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   });
   return (
     <div style={styles.root}>
-      <div
-        style={{
-          position: 'sticky' as const,
-          top: '0',
-          background: '#e0e0e0',
-          zIndex: '500',
-          margin: '20px 0px',
-        }}
-      >
-        <NavHeader />
-      </div>
-      <div style={styles.content}>
-        <Grid container>
-          <Grid item xs={12} sm={8} style={styles.left}>
-            {left}
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <div style={styles.right}>{right}</div>
-          </Grid>
+      <Grid container spacing={2} style={{ zIndex: '1' }}>
+        <Grid item xs={12} sm={2}>
+          <div
+            style={{
+              width: '100%',
+              padding: '0px 20px',
+              position: 'sticky',
+              top: '0',
+              zIndex: '1',
+            }}
+          >
+            <MenuListDefault />
+          </div>
         </Grid>
-      </div>
+        <Grid item xs={12} sm={6}>
+          <div
+            style={{
+              position: 'sticky' as const,
+              top: '0',
+              background: '#e0e0e0',
+              padding: '10px 0px',
+              marginTop: '20px',
+              marginBottom: '20px',
+            }}
+          >
+            <NavHeader />
+          </div>
+          <div style={styles.left}>{left}</div>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <div
+            style={{
+              paddingTop: '30px',
+              paddingLeft: '40px',
+              position: 'sticky' as const,
+              top: '0',
+              zIndex: '1',
+              maxWidth: '100%',
+              width: '400px',
+            }}
+          >
+            {right}
+          </div>
+        </Grid>
+      </Grid>
     </div>
   );
 };
