@@ -8,6 +8,7 @@ import {
   schnorrSign,
   Sha256,
 } from './crypto';
+import { maxStrings } from './helper';
 const { version } = require('../../package.json');
 
 export const DEFAULT_API_URL = 'https://nostr.build/api';
@@ -805,6 +806,19 @@ export function getPortIdFomSubId(subId: string): number | null {
 
 export function randomSubId(size = 8): HexStr {
   return generateRandomBytes(size);
+}
+
+export function deserializeMetadata(content: string): EventSetMetadataContent {
+  const metadata: EventSetMetadataContent = JSON.parse(content);
+  return normalizeMetadata(metadata);
+}
+
+export function normalizeMetadata(
+  metadata: EventSetMetadataContent,
+): EventSetMetadataContent {
+  metadata.name = maxStrings(metadata.name, 30);
+  metadata.about = maxStrings(metadata.about, 100);
+  return metadata;
 }
 
 export function encodeMsg(userId: number, msg: Utf8Str): Buffer {

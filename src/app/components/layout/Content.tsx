@@ -140,7 +140,7 @@ export function ImagePlate({ url }: { url: string }) {
         onClick={() => setShowPopup(true)}
       />
       {showPopup && (
-        <div style={{ width: '80%', maxWidth: '800px' }}>
+        <div style={{ maxWidth: '800px', maxHeight: '900px' }}>
           <div
             style={{
               position: 'fixed',
@@ -171,7 +171,10 @@ export function ImagePlate({ url }: { url: string }) {
             <div
               style={{ position: 'relative', width: '100%', height: '100%' }}
             >
-              <img src={url} style={{ width: '100%', height: '100%' }} />
+              <img
+                src={url}
+                style={{ width: '100%', height: '100%', maxHeight: '900px' }}
+              />
             </div>
           </div>
         </div>

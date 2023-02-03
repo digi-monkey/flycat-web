@@ -43,6 +43,10 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
     if (onSubmit) {
       onSubmit(siteName, siteDescription);
     }
+
+    setSiteName('');
+    setSiteDescription('');
+    alert('sent! please refresh the page, sorry will fix this soon');
   };
 
   return (

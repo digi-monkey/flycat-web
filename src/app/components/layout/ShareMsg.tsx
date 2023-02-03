@@ -6,6 +6,7 @@ import { PrivateKey, PublicKey } from 'service/api';
 import { getShareContentUrl } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
+import { CallWorker } from 'service/worker/callWorker';
 
 const styles = {
   root: {
@@ -135,6 +136,7 @@ export interface ShareMsgProps {
   blogAvatar?: string;
   blogName: string;
   articleTitle: string;
+  worker: CallWorker;
 }
 
 // only support blog article share msg now
@@ -149,6 +151,7 @@ export const ShareMsg = ({
   blogAvatar,
   blogName,
   articleTitle,
+  worker,
 }: ShareMsgProps) => {
   const contentUrl = getShareContentUrl(content);
 
@@ -184,6 +187,7 @@ export const ShareMsg = ({
             </span>
             <span style={styles.time}>
               <ReplyButton
+                worker={worker}
                 replyToEventId={eventId}
                 replyToPublicKey={userPk}
                 myKeyPair={keyPair}
@@ -205,6 +209,7 @@ export const ProfileShareMsg = ({
   blogAvatar,
   blogName,
   articleTitle,
+  worker,
 }: Omit<ShareMsgProps, 'userAvatar' | 'username'>) => {
   const contentUrl = getShareContentUrl(content);
 
@@ -234,6 +239,7 @@ export const ProfileShareMsg = ({
             </span>
             <span style={styles.time}>
               <ReplyButton
+                worker={worker!}
                 replyToEventId={eventId}
                 replyToPublicKey={userPk}
                 myKeyPair={keyPair}
