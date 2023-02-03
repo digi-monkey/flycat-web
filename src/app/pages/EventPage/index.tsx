@@ -13,6 +13,7 @@ import {
   isEventPTag,
   EventId,
   EventTags,
+  deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
 import RelayManager, {
@@ -235,7 +236,9 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = JSON.parse(event.content);
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
           setUserMap(prev => {
             const newMap = new Map(prev);
             const oldData = newMap.get(event.pubkey);
@@ -401,6 +404,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 }
                 return (
                   <ShareMsg
+                    worker={worker!}
                     key={index}
                     content={msg.content}
                     eventId={msg.id}
@@ -419,6 +423,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               } else {
                 return (
                   <TextMsg
+                    worker={worker!}
                     key={index}
                     pk={msg.pubkey}
                     avatar={userMap.get(msg.pubkey)?.picture}

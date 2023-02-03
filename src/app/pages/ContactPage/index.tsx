@@ -12,6 +12,7 @@ import {
   PetName,
   EventTags,
   EventContactListPTag,
+  deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
 import RelayManager, {
@@ -246,7 +247,9 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = JSON.parse(event.content);
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
           setUserMap(prev => {
             const newMap = new Map(prev);
             const oldData = newMap.get(event.pubkey);

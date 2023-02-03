@@ -14,6 +14,7 @@ import {
   RawEvent,
   isEventPTag,
   Filter,
+  deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
@@ -21,21 +22,15 @@ import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/RelayManager';
 import { FromWorkerMessageData } from 'service/worker/type';
-import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
+import { compareMaps } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
-import { TextMsg } from 'app/components/layout/TextMsg';
-import {
-  CacheIdentifier,
-  FlycatShareHeader,
-  isFlycatShareHeader,
-} from 'service/flycat-protocol';
-import { ShareMsg } from 'app/components/layout/ShareMsg';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
+import { Msgs } from 'app/components/layout/Msg';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -242,7 +237,9 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = JSON.parse(event.content);
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
           setUserMap(prev => {
             const newMap = new Map(prev);
             const oldData = newMap.get(event.pubkey);
@@ -446,74 +443,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     worker?.pubEvent(event);
   };
 
-  const msgs = (msgList: Event[]) => {
-    return msgList.map((msg, index) => {
-      //@ts-ignore
-      const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(t =>
-        isFlycatShareHeader(t),
-      );
-      if (flycatShareHeaders.length > 0) {
-        const blogPk = getPkFromFlycatShareHeader(
-          flycatShareHeaders[flycatShareHeaders.length - 1],
-        );
-        const cacheHeaders = msg.tags.filter(t => t[0] === CacheIdentifier);
-        let articleCache = {
-          title: t('thread.noArticleShareTitle'),
-          url: '',
-          blogName: t('thread.noBlogShareName'),
-          blogPicture: '',
-        };
-        if (cacheHeaders.length > 0) {
-          const cache = cacheHeaders[cacheHeaders.length - 1];
-          articleCache = {
-            title: cache[1],
-            url: cache[2],
-            blogName: cache[3],
-            blogPicture: cache[4],
-          };
-        }
-        return (
-          <ShareMsg
-            key={index}
-            content={msg.content}
-            eventId={msg.id}
-            keyPair={myKeyPair}
-            userPk={msg.pubkey}
-            userAvatar={userMap.get(msg.pubkey)?.picture}
-            username={userMap.get(msg.pubkey)?.name}
-            createdAt={msg.created_at}
-            blogName={articleCache.blogName} //todo: fallback to query title
-            blogAvatar={
-              articleCache.blogPicture || userMap.get(blogPk)?.picture
-            }
-            articleTitle={articleCache.title} //todo: fallback to query title
-          />
-        );
-      } else {
-        return (
-          <TextMsg
-            key={index}
-            pk={msg.pubkey}
-            avatar={userMap.get(msg.pubkey)?.picture}
-            name={userMap.get(msg.pubkey)?.name}
-            content={msg.content}
-            eventId={msg.id}
-            keyPair={myKeyPair}
-            replyTo={msg.tags
-              .filter(t => t[0] === EventTags.P)
-              .map(t => {
-                return {
-                  name: userMap.get(t[1])?.name,
-                  pk: t[1],
-                };
-              })}
-            createdAt={msg.created_at}
-          />
-        );
-      }
-    });
-  };
-
   return (
     <BaseLayout>
       <Left>
@@ -534,7 +463,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   <p style={{ color: 'gray', fontSize: '14px' }}>
                     {t('homeFeed.globalFeed')}
                   </p>
-                  {msgs(globalMsgList)}
+                  {Msgs(globalMsgList, worker!, myKeyPair, userMap)}
                 </div>
               )}
               {msgList.length === 0 && isLoggedIn && (
@@ -543,7 +472,9 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
                 </div>
               )}
-              {msgList.length > 0 && isLoggedIn && msgs(msgList)}
+              {msgList.length > 0 &&
+                isLoggedIn &&
+                Msgs(msgList, worker!, myKeyPair, userMap)}
             </ul>
           </div>
         </>

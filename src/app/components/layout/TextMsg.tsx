@@ -9,6 +9,8 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './ShowThread';
 import { ShareArticle } from './Share';
 import defaultAvatar from '../../../resource/logo512.png';
+import { ReplyUserList } from './msg/ReplyUserList';
+import { CallWorker } from 'service/worker/callWorker';
 
 const styles = {
   root: {
@@ -136,6 +138,7 @@ export interface TextMsgProps {
   eventId: string;
   keyPair?: KeyPair;
   style?: React.CSSProperties;
+  worker: CallWorker;
 }
 
 export const TextMsg = ({
@@ -148,6 +151,7 @@ export const TextMsg = ({
   eventId,
   keyPair,
   style,
+  worker,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
@@ -168,20 +172,7 @@ export const TextMsg = ({
             <a style={styles.userName} href={'/user/' + pk}>
               @{name}
             </a>
-            {replyTo.length > 0 && (
-              <span style={{ color: 'gray' }}>
-                {t('textMsg.replyTo')}{' '}
-                {replyTo.map((r, i) => (
-                  <a
-                    key={i}
-                    style={{ ...styles.userName, ...{ color: 'gray' } }}
-                    href={'/user/' + r.pk}
-                  >
-                    @{r.name || shortPublicKey(r.pk!)}
-                  </a>
-                ))}
-              </span>
-            )}
+            <ReplyUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
           <span style={styles.time}>{useTimeSince(createdAt)}</span>
@@ -193,6 +184,7 @@ export const TextMsg = ({
               replyToEventId={eventId}
               replyToPublicKey={pk}
               myKeyPair={keyPair}
+              worker={worker}
             />
           </span>
         </Grid>
@@ -208,6 +200,7 @@ export const ProfileTextMsg = ({
   createdAt,
   eventId,
   keyPair,
+  worker,
 }: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
@@ -222,16 +215,7 @@ export const ProfileTextMsg = ({
       <Grid container>
         <Grid item xs={12}>
           <span style={styles.msgWord}>
-            {replyTo.length > 0 && (
-              <span>
-                {t('textMsg.replyTo')}{' '}
-                {replyTo.map((r, i) => (
-                  <a key={i} style={styles.userName} href={'/user/' + r.pk}>
-                    @{r.name || shortPublicKey(r.pk!)}
-                  </a>
-                ))}
-              </span>
-            )}
+            <ReplyUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
           <span style={styles.time}>{useTimeSince(createdAt)}</span>
@@ -243,6 +227,7 @@ export const ProfileTextMsg = ({
               replyToEventId={eventId}
               replyToPublicKey={pk}
               myKeyPair={keyPair}
+              worker={worker}
             />
           </span>
         </Grid>
