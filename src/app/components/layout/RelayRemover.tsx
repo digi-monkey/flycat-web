@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { isValidWssUrl } from 'service/helper';
-import {
-  ADD_URL_TO_PUBLIC_KEY,
-  REMOVE_URL_FROM_PUBLIC_KEY,
-} from '../../../store/relayReducer';
+import { REMOVE_URL_FROM_PUBLIC_KEY } from '../../../store/relayReducer';
+import { Clear } from '@mui/icons-material';
 
 interface Props {
   url: string;
@@ -26,21 +23,21 @@ const RelayRemover: React.FC<Props> = ({
   };
 
   return (
-    <>
+    <span>
       &nbsp;
       <button
         type="button"
         onClick={handleRemove}
         style={{
-          color: 'red',
           border: 'none',
           background: 'none',
-          fontSize: '10px',
+          fontSize: '8px',
+          color: 'gray',
         }}
       >
-        {'-'}
+        <Clear fontSize="small" />
       </button>
-    </>
+    </span>
   );
 };
 

@@ -15,12 +15,13 @@
       "home": "首页",
       "profile": "我的空间",
       "blog": "公众号",
-      "blogDashboard": "公众号后台",
+      "blogDashboard": "写作",
       "github": "开源",
       "globalFeed": "随便看看",
       "setting": "设置",
       "signOut": "退出",
-      "signIn": "登陆"
+      "signIn": "登陆",
+      "contact": "联系人"
     }
   },
   "noticeBox": {

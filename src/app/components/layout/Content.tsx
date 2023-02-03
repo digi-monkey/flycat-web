@@ -150,6 +150,7 @@ export function ImagePlate({ url }: { url: string }) {
               bottom: 0,
               background: 'gray',
               opacity: 0.6,
+              zIndex: '2',
             }}
             onClick={handleClick}
           />
@@ -164,6 +165,7 @@ export function ImagePlate({ url }: { url: string }) {
               border: '1px solid white',
               padding: '2px',
               boxShadow: '0 0 5px white',
+              zIndex: '500',
             }}
           >
             <div

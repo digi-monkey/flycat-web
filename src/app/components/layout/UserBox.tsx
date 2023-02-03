@@ -100,6 +100,7 @@ export const UserBox = ({
         </span>
       </div>
 
+      {/*
       <Grid container style={{ marginTop: '20px' }}>
         <Grid item xs={3} style={styles.numberSection}>
           <span style={styles.numberCount}>
@@ -124,6 +125,7 @@ export const UserBox = ({
           </span>
         </Grid>
       </Grid>
+      */}
     </>
   );
 };

@@ -177,11 +177,11 @@ export const PubNoteTextarea: React.FC<Props> = ({
               onChange={handleFileSelect}
             />
             <button type="button" disabled={true} style={styles.iconBtn}>
-              <TagFaces />
+              <TagFaces style={{ color: '#e2e2e2', cursor: 'default' }} />
             </button>
             &nbsp;&nbsp;
             <button type="button" disabled={true} style={styles.iconBtn}>
-              <AlternateEmail />
+              <AlternateEmail style={{ color: '#e2e2e2', cursor: 'default' }} />
             </button>
           </span>
           <SubmitButton disabled={disabled} />
