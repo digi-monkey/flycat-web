@@ -1,11 +1,14 @@
 import { Grid } from '@mui/material';
-import { ArticleShareContent, Content } from 'app/components/layout/Content';
-import ReplyButton from 'app/components/layout/ReplyBtn';
+import {
+  ArticleShareContent,
+  Content,
+} from 'app/components/layout/msg/Content';
+import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
 import React from 'react';
 import { PrivateKey, PublicKey } from 'service/api';
 import { getShareContentUrl } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
-import { ShowThread } from './ShowThread';
+import { ShowThread } from './reaction/ShowThread';
 import { CallWorker } from 'service/worker/callWorker';
 
 const styles = {

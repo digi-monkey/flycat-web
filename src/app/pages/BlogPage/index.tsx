@@ -15,7 +15,7 @@ import {
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
-} from '../../components/layout/RelayManager';
+} from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import {
   ArticleDataSchema,
@@ -32,7 +32,7 @@ import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
-import { ArticleMsg } from 'app/components/layout/ArticleMsg';
+import { ArticleMsg } from 'app/components/layout/msg/ArticleMsg';
 import { compareMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 

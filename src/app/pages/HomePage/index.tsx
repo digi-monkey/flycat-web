@@ -20,7 +20,7 @@ import { connect } from 'react-redux';
 import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
-} from '../../components/layout/RelayManager';
+} from '../../components/layout/relay/RelayManager';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { compareMaps } from 'service/helper';
 import { UserMap } from 'service/type';
@@ -30,7 +30,7 @@ import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
-import { Msgs } from 'app/components/layout/Msg';
+import { Msgs } from 'app/components/layout/msg/Msg';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary

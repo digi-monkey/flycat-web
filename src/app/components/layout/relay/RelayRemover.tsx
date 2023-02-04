@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { REMOVE_URL_FROM_PUBLIC_KEY } from '../../../store/relayReducer';
+import { REMOVE_URL_FROM_PUBLIC_KEY } from '../../../../store/relayReducer';
 import { Clear } from '@mui/icons-material';
 
 interface Props {

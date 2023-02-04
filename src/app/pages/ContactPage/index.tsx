@@ -17,8 +17,8 @@ import {
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
-} from '../../components/layout/RelayManager';
-import { Content } from '../../components/layout/Content';
+} from '../../components/layout/relay/RelayManager';
+import { Content } from '../../components/layout/msg/Content';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';

@@ -1,16 +1,21 @@
 import { Grid } from '@mui/material';
-import { ArticleContentNoAvatar, Content } from 'app/components/layout/Content';
-import ReplyButton from 'app/components/layout/ReplyBtn';
+import {
+  ArticleContentNoAvatar,
+  Content,
+} from 'app/components/layout/msg/Content';
+import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Event, PrivateKey, PublicKey } from 'service/api';
 import { shortPublicKey } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
-import { ShowThread } from './ShowThread';
+import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
-import defaultAvatar from '../../../resource/logo512.png';
-import { ReplyUserList } from './msg/ReplyUserList';
+import defaultAvatar from '../../../../resource/logo512.png';
+import { ReplyUserList } from './ReplyToUserList';
 import { CallWorker } from 'service/worker/callWorker';
+import { Like } from './reaction/Like';
+import { Bookmark } from './reaction/Bookmark';
 
 const styles = {
   root: {
@@ -84,6 +89,7 @@ const styles = {
     display: 'block',
     width: '60px',
     height: '60px',
+    maxWidth: '100%',
   },
   msgWord: {
     fontSize: '14px',
@@ -94,6 +100,11 @@ const styles = {
     marginRight: '5px',
   },
   time: {
+    color: 'gray',
+    fontSize: '12px',
+    marginTop: '5px',
+  },
+  reaction: {
     color: 'gray',
     fontSize: '12px',
     marginTop: '5px',
@@ -175,18 +186,30 @@ export const TextMsg = ({
             <ReplyUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
-          <span style={styles.time}>{useTimeSince(createdAt)}</span>
-          <span style={styles.time}>
-            <ShowThread eventId={eventId} />
-          </span>
-          <span style={styles.time}>
-            <ReplyButton
-              replyToEventId={eventId}
-              replyToPublicKey={pk}
-              myKeyPair={keyPair}
-              worker={worker}
-            />
-          </span>
+
+          <div style={{ marginTop: '15px' }}>
+            <span style={styles.time}>{useTimeSince(createdAt)}</span>
+
+            <span style={{ marginLeft: '15px' }}>
+              <span style={styles.reaction}>
+                <Like eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Bookmark eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <ShowThread eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <ReplyButton
+                  replyToEventId={eventId}
+                  replyToPublicKey={pk}
+                  myKeyPair={keyPair}
+                  worker={worker}
+                />
+              </span>
+            </span>
+          </div>
         </Grid>
       </Grid>
     </li>

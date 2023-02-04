@@ -1,8 +1,8 @@
 import { Grid } from '@mui/material';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import NavHeader, { LoginFormTip } from 'app/components/layout/NavHeader';
-import RelayManager from 'app/components/layout/RelayManager';
-import { BlogMsg } from 'app/components/layout/TextMsg';
+import RelayManager from 'app/components/layout/relay/RelayManager';
+import { BlogMsg } from 'app/components/layout/msg/TextMsg';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

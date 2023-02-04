@@ -19,7 +19,7 @@ import { ProfilePage } from './pages/ProfilePage/Loadable';
 import { EventPage } from './pages/EventPage/Loadable';
 import { BlogPage } from './pages/BlogPage/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
-import RelayManager from './components/layout/RelayManager';
+import RelayManager from './components/layout/relay/RelayManager';
 import ArticleRead from './pages/ArticleReadPage/ArticleRead';
 import BlogFeed from './pages/BlogPage/Feed';
 
