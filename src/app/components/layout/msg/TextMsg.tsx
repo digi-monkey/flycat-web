@@ -16,6 +16,9 @@ import { ReplyUserList } from './ReplyToUserList';
 import { CallWorker } from 'service/worker/callWorker';
 import { Like } from './reaction/Like';
 import { Bookmark } from './reaction/Bookmark';
+import { Repost } from './reaction/Repost';
+import { Tipping } from './reaction/Tipping';
+import { Delete } from './reaction/Delete';
 
 const styles = {
   root: {
@@ -192,7 +195,13 @@ export const TextMsg = ({
 
             <span style={{ marginLeft: '15px' }}>
               <span style={styles.reaction}>
+                <Tipping eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
                 <Like eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Repost eventId={eventId} />
               </span>
               <span style={styles.reaction}>
                 <Bookmark eventId={eventId} />
@@ -227,7 +236,8 @@ export const ProfileTextMsg = ({
 }: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
-  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+  //const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+  const bg = { backgroundColor: 'white' };
 
   return (
     <li
@@ -241,18 +251,38 @@ export const ProfileTextMsg = ({
             <ReplyUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
-          <span style={styles.time}>{useTimeSince(createdAt)}</span>
-          <span style={styles.time}>
-            <ShowThread eventId={eventId} />
-          </span>
-          <span style={styles.time}>
-            <ReplyButton
-              replyToEventId={eventId}
-              replyToPublicKey={pk}
-              myKeyPair={keyPair}
-              worker={worker}
-            />
-          </span>
+          <div style={{ marginTop: '15px' }}>
+            <span style={styles.time}>{useTimeSince(createdAt)}</span>
+
+            <span style={{ marginLeft: '15px' }}>
+              <span style={styles.reaction}>
+                <Tipping eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Like eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Repost eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Bookmark eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <Delete eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <ShowThread eventId={eventId} />
+              </span>
+              <span style={styles.reaction}>
+                <ReplyButton
+                  replyToEventId={eventId}
+                  replyToPublicKey={pk}
+                  myKeyPair={keyPair}
+                  worker={worker}
+                />
+              </span>
+            </span>
+          </div>
         </Grid>
       </Grid>
     </li>
