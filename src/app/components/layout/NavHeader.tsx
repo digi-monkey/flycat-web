@@ -17,6 +17,7 @@ import {
   Key,
   Contacts,
 } from '@mui/icons-material';
+import styled from 'styled-components';
 
 const styles = {
   root: {
@@ -311,31 +312,26 @@ interface MenuItemProps {
 }
 
 const MenuItem = ({ children, href, target, onClick }: MenuItemProps) => {
-  const [isHover, setIsHover] = useState<boolean>(false);
-  const style = {
-    fontSize: '16px',
-    fontWeight: '400',
-    padding: '10px 5px',
-    marginBottom: '5px',
-    background: isHover ? 'rgb(141, 197, 63)' : 'none',
-    // width: "fit-content" as const,
-    borderRadius: '5px',
-    color: isHover ? 'white' : 'gray',
-    cursor: 'pointer',
-  };
+  // Create a Title component that'll render an <h1> tag with some styles
+  const Li = styled.li`
+    font-size: 16px;
+    font-weight: 400;
+    padding: 10px 5px;
+    margin-bottom: 5px;
+    background: none;
+    color: gray;
+    cursor: pointer;
+    border-radius: 5px;
+    :hover {
+      background: rgb(141, 197, 63);
+      color: white;
+    }
+  `;
+
   const defaultOnClick = () => {
     window.open(href || '#', target || '_self');
   };
-  return (
-    <li
-      onClick={onClick || defaultOnClick}
-      style={style}
-      onMouseEnter={() => setIsHover(true)}
-      onMouseLeave={() => setIsHover(false)}
-    >
-      {children}
-    </li>
-  );
+  return <Li onClick={onClick || defaultOnClick}>{children}</Li>;
 };
 
 export const LoginFormTip = ({
