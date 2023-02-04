@@ -15,7 +15,14 @@ export function normalizeContent(text: string): {
 
   // If matches were found, filter out any URLs that do not end with a common image file extension
   if (matches) {
-    const imageFileExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+    const imageFileExtensions = [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.bmp',
+      'webp',
+    ];
     imageUrls = matches.filter(url =>
       imageFileExtensions.some(ext => url.endsWith(ext)),
     );

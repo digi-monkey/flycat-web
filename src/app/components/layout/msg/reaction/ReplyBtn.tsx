@@ -19,6 +19,8 @@ const styles = {
     fontSize: '12px',
     margin: '0 5px',
     border: 'none' as const,
+    background: 'none',
+    color: 'gray',
   },
   input: {
     width: '100%',

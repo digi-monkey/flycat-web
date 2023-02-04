@@ -6,8 +6,10 @@ import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 const styles = {
   smallBtn: {
     fontSize: '12px',
-    marginLeft: '5px',
+    //marginLeft: '5px',
     border: 'none' as const,
+    background: 'none',
+    color: 'gray',
   },
 };
 export interface TippingProps {

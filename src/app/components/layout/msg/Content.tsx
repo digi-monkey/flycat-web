@@ -17,14 +17,14 @@ export function Content({ text, classNames }: ContentProps) {
         style={{ whiteSpace: 'pre-line' as const }}
         dangerouslySetInnerHTML={{ __html: modifiedText }}
       ></span>
-      <span>
+      <p>
         {imageUrls.length > 0 &&
           imageUrls.map((url, index) => (
             <span key={index}>
               <ImagePlate url={url} />
             </span>
           ))}
-      </span>
+      </p>
     </span>
   );
 }

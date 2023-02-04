@@ -8,6 +8,8 @@ const styles = {
     fontSize: '12px',
     marginLeft: '5px',
     border: 'none' as const,
+    background: 'none',
+    color: 'gray',
   },
 };
 export interface RepostProp {

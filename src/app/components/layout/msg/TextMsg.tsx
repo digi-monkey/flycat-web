@@ -4,7 +4,7 @@ import {
   Content,
 } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Event, PrivateKey, PublicKey } from 'service/api';
 import { shortPublicKey } from 'service/helper';
@@ -12,7 +12,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
 import defaultAvatar from '../../../../resource/logo512.png';
-import { ReplyUserList } from './ReplyToUserList';
+import { ReplyToUserList } from './ReplyToUserList';
 import { CallWorker } from 'service/worker/callWorker';
 import { Like } from './reaction/Like';
 import { Bookmark } from './reaction/Bookmark';
@@ -99,8 +99,12 @@ const styles = {
     display: 'block',
   },
   userName: {
-    textDecoration: 'underline',
+    //textDecoration: 'underline',
+    color: 'black',
+    fontSize: '15px',
+    fontWeight: '500',
     marginRight: '5px',
+    display: 'block',
   },
   time: {
     color: 'gray',
@@ -114,8 +118,9 @@ const styles = {
   },
   smallBtn: {
     fontSize: '12px',
-    marginLeft: '5px',
+    //marginLeft: '5px',
     border: 'none' as const,
+    background: 'none',
   },
   connected: {
     fontSize: '18px',
@@ -179,21 +184,17 @@ export const TextMsg = ({
     >
       <Grid container spacing={1}>
         <Grid item xs={2}>
-          <img style={styles.avatar} src={avatar || defaultAvatar} alt="" />
+          <ProfileAvatar picture={avatar} />
         </Grid>
         <Grid item xs={10}>
           <span style={styles.msgWord}>
-            <a style={styles.userName} href={'/user/' + pk}>
-              @{name}
-            </a>
-            <ReplyUserList replyTo={replyTo} />
+            <ProfileName name={name} createdAt={createdAt} pk={pk} />
+            <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
 
           <div style={{ marginTop: '15px' }}>
-            <span style={styles.time}>{useTimeSince(createdAt)}</span>
-
-            <span style={{ marginLeft: '15px' }}>
+            <span>
               <span style={styles.reaction}>
                 <Tipping eventId={eventId} />
               </span>
@@ -248,7 +249,7 @@ export const ProfileTextMsg = ({
       <Grid container>
         <Grid item xs={12}>
           <span style={styles.msgWord}>
-            <ReplyUserList replyTo={replyTo} />
+            <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
           <div style={{ marginTop: '15px' }}>
@@ -377,5 +378,42 @@ export const BlogMsg = ({
         </Grid>
       </Grid>
     </li>
+  );
+};
+
+export const ProfileAvatar = ({ picture }: { picture?: string }) => {
+  const [url, setUrl] = useState<string | undefined>(picture);
+
+  const handleError = () => {
+    setUrl(defaultAvatar);
+  };
+
+  return (
+    <img
+      style={styles.avatar}
+      src={url || defaultAvatar}
+      alt=""
+      onError={handleError}
+    />
+  );
+};
+
+export const ProfileName = ({
+  name,
+  pk,
+  createdAt,
+}: {
+  name?: string;
+  pk: string;
+  createdAt: number;
+}) => {
+  return (
+    <a style={styles.userName} href={'/user/' + pk}>
+      @{name || '__'}{' '}
+      <span style={styles.time}>
+        {' · '}
+        {useTimeSince(createdAt)}
+      </span>
+    </a>
   );
 };

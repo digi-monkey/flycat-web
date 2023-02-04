@@ -138,7 +138,16 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   return (
     <div style={styles.root}>
       <Grid container spacing={2} style={{ zIndex: '1' }}>
-        <Grid item xs={12} sm={2}>
+        <Grid
+          item
+          xs={12}
+          sm={2}
+          style={
+            {
+              //borderRight: "1px solid #e0e0e0"
+            }
+          }
+        >
           <div
             style={{
               width: '100%',
@@ -151,15 +160,26 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             <MenuListDefault />
           </div>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          style={
+            {
+              //borderRight: "1px solid #e0e0e0"
+            }
+          }
+        >
           <div
             style={{
               position: 'sticky' as const,
               top: '0',
-              background: '#e0e0e0',
-              padding: '10px 0px',
+              background: 'white',
+              //   background: '#e0e0e0',
+              padding: '10px 3%',
               marginTop: '20px',
               marginBottom: '20px',
+              //  borderBottom: "1px solid #e0e0e0"
             }}
           >
             <NavHeader />
