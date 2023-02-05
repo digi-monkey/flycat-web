@@ -12,13 +12,15 @@ import {
 } from 'service/api';
 import { matchKeyPair } from 'service/crypto';
 import { CallWorker } from 'service/worker/callWorker';
-import { CommentIcon } from './icon/Comment';
+import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 
 const styles = {
   smallBtn: {
     fontSize: '12px',
     margin: '0 5px',
     border: 'none' as const,
+    background: 'none',
+    color: 'gray',
   },
   input: {
     width: '100%',
@@ -88,7 +90,8 @@ function ReplyButton({
   return (
     <>
       <button style={styles.smallBtn} onClick={handleClick}>
-        <CommentIcon /> {t('replyBtn.reply')}
+        <ModeCommentOutlinedIcon style={{ color: 'gray', fontSize: '14px' }} />{' '}
+        {t('replyBtn.reply')}
       </button>
       {showPopup && (
         <ReplyTextarea onSubmit={handleSubmit} disabled={!myKeyPair} />

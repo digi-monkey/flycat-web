@@ -135,7 +135,7 @@
   },
   "setting": {
     "version": "客户端版本：",
-    "exit": "关闭"
+    "exit": "好的"
   },
   "blogFeed": {
     "title": "公众号文章",
@@ -150,5 +150,8 @@
   },
   "profile": {
     "postArticles": "发表了 {{count}} 篇文章于{{siteName}}"
+  },
+  "topArticle": {
+    "title": "推荐文章"
   }
 }

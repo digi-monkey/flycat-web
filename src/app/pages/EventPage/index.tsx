@@ -18,14 +18,14 @@ import {
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
-} from '../../components/layout/RelayManager';
+} from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
-import { TextMsg } from 'app/components/layout/TextMsg';
-import { ShareMsg } from 'app/components/layout/ShareMsg';
+import { TextMsg } from 'app/components/layout/msg/TextMsg';
+import { ShareMsg } from 'app/components/layout/msg/ShareMsg';
 import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
 import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { useTranslation } from 'react-i18next';

@@ -19,7 +19,7 @@ import {
 import { connect } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
-} from '../../components/layout/RelayManager';
+} from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
@@ -27,8 +27,8 @@ import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
-import { ProfileShareMsg, ShareMsg } from 'app/components/layout/ShareMsg';
-import { ProfileTextMsg } from 'app/components/layout/TextMsg';
+import { ProfileShareMsg, ShareMsg } from 'app/components/layout/msg/ShareMsg';
+import { ProfileTextMsg } from 'app/components/layout/msg/TextMsg';
 import { t } from 'i18next';
 import {
   isFlycatShareHeader,

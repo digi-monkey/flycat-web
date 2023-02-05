@@ -1,12 +1,16 @@
 import { Grid } from '@mui/material';
-import { ArticleShareContent, Content } from 'app/components/layout/Content';
-import ReplyButton from 'app/components/layout/ReplyBtn';
+import {
+  ArticleShareContent,
+  Content,
+} from 'app/components/layout/msg/Content';
+import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
 import React from 'react';
 import { PrivateKey, PublicKey } from 'service/api';
 import { getShareContentUrl } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
-import { ShowThread } from './ShowThread';
+import { ShowThread } from './reaction/ShowThread';
 import { CallWorker } from 'service/worker/callWorker';
+import { ProfileAvatar, ProfileName, ReactionGroups } from './TextMsg';
 
 const styles = {
   root: {
@@ -165,14 +169,13 @@ export const ShareMsg = ({
     return (
       <li style={styles.msgItem}>
         <Grid container>
-          <Grid item xs={2} style={{ textAlign: 'left' as const }}>
-            <img style={styles.avatar} src={userAvatar} alt="avatar" />
-          </Grid>
-          <Grid item xs={10}>
+          <div style={{ width: '75px' }}>
+            <ProfileAvatar picture={userAvatar} name={userPk} />
+          </div>
+
+          <span style={{ float: 'right', width: '80%' }}>
             <span style={styles.msgWord}>
-              <a style={styles.userName} href={'/user/' + userPk}>
-                @{username}
-              </a>
+              <ProfileName name={username} pk={userPk} createdAt={createdAt} />
               <ArticleShareContent
                 blogName={blogName}
                 text={content}
@@ -181,19 +184,13 @@ export const ShareMsg = ({
                 avatar={blogAvatar}
               />
             </span>
-            <span style={styles.time}>{time}</span>
-            <span style={styles.time}>
-              <ShowThread eventId={eventId} />
-            </span>
-            <span style={styles.time}>
-              <ReplyButton
-                worker={worker}
-                replyToEventId={eventId}
-                replyToPublicKey={userPk}
-                myKeyPair={keyPair}
-              />
-            </span>
-          </Grid>
+            <ReactionGroups
+              worker={worker!}
+              keyPair={keyPair!}
+              pk={userPk}
+              eventId={eventId}
+            />
+          </span>
         </Grid>
       </li>
     );

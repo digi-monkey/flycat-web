@@ -57,12 +57,14 @@ export interface RelayManagerProps {
   isLoggedIn;
   myPublicKey;
   myCustomRelay: RelayStoreType;
+  wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
 }
 
 export function RelayManager({
   isLoggedIn,
   myPublicKey,
   myCustomRelay,
+  wsStatusCallback,
 }: RelayManagerProps) {
   const { t } = useTranslation();
   const [relays, setRelays] = useState<string[]>([]);
@@ -75,6 +77,12 @@ export function RelayManager({
   function _wsConnectStatus() {
     return wsConnectStatus;
   }
+
+  useEffect(() => {
+    if (wsStatusCallback) {
+      wsStatusCallback(wsConnectStatus);
+    }
+  }, [wsConnectStatus]);
 
   useEffect(() => {
     const worker = new CallWorker((message: FromWorkerMessageData) => {

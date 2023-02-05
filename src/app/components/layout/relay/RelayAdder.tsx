@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { isValidWssUrl } from 'service/helper';
-import { ADD_URL_TO_PUBLIC_KEY } from '../../../store/relayReducer';
+import { ADD_URL_TO_PUBLIC_KEY } from '../../../../store/relayReducer';
 
 interface Props {
   publicKey: string;

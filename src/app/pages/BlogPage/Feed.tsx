@@ -1,8 +1,8 @@
 import { Grid } from '@mui/material';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import NavHeader, { LoginFormTip } from 'app/components/layout/NavHeader';
-import RelayManager from 'app/components/layout/RelayManager';
-import { BlogMsg } from 'app/components/layout/TextMsg';
+import RelayManager from 'app/components/layout/relay/RelayManager';
+import { BlogMsg, ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -594,13 +594,13 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 rel="noreferrer"
               >
                 <span>
-                  <img
+                  <ProfileAvatar
                     style={{ width: '48px', height: '48px' }}
-                    src={userMap.get(s.pk)?.picture || defaultAvatar}
-                    alt=""
+                    name={s.pk}
+                    picture={userMap.get(s.pk)?.picture}
                   />
                 </span>
-                <span>{' ' + s.site_name}</span>
+                <span> {s.site_name || '__'}</span>
                 <span style={{ fontSize: '12px', color: 'gray' }}>
                   {' by '}
                   {userMap.get(s.pk)?.name ||

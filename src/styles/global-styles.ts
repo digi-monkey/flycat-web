@@ -5,7 +5,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     height: 100%;
     width: 100%;
-    background: #e0e0e0;
+    background: white;
   }
 
   body {
@@ -43,5 +43,12 @@ export const GlobalStyle = createGlobalStyle`
 
   button:hover {
     cursor:pointer;
-   }
+  }
+
+  a{
+    text-decoration: none;
+  }
+  a:hover{
+    text-decoration: underline;
+  }
 `;

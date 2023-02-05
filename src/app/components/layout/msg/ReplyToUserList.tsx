@@ -17,17 +17,20 @@ export interface ReplyToUserListProps {
   replyTo: ReplyToUser[];
 }
 
-export const ReplyUserList = ({ replyTo }: ReplyToUserListProps) => {
+export const ReplyToUserList = ({ replyTo }: ReplyToUserListProps) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div style={{ marginBottom: '2px' }}>
       {replyTo.length > 0 && (
-        <span style={{ color: 'gray' }}>
+        <span style={{ color: 'gray', fontSize: '12px' }}>
           {t('textMsg.replyTo')}{' '}
           {replyTo.map((r, i) => (
             <a
               key={i}
-              style={{ ...styles.userName, ...{ color: 'gray' } }}
+              style={{
+                ...styles.userName,
+                ...{ color: 'gray', fontSize: '12px' },
+              }}
               href={'/user/' + r.pk}
             >
               @{r.name || shortPublicKey(r.pk!)}
@@ -35,6 +38,6 @@ export const ReplyUserList = ({ replyTo }: ReplyToUserListProps) => {
           ))}
         </span>
       )}
-    </>
+    </div>
   );
 };

@@ -1,7 +1,9 @@
 import { Grid } from '@mui/material';
+import { useTimeSince } from 'hooks/useTimeSince';
 import React, { useRef, useState } from 'react';
 import { PublicKey } from 'service/api';
 import { normalizeContent } from 'service/helper';
+import styled from 'styled-components';
 
 export interface ContentProps {
   text: string;
@@ -17,14 +19,14 @@ export function Content({ text, classNames }: ContentProps) {
         style={{ whiteSpace: 'pre-line' as const }}
         dangerouslySetInnerHTML={{ __html: modifiedText }}
       ></span>
-      <span>
+      <p>
         {imageUrls.length > 0 &&
           imageUrls.map((url, index) => (
             <span key={index}>
               <ImagePlate url={url} />
             </span>
           ))}
-      </span>
+      </p>
     </span>
   );
 }
@@ -112,6 +114,56 @@ export function ArticleContentNoAvatar({
           </Grid>
         </Grid>
       </div>
+    </span>
+  );
+}
+
+export function ArticleTrendsItem({
+  shareUrl,
+  avatar,
+  title,
+  blogName,
+  author,
+  createdAt,
+}: Omit<ArticleShareContentProps, 'text' | 'classNames'> & {
+  author?: string;
+  createdAt: number;
+}) {
+  const Div = styled.div`
+    margin: 10px 0px;
+    padding: 5px;
+    background: none;
+    color: gray;
+    cursor: pointer;
+    border-radius: 5px;
+    :hover {
+      background: #f4f5f4;
+    }
+  `;
+  return (
+    <span>
+      <Div
+        onClick={() => {
+          window.open(shareUrl, '_blank');
+        }}
+      >
+        <Grid container>
+          <Grid item xs={12}>
+            <div
+              style={{ fontSize: '14px', fontWeight: '500', color: 'black' }}
+            >
+              {title}
+            </div>
+            <div style={{ fontSize: '12px', color: 'gray' }}>
+              {author}
+              {' on '}
+              {blogName}
+              {' · '}
+              {useTimeSince(createdAt)}
+            </div>
+          </Grid>
+        </Grid>
+      </Div>
     </span>
   );
 }
