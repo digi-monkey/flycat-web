@@ -19,7 +19,7 @@ export const Tipping = ({ eventId }: TippingProps) => {
   const { t } = useTranslation();
   return (
     <button
-      onClick={() => window.open(`/event/${eventId}`, '_blank')}
+      //onClick={() => window.open(`/event/${eventId}`, '_blank')}
       style={styles.smallBtn}
     >
       <ElectricBoltOutlinedIcon style={{ color: 'gray', fontSize: '14px' }} />

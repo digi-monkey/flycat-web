@@ -11,7 +11,6 @@ import { shortPublicKey } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
-import defaultAvatar from '../../../../resource/logo512.png';
 import { ReplyToUserList } from './ReplyToUserList';
 import { CallWorker } from 'service/worker/callWorker';
 import { Like } from './reaction/Like';
@@ -89,9 +88,9 @@ const styles = {
     padding: '15px 0',
   },
   avatar: {
-    display: 'block',
     width: '60px',
     height: '60px',
+    borderRadius: '50%',
     maxWidth: '100%',
   },
   msgWord: {
@@ -104,7 +103,6 @@ const styles = {
     fontSize: '15px',
     fontWeight: '500',
     marginRight: '5px',
-    display: 'block',
   },
   time: {
     color: 'gray',
@@ -173,54 +171,27 @@ export const TextMsg = ({
   worker,
 }: TextMsgProps) => {
   const { t } = useTranslation();
-  const [hover, setHover] = React.useState(false);
-  // const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
   const bg = { backgroundColor: 'white' };
   return (
-    <li
-      style={{ ...styles.msgItem, ...bg, ...style }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Grid container spacing={1}>
-        <Grid item xs={2}>
-          <ProfileAvatar picture={avatar} />
-        </Grid>
-        <Grid item xs={10}>
+    <li style={{ ...styles.msgItem, ...bg, ...style }}>
+      <Grid container>
+        <div style={{ width: '75px' }}>
+          <ProfileAvatar name={pk} picture={avatar} />
+        </div>
+        <span style={{ float: 'right', width: '80%' }}>
           <span style={styles.msgWord}>
             <ProfileName name={name} createdAt={createdAt} pk={pk} />
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
 
-          <div style={{ marginTop: '15px' }}>
-            <span>
-              <span style={styles.reaction}>
-                <Tipping eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Like eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Repost eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Bookmark eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ShowThread eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ReplyButton
-                  replyToEventId={eventId}
-                  replyToPublicKey={pk}
-                  myKeyPair={keyPair}
-                  worker={worker}
-                />
-              </span>
-            </span>
-          </div>
-        </Grid>
+          <ReactionGroups
+            worker={worker!}
+            keyPair={keyPair!}
+            pk={pk}
+            eventId={eventId}
+          />
+        </span>
       </Grid>
     </li>
   );
@@ -339,13 +310,11 @@ export const BlogMsg = ({
     >
       <Grid container>
         <Grid item xs={12} sm={2} style={{ textAlign: 'left' as const }}>
-          <img style={styles.avatar} src={avatar} alt="" />
+          <ProfileAvatar picture={avatar} name={pk} />
         </Grid>
         <Grid item xs={12} sm={10}>
           <span style={styles.msgWord}>
-            <a style={styles.userName} href={'/user/' + pk}>
-              @{name}
-            </a>
+            <ProfileName name={name} pk={pk} createdAt={createdAt} />
             <ArticleContentNoAvatar
               text={''}
               shareUrl={shareUrl()}
@@ -353,7 +322,6 @@ export const BlogMsg = ({
               blogName={blogName}
             />
           </span>
-          <span style={styles.time}>{useTimeSince(createdAt)}</span>
           <span style={styles.time}>
             <button
               onClick={() => setIsShareModalOpen(true)}
@@ -381,17 +349,35 @@ export const BlogMsg = ({
   );
 };
 
-export const ProfileAvatar = ({ picture }: { picture?: string }) => {
-  const [url, setUrl] = useState<string | undefined>(picture);
+export const ProfileAvatar = ({
+  picture,
+  name,
+  style,
+}: {
+  picture?: string;
+  name?: string;
+  style?: React.CSSProperties;
+}) => {
+  const theme = 'marble';
+  const defaultUrl = `https://source.boringavatars.com/${theme}/60/${
+    name || Date.now().toString()
+  }?color=65A766,F1CF4D,148F8D`;
+  const [url, setUrl] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (picture != null) {
+      setUrl(picture);
+    }
+  }, [picture]);
 
   const handleError = () => {
-    setUrl(defaultAvatar);
+    setUrl(defaultUrl);
   };
 
   return (
     <img
-      style={styles.avatar}
-      src={url || defaultAvatar}
+      style={{ ...styles.avatar, ...style }}
+      src={url || defaultUrl}
       alt=""
       onError={handleError}
     />
@@ -408,12 +394,85 @@ export const ProfileName = ({
   createdAt: number;
 }) => {
   return (
-    <a style={styles.userName} href={'/user/' + pk}>
-      @{name || '__'}{' '}
+    <div>
+      <a style={styles.userName} href={'/user/' + pk}>
+        @{name || '__'}{' '}
+      </a>
       <span style={styles.time}>
         {' · '}
         {useTimeSince(createdAt)}
       </span>
-    </a>
+    </div>
   );
 };
+
+export const ReactionGroups = ({
+  eventId,
+  worker,
+  pk,
+  keyPair,
+}: {
+  worker: CallWorker;
+  keyPair: KeyPair;
+  pk: string;
+  eventId: string;
+}) => {
+  return (
+    <div style={{ marginTop: '15px' }}>
+      <span>
+        <span
+          style={styles.reaction}
+          onClick={() => {
+            alert('working on it!');
+          }}
+        >
+          <Tipping eventId={eventId} />
+        </span>
+        <span
+          style={styles.reaction}
+          onClick={() => {
+            alert('working on it!');
+          }}
+        >
+          <Like eventId={eventId} />
+        </span>
+        <span
+          style={styles.reaction}
+          onClick={() => {
+            alert('working on it!');
+          }}
+        >
+          <Repost eventId={eventId} />
+        </span>
+        <span
+          style={styles.reaction}
+          onClick={() => {
+            alert('working on it!');
+          }}
+        >
+          <Bookmark eventId={eventId} />
+        </span>
+
+        <span style={styles.reaction}>
+          <ShowThread eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <ReplyButton
+            replyToEventId={eventId}
+            replyToPublicKey={pk}
+            myKeyPair={keyPair}
+            worker={worker}
+          />
+        </span>
+      </span>
+    </div>
+  );
+};
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}

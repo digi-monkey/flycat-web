@@ -135,7 +135,7 @@
   },
   "setting": {
     "version": "Client Version: ",
-    "exit": "exit"
+    "exit": "ok"
   },
   "blogFeed": {
     "title": "Blog Post",
@@ -150,5 +150,8 @@
   },
   "profile": {
     "postArticles": "{{count}} post on {{siteName}}"
+  },
+  "topArticle": {
+    "title": "Top Articles"
   }
 }

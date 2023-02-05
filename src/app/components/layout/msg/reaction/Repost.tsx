@@ -19,7 +19,7 @@ export const Repost = ({ eventId }: RepostProp) => {
   const { t } = useTranslation();
   return (
     <button
-      onClick={() => window.open(`/event/${eventId}`, '_blank')}
+      //onClick={() => window.open(`/event/${eventId}`, '_blank')}
       style={styles.smallBtn}
     >
       <LoopOutlinedIcon style={{ color: 'gray', fontSize: '14px' }} />

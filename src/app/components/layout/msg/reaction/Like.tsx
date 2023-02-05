@@ -19,7 +19,7 @@ export const Like = ({ eventId }: LikeProps) => {
   const { t } = useTranslation();
   return (
     <button
-      onClick={() => window.open(`/event/${eventId}`, '_blank')}
+      //onClick={() => window.open(`/event/${eventId}`, '_blank')}
       style={styles.smallBtn}
     >
       <ThumbUpOutlinedIcon style={{ color: 'gray', fontSize: '14px' }} />

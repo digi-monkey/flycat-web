@@ -19,7 +19,7 @@ export const Bookmark = ({ eventId }: BookmarkProps) => {
   const { t } = useTranslation();
   return (
     <button
-      onClick={() => window.open(`/event/${eventId}`, '_blank')}
+      // onClick={() => window.open(`/event/${eventId}`, '_blank')}
       style={styles.smallBtn}
     >
       <BookmarkAddOutlinedIcon style={{ color: 'gray', fontSize: '16px' }} />

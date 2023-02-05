@@ -27,12 +27,12 @@ const styles = {
   title: {
     color: 'black',
     fontSize: '20px',
-    fontWeight: '380',
+    fontWeight: '600',
     display: 'inline-flex',
     width: '100%',
   },
   ul: {
-    padding: '0px 10px',
+    padding: '0px 10px 0px 0px',
     borderRadius: '5px',
     listStyleType: 'none' as const,
   },
@@ -68,24 +68,17 @@ export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
       <Grid item xs={12} sm={6}>
         <div>
           <Grid container>
-            <Grid item xs={3} style={{ display: 'flex', alignItems: 'center' }}>
-              <img src={logo} style={{ width: '60px' }} alt="" />
-            </Grid>
-            <Grid item xs={9}>
-              <span style={{ fontSize: '10px', color: 'gray' }}>
-                v{version}
-              </span>
-              <br />
-              <span style={styles.title}>飞猫FlyCat </span>
-            </Grid>
+            <div style={styles.title}>{t('nav.menu.home')}</div>
           </Grid>
         </div>
       </Grid>
-      <Grid item xs={12} sm={6}>
-        <div style={{ textAlign: 'right' }}>
-          <SearchBox />
-        </div>
-      </Grid>
+      {
+        <Grid item xs={12} sm={6}>
+          <div style={{ textAlign: 'right' }}>
+            <SearchBox />
+          </div>
+        </Grid>
+      }
     </Grid>
   );
 }
@@ -94,12 +87,12 @@ export const SearchBox = () => {
   return (
     <div
       style={{
-        boxShadow: 'inset 0 0 1px #aaa',
-        border: '1px solid rgb(216 222 226)',
+        //boxShadow: 'inset 0 0 1px #aaa',
+        //border: '1px solid rgb(216 222 226)',
         borderRadius: '5px',
-        background: 'white',
+        background: '#F4F5F4',
         padding: '5px',
-        margin: '5px 0px 0px 0px',
+        // margin: '5px 0px 0px 0px',
         display: 'flex',
       }}
     >
@@ -110,20 +103,23 @@ export const SearchBox = () => {
           border: 'none',
           maxWidth: '85%',
           width: '400px',
-          padding: '5px',
+          // padding: '5px',
           outline: 'none',
+          background: '#F4F5F4',
         }}
       />
       <button
         type="button"
         style={{
           border: 'none',
-          background: 'white',
-          padding: '0',
+          background: 'none',
+          padding: '0px 5px',
           fontSize: 'small',
-          width: 'fit-content',
         }}
-        disabled={true}
+        //disabled={true}
+        onClick={() => {
+          alert('working on it!');
+        }}
       >
         <Search />
       </button>
@@ -140,6 +136,11 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   return (
     <div>
       <ul style={styles.ul}>
+        <div
+          style={{ textAlign: 'left', marginLeft: '10px', marginBottom: '5px' }}
+        >
+          <img src={logo} style={{ width: '45px' }} alt="" />
+        </div>
         <MenuItem href="/">
           <div>
             <Home /> &nbsp;

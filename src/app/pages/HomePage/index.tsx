@@ -31,6 +31,14 @@ import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
 import { Msgs } from 'app/components/layout/msg/Msg';
+import { BlogMsg } from 'app/components/layout/msg/TextMsg';
+import { ShareArticle } from 'app/components/layout/msg/Share';
+import {
+  ArticleContentNoAvatar,
+  ArticleShareContent,
+  ArticleTrendsItem,
+} from 'app/components/layout/msg/Content';
+import { TopArticle } from 'app/components/layout/TopArticle';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -488,11 +496,14 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               avatar={userMap.get(myPublicKey)?.picture}
               name={userMap.get(myPublicKey)?.name}
               about={userMap.get(myPublicKey)?.about}
+              relayConnectedCount={
+                Array.from(wsConnectStatus).filter(w => w[1] === true).length
+              }
             />
           )}
           {!isLoggedIn && <UserRequiredLoginBox />}
-          <hr />
-          <RelayManager />
+
+          <TopArticle userMap={userMap} />
         </>
       </Right>
     </BaseLayout>

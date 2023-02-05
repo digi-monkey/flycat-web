@@ -1,12 +1,19 @@
 import { Grid } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { nip19Encode, Nip19DataType, PublicKey } from 'service/api';
 import defaultAvatar from '../../../resource/logo512.png';
+import { ProfileAvatar } from './msg/TextMsg';
 import { CopyText } from './util/CopyText';
+import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
+import RelayManager, { WsConnectStatus } from './relay/RelayManager';
 
 const styles = {
-  userInfo: { marginBottom: '10px' },
+  userInfo: {
+    marginRight: '10px',
+    marginBottom: '30px',
+    textAlign: 'right' as const,
+  },
   avatar: {
     width: '48px',
     height: '48px',
@@ -52,9 +59,11 @@ const styles = {
   userProfile: {},
   userProfileAvatar: {
     width: '100%',
+    height: '100%',
     maxWidth: '80px',
     maxHeight: '80px',
     marginRight: '10px',
+    borderRadius: '0',
   },
   userProfileName: {
     fontSize: '20px',
@@ -75,6 +84,7 @@ export interface UserBoxPros {
   name?: string;
   about?: string;
   followCount?: number;
+  relayConnectedCount?: number;
 }
 
 export const UserBox = ({
@@ -83,14 +93,40 @@ export const UserBox = ({
   name,
   about,
   followCount,
+  relayConnectedCount,
 }: UserBoxPros) => {
   const { t } = useTranslation();
+  const size = '30px';
+  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
+    new Map(),
+  );
+
   return (
     <>
       <div style={styles.userInfo}>
-        <img style={styles.avatar} src={avatar} alt="user avatar" />
-        <span style={styles.name}>{name}</span>
-        <span style={styles.about}>
+        {/* todo: move to public comp */}
+        <a href="/relay">
+          <span style={{ marginRight: '30px', color: '#8DC535' }}>
+            <ElectricalServicesIcon />
+            <span>
+              {relayConnectedCount ||
+                Array.from(wsConnectStatus).filter(s => s[1] === true).length}
+            </span>
+            <span hidden>
+              <RelayManager wsStatusCallback={setWsConnectStatus} />
+            </span>
+          </span>
+        </a>
+        <a href={'/user/' + pk}>
+          <ProfileAvatar
+            style={{ width: size, height: size }}
+            picture={avatar}
+            name={pk}
+          />
+        </a>
+        {/*
+          <span style={styles.name}>{name}</span>
+          <span style={styles.about}>
           <CopyText
             name={'🔑'}
             textToCopy={nip19Encode(pk, Nip19DataType.Pubkey)}
@@ -98,6 +134,7 @@ export const UserBox = ({
           />
           {about}
         </span>
+        */}
       </div>
 
       {/*
@@ -288,11 +325,7 @@ export const UserBlogHeader = ({
     <div style={styles.userProfile}>
       <Grid container style={{ background: '#F7F5EB' }}>
         <Grid item xs={2}>
-          <img
-            style={styles.userProfileAvatar}
-            src={avatar || defaultAvatar}
-            alt=""
-          />
+          <ProfileAvatar picture={avatar} style={styles.userProfileAvatar} />
         </Grid>
         <Grid item xs={10}>
           <div style={styles.userProfileName}>

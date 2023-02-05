@@ -40,7 +40,9 @@ export function App() {
           <ArticleRead />
         </Route>
         <Route path="/relay">
-          <RelayManager />
+          <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+            <RelayManager />
+          </div>
         </Route>
         <Route path="/blog/:publicKey">
           <BlogPage />

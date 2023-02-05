@@ -5,7 +5,7 @@ import NavHeader, { MenuList, MenuListDefault } from './NavHeader';
 const styles = {
   root: {
     width: '100%',
-    maxWidth: '1400px',
+    maxWidth: '1200px',
     margin: '0 auto',
   },
   title: {
@@ -137,7 +137,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   });
   return (
     <div style={styles.root}>
-      <Grid container spacing={2} style={{ zIndex: '1' }}>
+      <Grid container style={{ zIndex: '1' }}>
         <Grid
           item
           xs={12}
@@ -151,34 +151,25 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
           <div
             style={{
               width: '100%',
-              padding: '0px 20px',
+              padding: '0px 20px 0px 0px',
               position: 'sticky',
-              top: '0',
+              top: '10px',
               zIndex: '1',
             }}
           >
             <MenuListDefault />
           </div>
         </Grid>
-        <Grid
-          item
-          xs={12}
-          sm={6}
-          style={
-            {
-              //borderRight: "1px solid #e0e0e0"
-            }
-          }
-        >
+        <Grid item xs={12} sm={6}>
           <div
             style={{
               position: 'sticky' as const,
-              top: '0',
+              top: '0px',
               background: 'white',
               //   background: '#e0e0e0',
               padding: '10px 3%',
-              marginTop: '20px',
-              marginBottom: '20px',
+              //marginTop: '20px',
+              //marginBottom: '20px',
               //  borderBottom: "1px solid #e0e0e0"
             }}
           >
@@ -186,11 +177,11 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
           </div>
           <div style={styles.left}>{left}</div>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={4} style={{ zIndex: '0' }}>
           <div
             style={{
-              paddingTop: '30px',
-              paddingLeft: '40px',
+              paddingTop: '10px',
+              paddingLeft: '60px',
               position: 'sticky' as const,
               top: '0',
               zIndex: '1',
