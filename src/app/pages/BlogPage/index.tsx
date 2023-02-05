@@ -469,7 +469,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           <ul style={styles.msgsUl}>
             {articles.map((article, index) => (
               <ArticleMsg
-                key={index}
+                key={article.id}
                 isOwner={isOwner}
                 author={userMap.get(publicKey)!}
                 publicKey={publicKey}

@@ -312,23 +312,22 @@ interface MenuItemProps {
   onClick?: () => any;
 }
 
-const MenuItem = ({ children, href, target, onClick }: MenuItemProps) => {
-  // Create a Title component that'll render an <h1> tag with some styles
-  const Li = styled.li`
-    font-size: 16px;
-    font-weight: 400;
-    padding: 10px 5px;
-    margin-bottom: 5px;
-    background: none;
-    color: gray;
-    cursor: pointer;
-    border-radius: 5px;
-    :hover {
-      background: rgb(141, 197, 63);
-      color: white;
-    }
-  `;
+const Li = styled.li`
+  font-size: 16px;
+  font-weight: 400;
+  padding: 10px 5px;
+  margin-bottom: 5px;
+  background: none;
+  color: gray;
+  cursor: pointer;
+  border-radius: 5px;
+  :hover {
+    background: rgb(141, 197, 63);
+    color: white;
+  }
+`;
 
+const MenuItem = ({ children, href, target, onClick }: MenuItemProps) => {
   const defaultOnClick = () => {
     window.open(href || '#', target || '_self');
   };

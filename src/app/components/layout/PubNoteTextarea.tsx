@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Api } from 'service/api';
 import {
@@ -210,5 +210,92 @@ export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
     >
       <Send style={{ fontSize: 'medium' }} />
     </button>
+  );
+};
+
+export const ImageUploader = ({
+  onImgUrls,
+}: {
+  onImgUrls: (imgs: string[]) => any;
+}) => {
+  const { t } = useTranslation();
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [attachImgs, setAttachImgs] = useState<string[]>([]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (attachImgs.length === 0) return;
+
+    onImgUrls(attachImgs);
+  }, [attachImgs.length]);
+
+  const selectAndUploadImg = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUploading(true);
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setIsUploading(false);
+      return;
+    }
+
+    const fileReader = new FileReader();
+
+    fileReader.onloadend = () => {
+      if (fileReader.result) {
+        const blob = new Blob([fileReader.result], { type: file.type });
+        handleImgUpload(blob, file.name, file.type);
+      }
+    };
+
+    fileReader.readAsArrayBuffer(file);
+  };
+
+  const handleImgUpload = async (
+    blob: Blob,
+    fileName: string,
+    imgType: string,
+  ) => {
+    const imageFile = new File([blob], fileName, { type: imgType });
+    const formData = new FormData();
+    formData.append('fileToUpload', imageFile);
+    formData.append('submit', 'Upload Image');
+    const url = await api.uploadImage(formData);
+
+    // record url
+    setAttachImgs(prev => {
+      const newList = prev;
+      if (!newList.includes(url)) {
+        newList.push(url);
+      }
+      return newList;
+    });
+    setIsUploading(false);
+  };
+
+  return (
+    <span>
+      <button
+        type="button"
+        onClick={selectAndUploadImg}
+        disabled={isUploading}
+        style={styles.iconBtn}
+      >
+        <InsertPhoto />+{isUploading ? '↺' : ''}
+      </button>
+      &nbsp;&nbsp;
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
+    </span>
   );
 };

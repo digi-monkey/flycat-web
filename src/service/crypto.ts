@@ -42,6 +42,10 @@ export function matchKeyPair(pubKey: string, privKey: string): boolean {
   return expectPubKey === pubKey;
 }
 
+export function getPublicKey(privKey: string) {
+  return secpUtils.bytesToHex(schnorr.getPublicKey(privKey));
+}
+
 export function randomKeyPair(): { privKey: string; pubKey: string } {
   const privKey = secpUtils.bytesToHex(secpUtils.randomPrivateKey());
   const pubKey = secpUtils.bytesToHex(schnorr.getPublicKey(privKey));
