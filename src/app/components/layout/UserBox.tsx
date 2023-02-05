@@ -146,7 +146,7 @@ export const UserBox = ({
             </span>
           </span>
         </a>
-        {profile && (
+        {privKey && (
           <span style={{ marginRight: '10px', color: 'gray' }}>
             <ProfileEditPanel
               privKey={privKey}
@@ -396,31 +396,46 @@ export const ProfileEditPanel = ({
   worker,
   privKey,
 }: {
-  profile: EventSetMetadataContent;
+  profile?: EventSetMetadataContent;
   worker?: CallWorker;
   privKey?: string;
 }) => {
   interface FormData {
-    name: string;
-    username: string;
-    about: string;
-    website: string;
-    bitcoinLightningAddress: string;
-    domainNameVerification: string;
+    name?: string;
+    username?: string;
+    about?: string;
+    website?: string;
+    bitcoinLightningAddress?: string;
+    domainNameVerification?: string;
   }
   const initialFormData: FormData = {
-    name: profile.display_name,
-    username: profile.name,
-    about: profile.about,
-    website: profile.website,
-    bitcoinLightningAddress: profile.lud06,
-    domainNameVerification: profile.nip05,
+    name: profile?.display_name,
+    username: profile?.name,
+    about: profile?.about,
+    website: profile?.website,
+    bitcoinLightningAddress: profile?.lud06,
+    domainNameVerification: profile?.nip05,
   };
+
+  useEffect(() => {
+    console.log(profile);
+    const initialFormData = {
+      name: profile?.display_name,
+      username: profile?.name,
+      about: profile?.about,
+      website: profile?.website,
+      bitcoinLightningAddress: profile?.lud06,
+      domainNameVerification: profile?.nip05,
+    };
+    setFormData(initialFormData);
+    setAvatar(profile?.picture);
+    setBanner(profile?.banner);
+  }, [profile]);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState(initialFormData);
-  const [avatar, setAvatar] = useState<string>(profile.picture);
-  const [banner, setBanner] = useState<string>(profile.banner);
+  const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
+  const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -441,11 +456,11 @@ export const ProfileEditPanel = ({
       name: formData.username || '',
       display_name: formData.name || '',
       about: formData.about || '',
-      picture: avatar,
-      lud06: formData.bitcoinLightningAddress,
-      website: formData.website,
-      banner: banner,
-      nip05: formData.domainNameVerification,
+      picture: avatar || '',
+      lud06: formData.bitcoinLightningAddress || '',
+      website: formData.website || '',
+      banner: banner || '',
+      nip05: formData.domainNameVerification || '',
     };
     console.log(data);
     const event = await Nostr.newProfileEvent(data, privKey);
