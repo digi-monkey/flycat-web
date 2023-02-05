@@ -400,6 +400,8 @@ export const ProfileEditPanel = ({
   worker?: CallWorker;
   privKey?: string;
 }) => {
+  const { t } = useTranslation();
+
   interface FormData {
     name?: string;
     username?: string;
@@ -499,10 +501,12 @@ export const ProfileEditPanel = ({
           }}
         >
           <div style={{ textAlign: 'left' }}>
-            <h2>{'Profile'}</h2>
+            <h2>{t('profileEditPanel.title')}</h2>
             <form onSubmit={handleSubmit}>
               <Div>
-                <label htmlFor="name">Name:</label>
+                <label htmlFor="name">
+                  {t('profileEditPanel.displayName')}
+                </label>
                 <Input
                   type="text"
                   id="name"
@@ -512,7 +516,9 @@ export const ProfileEditPanel = ({
                 />
               </Div>
               <Div>
-                <label htmlFor="username">Username:</label>
+                <label htmlFor="username">
+                  {t('profileEditPanel.username')}
+                </label>
                 <Input
                   type="text"
                   id="username"
@@ -522,7 +528,9 @@ export const ProfileEditPanel = ({
                 />
               </Div>
               <Div>
-                <label htmlFor="pictureUrl">Picture URL:</label>
+                <label htmlFor="pictureUrl">
+                  {t('profileEditPanel.avatar')}
+                </label>
                 <div>
                   <span style={{ marginRight: '10px' }}>
                     <ProfileAvatar picture={avatar} />
@@ -535,7 +543,7 @@ export const ProfileEditPanel = ({
                 </div>
               </Div>
               <Div>
-                <label htmlFor="about">About:</label>
+                <label htmlFor="about">{t('profileEditPanel.about')}</label>
                 <Textarea
                   id="about"
                   name="about"
@@ -544,7 +552,9 @@ export const ProfileEditPanel = ({
                 />
               </Div>
               <Div>
-                <label htmlFor="bannerUrl">Banner URL:</label>
+                <label htmlFor="bannerUrl">
+                  {t('profileEditPanel.banner')}
+                </label>
                 <ProfileBanner picture={banner} />
                 <ImageUploader
                   onImgUrls={(imgs: string[]) =>
@@ -553,7 +563,7 @@ export const ProfileEditPanel = ({
                 />
               </Div>
               <Div>
-                <label htmlFor="website">Website:</label>
+                <label htmlFor="website">{t('profileEditPanel.website')}</label>
                 <Input
                   type="text"
                   id="website"
@@ -564,7 +574,7 @@ export const ProfileEditPanel = ({
               </Div>
               <Div>
                 <label htmlFor="bitcoinLightningAddress">
-                  Bitcoin Lightning Address:
+                  {t('profileEditPanel.btcLightningAddress')}
                 </label>
                 <Input
                   type="text"
@@ -576,7 +586,7 @@ export const ProfileEditPanel = ({
               </Div>
               <Div>
                 <label htmlFor="domainNameVerification">
-                  Domain Name Verification:
+                  {t('profileEditPanel.domainNameVerification')}
                 </label>
                 <Input
                   type="text"
@@ -593,9 +603,9 @@ export const ProfileEditPanel = ({
                   textAlign: 'center' as const,
                 }}
               >
-                <button type="submit">Submit</button>{' '}
+                <button type="submit">{t('profileEditPanel.submit')}</button>{' '}
                 <button type="button" onClick={() => setIsOpen(false)}>
-                  cancel
+                  {t('profileEditPanel.cancel')}
                 </button>
               </Div>
             </form>

@@ -153,5 +153,18 @@
   },
   "topArticle": {
     "title": "Top Articles"
+  },
+  "profileEditPanel": {
+    "title": "Edit Profile",
+    "displayName": "Display Name",
+    "username": "Username",
+    "avatar": "Avatar",
+    "about": "About",
+    "banner": "Banner",
+    "website": "Website",
+    "btcLightningAddress": "Bitcoin Lightning Address",
+    "domainNameVerification": "Domain Name Verification",
+    "submit": "Submit",
+    "cancel": "Cancel"
   }
 }
