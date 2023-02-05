@@ -337,8 +337,10 @@ const MenuItem = ({ children, href, target, onClick }: MenuItemProps) => {
 
 export const LoginFormTip = ({
   style = {},
+  text,
 }: {
   style?: React.CSSProperties;
+  text?: string;
 }) => {
   const { t } = useTranslation();
   const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
@@ -354,7 +356,7 @@ export const LoginFormTip = ({
           setIsOpenLoginForm(!isOpenLoginForm);
         }}
       >
-        {t('nav.menu.signIn')}
+        {text || t('nav.menu.signIn')}
       </button>
       {isOpenLoginForm && (
         <div

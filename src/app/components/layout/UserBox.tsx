@@ -7,6 +7,7 @@ import { ProfileAvatar } from './msg/TextMsg';
 import { CopyText } from './util/CopyText';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 import RelayManager, { WsConnectStatus } from './relay/RelayManager';
+import { LoginFormTip } from './NavHeader';
 
 const styles = {
   userInfo: {
@@ -172,25 +173,14 @@ export const UserRequiredLoginBox = () => {
   return (
     <>
       <div style={styles.userInfo}>
-        <img style={styles.avatar} src={defaultAvatar} alt="user avatar" />
-        <span style={styles.name}>{t('UserRequiredLoginBox.loginFirst')}</span>
-        <span style={styles.about}>{t('UserRequiredLoginBox.noAbout')}</span>
+        <ProfileAvatar style={{ width: '30px', height: '30px' }} />
+        <div>
+          <LoginFormTip
+            style={{ fontSize: '12px', background: 'none', padding: '0' }}
+            text={t('UserRequiredLoginBox.loginFirst')}
+          />
+        </div>
       </div>
-
-      <Grid container style={{ marginTop: '20px' }}>
-        <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
-          <span>{t('userBox.follow')}</span>
-        </Grid>
-        <Grid item xs={3} style={styles.numberSection}>
-          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
-          <span>{t('userBox.followed')}</span>
-        </Grid>
-        <Grid item xs={3}>
-          <span style={styles.numberCount}>{t('util.noNumberData')}</span>
-          <span>{t('userBox.noteMsg')}</span>
-        </Grid>
-      </Grid>
     </>
   );
 };
