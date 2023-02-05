@@ -5,6 +5,7 @@ import {
   bech32Decode,
   bech32Encode,
   generateRandomBytes,
+  getPublicKey,
   schnorrSign,
   Sha256,
 } from './crypto';
@@ -155,9 +156,10 @@ export type Signature = Hash64Bytes;
 export type EventKind = number;
 export enum WellKnownEventKind {
   set_metadata = 0,
-  text_note,
-  recommend_server,
-  contact_list,
+  text_note = 1,
+  recommend_server = 2,
+  contact_list = 3,
+  like = 7,
   flycat_site_metadata = 10000,
 }
 export enum EventTags {
@@ -261,6 +263,38 @@ export interface RawEvent {
   kind: EventKind;
   tags: Tags;
   content: string;
+}
+
+export class Nostr {
+  static async newLikeEvent(
+    toEventId: string,
+    toPublicKey: string,
+    privateKey: string,
+  ) {
+    const publicKey = getPublicKey(privateKey);
+    const kind = WellKnownEventKind.like;
+    const content = '+';
+    const tag: EventETag = [EventTags.E, toEventId, ''];
+    const tag1: EventPTag = [EventTags.P, toPublicKey, ''];
+    const tags = [tag, tag1];
+    const rawEvent = new RawEvent(publicKey, kind, tags, content);
+    return await rawEvent.toEvent(privateKey);
+  }
+
+  static async newDisLikeEvent(
+    toEventId: string,
+    toPublicKey: string,
+    privateKey: string,
+  ) {
+    const publicKey = getPublicKey(privateKey);
+    const kind = WellKnownEventKind.like;
+    const content = '-';
+    const tag: EventETag = [EventTags.E, toEventId, ''];
+    const tag1: EventPTag = [EventTags.P, toPublicKey, ''];
+    const tags = [tag, tag1];
+    const rawEvent = new RawEvent(publicKey, kind, tags, content);
+    return await rawEvent.toEvent(privateKey);
+  }
 }
 
 export class RawEvent implements RawEvent {

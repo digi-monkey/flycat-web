@@ -231,7 +231,12 @@ export const ProfileTextMsg = ({
                 <Tipping eventId={eventId} />
               </span>
               <span style={styles.reaction}>
-                <Like eventId={eventId} />
+                <Like
+                  toEventId={eventId}
+                  toPublicKey={pk}
+                  worker={worker}
+                  signPrivKey={keyPair?.privateKey}
+                />
               </span>
               <span style={styles.reaction}>
                 <Repost eventId={eventId} />
@@ -428,13 +433,13 @@ export const ReactionGroups = ({
         >
           <Tipping eventId={eventId} />
         </span>
-        <span
-          style={styles.reaction}
-          onClick={() => {
-            alert('working on it!');
-          }}
-        >
-          <Like eventId={eventId} />
+        <span style={styles.reaction}>
+          <Like
+            toEventId={eventId}
+            toPublicKey={pk}
+            worker={worker}
+            signPrivKey={keyPair?.privateKey}
+          />
         </span>
         <span
           style={styles.reaction}
