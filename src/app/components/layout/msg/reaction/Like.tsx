@@ -52,7 +52,10 @@ export const Like = ({
     setTotalCount(prev => prev + 1);
   };
   return (
-    <button onClick={submit} style={styles.smallBtn} disabled={isLiked}>
+    /* disable for now
+		onClick={submit}
+	*/
+    <button style={styles.smallBtn} disabled={isLiked}>
       {canLike && (
         <span style={{ color: 'gray', fontSize: '14px' }}>
           <ThumbUpOutlinedIcon style={{ fontSize: '14px' }} />

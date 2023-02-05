@@ -295,6 +295,22 @@ export class Nostr {
     const rawEvent = new RawEvent(publicKey, kind, tags, content);
     return await rawEvent.toEvent(privateKey);
   }
+
+  static async newProfileEvent(
+    content: EventSetMetadataContent,
+    privateKey: string,
+  ) {
+    const publicKey = getPublicKey(privateKey);
+    const kind = WellKnownEventKind.set_metadata;
+    const tags = [];
+    const rawEvent = new RawEvent(
+      publicKey,
+      kind,
+      tags,
+      JSON.stringify(content),
+    );
+    return await rawEvent.toEvent(privateKey);
+  }
 }
 
 export class RawEvent implements RawEvent {
@@ -358,9 +374,14 @@ export class RawEvent implements RawEvent {
 }
 
 export interface EventSetMetadataContent {
+  display_name: string;
   name: string; // username
   about: string; // user description,
   picture: string; // image url
+  lud06: string;
+  website: string;
+  banner: string;
+  nip05: string;
 }
 
 export interface WsApiHandler {

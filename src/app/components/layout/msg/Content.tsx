@@ -118,6 +118,18 @@ export function ArticleContentNoAvatar({
   );
 }
 
+const Div = styled.div`
+  margin: 10px 0px;
+  padding: 5px;
+  background: none;
+  color: gray;
+  cursor: pointer;
+  border-radius: 5px;
+  :hover {
+    background: #f4f5f4;
+  }
+`;
+
 export function ArticleTrendsItem({
   shareUrl,
   avatar,
@@ -129,17 +141,6 @@ export function ArticleTrendsItem({
   author?: string;
   createdAt: number;
 }) {
-  const Div = styled.div`
-    margin: 10px 0px;
-    padding: 5px;
-    background: none;
-    color: gray;
-    cursor: pointer;
-    border-radius: 5px;
-    :hover {
-      background: #f4f5f4;
-    }
-  `;
   return (
     <span>
       <Div

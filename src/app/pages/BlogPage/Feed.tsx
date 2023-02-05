@@ -590,7 +590,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   marginTop: '5px',
                   border: '1px dotted gray',
                 }}
-                key={index}
+                key={s.pk}
                 rel="noreferrer"
               >
                 <span>
@@ -631,7 +631,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 </p>
                 {globalArticles.map((a, index) => (
                   <BlogMsg
-                    key={index}
+                    key={a.pk + a.id}
                     keyPair={myKeyPair}
                     name={userMap.get(a.pk)?.name}
                     avatar={userMap.get(a.pk)?.picture}
@@ -661,7 +661,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 .filter(a => myContactList.has(a.pk) || a.pk === myPublicKey)
                 .map((a, index) => (
                   <BlogMsg
-                    key={index}
+                    key={a.pk + a.id}
                     keyPair={myKeyPair}
                     name={userMap.get(a.pk)?.name}
                     avatar={userMap.get(a.pk)?.picture}

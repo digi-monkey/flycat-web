@@ -134,6 +134,9 @@ export function compareMaps(map1: Map<string, any>, map2: Map<string, any>) {
 }
 
 export function maxStrings(str: string, maxLen: number = 100) {
+  if (str == null) {
+    return str;
+  }
   if (str.length > maxLen) {
     return str.slice(0, maxLen) + '..';
   } else {

@@ -43,6 +43,7 @@ import { TopArticle } from 'app/components/layout/TopArticle';
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
+let myProfileEvent: Event;
 
 const mapStateToProps = state => {
   return {
@@ -245,6 +246,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
+          if (
+            myPublicKey &&
+            myPublicKey.length > 0 &&
+            event.pubkey === myPublicKey &&
+            (myProfileEvent == null ||
+              myProfileEvent.created_at < event.created_at)
+          ) {
+            myProfileEvent = event;
+          }
+
           const metadata: EventSetMetadataContent = deserializeMetadata(
             event.content,
           );
@@ -499,6 +510,9 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               relayConnectedCount={
                 Array.from(wsConnectStatus).filter(w => w[1] === true).length
               }
+              worker={worker}
+              profileEvent={myProfileEvent}
+              privKey={myPrivateKey}
             />
           )}
           {!isLoggedIn && <UserRequiredLoginBox />}

@@ -86,8 +86,9 @@ export const TopArticle = ({
       >
         {t('topArticle.title')}
       </div>
-      {articles.map(a => (
+      {articles.map((a, index) => (
         <ArticleTrendsItem
+          key={index}
           shareUrl={a.url}
           avatar={userMap.get(a.pk)?.picture}
           title={a.title}

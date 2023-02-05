@@ -354,6 +354,47 @@ export const BlogMsg = ({
   );
 };
 
+export const ProfileBanner = ({
+  picture,
+  name,
+  style,
+}: {
+  picture?: string;
+  name?: string;
+  style?: React.CSSProperties;
+}) => {
+  const [url, setUrl] = useState<string | undefined>();
+  const defaultUrl =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  useEffect(() => {
+    console.log(picture);
+    if (picture != null) {
+      setUrl(picture);
+    }
+  }, [picture]);
+
+  const handleError = () => {
+    setUrl(defaultUrl);
+  };
+
+  return (
+    <img
+      style={{
+        ...{
+          width: '100%',
+          maxHeight: '150px',
+          maxWidth: '100%',
+        },
+        ...style,
+      }}
+      src={url || defaultUrl}
+      alt=""
+      onError={handleError}
+    />
+  );
+};
+
 export const ProfileAvatar = ({
   picture,
   name,
@@ -433,7 +474,12 @@ export const ReactionGroups = ({
         >
           <Tipping eventId={eventId} />
         </span>
-        <span style={styles.reaction}>
+        <span
+          style={styles.reaction}
+          onClick={() => {
+            alert('working on it!');
+          }}
+        >
           <Like
             toEventId={eventId}
             toPublicKey={pk}
