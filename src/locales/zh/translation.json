@@ -21,7 +21,8 @@
       "setting": "设置",
       "signOut": "退出",
       "signIn": "登陆",
-      "contact": "联系人"
+      "contact": "关注的人",
+      "backup": "连接器备份"
     }
   },
   "noticeBox": {
@@ -166,5 +167,17 @@
     "domainNameVerification": "NIP05 域名认证",
     "submit": "提交",
     "cancel": "取消"
+  },
+  "backup": {
+    "signInFirst": "请先登陆！",
+    "invalidWs": "无效的连接器 ws 地址！",
+    "tips": "学习如何使用本地连接器备份自己的nostr数据，请查看",
+    "thisPost": "这篇文章",
+    "relayStatus": "连接器状态",
+    "running": "已连接",
+    "connecting": "正在连接..",
+    "totalCount": "总数据条数",
+    "items": " 条",
+    "filter": "过滤 Event 类型"
   }
 }

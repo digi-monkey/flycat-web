@@ -22,6 +22,7 @@ import { ContactPage } from './pages/ContactPage/Loadable';
 import RelayManager from './components/layout/relay/RelayManager';
 import ArticleRead from './pages/ArticleReadPage/ArticleRead';
 import BlogFeed from './pages/BlogPage/Feed';
+import Backup from './pages/Backup/Backup';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -38,6 +39,9 @@ export function App() {
       <Switch>
         <Route path="/article/:publicKey/:articleId">
           <ArticleRead />
+        </Route>
+        <Route path="/backup">
+          <Backup />
         </Route>
         <Route path="/relay">
           <div style={{ maxWidth: '700px', margin: '0 auto' }}>

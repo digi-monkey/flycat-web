@@ -8,6 +8,7 @@ import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
+import styled from 'styled-components';
 import RelayAdder from './RelayAdder';
 import RelayRemover from './RelayRemover';
 
@@ -151,7 +152,9 @@ export function RelayManager({
         <Grid container style={{ fontSize: '14px' }}>
           <Grid item xs={12} sm={8}>
             <span style={style}> · </span>
-            <span style={{ color: 'gray' }}>{url}</span>
+            <span style={{ color: 'gray' }}>
+              <Link href={'/backup?relay=' + url}>{url}</Link>
+            </span>
           </Grid>
           <Grid item xs={12} sm={4}>
             {myPublicKey && !defaultRelays.includes(url) && (
@@ -183,3 +186,11 @@ export function RelayManager({
 }
 
 export default connect(mapStateToProps)(RelayManager);
+
+const Link = styled.a`
+  textdecoration: none;
+  color: gray;
+  :hover {
+    textdecoration: underline;
+  }
+`;

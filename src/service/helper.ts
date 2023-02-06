@@ -69,7 +69,7 @@ export function getShareContentUrl(text: string): string | null {
 
 export function isValidWssUrl(url: string): boolean {
   // First, check if the URL starts with "wss://"
-  if (!url.startsWith('wss://')) {
+  if (!url.startsWith('wss://') && !url.startsWith('ws://')) {
     return false;
   }
 
@@ -81,9 +81,12 @@ export function isValidWssUrl(url: string): boolean {
   }
 
   // Finally, check if the URL has a valid domain name using a regular expression
-  const domainNameRegex =
-    /^wss:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
-  return domainNameRegex.test(url);
+  // todo: enable this for ws:// since we have private backup relay
+  // const domainNameRegex =
+  //   /^wss:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+  //
+  // return domainNameRegex.test(url);
+  return true;
 }
 
 export const getLastPubKeyFromPTags = (tags: any[]) => {

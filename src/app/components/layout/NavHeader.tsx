@@ -16,6 +16,7 @@ import {
   Settings,
   Key,
   Contacts,
+  Backup,
 } from '@mui/icons-material';
 import styled from 'styled-components';
 
@@ -204,6 +205,13 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             </div>
           </MenuItem>
         )}
+
+        <MenuItem href={'/backup?local=true'}>
+          <div>
+            <Backup /> &nbsp;
+            {t('nav.menu.backup')}
+          </div>
+        </MenuItem>
 
         <MenuItem
           onClick={() => {

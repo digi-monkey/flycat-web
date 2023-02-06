@@ -21,7 +21,8 @@
       "setting": "Setting",
       "signOut": "SignOut",
       "signIn": "SignIn",
-      "contact": "Contact"
+      "contact": "Contact",
+      "backup": "Backup"
     }
   },
   "noticeBox": {
@@ -166,5 +167,17 @@
     "domainNameVerification": "Domain Name Verification",
     "submit": "Submit",
     "cancel": "Cancel"
+  },
+  "backup": {
+    "signInFirst": "please sign in first!",
+    "invalidWs": "invalid ws relay url!!!",
+    "tips": "To learn how to setup a local relay to backup your data, check out",
+    "thisPost": " this post",
+    "relayStatus": "relay status",
+    "running": "running",
+    "connecting": "connecting",
+    "totalCount": "total data count",
+    "items": " items",
+    "filter": "Filter Event Kind"
   }
 }
