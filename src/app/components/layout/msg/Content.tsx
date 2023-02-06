@@ -1,9 +1,9 @@
 import { Grid } from '@mui/material';
 import { useTimeSince } from 'hooks/useTimeSince';
 import React, { useRef, useState } from 'react';
-import { PublicKey } from 'service/api';
 import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
+import { Avatar } from './Avatar';
 
 export interface ContentProps {
   text: string;
@@ -65,10 +65,9 @@ export function ArticleShareContent({
       >
         <Grid container>
           <Grid item xs={12} style={{ display: 'flex', alignItems: 'center' }}>
-            <img
+            <Avatar
+              picture={avatar}
               style={{ width: '40px', height: '40px', marginRight: '10px' }}
-              src={avatar}
-              alt="avatar"
             />
             <span>
               {title} - {blogName}
