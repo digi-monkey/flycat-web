@@ -495,13 +495,19 @@ export const ProfileEditPanel = ({
             width: '500px',
             maxWidth: '100%',
             height: 'auto',
+            maxHeight: '80%',
+            overflowY: 'scroll',
             boxShadow: '0px 0px 10px #ccc',
             borderRadius: '5px',
             textAlign: 'center',
           }}
         >
           <div style={{ textAlign: 'left' }}>
-            <h2>{t('profileEditPanel.title')}</h2>
+            <div
+              style={{ fontSize: '24px', color: 'black', fontWeight: '500' }}
+            >
+              {t('profileEditPanel.title')}
+            </div>
             <form onSubmit={handleSubmit}>
               <Div>
                 <label htmlFor="name">
