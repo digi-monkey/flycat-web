@@ -14,7 +14,7 @@
     "menu": {
       "home": "首页",
       "profile": "我的空间",
-      "blog": "公众号",
+      "blog": "博客",
       "blogDashboard": "写作",
       "github": "开源",
       "globalFeed": "随便看看",
@@ -64,14 +64,14 @@
     "hisNoteMsg": "ta的消息"
   },
   "UserHeader": {
-    "hisBlog": "ta的公众号"
+    "hisBlog": "ta的博客"
   },
   "UserBlogHeader": {
     "toFollow": "关注ta",
     "toUnFollow": "取消关注",
     "noUserName": "用户",
-    "hisBlog": "的公众号",
-    "noBlog": "还没有公众号"
+    "hisBlog": "的博客",
+    "noBlog": "还没有博客"
   },
   "relayManager": {
     "title": "连接器"
@@ -98,7 +98,7 @@
   "thread": {
     "title": "交谈消息",
     "noArticleShareTitle": "未知标题",
-    "noBlogShareName": "未知公众号"
+    "noBlogShareName": "未知博客"
   },
   "blog": {
     "edit": "修改",
@@ -118,10 +118,10 @@
     "cancel": "取消"
   },
   "siteMeta": {
-    "noBlog": "这个用户还没有创建公众号",
-    "createNewBlog": "创建一个新公众号",
-    "namePlaceHolder": "公众号名称",
-    "aboutPlaceHolder": "公众号介绍描述",
+    "noBlog": "这个用户还没有创建博客",
+    "createNewBlog": "创建一个新博客",
+    "namePlaceHolder": "博客名称",
+    "aboutPlaceHolder": "博客介绍描述",
     "submit": "创建"
   },
   "articleRead": {
@@ -139,7 +139,7 @@
     "exit": "好的"
   },
   "blogFeed": {
-    "title": "公众号文章",
+    "title": "博客文章",
     "noPostYet": "还没有文章..",
     "followHint": "你写的和关注的人的文章会出现在这里",
     "globalFeed": "随便看看其他人的文章"
