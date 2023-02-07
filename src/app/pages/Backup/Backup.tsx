@@ -43,10 +43,15 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   // todo: maybe let user specific a local backup relay
   const isLocalRelayTips =
     params.get('local') === 'true' &&
-    relays.filter(r => r.startsWith('ws://localhost:')).length === 0;
+    relays.filter(
+      r => r.startsWith('ws://localhost:') || r.startsWith('wss://localhost:'),
+    ).length === 0;
   const localRelay =
     params.get('local') === 'true'
-      ? relays.filter(r => r.startsWith('ws://localhost:'))[0]
+      ? relays.filter(
+          r =>
+            r.startsWith('ws://localhost:') || r.startsWith('wss://localhost:'),
+        )[0]
       : undefined;
   const relayUrl = localRelay || params.get('relay');
 
