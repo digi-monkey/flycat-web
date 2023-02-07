@@ -88,7 +88,12 @@ export function Article(props: ArticleProps) {
 
   return (
     <div>
-      <a href="#" onClick={onClickArticle}>
+      <a
+        href={'/article/' + publicKey + '/' + article.id}
+        target="_blank"
+        rel="noreferrer"
+        //onClick={onClickArticle}
+      >
         {article.title}
       </a>
 
@@ -96,14 +101,6 @@ export function Article(props: ArticleProps) {
         <span style={{ float: 'right' as const }}>
           <a href="#" onClick={() => seUpdateModalIsOpen(true)}>
             {t('blog.edit')}
-          </a>
-          &nbsp;
-          <a
-            href={'/article/' + publicKey + '/' + article.id}
-            target="_blank"
-            rel="noreferrer"
-          >
-            🔗
           </a>
           &nbsp;
         </span>
