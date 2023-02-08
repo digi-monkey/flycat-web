@@ -2,6 +2,7 @@ import { newSubId, randomSubId, SubscriptionId, WsApi } from 'service/api';
 import { defaultRelays } from 'service/relay';
 import { WorkerEventEmitter } from './bus';
 import {
+  CallRelayType,
   FromWorkerMessageData,
   FromWorkerMessageType,
   ToWorkerMessageData,
@@ -113,6 +114,8 @@ export class Pool {
       ToWorkerMessageType.CALL_API,
       (message: ToWorkerMessageData) => {
         const portId = message.portId;
+        const callRelayType = message.callRelayType;
+        const urls = message.callRelayUrls;
         const callMethod = message.callMethod;
         const callData = message.callData || [];
         if (callMethod == null) {
@@ -121,7 +124,30 @@ export class Pool {
         }
 
         this.wsApiList
-          .filter(ws => ws.isConnected())
+          .filter(ws => {
+            switch (callRelayType) {
+              case CallRelayType.all:
+                return true;
+
+              case CallRelayType.connected:
+                return ws.isConnected();
+
+              case CallRelayType.batch:
+                if (urls == null)
+                  throw new Error('null callRelayUrls for CallRelayType.batch');
+                return urls.includes(ws.url());
+
+              case CallRelayType.single:
+                if (urls == null || urls.length != 1)
+                  throw new Error(
+                    'callRelayUrls.length != 1 or is null for CallRelayType.single',
+                  );
+                return urls[0] === ws.url();
+
+              default:
+                return ws.isConnected();
+            }
+          })
           .map(ws => {
             const method = ws[callMethod];
             if (typeof method === 'function') {
@@ -207,10 +233,16 @@ export const callApi = (
   callMethod: string,
   callData: any[],
   portId: number,
+  callRelay?: {
+    type?: CallRelayType;
+    data?: string[];
+  },
 ) => {
   const msg: ToWorkerMessageData = {
     callMethod,
     callData,
+    callRelayType: callRelay?.type,
+    callRelayUrls: callRelay?.data,
     portId,
   };
   workerEventEmitter.emit(ToWorkerMessageType.CALL_API, msg);

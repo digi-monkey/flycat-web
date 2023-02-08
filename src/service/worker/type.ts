@@ -1,5 +1,13 @@
 export type WsConnectStatus = Map<string, boolean>;
 
+// specify which relay to execute the operation
+export enum CallRelayType {
+  all, // all relays
+  connected, // only connected relays -> default
+  single, // single specific relay
+  batch, // multiple specific relays in an array
+}
+
 export enum ToWorkerMessageType {
   ADD_RELAY_URL = 'addRelayUrl',
   PULL_RELAY_STATUS = 'pullRelayStatus',
@@ -10,8 +18,13 @@ export enum ToWorkerMessageType {
 
 export interface ToWorkerMessageData {
   urls?: string[];
+
+  // call api
   callMethod?: string;
   callData?: any[];
+  callRelayType?: CallRelayType;
+  callRelayUrls?: string[];
+
   portId: number;
 }
 
