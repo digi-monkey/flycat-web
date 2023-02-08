@@ -1,13 +1,20 @@
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
-import RelayManager from 'app/components/layout/relay/RelayManager';
-import React, { useEffect, useState } from 'react';
+import RelayManager, {
+  WsConnectStatus,
+} from 'app/components/layout/relay/RelayManager';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { WellKnownEventKind } from 'service/api';
-import { FlycatWellKnownEventKind } from 'service/flycat-protocol';
-import { isValidWssUrl } from 'service/helper';
+import {
+  EventSubResponse,
+  isEventSubResponse,
+  WellKnownEventKind,
+} from 'service/api';
+import { compareMaps, isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
+import { CallWorker } from 'service/worker/callWorker';
+import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
 import EventData from './EventData';
 import SimpleSelect from './Select';
 import { BPEvent } from './type';
@@ -55,6 +62,16 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
       : undefined;
   const relayUrl = localRelay || params.get('relay');
 
+  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
+    new Map(),
+  );
+  const relayStatusCacheValue = useMemo(() => {
+    if (relayUrl) {
+      return wsConnectStatus.get(relayUrl);
+    }
+  }, [wsConnectStatus]);
+
+  const [worker, setWorker] = useState<CallWorker>();
   const [events, setEvents] = useState<BPEvent[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isValidRelay, setIsValidRelay] = useState(false);
@@ -65,86 +82,82 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   const eventsToRenderLimit = 300;
 
   useEffect(() => {
-    if (!isValidRelay) return;
-    if (!isLoggedIn) return;
-
-    //todo: maybe use the shared worker ws too
-    // Create websocket connection
-    const socket = new WebSocket(relayUrl!);
-
-    // Generate a random subscription ID
-    const subscriptionID =
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
-
-    // Handle websocket connection open event
-    socket.onopen = () => {
-      setIsConnected(true);
-      // Reset events array to clear previous events
-      setEvents([]);
-      // Request latest 100 events
-      socket.send(
-        JSON.stringify([
-          'REQ',
-          subscriptionID,
-          { authors: [myPublicKey], limit: 1000 },
-        ]),
-      );
-    };
-
-    // Handle websocket message event
-    socket.onmessage = message => {
-      // Parse the message data
-      const data = JSON.parse(message.data);
-
-      if (!data.length) {
-        console.error('Error: No data length', data);
-        return;
-      }
-
-      // Check if data is End of Stored Events Notice
-      // https://github.com/nostr-protocol/nips/blob/master/15.md
-      if (data[0] === 'EOSE') {
-        setHasFetchedAllEvents(true);
-        return;
-      }
-
-      // If the data is of type EVENT
-      if (data[0] === 'EVENT') {
-        // Add the event to the events array
-        setEvents(prevEvents => {
-          // Extract the relevant data from the event
-          const { id, kind, created_at, content } = data[2];
-          if (prevEvents.map(e => e.id).includes(id)) {
-            // duplicated
-            return prevEvents;
+    const worker = new CallWorker(
+      (message: FromWorkerMessageData) => {
+        if (message.wsConnectStatus) {
+          if (compareMaps(wsConnectStatus, message.wsConnectStatus)) {
+            // no changed
+            console.debug('[wsConnectStatus] same, not updating');
+            return;
           }
 
-          return [{ id, kind, created_at, content }, ...prevEvents];
-        });
-      }
-    };
+          const data = Array.from(message.wsConnectStatus.entries());
+          setWsConnectStatus(prev => {
+            const newMap = new Map(prev);
+            for (const d of data) {
+              const relayUrl = d[0];
+              const isConnected = d[1];
+              if (
+                newMap.get(relayUrl) &&
+                newMap.get(relayUrl) === isConnected
+              ) {
+                continue; // no changed
+              }
 
-    // Handle websocket error
-    socket.onerror = () => {
-      setIsConnected(false);
-    };
+              newMap.set(relayUrl, isConnected);
+            }
 
-    // Handle websocket close
-    socket.onclose = () => {
-      setIsConnected(false);
-    };
+            return newMap;
+          });
+        }
+      },
+      (message: FromWorkerMessageData) => {
+        onMsgHandler.bind(Backup)(message.nostrData);
+      },
+    );
+    worker.pullWsConnectStatus();
+    setWorker(worker);
+  }, []);
 
-    // Cleanup function to run on component unmount
-    return () => {
-      // Check if the websocket is open
-      if (socket.readyState === WebSocket.OPEN) {
-        // Stop previous subscription and close the websocket
-        socket.send(JSON.stringify(['CLOSE', subscriptionID]));
-        socket.close();
-      }
-    };
-  }, [isValidRelay, isLoggedIn]);
+  function onMsgHandler(data: any) {
+    const msg = JSON.parse(data);
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
+      // Add the event to the events array
+      setEvents(prevEvents => {
+        // Extract the relevant data from the event
+        const { id, kind, created_at, content } = event;
+        if (prevEvents.map(e => e.id).includes(id)) {
+          // duplicated
+          return prevEvents;
+        }
+
+        return [{ id, kind, created_at, content }, ...prevEvents];
+      });
+    }
+  }
+
+  useEffect(() => {
+    if (!isValidRelay) return;
+    if (!isLoggedIn) return;
+    if (!relayUrl) return;
+    if (relayStatusCacheValue !== true) return;
+
+    const filter = { authors: [myPublicKey], limit: 1000 };
+    worker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.single,
+      data: [relayUrl!],
+    });
+  }, [isValidRelay, isLoggedIn, worker, relayStatusCacheValue]);
+
+  useEffect(() => {
+    if (!relayUrl) return;
+
+    if (wsConnectStatus.get(relayUrl) == null) return;
+
+    const isConnected: boolean = wsConnectStatus.get(relayUrl)!;
+    setIsConnected(isConnected);
+  }, [wsConnectStatus, relayUrl]);
 
   useEffect(() => {
     const isValid = relayUrl != null && isValidWssUrl(relayUrl);
@@ -210,7 +223,7 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
               <span style={styles.label}>{t('backup.filter')}</span>
               <SimpleSelect options={allEventKinds} callBack={setFilterKind} />
               <EventData
-                loading={!hasFetchedAllEvents}
+                loading={hasFetchedAllEvents} // todo: fix it to use !hasFetchedAllEvents
                 events={events}
                 eventsToRenderLimit={eventsToRenderLimit}
                 filterKind={filterKind}

@@ -46,7 +46,10 @@ self.onconnect = (evt: MessageEvent) => {
 
       case ToWorkerMessageType.CALL_API:
         //console.log('CALL_API', data.callMethod!, data.callData!);
-        callApi(data.callMethod!, data.callData!, data.portId);
+        callApi(data.callMethod!, data.callData!, data.portId, {
+          type: data.callRelayType,
+          data: data.callRelayUrls,
+        });
         break;
 
       case ToWorkerMessageType.DISCONNECT:

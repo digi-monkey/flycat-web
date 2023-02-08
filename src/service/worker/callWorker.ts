@@ -6,6 +6,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import {
+  CallRelayType,
   FromPostMsg,
   FromWorkerMessageData,
   FromWorkerMessageType,
@@ -177,11 +178,18 @@ export class CallWorker {
     return this.call(msg);
   }
 
-  subFilter(filter: Filter, keepAlive?: boolean, customId?: string) {
+  subFilter(
+    filter: Filter,
+    keepAlive?: boolean,
+    customId?: string,
+    callRelay?: { type: CallRelayType; data: string[] },
+  ) {
     const data: ToWorkerMessageData = {
       portId: this.portId,
       callMethod: 'subFilter',
       callData: [filter, keepAlive, customId],
+      callRelayType: callRelay?.type,
+      callRelayUrls: callRelay?.data,
     };
     const msg: ToPostMsg = {
       type: ToWorkerMessageType.CALL_API,
