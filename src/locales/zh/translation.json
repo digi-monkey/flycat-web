@@ -178,6 +178,9 @@
     "connecting": "正在连接..",
     "totalCount": "总数据条数",
     "items": " 条",
-    "filter": "过滤 Event 类型"
+    "filter": "过滤 Event 类型",
+    "itemsOnOtherRelay": " 条在其他 relay 上",
+    "fetch": "请求数据",
+    "syncToBackUp": "同步到私人备份"
   }
 }

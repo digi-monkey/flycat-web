@@ -295,10 +295,12 @@ export class CallWorker {
     return this.subFilter(filter, keepAlive, customId);
   }
 
-  pubEvent(event: Event) {
+  pubEvent(event: Event, callRelay?: { type: CallRelayType; data: string[] }) {
     const data: ToWorkerMessageData = {
       portId: this.portId,
       callMethod: 'pubEvent',
+      callRelayType: callRelay?.type,
+      callRelayUrls: callRelay?.data,
       callData: [event],
     };
     const msg: ToPostMsg = {
