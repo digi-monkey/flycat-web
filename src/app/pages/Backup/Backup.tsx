@@ -97,6 +97,10 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   // Total events we want to render in the activity list
   const eventsToRenderLimit = 300;
 
+  const isPrivateBackup =
+    relayUrl?.startsWith('ws://localhost') ||
+    relayUrl?.startsWith('wss://localhost');
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
@@ -228,7 +232,12 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
       return;
     }
 
-    for (const event of syncEvents) {
+    const backupIds = Array.from(events).map(s => s.id);
+    const diffEvents = syncEvents.filter(
+      targetEvent => !backupIds.includes(targetEvent.id),
+    );
+    for (const event of diffEvents) {
+      // only send the diff
       worker?.pubEvent(event, {
         type: CallRelayType.single,
         data: [relayUrl!],
@@ -238,7 +247,8 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
     fetchBackUp();
 
     alert(
-      "backup sent! please check your private relay's log if the you think the backup is still behind other relays",
+      diffEvents.length +
+        " events sent! please check your private relay's log if the you think the backup is still behind other relays",
     );
   };
 
@@ -294,16 +304,18 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
                   {t('backup.items')}
                 </span>
               </span>
-              <div style={{ marginBottom: '10px' }}>
-                <span style={{ color: 'gray', fontSize: '12px' }}>
-                  <span style={{ color: 'black' }}>{syncEvents.length}</span>
-                  {t('backup.itemsOnOtherRelay')}
-                </span>
-                <LightBtn onClick={sync}>{t('backup.fetch')}</LightBtn>
-                <LightBtn onClick={backupSync}>
-                  {t('backup.syncToBackUp')}
-                </LightBtn>
-              </div>
+              {isPrivateBackup && (
+                <div style={{ marginBottom: '10px' }}>
+                  <span style={{ color: 'gray', fontSize: '12px' }}>
+                    <span style={{ color: 'black' }}>{syncEvents.length}</span>
+                    {t('backup.itemsOnOtherRelay')}
+                  </span>
+                  <LightBtn onClick={sync}>{t('backup.fetch')}</LightBtn>
+                  <LightBtn onClick={backupSync}>
+                    {t('backup.syncToBackUp')}
+                  </LightBtn>
+                </div>
+              )}
               <ThinHr />
             </div>
 
