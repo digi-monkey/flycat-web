@@ -1,5 +1,10 @@
 export type WsConnectStatus = Map<string, boolean>;
 
+export interface CallRelay {
+  type: CallRelayType;
+  data: string[];
+}
+
 // specify which relay to execute the operation
 export enum CallRelayType {
   all, // all relays

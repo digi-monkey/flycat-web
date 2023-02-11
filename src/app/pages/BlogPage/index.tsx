@@ -33,7 +33,7 @@ import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
 import { ArticleMsg } from 'app/components/layout/msg/ArticleMsg';
-import { compareMaps } from 'service/helper';
+import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 // don't move to useState inside components
@@ -299,7 +299,7 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

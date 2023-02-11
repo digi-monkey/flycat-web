@@ -12,7 +12,7 @@ import {
   WellKnownEventKind,
   Event,
 } from 'service/api';
-import { compareMaps, isValidWssUrl } from 'service/helper';
+import { equalMaps, isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
@@ -101,7 +101,7 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(wsConnectStatus, message.wsConnectStatus)) {
+          if (equalMaps(wsConnectStatus, message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

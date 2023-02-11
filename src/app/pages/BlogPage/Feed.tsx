@@ -28,7 +28,7 @@ import {
   validateArticlePageKind,
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
-import { compareMaps, shortPublicKey } from 'service/helper';
+import { equalMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
@@ -204,7 +204,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

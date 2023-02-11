@@ -27,7 +27,7 @@ import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { TextMsg } from 'app/components/layout/msg/TextMsg';
 import { ShareMsg } from 'app/components/layout/msg/ShareMsg';
 import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
-import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
+import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
@@ -196,7 +196,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

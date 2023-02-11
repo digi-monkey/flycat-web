@@ -28,7 +28,7 @@ import { ShareArticle } from 'app/components/layout/msg/Share';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { CopyText } from 'app/components/layout/util/CopyText';
-import { compareMaps } from 'service/helper';
+import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 
 const styles = {
@@ -272,7 +272,7 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

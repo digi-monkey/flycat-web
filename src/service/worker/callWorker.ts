@@ -6,6 +6,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import {
+  CallRelay,
   CallRelayType,
   FromPostMsg,
   FromWorkerMessageData,
@@ -198,14 +199,19 @@ export class CallWorker {
     return this.call(msg);
   }
 
-  subMsg(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+  subMsg(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+    callRelay?: CallRelay,
+  ) {
     const filter: Filter = {
       authors: pks,
       limit: 50,
       kinds: [WellKnownEventKind.text_note],
     };
 
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subMsgByEventIds(
@@ -229,13 +235,18 @@ export class CallWorker {
     return this.subFilter(filter, keepAlive, customId);
   }
 
-  subMetadata(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+  subMetadata(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+    callRelay?: { type: CallRelayType; data: string[] },
+  ) {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.set_metadata],
       limit: pks.length,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subContactList(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
