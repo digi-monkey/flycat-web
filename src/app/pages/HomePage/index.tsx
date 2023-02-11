@@ -176,16 +176,19 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
   const [lastWsConnectStatus, setLastWsConnectStatus] =
     useState<WsConnectStatus>(new Map());
+  const [newConn, setNewConn] = useState<string[]>([]);
 
   const maxMsgLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
+
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
   const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
   });
+
   const [worker, setWorker] = useState<CallWorker>();
 
   // use in listener to get runtime updated value
@@ -397,31 +400,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       false,
       'userMetaAndContact',
     );
-  }, [myPublicKey, wsConnectStatus]);
-
-  useEffect(() => {
-    if (myContactEvent == null) return;
-
-    const contacts = myContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(myContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setMyContactList(cList);
-  }, [myContactEvent]);
+  }, [myPublicKey, newConn]);
 
   useEffect(() => {
     if (equalMaps(lastWsConnectStatus, wsConnectStatus)) {
@@ -448,7 +427,34 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       })
       .filter(s => s != null) as string[];
     setLastWsConnectStatus(wsConnectStatus);
+    setNewConn(newConn);
+  }, [wsConnectStatus]);
 
+  useEffect(() => {
+    if (myContactEvent == null) return;
+
+    const contacts = myContactEvent.tags.filter(
+      t => t[0] === EventTags.P,
+    ) as EventContactListPTag[];
+
+    let cList: ContactList = new Map(myContactList);
+
+    contacts.forEach(c => {
+      const pk = c[1];
+      const relayer = c[2];
+      const name = c[3];
+      if (!cList.has(pk)) {
+        cList.set(pk, {
+          relayer,
+          name,
+        });
+      }
+    });
+
+    setMyContactList(cList);
+  }, [myContactEvent]);
+
+  useEffect(() => {
     const pks = Array.from(myContactList.keys());
     // subscribe myself msg too
     if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
@@ -456,7 +462,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
 
     if (pks.length > 0 && newConn.length > 0) {
-      console.log('sub..', newConn);
       worker?.subMetadata(pks, false, 'homeMetadata', {
         type: CallRelayType.batch,
         data: newConn,
@@ -467,18 +472,22 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       });
       //worker?.subMsgAndMetaData(pks, true, 'homeMsgAndMetadata');
     }
-  }, [myContactList.size, wsConnectStatus]);
+  }, [myContactList.size, newConn]);
 
   useEffect(() => {
     if (isLoggedIn) return;
+    if (newConn.length === 0) return;
 
     // global feed
     const filter: Filter = {
       kinds: [WellKnownEventKind.text_note],
       limit: 50,
     };
-    worker?.subFilter(filter);
-  }, [isLoggedIn, wsConnectStatus]);
+    worker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [isLoggedIn, newConn]);
 
   const onSubmitText = async (text: string) => {
     if (myKeyPair.privateKey === '') {
