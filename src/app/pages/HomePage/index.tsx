@@ -21,8 +21,8 @@ import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
-import { FromWorkerMessageData } from 'service/worker/type';
-import { compareMaps } from 'service/helper';
+import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
+import { equalMaps } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
@@ -31,13 +31,6 @@ import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
 import { Msgs } from 'app/components/layout/msg/Msg';
-import { BlogMsg } from 'app/components/layout/msg/TextMsg';
-import { ShareArticle } from 'app/components/layout/msg/Share';
-import {
-  ArticleContentNoAvatar,
-  ArticleShareContent,
-  ArticleTrendsItem,
-} from 'app/components/layout/msg/Content';
 import { TopArticle } from 'app/components/layout/TopArticle';
 
 // don't move to useState inside components
@@ -181,15 +174,21 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const [lastWsConnectStatus, setLastWsConnectStatus] =
+    useState<WsConnectStatus>(new Map());
+  const [newConn, setNewConn] = useState<string[]>([]);
 
+  const maxMsgLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
+
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
   const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
   });
+
   const [worker, setWorker] = useState<CallWorker>();
 
   // use in listener to get runtime updated value
@@ -201,7 +200,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;
@@ -307,13 +306,25 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           }
 
           setMsgList(oldArray => {
+            if (
+              oldArray.length > maxMsgLength &&
+              oldArray[oldArray.length - 1].created_at > event.created_at
+            ) {
+              return oldArray;
+            }
+
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
+
               const newItems = [...oldArray, event];
               // sort by timestamp
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
               );
+              // cut to max size
+              if (sortedItems.length > maxMsgLength) {
+                return sortedItems.slice(0, maxMsgLength + 1);
+              }
               return sortedItems;
             }
             return oldArray;
@@ -389,7 +400,35 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       false,
       'userMetaAndContact',
     );
-  }, [myPublicKey, wsConnectStatus]);
+  }, [myPublicKey, newConn]);
+
+  useEffect(() => {
+    if (equalMaps(lastWsConnectStatus, wsConnectStatus)) {
+      return;
+    }
+
+    const newConn: string[] = Array.from(wsConnectStatus)
+      .map(cur => {
+        const url = cur[0];
+        const isConnected = cur[1];
+        if (
+          lastWsConnectStatus.get(url) &&
+          lastWsConnectStatus.get(url) === false &&
+          isConnected === true
+        ) {
+          return url;
+        }
+
+        if (!lastWsConnectStatus.get(url) && isConnected) {
+          return url;
+        }
+
+        return null;
+      })
+      .filter(s => s != null) as string[];
+    setLastWsConnectStatus(wsConnectStatus);
+    setNewConn(newConn);
+  }, [wsConnectStatus]);
 
   useEffect(() => {
     if (myContactEvent == null) return;
@@ -417,27 +456,38 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     const pks = Array.from(myContactList.keys());
-    // subscibe myself msg too
+    // subscribe myself msg too
     if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
-    if (pks.length > 0) {
-      worker?.subMetadata(pks, false, 'homeMetadata');
-      worker?.subMsg(pks, true, 'homeMsg');
+    if (pks.length > 0 && newConn.length > 0) {
+      worker?.subMetadata(pks, false, 'homeMetadata', {
+        type: CallRelayType.batch,
+        data: newConn,
+      });
+      worker?.subMsg(pks, true, 'homeMsg', {
+        type: CallRelayType.batch,
+        data: newConn,
+      });
       //worker?.subMsgAndMetaData(pks, true, 'homeMsgAndMetadata');
     }
-  }, [myContactList.size]);
+  }, [myContactList.size, newConn]);
 
   useEffect(() => {
     if (isLoggedIn) return;
+    if (newConn.length === 0) return;
 
+    // global feed
     const filter: Filter = {
       kinds: [WellKnownEventKind.text_note],
       limit: 50,
     };
-    worker?.subFilter(filter);
-  }, [isLoggedIn, wsConnectStatus]);
+    worker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [isLoggedIn, newConn]);
 
   const onSubmitText = async (text: string) => {
     if (myKeyPair.privateKey === '') {
@@ -519,6 +569,9 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
           <TopArticle userMap={userMap} />
         </>
+        <div style={{ display: 'none' }}>
+          <RelayManager />
+        </div>
       </Right>
     </BaseLayout>
   );

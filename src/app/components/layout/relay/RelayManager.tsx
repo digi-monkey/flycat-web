@@ -1,9 +1,9 @@
 import { Grid } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { RelayUrl } from 'service/api';
-import { compareMaps } from 'service/helper';
+import { equalMaps } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData } from 'service/worker/type';
@@ -59,6 +59,8 @@ export interface RelayManagerProps {
   myPublicKey;
   myCustomRelay: RelayStoreType;
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
+  newConnCallback?: (conns: string[]) => any;
+  newDisConnCallback?: (disConns: string[]) => any;
 }
 
 export function RelayManager({
@@ -66,12 +68,47 @@ export function RelayManager({
   myPublicKey,
   myCustomRelay,
   wsStatusCallback,
+  newConnCallback,
 }: RelayManagerProps) {
   const { t } = useTranslation();
   const [relays, setRelays] = useState<string[]>([]);
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const [newConn, setNewConn] = useState<string[]>([]);
+  const [newDisConn, setNewDisConn] = useState<string[]>([]);
+
+  // new connection diff
+  useEffect(() => {
+    const conns = Array.from(wsConnectStatus)
+      .filter(s => s[1] === true)
+      .map(s => s[0]);
+    const newConnAdd: string[] = [];
+    const newConnDelete: string[] = [];
+    for (const c of conns) {
+      if (!newConn.includes(c)) {
+        newConnAdd.push(c);
+      }
+      if (wsConnectStatus.get(c) === false && newConn.includes(c)) {
+        newConnDelete.push(c);
+      }
+      if (newConn.includes(c) && !newConnDelete.includes(c)) {
+        newConnDelete.push(c);
+      }
+    }
+
+    setNewConn(prev => {
+      let arr = prev;
+      arr = arr.concat(newConnAdd);
+      return arr.filter(s => !newConnDelete.includes(s));
+    });
+  }, [wsConnectStatus]);
+
+  useEffect(() => {
+    if (newConnCallback) {
+      newConnCallback(newConn);
+    }
+  }, [newConn]);
 
   const [worker, setWorker] = useState<CallWorker>();
 
@@ -88,7 +125,7 @@ export function RelayManager({
   useEffect(() => {
     const worker = new CallWorker((message: FromWorkerMessageData) => {
       if (message.wsConnectStatus) {
-        if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+        if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
           // no changed
           console.debug('[wsConnectStatus] same, not updating');
           return;

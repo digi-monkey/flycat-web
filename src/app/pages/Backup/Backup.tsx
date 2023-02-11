@@ -10,11 +10,13 @@ import {
   EventSubResponse,
   isEventSubResponse,
   WellKnownEventKind,
+  Event,
 } from 'service/api';
-import { compareMaps, isValidWssUrl } from 'service/helper';
+import { equalMaps, isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
+import styled from 'styled-components';
 import EventData from './EventData';
 import SimpleSelect from './Select';
 import { BPEvent } from './type';
@@ -35,6 +37,18 @@ const mapStateToProps = state => {
 const allEventKinds = Object.values(WellKnownEventKind).filter(k =>
   Number.isInteger(k),
 );
+
+const LightBtn = styled.button`
+  border: none;
+  color: white;
+  background: rgb(141, 197, 63);
+  margin-left: 10px;
+  :hover {
+    color: black;
+    background: white;
+    border: 1px solid rgb(141, 197, 63);
+  }
+`;
 
 export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   const { t } = useTranslation();
@@ -72,7 +86,9 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   }, [wsConnectStatus]);
 
   const [worker, setWorker] = useState<CallWorker>();
+  const [syncWorker, setSyncWorker] = useState<CallWorker>();
   const [events, setEvents] = useState<BPEvent[]>([]);
+  const [syncEvents, setSyncEvents] = useState<Event[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isValidRelay, setIsValidRelay] = useState(false);
   const [hasFetchedAllEvents, setHasFetchedAllEvents] = useState(false);
@@ -81,11 +97,15 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   // Total events we want to render in the activity list
   const eventsToRenderLimit = 300;
 
+  const isPrivateBackup =
+    relayUrl?.startsWith('ws://localhost') ||
+    relayUrl?.startsWith('wss://localhost');
+
   useEffect(() => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(wsConnectStatus, message.wsConnectStatus)) {
+          if (equalMaps(wsConnectStatus, message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;
@@ -117,6 +137,15 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
     );
     worker.pullWsConnectStatus();
     setWorker(worker);
+
+    // todo: rm this after set relay id in message.
+    const syncWorker = new CallWorker(
+      (message: FromWorkerMessageData) => {},
+      (message: FromWorkerMessageData) => {
+        onSyncMsgHandler.bind(Backup)(message.nostrData);
+      },
+    );
+    setSyncWorker(syncWorker);
   }, []);
 
   function onMsgHandler(data: any) {
@@ -137,17 +166,29 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
     }
   }
 
+  function onSyncMsgHandler(data: any) {
+    const msg = JSON.parse(data);
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
+
+      // Add the event to the sync events array
+      setSyncEvents(prevEvents => {
+        if (prevEvents.map(e => e.id).includes(event.id)) {
+          // duplicated
+          return prevEvents;
+        }
+        return [event, ...prevEvents];
+      });
+    }
+  }
+
   useEffect(() => {
     if (!isValidRelay) return;
     if (!isLoggedIn) return;
     if (!relayUrl) return;
     if (relayStatusCacheValue !== true) return;
 
-    const filter = { authors: [myPublicKey], limit: 1000 };
-    worker?.subFilter(filter, undefined, undefined, {
-      type: CallRelayType.single,
-      data: [relayUrl!],
-    });
+    fetchBackUp();
   }, [isValidRelay, isLoggedIn, worker, relayStatusCacheValue]);
 
   useEffect(() => {
@@ -163,6 +204,53 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
     const isValid = relayUrl != null && isValidWssUrl(relayUrl);
     setIsValidRelay(isValid);
   }, []);
+
+  const fetchBackUp = async () => {
+    const filter = { authors: [myPublicKey], limit: 1000 };
+    worker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.single,
+      data: [relayUrl!],
+    });
+  };
+
+  const sync = async () => {
+    const filter = { authors: [myPublicKey], limit: 1000 };
+    syncWorker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.batch,
+      data: Array.from(wsConnectStatus.keys()).filter(s => s !== relayUrl),
+    });
+  };
+
+  const backupSync = async () => {
+    if (
+      !relayUrl?.startsWith('ws://localhost') &&
+      !relayUrl?.startsWith('wss://localhost')
+    ) {
+      alert(
+        `unable to backup to public relay! \nThis might highly got banned from the service! \nNow we only support for private relay(ws://localhost)`,
+      );
+      return;
+    }
+
+    const backupIds = Array.from(events).map(s => s.id);
+    const diffEvents = syncEvents.filter(
+      targetEvent => !backupIds.includes(targetEvent.id),
+    );
+    for (const event of diffEvents) {
+      // only send the diff
+      worker?.pubEvent(event, {
+        type: CallRelayType.single,
+        data: [relayUrl!],
+      });
+    }
+
+    fetchBackUp();
+
+    alert(
+      diffEvents.length +
+        " events sent! please check your private relay's log if the you think the backup is still behind other relays",
+    );
+  };
 
   return (
     <BaseLayout>
@@ -216,6 +304,18 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
                   {t('backup.items')}
                 </span>
               </span>
+              {isPrivateBackup && (
+                <div style={{ marginBottom: '10px' }}>
+                  <span style={{ color: 'gray', fontSize: '12px' }}>
+                    <span style={{ color: 'black' }}>{syncEvents.length}</span>
+                    {t('backup.itemsOnOtherRelay')}
+                  </span>
+                  <LightBtn onClick={sync}>{t('backup.fetch')}</LightBtn>
+                  <LightBtn onClick={backupSync}>
+                    {t('backup.syncToBackUp')}
+                  </LightBtn>
+                </div>
+              )}
               <ThinHr />
             </div>
 

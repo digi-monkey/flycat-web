@@ -23,7 +23,7 @@ import RelayManager, {
 import { useParams } from 'react-router-dom';
 import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
-import { compareMaps, getPkFromFlycatShareHeader } from 'service/helper';
+import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
@@ -223,7 +223,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     const worker = new CallWorker(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
-          if (compareMaps(_wsConnectStatus(), message.wsConnectStatus)) {
+          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
             // no changed
             console.debug('[wsConnectStatus] same, not updating');
             return;

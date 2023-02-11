@@ -119,7 +119,7 @@ export const shortPublicKey = (key: PublicKey | undefined) => {
   }
 };
 
-export function compareMaps(map1: Map<string, any>, map2: Map<string, any>) {
+export function equalMaps(map1: Map<string, any>, map2: Map<string, any>) {
   var testVal;
   if (map1.size !== map2.size) {
     return false;

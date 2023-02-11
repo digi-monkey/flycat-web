@@ -178,6 +178,9 @@
     "connecting": "connecting",
     "totalCount": "total data count",
     "items": " items",
-    "filter": "Filter Event Kind"
+    "filter": "Filter Event Kind",
+    "itemsOnOtherRelay": " items On Other Relays",
+    "fetch": "fetch data",
+    "syncToBackUp": "sync to backup"
   }
 }
