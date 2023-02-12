@@ -1,6 +1,6 @@
 import { Grid } from '@mui/material';
 import { useTimeSince } from 'hooks/useTimeSince';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
 import { Avatar } from './Avatar';
@@ -14,11 +14,7 @@ export function Content({ text, classNames }: ContentProps) {
   const { modifiedText, imageUrls } = normalizeContent(text);
   return (
     <span className={classNames}>
-      <span
-        className={classNames}
-        style={{ whiteSpace: 'pre-line' as const }}
-        dangerouslySetInnerHTML={{ __html: modifiedText }}
-      ></span>
+      <Texting modifiedText={modifiedText} />
       <p>
         {imageUrls.length > 0 &&
           imageUrls.map((url, index) => (
@@ -234,3 +230,45 @@ export function ImagePlate({ url }: { url: string }) {
     </>
   );
 }
+
+const Texting = ({ modifiedText }: { modifiedText: string }) => {
+  const [html, setHtml] = useState<string | null>(null);
+  const [plainText, setPlainText] = useState('');
+
+  useEffect(() => {
+    // Extract all the anchor tags from modifiedText
+    const anchorTagRegex = /<a.*?>(.*?)<\/a>/g;
+    const anchorTags = modifiedText.match(anchorTagRegex);
+
+    // Remove all the anchor tags from modifiedText and set the rest of the content as plain text
+    let plainText = modifiedText;
+    if (anchorTags != null) {
+      anchorTags.forEach(tag => {
+        plainText = plainText.replace(tag, '');
+      });
+    }
+
+    // Set the anchor tags in the state
+    if (anchorTags != null) {
+      const html = anchorTags.reduce((acc, tag) => {
+        const m = tag.match(/<a.*href="(.*?)".*?>(.*?)<\/a>/);
+        if (m != null) {
+          const [, link, text] = m;
+          return acc + `<a href="${link}" target="_blank">${text}</a>`;
+        } else {
+          return acc;
+        }
+      }, '');
+
+      setHtml(html);
+    }
+    setPlainText(plainText);
+  }, [modifiedText]);
+
+  return (
+    <>
+      {plainText}
+      {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
+    </>
+  );
+};
