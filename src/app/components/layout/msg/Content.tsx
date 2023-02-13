@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
 import { Avatar } from './Avatar';
+import { VideoPreview } from './VideoPreview';
 
 export interface ContentProps {
   text: string;
@@ -11,7 +12,7 @@ export interface ContentProps {
 }
 
 export function Content({ text, classNames }: ContentProps) {
-  const { modifiedText, imageUrls } = normalizeContent(text);
+  const { modifiedText, imageUrls, videoUrls } = normalizeContent(text);
   return (
     <span className={classNames}>
       <Texting modifiedText={modifiedText} />
@@ -20,6 +21,14 @@ export function Content({ text, classNames }: ContentProps) {
           imageUrls.map((url, index) => (
             <span key={index}>
               <ImagePlate url={url} />
+            </span>
+          ))}
+      </p>
+      <p>
+        {videoUrls.length > 0 &&
+          videoUrls.map((url, index) => (
+            <span key={index}>
+              <VideoPreview url={url} />
             </span>
           ))}
       </p>

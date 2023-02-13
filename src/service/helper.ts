@@ -4,16 +4,18 @@ import { FlycatShareHeader } from './flycat-protocol';
 
 export function normalizeContent(text: string): {
   imageUrls: string[];
+  videoUrls: string[];
   modifiedText: string;
 } {
   // First, use a regular expression to find all URLs that start with "http" or "https"
   const urlRegex = /https?:\/\/\S+/g;
   const matches = text.match(urlRegex);
 
-  // Initialize the imageUrls array to an empty array
+  // Initialize the imageUrls and videoUrls arrays to empty arrays
   let imageUrls: string[] = [];
+  let videoUrls: string[] = [];
 
-  // If matches were found, filter out any URLs that do not end with a common image file extension
+  // If matches were found, filter out any URLs that end with common image or video file extensions
   if (matches) {
     const imageFileExtensions = [
       '.jpg',
@@ -21,16 +23,20 @@ export function normalizeContent(text: string): {
       '.png',
       '.gif',
       '.bmp',
-      'webp',
+      '.webp',
     ];
+    const videoFileExtensions = ['.mp4', '.mov', '.avi', '.flv', '.wmv'];
     imageUrls = matches.filter(url =>
       imageFileExtensions.some(ext => url.endsWith(ext)),
     );
+    videoUrls = matches.filter(url =>
+      videoFileExtensions.some(ext => url.endsWith(ext)),
+    );
   }
 
-  // Replace all the image URLs with an empty string
+  // Replace all the image and video URLs with an empty string
   let modifiedText = text;
-  for (const url of imageUrls) {
+  for (const url of imageUrls.concat(videoUrls)) {
     modifiedText = modifiedText.replace(url, '');
   }
 
@@ -46,7 +52,7 @@ export function normalizeContent(text: string): {
     }
   });
 
-  return { imageUrls, modifiedText };
+  return { imageUrls, videoUrls, modifiedText };
 }
 
 export function linkify(content: string): string {
