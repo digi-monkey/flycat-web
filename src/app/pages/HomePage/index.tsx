@@ -32,6 +32,7 @@ import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
 import { Msgs } from 'app/components/layout/msg/Msg';
 import { TopArticle } from 'app/components/layout/TopArticle';
+import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -188,6 +189,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     publicKey: myPublicKey,
     privateKey: myPrivateKey,
   });
+  const [discoverPks, setDiscoverPks] = useState<string[]>([]);
 
   const [worker, setWorker] = useState<CallWorker>();
 
@@ -353,6 +355,23 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             ) {
               myContactEvent = event;
             }
+          } else {
+            // discover pks(friend of friend)
+            console.log('myContactList.size: ', myContactList.size);
+            setDiscoverPks(prev => {
+              const contacts: string[] = event.tags
+                .filter(t => t[0] === EventTags.P)
+                .map(s => s[1])
+                .filter(pk => !myContactList.has(pk));
+
+              const d = prev;
+              return d.concat(contacts).reduce((acc, curr) => {
+                if (!acc.includes(curr)) {
+                  acc.push(curr);
+                }
+                return acc;
+              }, [] as string[]); //.sort(() => Math.random() - 0.5).slice(0, 30);
+            });
           }
           break;
 
@@ -475,6 +494,16 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [myContactList.size, newConn]);
 
   useEffect(() => {
+    const pks = Array.from(myContactList.keys());
+    if (pks.length > 0 && newConn.length > 0) {
+      worker?.subContactList(pks, false, 'homeFriendDiscover', {
+        type: CallRelayType.batch,
+        data: newConn,
+      });
+    }
+  }, [myContactList.size, newConn]);
+
+  useEffect(() => {
     if (isLoggedIn) return;
     if (newConn.length === 0) return;
 
@@ -568,6 +597,10 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           {!isLoggedIn && <UserRequiredLoginBox />}
 
           <TopArticle userMap={userMap} />
+          <DiscoveryFriend
+            userMap={userMap}
+            pks={discoverPks.filter(pk => !myContactList.has(pk)).slice(0, 50)}
+          />
         </>
         <div style={{ display: 'none' }}>
           <RelayManager />

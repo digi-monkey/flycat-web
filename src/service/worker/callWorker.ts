@@ -249,13 +249,18 @@ export class CallWorker {
     return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
-  subContactList(pks: PublicKey[], keepAlive?: boolean, customId?: string) {
+  subContactList(
+    pks: PublicKey[],
+    keepAlive?: boolean,
+    customId?: string,
+    callRelay?: CallRelay,
+  ) {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.contact_list],
       limit: pks.length,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subMetaDataAndContactList(

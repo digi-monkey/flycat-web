@@ -208,5 +208,5 @@ export interface RightProps {
   children: React.ReactNode;
 }
 export const Right: React.FC<RightProps> = ({ children }) => (
-  <div>{children}</div>
+  <div style={{ height: '100%', overflowY: 'scroll' }}>{children}</div>
 );
