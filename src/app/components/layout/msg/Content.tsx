@@ -170,10 +170,14 @@ export function ArticleTrendsItem({
               {title}
             </div>
             <div style={{ fontSize: '12px', color: 'gray' }}>
+              {/**
+               *  
               {author}
               {' on '}
               {blogName}
               {' · '}
+              {useTimeSince(createdAt)}
+              */}
               {useTimeSince(createdAt)}
             </div>
           </Grid>
