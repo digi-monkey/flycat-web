@@ -13,21 +13,7 @@ export const VideoPreview = ({ url, autoPreview }: VideoPreviewProps) => {
 
   return (
     <div>
-      {showPreview ? (
-        <div>
-          <video style={{ width: '100%' }} controls src={url} />
-        </div>
-      ) : (
-        <div>
-          <PlayCircleOutlinedIcon />
-          <button
-            style={{ background: 'none', border: 'none' }}
-            onClick={() => setShowPreview(true)}
-          >
-            play video
-          </button>
-        </div>
-      )}
+      <video style={{ height: '100px' }} controls src={url} />
     </div>
   );
 };

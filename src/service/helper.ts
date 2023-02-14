@@ -27,7 +27,14 @@ export function normalizeContent(text: string): {
       '.bmp',
       '.webp',
     ];
-    const videoFileExtensions = ['.mp4', '.mov', '.avi', '.flv', '.wmv'];
+    const videoFileExtensions = [
+      '.mp4',
+      '.mov',
+      '.avi',
+      '.flv',
+      '.wmv',
+      'webm',
+    ];
     const audioFileExtensions = ['.mp3', '.m4a', '.ogg', '.wav', '.flac'];
     imageUrls = matches.filter(url =>
       imageFileExtensions.some(ext => url.endsWith(ext)),
