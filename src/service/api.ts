@@ -699,7 +699,7 @@ export class WsApi {
     if (this.instantPool.has(id)) {
       this.sendCloseSub(id);
       this.instantPool.delete(id);
-      console.debug(`${this.url()} kill instant sub ${id}`);
+      //console.debug(`${this.url()} kill instant sub ${id}`);
     }
   }
 
@@ -707,7 +707,7 @@ export class WsApi {
     if (this.keepAlivePool.has(id)) {
       this.sendCloseSub(id, true);
       this.keepAlivePool.delete(id);
-      console.debug(`${this.url()} kill keep-alive sub ${id}`);
+      //console.debug(`${this.url()} kill keep-alive sub ${id}`);
     }
   }
 

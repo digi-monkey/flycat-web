@@ -33,6 +33,7 @@ import { LoginFormTip } from 'app/components/layout/NavHeader';
 import { Msgs } from 'app/components/layout/msg/Msg';
 import { TopArticle } from 'app/components/layout/TopArticle';
 import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
+import { ThinHr } from 'app/components/layout/ThinHr';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -180,6 +181,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [newConn, setNewConn] = useState<string[]>([]);
 
   const maxMsgLength = 50;
+  const maxDiscoverPkLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
 
@@ -357,20 +359,33 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             }
           } else {
             // discover pks(friend of friend)
-            console.log('myContactList.size: ', myContactList.size);
-            setDiscoverPks(prev => {
-              const contacts: string[] = event.tags
-                .filter(t => t[0] === EventTags.P)
-                .map(s => s[1])
-                .filter(pk => !myContactList.has(pk));
+            const contacts: string[] = event.tags
+              .filter(t => t[0] === EventTags.P)
+              .map(s => s[1])
+              .filter(
+                pk =>
+                  !myContactList.has(pk) &&
+                  pk != myPublicKey &&
+                  !discoverPks.includes(pk),
+              );
+            if (
+              contacts.length === 0 ||
+              discoverPks.length >= maxDiscoverPkLength
+            ) {
+              return;
+            }
 
+            setDiscoverPks(prev => {
               const d = prev;
-              return d.concat(contacts).reduce((acc, curr) => {
-                if (!acc.includes(curr)) {
-                  acc.push(curr);
-                }
-                return acc;
-              }, [] as string[]); //.sort(() => Math.random() - 0.5).slice(0, 30);
+              return d
+                .concat(contacts)
+                .reduce((acc, curr) => {
+                  if (!acc.includes(curr)) {
+                    acc.push(curr);
+                  }
+                  return acc;
+                }, [] as string[])
+                .slice(0, maxDiscoverPkLength);
             });
           }
           break;
@@ -541,6 +556,20 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     worker?.pubEvent(event);
   };
 
+  useEffect(() => {
+    if (discoverPks.length > 0 && newConn.length > 0) {
+      const metadata = discoverPks
+        .filter(c => !userMap.get(c))
+        .slice(0, maxDiscoverPkLength);
+      if (metadata.length > 0) {
+        worker?.subMetadata(metadata, false, 'home-discovery-pk-meta', {
+          type: CallRelayType.batch,
+          data: newConn,
+        });
+      }
+    }
+  }, [newConn]);
+
   return (
     <BaseLayout>
       <Left>
@@ -579,27 +608,40 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       </Left>
       <Right>
         <>
-          {isLoggedIn && (
-            <UserBox
-              pk={myPublicKey}
-              followCount={myContactList.size}
-              avatar={userMap.get(myPublicKey)?.picture}
-              name={userMap.get(myPublicKey)?.name}
-              about={userMap.get(myPublicKey)?.about}
-              relayConnectedCount={
-                Array.from(wsConnectStatus).filter(w => w[1] === true).length
-              }
-              worker={worker}
-              profileEvent={myProfileEvent}
-              privKey={myPrivateKey}
-            />
-          )}
-          {!isLoggedIn && <UserRequiredLoginBox />}
+          <div
+            style={{
+              position: 'sticky',
+              top: '0px',
+              paddingTop: '10px',
+              background: 'white',
+              paddingBottom: '10px',
+            }}
+          >
+            {isLoggedIn && (
+              <UserBox
+                pk={myPublicKey}
+                followCount={myContactList.size}
+                avatar={userMap.get(myPublicKey)?.picture}
+                name={userMap.get(myPublicKey)?.name}
+                about={userMap.get(myPublicKey)?.about}
+                relayConnectedCount={
+                  Array.from(wsConnectStatus).filter(w => w[1] === true).length
+                }
+                worker={worker}
+                profileEvent={myProfileEvent}
+                privKey={myPrivateKey}
+              />
+            )}
+            {!isLoggedIn && <UserRequiredLoginBox />}
+          </div>
 
           <TopArticle userMap={userMap} />
+          <ThinHr />
           <DiscoveryFriend
             userMap={userMap}
-            pks={discoverPks.filter(pk => !myContactList.has(pk)).slice(0, 50)}
+            pks={discoverPks
+              .filter(pk => !myContactList.has(pk))
+              .slice(0, maxDiscoverPkLength)}
           />
         </>
         <div style={{ display: 'none' }}>

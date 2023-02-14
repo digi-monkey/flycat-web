@@ -153,7 +153,7 @@
     "postArticles": "发表了 {{count}} 篇文章于{{siteName}}"
   },
   "topArticle": {
-    "title": "推荐文章"
+    "title": "最近文章"
   },
   "profileEditPanel": {
     "title": "编辑资料",
@@ -182,5 +182,9 @@
     "itemsOnOtherRelay": " 条在其他 relay 上",
     "fetch": "请求数据",
     "syncToBackUp": "同步到私人备份"
+  },
+  "friendDiscover": {
+    "title": "朋友的朋友",
+    "noFriend": "暂时还没有朋友"
   }
 }

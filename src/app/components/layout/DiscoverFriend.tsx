@@ -12,9 +12,15 @@ export const DiscoveryFriend = ({
   pks: string[];
   userMap: UserMap;
 }) => {
+  const { t } = useTranslation();
   return (
     <div
-      style={{ background: '#F6F9F9', padding: '10px', borderRadius: '5px' }}
+      style={{
+        background: '#F6F9F9',
+        padding: '10px',
+        borderRadius: '5px',
+        height: '100%',
+      }}
     >
       <div
         style={{
@@ -24,10 +30,19 @@ export const DiscoveryFriend = ({
           display: 'flex',
         }}
       >
-        Discovery
+        {t('friendDiscover.title')}
       </div>
+      {pks.length === 0 && <p>{t('friendDiscover.noFriend')}</p>}
       {pks.map((a, index) => (
-        <span style={{ marginRight: '10px', float: 'left' }}>
+        <span
+          style={{
+            marginRight: '10px',
+            display: 'inline-block',
+            width: '80px',
+            height: '80px',
+            overflowX: 'hidden',
+          }}
+        >
           <ProfileAvatar picture={userMap.get(a)?.picture} name={a} />
           <UserName name={userMap.get(a)?.name} pk={a} />
         </span>
