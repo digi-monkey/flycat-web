@@ -591,7 +591,7 @@ export class WsApi {
 
     const msg: NoticeResponse = res;
     const reason = this.url() + ' => ' + msg[1];
-    const cb = callback || console.log;
+    const cb = callback || console.warn;
     cb(reason);
   }
 

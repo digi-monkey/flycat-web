@@ -605,6 +605,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 }
                 return (
                   <ProfileShareMsg
+                    msgEvent={msg}
                     worker={worker!}
                     key={index}
                     content={msg.content}
@@ -622,6 +623,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               } else {
                 return (
                   <ProfileTextMsg
+                    msgEvent={msg}
                     key={index}
                     pk={msg.pubkey}
                     content={msg.content}

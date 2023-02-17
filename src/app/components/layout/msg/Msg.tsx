@@ -48,6 +48,7 @@ export const Msgs = (
       }
       return (
         <ShareMsg
+          msgEvent={msg}
           worker={worker!}
           key={msg.id}
           content={msg.content}
@@ -65,6 +66,7 @@ export const Msgs = (
     } else {
       return (
         <TextMsg
+          msgEvent={msg}
           seen={msg.seen}
           relays={relays}
           worker={worker!}

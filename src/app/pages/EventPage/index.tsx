@@ -404,6 +404,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 }
                 return (
                   <ShareMsg
+                    msgEvent={msg}
                     worker={worker!}
                     key={msg.id}
                     content={msg.content}
@@ -423,6 +424,7 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               } else {
                 return (
                   <TextMsg
+                    msgEvent={msg}
                     worker={worker!}
                     key={msg.id}
                     pk={msg.pubkey}
