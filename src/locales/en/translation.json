@@ -45,6 +45,10 @@
     "replyTo": "replying to",
     "postArticle": "post article"
   },
+  "seen": {
+    "title": "Seen On:",
+    "broadcast": "broadcast to all"
+  },
   "userBox": {
     "pubKey": "publicKey",
     "follow": "following",

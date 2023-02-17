@@ -45,6 +45,10 @@
     "replyTo": "回复",
     "postArticle": "发表文章"
   },
+  "seen": {
+    "title": "已发布：",
+    "broadcast": "广播到其余连接器"
+  },
   "userBox": {
     "pubKey": "公钥",
     "follow": "关注",

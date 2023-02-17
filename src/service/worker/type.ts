@@ -41,7 +41,10 @@ export enum FromWorkerMessageType {
 
 export interface FromWorkerMessageData {
   wsConnectStatus?: WsConnectStatus;
+
   nostrData?: any;
+  relayUrl?: string; // hint which relay the nostrData is coming from
+
   portId?: number;
 }
 
