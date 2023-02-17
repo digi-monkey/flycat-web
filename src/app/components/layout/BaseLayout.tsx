@@ -180,10 +180,10 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         <Grid item xs={12} sm={4} style={{ zIndex: '0' }}>
           <div
             style={{
-              paddingTop: '10px',
+              // paddingTop: '10px',
               paddingLeft: '60px',
-              position: 'sticky' as const,
-              top: '0',
+              //position: 'sticky' as const,
+              //top: '0',
               zIndex: '1',
               maxWidth: '100%',
               width: '400px',

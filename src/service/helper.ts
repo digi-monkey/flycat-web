@@ -5,17 +5,19 @@ import { FlycatShareHeader } from './flycat-protocol';
 export function normalizeContent(text: string): {
   imageUrls: string[];
   videoUrls: string[];
+  audioUrls: string[];
   modifiedText: string;
 } {
   // First, use a regular expression to find all URLs that start with "http" or "https"
   const urlRegex = /https?:\/\/\S+/g;
   const matches = text.match(urlRegex);
 
-  // Initialize the imageUrls and videoUrls arrays to empty arrays
+  // Initialize the imageUrls, videoUrls, and audioUrls arrays to empty arrays
   let imageUrls: string[] = [];
   let videoUrls: string[] = [];
+  let audioUrls: string[] = [];
 
-  // If matches were found, filter out any URLs that end with common image or video file extensions
+  // If matches were found, filter out any URLs that end with common image, video, or audio file extensions
   if (matches) {
     const imageFileExtensions = [
       '.jpg',
@@ -25,18 +27,29 @@ export function normalizeContent(text: string): {
       '.bmp',
       '.webp',
     ];
-    const videoFileExtensions = ['.mp4', '.mov', '.avi', '.flv', '.wmv'];
+    const videoFileExtensions = [
+      '.mp4',
+      '.mov',
+      '.avi',
+      '.flv',
+      '.wmv',
+      'webm',
+    ];
+    const audioFileExtensions = ['.mp3', '.m4a', '.ogg', '.wav', '.flac'];
     imageUrls = matches.filter(url =>
       imageFileExtensions.some(ext => url.endsWith(ext)),
     );
     videoUrls = matches.filter(url =>
       videoFileExtensions.some(ext => url.endsWith(ext)),
     );
+    audioUrls = matches.filter(url =>
+      audioFileExtensions.some(ext => url.endsWith(ext)),
+    );
   }
 
-  // Replace all the image and video URLs with an empty string
+  // Replace all the image, video, and audio URLs with an empty string
   let modifiedText = text;
-  for (const url of imageUrls.concat(videoUrls)) {
+  for (const url of imageUrls.concat(videoUrls).concat(audioUrls)) {
     modifiedText = modifiedText.replace(url, '');
   }
 
@@ -52,7 +65,7 @@ export function normalizeContent(text: string): {
     }
   });
 
-  return { imageUrls, videoUrls, modifiedText };
+  return { imageUrls, videoUrls, audioUrls, modifiedText };
 }
 
 export function linkify(content: string): string {

@@ -23,9 +23,10 @@ import BorderColorIcon from '@mui/icons-material/BorderColor';
 
 const styles = {
   userInfo: {
-    marginRight: '10px',
-    marginBottom: '30px',
+    paddingRight: '10px',
+    //paddingBottom: '10px',
     textAlign: 'right' as const,
+    background: 'white',
   },
   avatar: {
     width: '48px',

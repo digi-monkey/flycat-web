@@ -343,6 +343,6 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
 
 export default connect(mapStateToProps)(Backup);
 
-export function ThinHr() {
+function ThinHr() {
   return <div style={{ borderBottom: '1px solid #f1eded' }} />;
 }

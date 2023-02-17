@@ -3,6 +3,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import React, { useEffect, useRef, useState } from 'react';
 import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
+import { AudioPreview } from './AudioPreview';
 import { Avatar } from './Avatar';
 import { VideoPreview } from './VideoPreview';
 
@@ -12,7 +13,8 @@ export interface ContentProps {
 }
 
 export function Content({ text, classNames }: ContentProps) {
-  const { modifiedText, imageUrls, videoUrls } = normalizeContent(text);
+  const { modifiedText, imageUrls, videoUrls, audioUrls } =
+    normalizeContent(text);
   return (
     <span className={classNames}>
       <Texting modifiedText={modifiedText} />
@@ -29,6 +31,14 @@ export function Content({ text, classNames }: ContentProps) {
           videoUrls.map((url, index) => (
             <span key={index}>
               <VideoPreview url={url} />
+            </span>
+          ))}
+      </p>
+      <p>
+        {audioUrls.length > 0 &&
+          audioUrls.map((url, index) => (
+            <span key={index}>
+              <AudioPreview src={url} />
             </span>
           ))}
       </p>
@@ -160,10 +170,14 @@ export function ArticleTrendsItem({
               {title}
             </div>
             <div style={{ fontSize: '12px', color: 'gray' }}>
+              {/**
+               *  
               {author}
               {' on '}
               {blogName}
               {' · '}
+              {useTimeSince(createdAt)}
+              */}
               {useTimeSince(createdAt)}
             </div>
           </Grid>

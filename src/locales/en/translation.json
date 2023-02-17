@@ -153,7 +153,7 @@
     "postArticles": "{{count}} post on {{siteName}}"
   },
   "topArticle": {
-    "title": "Top Articles"
+    "title": "New Articles"
   },
   "profileEditPanel": {
     "title": "Edit Profile",
@@ -182,5 +182,9 @@
     "itemsOnOtherRelay": " items On Other Relays",
     "fetch": "fetch data",
     "syncToBackUp": "sync to backup"
+  },
+  "friendDiscover": {
+    "title": "Friend Of Friend",
+    "noFriend": "no friend yet"
   }
 }
