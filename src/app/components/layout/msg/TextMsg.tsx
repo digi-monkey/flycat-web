@@ -1,10 +1,10 @@
-import { Grid } from '@mui/material';
+import { Grid, Popover } from '@mui/material';
 import {
   ArticleContentNoAvatar,
   Content,
 } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Event, PrivateKey, PublicKey } from 'service/api';
 import { shortPublicKey } from 'service/helper';
@@ -156,6 +156,8 @@ export interface TextMsgProps {
   keyPair?: KeyPair;
   style?: React.CSSProperties;
   worker: CallWorker;
+  seen?: string[];
+  relays?: string[];
 }
 
 export const TextMsg = ({
@@ -169,6 +171,8 @@ export const TextMsg = ({
   keyPair,
   style,
   worker,
+  seen,
+  relays,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
@@ -190,6 +194,8 @@ export const TextMsg = ({
             keyPair={keyPair!}
             pk={pk}
             eventId={eventId}
+            seen={seen}
+            relays={relays}
           />
         </span>
       </Grid>
@@ -457,15 +463,66 @@ export const ReactionGroups = ({
   worker,
   pk,
   keyPair,
+  seen,
+  relays,
 }: {
   worker: CallWorker;
   keyPair: KeyPair;
   pk: string;
   eventId: string;
+  seen?: string[];
+  relays?: string[];
 }) => {
+  const { t } = useTranslation();
+
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
+    null,
+  );
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+
   return (
     <div style={{ marginTop: '15px' }}>
       <span>
+        <span style={styles.reaction} onClick={handleClick}>
+          {seen?.map(url => (
+            <span style={{ color: 'green' }}>|</span>
+          ))}
+          {relays
+            ?.filter(r => !seen?.includes(r))
+            .map(url => (
+              <span style={{ color: '#c6c0c0' }}>|</span>
+            ))}
+        </span>
+        <Popover
+          id={'popup:' + eventId}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+        >
+          <div style={{ padding: '10px', fontSize: '14px' }}>
+            <span>{t('seen.title')}</span>
+            {seen?.map(url => (
+              <li>{url}</li>
+            ))}
+            <div style={{ display: 'none' }}>
+              <button>{t('seen.broadcast')}</button>
+            </div>
+          </div>
+        </Popover>
+
         <span
           style={styles.reaction}
           onClick={() => {

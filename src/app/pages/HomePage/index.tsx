@@ -34,6 +34,7 @@ import { Msgs } from 'app/components/layout/msg/Msg';
 import { TopArticle } from 'app/components/layout/TopArticle';
 import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
+import { TextNoteEvent } from 'app/type';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -183,7 +184,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const maxMsgLength = 50;
   const maxDiscoverPkLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
-  const [msgList, setMsgList] = useState<Event[]>([]);
+  const [msgList, setMsgList] = useState<TextNoteEvent[]>([]);
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
@@ -194,6 +195,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [discoverPks, setDiscoverPks] = useState<string[]>([]);
 
   const [worker, setWorker] = useState<CallWorker>();
+  const relayUrls = Array.from(wsConnectStatus.keys());
 
   // use in listener to get runtime updated value
   function _wsConnectStatus() {
@@ -231,7 +233,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(worker)(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData, message.relayUrl);
       },
       'homeIndex',
     );
@@ -243,8 +245,8 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     };
   }, []);
 
-  function onMsgHandler(this, res: any) {
-    const msg = JSON.parse(res);
+  function onMsgHandler(this, nostrData: any, relayUrl?: string) {
+    const msg = JSON.parse(nostrData);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
       switch (event.kind) {
@@ -320,7 +322,10 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
 
-              const newItems = [...oldArray, event];
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
               // sort by timestamp
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
@@ -330,6 +335,13 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 return sortedItems.slice(0, maxMsgLength + 1);
               }
               return sortedItems;
+            } else {
+              const id = oldArray.findIndex(s => s.id === event.id);
+              if (id === -1) return oldArray;
+
+              if (!oldArray[id].seen?.includes(relayUrl!)) {
+                oldArray[id].seen?.push(relayUrl!);
+              }
             }
             return oldArray;
           });
@@ -590,7 +602,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   <p style={{ color: 'gray', fontSize: '14px' }}>
                     {t('homeFeed.globalFeed')}
                   </p>
-                  {Msgs(globalMsgList, worker!, myKeyPair, userMap)}
+                  {Msgs(globalMsgList, worker!, myKeyPair, userMap, relayUrls)}
                 </div>
               )}
               {msgList.length === 0 && isLoggedIn && (
@@ -601,7 +613,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               )}
               {msgList.length > 0 &&
                 isLoggedIn &&
-                Msgs(msgList, worker!, myKeyPair, userMap)}
+                Msgs(msgList, worker!, myKeyPair, userMap, relayUrls)}
             </ul>
           </div>
         </>

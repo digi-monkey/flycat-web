@@ -1,3 +1,4 @@
+import { TextNoteEvent } from 'app/type';
 import { t } from 'i18next';
 import React from 'react';
 import { EventTags, Event, PrivateKey, PublicKey } from 'service/api';
@@ -14,10 +15,11 @@ export interface KeyPair {
 }
 
 export const Msgs = (
-  msgList: Event[],
+  msgList: TextNoteEvent[],
   worker: CallWorker,
   myKeyPair: KeyPair,
   userMap: UserMap,
+  relays: string[],
 ) => {
   return msgList.map((msg, index) => {
     //@ts-ignore
@@ -63,6 +65,8 @@ export const Msgs = (
     } else {
       return (
         <TextMsg
+          seen={msg.seen}
+          relays={relays}
           worker={worker!}
           key={msg.id}
           pk={msg.pubkey}

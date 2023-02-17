@@ -289,9 +289,9 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
   }, [modifiedText]);
 
   return (
-    <>
+    <div style={{ whiteSpace: 'pre-wrap' }}>
       {plainText}
       {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
-    </>
+    </div>
   );
 };

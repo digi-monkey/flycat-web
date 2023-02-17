@@ -50,6 +50,7 @@ export class Pool {
       const onmessage = (event: MessageEvent) => {
         const msg: FromWorkerMessageData = {
           nostrData: event.data,
+          relayUrl,
         };
         workerEventEmitter.emit(FromWorkerMessageType.NOSTR_DATA, msg);
       };
@@ -138,7 +139,7 @@ export class Pool {
                 return urls.includes(ws.url());
 
               case CallRelayType.single:
-                if (urls == null || urls.length != 1)
+                if (urls == null || urls.length !== 1)
                   throw new Error(
                     'callRelayUrls.length != 1 or is null for CallRelayType.single',
                   );
