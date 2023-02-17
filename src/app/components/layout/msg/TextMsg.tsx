@@ -18,6 +18,9 @@ import { Bookmark } from './reaction/Bookmark';
 import { Repost } from './reaction/Repost';
 import { Tipping } from './reaction/Tipping';
 import { Delete } from './reaction/Delete';
+import { TextNoteEvent } from 'app/type';
+import { CallRelayType } from 'service/worker/type';
+import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 
 const styles = {
   root: {
@@ -158,6 +161,7 @@ export interface TextMsgProps {
   worker: CallWorker;
   seen?: string[];
   relays?: string[];
+  msgEvent: TextNoteEvent;
 }
 
 export const TextMsg = ({
@@ -173,6 +177,7 @@ export const TextMsg = ({
   worker,
   seen,
   relays,
+  msgEvent,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
@@ -190,6 +195,7 @@ export const TextMsg = ({
           </span>
 
           <ReactionGroups
+            msgEvent={msgEvent}
             worker={worker!}
             keyPair={keyPair!}
             pk={pk}
@@ -459,6 +465,7 @@ export const ProfileName = ({
 };
 
 export const ReactionGroups = ({
+  msgEvent,
   eventId,
   worker,
   pk,
@@ -466,6 +473,7 @@ export const ReactionGroups = ({
   seen,
   relays,
 }: {
+  msgEvent: TextNoteEvent;
   worker: CallWorker;
   keyPair: KeyPair;
   pk: string;
@@ -512,14 +520,33 @@ export const ReactionGroups = ({
             horizontal: 'left',
           }}
         >
-          <div style={{ padding: '10px', fontSize: '14px' }}>
-            <span>{t('seen.title')}</span>
-            {seen?.map(url => (
-              <li>{url}</li>
-            ))}
-            <div style={{ display: 'none' }}>
-              <button>{t('seen.broadcast')}</button>
+          <div style={{ padding: '10px', fontSize: '14px', width: '100%' }}>
+            <div style={{ display: 'block' }}>{t('seen.title')}</div>
+            <div>
+              {seen?.map(url => (
+                <li>{url}</li>
+              ))}
             </div>
+
+            <button
+              style={{ width: '100%', marginTop: '10px' }}
+              onClick={() => {
+                const event = getEventFromTextNoteEvent(msgEvent);
+                const pubToRelays =
+                  relays?.filter(r => !seen?.includes(r)).map(url => url) || [];
+                if (pubToRelays.length > 0) {
+                  worker.pubEvent(event, {
+                    type: CallRelayType.batch,
+                    data: pubToRelays,
+                  });
+                  alert(
+                    `broadcast to ${pubToRelays.length} relays, please refresh page!`,
+                  );
+                }
+              }}
+            >
+              <BroadcastOnPersonalIcon /> {t('seen.broadcast')}
+            </button>
           </div>
         </Popover>
 
@@ -583,4 +610,16 @@ function getRandomColor() {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
+}
+
+function getEventFromTextNoteEvent(data: TextNoteEvent): Event {
+  return {
+    id: data.id,
+    pubkey: data.pubkey,
+    content: data.content,
+    created_at: data.created_at,
+    sig: data.sig,
+    kind: data.kind,
+    tags: data.tags,
+  };
 }

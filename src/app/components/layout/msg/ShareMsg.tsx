@@ -11,6 +11,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { CallWorker } from 'service/worker/callWorker';
 import { ProfileAvatar, ProfileName, ReactionGroups } from './TextMsg';
+import { TextNoteEvent } from 'app/type';
 
 const styles = {
   root: {
@@ -141,6 +142,7 @@ export interface ShareMsgProps {
   blogName: string;
   articleTitle: string;
   worker: CallWorker;
+  msgEvent: TextNoteEvent;
 }
 
 // only support blog article share msg now
@@ -156,6 +158,7 @@ export const ShareMsg = ({
   blogName,
   articleTitle,
   worker,
+  msgEvent,
 }: ShareMsgProps) => {
   const contentUrl = getShareContentUrl(content);
 
@@ -185,6 +188,7 @@ export const ShareMsg = ({
               />
             </span>
             <ReactionGroups
+              msgEvent={msgEvent}
               worker={worker!}
               keyPair={keyPair!}
               pk={userPk}
