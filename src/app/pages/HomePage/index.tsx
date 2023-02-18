@@ -42,6 +42,7 @@ let myContactEvent: Event;
 let myProfileEvent: Event;
 
 const mapStateToProps = state => {
+  console.log(state);
   return {
     isLoggedIn: state.loginReducer.isLoggedIn,
     myPublicKey: state.loginReducer.publicKey,

@@ -17,13 +17,23 @@ export enum LoginMode {
 export enum LoginActionType {
   login = 'LOGIN',
   logout = 'LOGOUT',
+  loginPending = 'LOGIN_PENDING',
+  loginSuccess = 'LOGIN_SUCCESS',
+  loginFailure = 'LOGIN_FAILURE',
+}
+
+export interface LoginRequest {
+  mode: LoginMode;
+  publicKey?: string;
+  privateKey?: string;
 }
 
 export interface LoginAction {
   type: LoginActionType;
-  mode: LoginMode;
-  publicKey?: string;
-  privateKey?: string;
+  payload?: {
+    error?: Error;
+    signer?: Signer;
+  };
 }
 
 export interface Signer {
@@ -33,6 +43,32 @@ export interface Signer {
   signEvent?: (rawEvent: RawEvent) => Promise<Event>;
   publicKey?: string; // for saving in localStorage under local mode
   privateKey?: string; // for saving in localStorage under local mode
+}
+
+function loginPending() {
+  return { type: LoginActionType.loginPending };
+}
+
+function loginSuccess(signer) {
+  return { type: LoginActionType.loginSuccess, payload: { signer } };
+}
+
+function loginFailure(error) {
+  return { type: LoginActionType.loginFailure, payload: { error } };
+}
+
+// Async action creator (thunk)
+export function login(request: LoginRequest) {
+  return async dispatch => {
+    dispatch(loginPending());
+
+    try {
+      const signer = await getLoginInfo(request);
+      dispatch(loginSuccess(signer));
+    } catch (error) {
+      dispatch(loginFailure(error));
+    }
+  };
 }
 
 const defaultSigner = {
@@ -45,21 +81,30 @@ const defaultSigner = {
   privateKey: '',
 };
 
-export const loginReducer = async (
+export const loginReducer = (
   state: Signer = defaultSigner,
   action: LoginAction,
-): Promise<Signer> => {
+): Signer => {
   switch (action.type) {
-    case 'LOGIN':
-      return await getLoginInfo(action);
-    case 'LOGOUT':
+    case LoginActionType.loginPending:
+      return defaultSigner;
+
+    case LoginActionType.loginSuccess:
+      return action.payload!.signer!;
+
+    case LoginActionType.loginFailure:
+      return defaultSigner;
+
+    case LoginActionType.login:
+      return defaultSigner;
+    case LoginActionType.logout:
       return defaultSigner;
     default:
       return state;
   }
 };
 
-export async function getLoginInfo(action: LoginAction): Promise<Signer> {
+export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
   const mode = action.mode;
   switch (mode) {
     case LoginMode.local:

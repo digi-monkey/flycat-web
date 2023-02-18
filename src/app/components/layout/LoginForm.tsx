@@ -8,6 +8,12 @@ import {
   nip19Encode,
 } from 'service/api';
 import { matchKeyPair, randomKeyPair } from 'service/crypto';
+import {
+  login,
+  LoginActionType,
+  LoginMode,
+  LoginRequest,
+} from 'store/loginReducer';
 
 const styles = {
   pk: {
@@ -123,7 +129,12 @@ const LoginForm = ({
             }
           }
 
-          doLogin(pubKey, privKey);
+          const loginRequest: LoginRequest = {
+            mode: LoginMode.local,
+            publicKey: pubKey,
+            privateKey: privKey,
+          };
+          doLogin(loginRequest);
         }}
       >
         <span style={styles.title}>{t('nav.menu.signIn')}</span>
@@ -160,7 +171,7 @@ const LoginForm = ({
   }
 };
 
-const login = (publicKey, privateKey) => ({
+const localLogin = (publicKey, privateKey) => ({
   type: 'LOGIN',
   publicKey,
   privateKey,
@@ -177,7 +188,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  doLogin: (publicKey, privateKey) => dispatch(login(publicKey, privateKey)),
+  doLogin: (request: LoginRequest) => dispatch(login(request)),
   doLogout: () => dispatch(logout()),
 });
 
