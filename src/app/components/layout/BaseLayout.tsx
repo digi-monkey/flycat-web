@@ -1,6 +1,6 @@
 import { Grid } from '@mui/material';
 import React from 'react';
-import NavHeader, { MenuList, MenuListDefault } from './NavHeader';
+import { NavHeader, MenuList, MenuListDefault } from './NavHeader';
 
 const styles = {
   root: {

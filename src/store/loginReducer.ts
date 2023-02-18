@@ -97,8 +97,11 @@ export const loginReducer = (
 
     case LoginActionType.login:
       return defaultSigner;
+
     case LoginActionType.logout:
+      clearTempMyPublicKey();
       return defaultSigner;
+
     default:
       return state;
   }
@@ -134,9 +137,13 @@ export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
       if (!window.nostr) {
         throw new Error('window.nostr not found!');
       }
+      const pk = await window.nostr!.getPublicKey();
+      const isLoggedIn = pk != null && pk.length > 0;
+      saveTempMyPublicKey(pk);
+
       return {
         mode,
-        isLoggedIn: true,
+        isLoggedIn: isLoggedIn,
         getPublicKey: async () => {
           return await window.nostr!.getPublicKey();
         },
@@ -154,4 +161,19 @@ export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
     default:
       throw new Error('invalid action mode ' + mode);
   }
+}
+
+const tempMyPkItemKey = 'temp.myPublicKey';
+
+export function saveTempMyPublicKey(pk: string | undefined) {
+  if (pk == null || pk.length === 0) return;
+  localStorage.setItem(tempMyPkItemKey, pk);
+}
+
+export function loadTempMyPublicKey() {
+  return localStorage.getItem(tempMyPkItemKey);
+}
+
+export function clearTempMyPublicKey() {
+  if (loadTempMyPublicKey() != null) localStorage.removeItem(tempMyPkItemKey);
 }

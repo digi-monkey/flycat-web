@@ -22,7 +22,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
-import NavHeader from 'app/components/layout/NavHeader';
+import { NavHeader } from 'app/components/layout/NavHeader';
 import RelayManager from '../../components/layout/relay/RelayManager';
 import { ShareArticle } from 'app/components/layout/msg/Share';
 import { connect } from 'react-redux';

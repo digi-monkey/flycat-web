@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Grid } from '@mui/material';
 import {
   EventSubResponse,
   EventSetMetadataContent,
@@ -27,7 +26,6 @@ import {
 } from 'service/flycat-protocol';
 import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
-import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';

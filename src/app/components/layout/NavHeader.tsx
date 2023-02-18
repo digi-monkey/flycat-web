@@ -1,7 +1,7 @@
 import { Grid, Link } from '@mui/material';
 import { useCommitId } from 'hooks/useCommitId';
 import { useVersion } from 'hooks/useVersion';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
@@ -19,6 +19,8 @@ import {
   Backup,
 } from '@mui/icons-material';
 import styled from 'styled-components';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 const styles = {
   root: {
@@ -52,17 +54,8 @@ const styles = {
   },
 };
 
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
-
-export function NavHeader({ isLoggedIn, myPublicKey, myPrivateKey }) {
+export function NavHeader() {
   const { t } = useTranslation();
-  const version = useVersion() + '-' + useCommitId();
 
   return (
     <Grid container>
@@ -128,11 +121,14 @@ export const SearchBox = () => {
   );
 };
 
-export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const MenuList = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const version = useVersion() + '-' + useCommitId();
   const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
   const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
+
+  const myPublicKey = useReadonlyMyPublicKey();
+  // const myPublicKey: any = undefined;
 
   return (
     <div>
@@ -156,7 +152,7 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           </div>
         </MenuItem>
 
-        {isLoggedIn && myPublicKey.length > 0 ? (
+        {isLoggedIn && myPublicKey && myPublicKey.length > 0 ? (
           <MenuItem href={'/blog/' + myPublicKey}>
             <div>
               <Create /> &nbsp;
@@ -177,7 +173,7 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           </MenuItem>
         )}
 
-        {isLoggedIn && myPublicKey.length > 0 && (
+        {isLoggedIn && myPublicKey && myPublicKey.length > 0 && (
           <MenuItem href={'/contact/' + myPublicKey}>
             <div>
               <Contacts /> &nbsp;
@@ -186,7 +182,7 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           </MenuItem>
         )}
 
-        {isLoggedIn && myPublicKey.length > 0 ? (
+        {isLoggedIn && myPublicKey && myPublicKey.length > 0 ? (
           <MenuItem href={'/user/' + myPublicKey}>
             <div>
               <AccountBox /> &nbsp;
@@ -311,7 +307,7 @@ export const MenuList = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export const MenuListDefault = connect(mapStateToProps)(MenuList);
+export const MenuListDefault = connect(loginMapStateToProps)(MenuList);
 
 interface MenuItemProps {
   children: React.ReactNode;
@@ -402,5 +398,3 @@ export const LoginFormTip = ({
     </>
   );
 };
-
-export default connect(mapStateToProps)(NavHeader);

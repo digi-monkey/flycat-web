@@ -20,7 +20,7 @@ import RelayManager, {
 } from '../../components/layout/relay/RelayManager';
 import { Content } from '../../components/layout/msg/Content';
 import { useParams } from 'react-router-dom';
-import NavHeader from 'app/components/layout/NavHeader';
+import { NavHeader } from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { equalMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';

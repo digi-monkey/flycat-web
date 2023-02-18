@@ -58,7 +58,8 @@ export function toRootState(state: SavableRootState): RootState {
 
       case LoginMode.nip07:
         return async () => {
-          return await window.nostr?.getPublicKey()!;
+          const pk = await window.nostr?.getPublicKey()!;
+          return pk;
         };
 
       default:
@@ -89,7 +90,7 @@ export function toRootState(state: SavableRootState): RootState {
   const loginReducer: any = {
     mode: state.loginReducer.mode,
     isLoggedIn: state.loginReducer.isLoggedIn,
-    getPublicKey: createGetPublicKey(state.loginReducer.mode),
+    getPublicKey: createGetPublicKey.bind(global)(state.loginReducer.mode),
     signEvent: createSignEvent(state.loginReducer.mode),
   };
   if (state.loginReducer.privateKey) {

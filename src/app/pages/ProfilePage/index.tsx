@@ -21,7 +21,7 @@ import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
-import NavHeader from 'app/components/layout/NavHeader';
+import { NavHeader } from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';

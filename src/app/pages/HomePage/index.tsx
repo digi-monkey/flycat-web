@@ -35,20 +35,14 @@ import { TopArticle } from 'app/components/layout/TopArticle';
 import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
 import { TextNoteEvent } from 'app/type';
+import { loginMapStateToProps } from 'app/helper';
+import { LoginMode } from 'store/loginReducer';
+import { useMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
 let myProfileEvent: Event;
-
-const mapStateToProps = state => {
-  console.log(state);
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 const styles = {
   root: {
@@ -173,7 +167,7 @@ export interface KeyPair {
   privateKey: PrivateKey;
 }
 
-export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const HomePage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -189,11 +183,15 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
+
+  const myPublicKey = useMyPublicKey();
+
   const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
+    publicKey: myPublicKey || '',
+    privateKey: '',
   });
   const [discoverPks, setDiscoverPks] = useState<string[]>([]);
+  const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const [worker, setWorker] = useState<CallWorker>();
   const relayUrls = Array.from(wsConnectStatus.keys());
@@ -414,11 +412,12 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
     setMyKeyPair({
       publicKey: myPublicKey,
-      privateKey: myPrivateKey,
+      privateKey: '',
     });
 
     // update worker listener
     // update some deps like myPublicKey in the listener
+
     worker?.updateMsgListener(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
@@ -433,19 +432,26 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData);
       },
     );
-  }, [isLoggedIn]);
+  }, [myPublicKey, isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn !== true) return;
-    if (myPublicKey.length === 0) return;
+    if (!myPublicKey || myPublicKey.length === 0) return;
 
+    console.log('sub meta contact', myPublicKey);
+
+    const callRelay =
+      newConn.length === 0
+        ? { type: CallRelayType.all, data: [] }
+        : { type: CallRelayType.batch, data: newConn };
     worker?.subMetaDataAndContactList(
       [myPublicKey],
       false,
       'userMetaAndContact',
+      callRelay,
     );
   }, [myPublicKey, newConn]);
 
@@ -504,7 +510,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   useEffect(() => {
     const pks = Array.from(myContactList.keys());
     // subscribe myself msg too
-    if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
+    if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
@@ -529,7 +535,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         data: newConn,
       });
     }
-  }, [myContactList.size, newConn]);
+  }, [myPublicKey, myContactList.size, newConn]);
 
   useEffect(() => {
     if (isLoggedIn) return;
@@ -588,7 +594,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <Left>
         <>
           <PubNoteTextarea
-            disabled={!myPrivateKey}
+            disabled={isReadonlyMode || !isLoggedIn}
             onSubmitText={onSubmitText}
           />
 
@@ -642,7 +648,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 }
                 worker={worker}
                 profileEvent={myProfileEvent}
-                privKey={myPrivateKey}
+                privKey={''}
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}
@@ -665,4 +671,4 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(HomePage);
+export default connect(loginMapStateToProps)(HomePage);
