@@ -23,6 +23,7 @@ const loadStore = () => {
   } catch (error) {
     console.error('Error loading state from local storage:', error);
   }
+  console.log(storedState);
   return storedState;
 };
 

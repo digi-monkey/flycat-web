@@ -18,6 +18,7 @@ export enum LoginActionType {
   login = 'LOGIN',
   logout = 'LOGOUT',
 }
+
 export interface LoginAction {
   type: LoginActionType;
   mode: LoginMode;
@@ -28,37 +29,31 @@ export interface LoginAction {
 export interface Signer {
   mode: LoginMode;
   isLoggedIn: boolean;
-  publicKey: () => Promise<string>;
+  getPublicKey: () => Promise<string>;
   signEvent?: (rawEvent: RawEvent) => Promise<Event>;
+  publicKey?: string; // for saving in localStorage under local mode
+  privateKey?: string; // for saving in localStorage under local mode
 }
 
-export const loginReducer = (
-  state = {
-    isLoggedIn: false,
-    publicKey: '',
-    privateKey: '',
+const defaultSigner = {
+  mode: LoginMode.local,
+  isLoggedIn: false,
+  getPublicKey: async () => {
+    return '';
   },
-  action: LoginAction = {
-    mode: LoginMode.local,
-    type: LoginActionType.login,
-    publicKey: '',
-  },
-) => {
+  publicKey: '',
+  privateKey: '',
+};
+
+export const loginReducer = async (
+  state: Signer = defaultSigner,
+  action: LoginAction,
+): Promise<Signer> => {
   switch (action.type) {
     case 'LOGIN':
-      return {
-        isLoggedIn: true,
-        mode: action.mode,
-        publicKey: action.publicKey,
-        privateKey: action.privateKey,
-      };
+      return await getLoginInfo(action);
     case 'LOGOUT':
-      return {
-        isLoggedIn: false,
-        mode: action.mode,
-        publicKey: '',
-        privateKey: '',
-      };
+      return defaultSigner;
     default:
       return state;
   }
@@ -76,7 +71,7 @@ export async function getLoginInfo(action: LoginAction): Promise<Signer> {
       return {
         mode,
         isLoggedIn: true,
-        publicKey: async () => {
+        getPublicKey: async () => {
           return action.publicKey!;
         },
         signEvent:
@@ -85,6 +80,9 @@ export async function getLoginInfo(action: LoginAction): Promise<Signer> {
                 return await raw.toEvent(action.privateKey!);
               }
             : undefined,
+
+        publicKey: action.publicKey,
+        privateKey: action.privateKey,
       };
 
     case LoginMode.nip07:
@@ -94,7 +92,7 @@ export async function getLoginInfo(action: LoginAction): Promise<Signer> {
       return {
         mode,
         isLoggedIn: true,
-        publicKey: async () => {
+        getPublicKey: async () => {
           return await window.nostr!.getPublicKey();
         },
         signEvent: async (raw: RawEvent) => {
