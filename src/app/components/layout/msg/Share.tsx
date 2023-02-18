@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import {
   PrivateKey,
   PublicKey,
@@ -8,6 +9,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import { FlagType, Flycat, ShareContentId } from 'service/flycat-protocol';
+import { RootState } from 'store/configureStore';
 
 export interface ShareArticleProps {
   isOpen: boolean;
@@ -22,10 +24,6 @@ export interface ShareArticleProps {
 
   suffix?: string;
 
-  loginUser?: {
-    publicKey: PublicKey;
-    privateKey: PrivateKey;
-  };
   onSubmit?: (event: Event) => any;
 }
 
@@ -39,16 +37,20 @@ export const ShareArticle = ({
   blogName,
   blogAvatar,
   suffix,
-  loginUser,
   onSubmit,
 }: ShareArticleProps) => {
   const { t } = useTranslation();
   const [text, setText] = useState<string>('');
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
 
   const genShareEvent = async () => {
+    if (signEvent == null) {
+      throw new Error('no sign method!');
+    }
+
     const opt = {
-      publicKey: loginUser!.publicKey,
-      privateKey: loginUser!.privateKey,
       version: '',
     };
     const flycat = new Flycat(opt);
@@ -62,12 +64,12 @@ export const ShareArticle = ({
     );
     const content = text + suffix ?? '';
     const rawEvent = new RawEvent(
-      loginUser!.publicKey,
+      '',
       WellKnownEventKind.text_note,
       [header, cacheHeader],
       content,
     );
-    const event = rawEvent.toEvent(loginUser!.privateKey);
+    const event = await signEvent(rawEvent);
     return event;
   };
 
@@ -105,7 +107,7 @@ export const ShareArticle = ({
               onChange={e => setText(e.target.value)}
               style={{ width: '100%', height: '150px', padding: '5px' }}
             ></textarea>
-            <button onClick={submitText} disabled={!loginUser}>
+            <button onClick={submitText} disabled={signEvent == null}>
               {t('share.rePostShare')}
             </button>
             &nbsp;&nbsp;&nbsp;

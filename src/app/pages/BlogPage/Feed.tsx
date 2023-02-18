@@ -1,4 +1,3 @@
-import { Grid } from '@mui/material';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
 import RelayManager from 'app/components/layout/relay/RelayManager';
@@ -32,20 +31,14 @@ import { equalMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
-import { ContactList, KeyPair } from '.';
+import { ContactList } from '.';
 import defaultAvatar from '../../../resource/logo512.png';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 const styles = {
   root: {
@@ -163,17 +156,15 @@ const styles = {
 const hardCodedBlogPk =
   '45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a';
 
-export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const BlogFeed = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const myPublicKey = useReadonlyMyPublicKey();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
+
   const [worker, setWorker] = useState<CallWorker>();
   const [siteMetaData, setSiteMetaData] = useState<
     (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
@@ -270,7 +261,7 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.contact_list:
-          if (event.pubkey === myKeyPair.publicKey) {
+          if (event.pubkey === myPublicKey) {
             if (
               myContactEvent == null ||
               myContactEvent?.created_at! < event.created_at
@@ -460,20 +451,11 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   useEffect(() => {
     if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    if (isLoggedIn !== true) return;
     if (myPublicKey == null) return;
 
     worker?.subContactList([myPublicKey]);
     worker?.subMetadata([myPublicKey]);
-  }, [myKeyPair, wsConnectStatus]);
+  }, [myPublicKey, wsConnectStatus]);
 
   useEffect(() => {
     if (myContactEvent == null) return;
@@ -632,7 +614,6 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 {globalArticles.map((a, index) => (
                   <BlogMsg
                     key={a.pk + a.id}
-                    keyPair={myKeyPair}
                     name={userMap.get(a.pk)?.name}
                     avatar={userMap.get(a.pk)?.picture}
                     pk={a.pk}
@@ -662,7 +643,6 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 .map((a, index) => (
                   <BlogMsg
                     key={a.pk + a.id}
-                    keyPair={myKeyPair}
                     name={userMap.get(a.pk)?.name}
                     avatar={userMap.get(a.pk)?.picture}
                     pk={a.pk}
@@ -681,11 +661,11 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <Right>
         {isLoggedIn && (
           <UserBox
-            pk={myKeyPair.publicKey}
+            pk={myPublicKey}
             followCount={myContactList.size}
-            avatar={userMap.get(myKeyPair.publicKey)?.picture}
-            name={userMap.get(myKeyPair.publicKey)?.name}
-            about={userMap.get(myKeyPair.publicKey)?.about}
+            avatar={userMap.get(myPublicKey)?.picture}
+            name={userMap.get(myPublicKey)?.name}
+            about={userMap.get(myPublicKey)?.about}
           />
         )}
         {!isLoggedIn && <UserRequiredLoginBox />}
@@ -696,4 +676,4 @@ export const BlogFeed = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(BlogFeed);
+export default connect(loginMapStateToProps)(BlogFeed);

@@ -36,11 +36,13 @@ export interface LoginAction {
   };
 }
 
+export type SignEvent = (rawEvent: RawEvent) => Promise<Event>;
+export type GetPublicKey = () => Promise<string>;
 export interface Signer {
   mode: LoginMode;
   isLoggedIn: boolean;
-  getPublicKey: () => Promise<string>;
-  signEvent?: (rawEvent: RawEvent) => Promise<Event>;
+  getPublicKey: GetPublicKey;
+  signEvent?: SignEvent;
   publicKey?: string; // for saving in localStorage under local mode
   privateKey?: string; // for saving in localStorage under local mode
 }

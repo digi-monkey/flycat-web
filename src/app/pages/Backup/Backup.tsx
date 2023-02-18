@@ -2,9 +2,11 @@ import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import RelayManager, {
   WsConnectStatus,
 } from 'app/components/layout/relay/RelayManager';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import {
   EventSubResponse,
@@ -16,6 +18,7 @@ import { equalMaps, isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
+import { RootState } from 'store/configureStore';
 import styled from 'styled-components';
 import EventData from './EventData';
 import SimpleSelect from './Select';
@@ -24,14 +27,6 @@ import { BPEvent } from './type';
 const styles = {
   label: { color: 'gray', fontSize: '14px' },
   section: { marginBottom: '40px' },
-};
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myCustomRelay: state.relayReducer,
-  };
 };
 
 const allEventKinds = Object.values(WellKnownEventKind).filter(k =>
@@ -50,8 +45,10 @@ const LightBtn = styled.button`
   }
 `;
 
-export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
+export function Backup({ isLoggedIn }) {
   const { t } = useTranslation();
+  const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
+  const myPublicKey = useReadonlyMyPublicKey();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   let relays = defaultRelays;
@@ -341,7 +338,7 @@ export function Backup({ isLoggedIn, myPublicKey, myCustomRelay }) {
   );
 }
 
-export default connect(mapStateToProps)(Backup);
+export default connect(loginMapStateToProps)(Backup);
 
 function ThinHr() {
   return <div style={{ borderBottom: '1px solid #f1eded' }} />;

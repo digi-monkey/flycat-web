@@ -4,6 +4,8 @@ import { EventId, Nostr } from 'service/api';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import { CallWorker } from 'service/worker/callWorker';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
 
 const styles = {
   smallBtn: {
@@ -18,7 +20,6 @@ export interface LikeProps {
   toEventId: EventId;
   toPublicKey: string;
   worker?: CallWorker;
-  signPrivKey?: string;
   disabled?: boolean;
   count?: number;
 }
@@ -27,7 +28,6 @@ export const Like = ({
   worker,
   toEventId,
   toPublicKey,
-  signPrivKey,
   disabled,
   count = 0,
 }: LikeProps) => {
@@ -35,18 +35,21 @@ export const Like = ({
   const [totalCount, setTotalCount] = useState<number>(count);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const canLike = isLiked === false && disabled !== true;
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
   const submit = async () => {
     if (!canLike) {
       alert("can't not like again");
       return;
     }
 
-    if (!signPrivKey || signPrivKey.length === 0) {
-      alert('please sign in first!');
-      return;
+    if (signEvent == null) {
+      return alert('no sign method!');
     }
 
-    const event = await Nostr.newLikeEvent(toEventId, toPublicKey, signPrivKey);
+    const rawEvent = await Nostr.newLikeRawEvent(toEventId, toPublicKey);
+    const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
     setIsLiked(true);
     setTotalCount(prev => prev + 1);

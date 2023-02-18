@@ -1,11 +1,7 @@
 import { Grid } from '@mui/material';
-import {
-  ArticleShareContent,
-  Content,
-} from 'app/components/layout/msg/Content';
+import { ArticleShareContent } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
 import React from 'react';
-import { PrivateKey, PublicKey } from 'service/api';
 import { getShareContentUrl } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
@@ -124,11 +120,6 @@ const styles = {
   },
 };
 
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 // todo: support other content type from article
 export interface ShareMsgProps {
   eventId: string;
@@ -137,7 +128,6 @@ export interface ShareMsgProps {
   userPk: string;
   content: string;
   createdAt: number;
-  keyPair: KeyPair;
   blogAvatar?: string;
   blogName: string;
   articleTitle: string;
@@ -147,7 +137,6 @@ export interface ShareMsgProps {
 
 // only support blog article share msg now
 export const ShareMsg = ({
-  keyPair,
   eventId,
   username,
   userAvatar,
@@ -190,7 +179,6 @@ export const ShareMsg = ({
             <ReactionGroups
               msgEvent={msgEvent}
               worker={worker!}
-              keyPair={keyPair!}
               pk={userPk}
               eventId={eventId}
             />
@@ -202,7 +190,6 @@ export const ShareMsg = ({
 };
 
 export const ProfileShareMsg = ({
-  keyPair,
   eventId,
   userPk,
   content,
@@ -243,7 +230,6 @@ export const ProfileShareMsg = ({
                 worker={worker!}
                 replyToEventId={eventId}
                 replyToPublicKey={userPk}
-                myKeyPair={keyPair}
               />
             </span>
           </Grid>

@@ -6,7 +6,6 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   EventTags,
@@ -17,7 +16,6 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
@@ -36,7 +34,7 @@ import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
 import { TextNoteEvent } from 'app/type';
 import { loginMapStateToProps } from 'app/helper';
-import { LoginMode } from 'store/loginReducer';
+import { SignEvent } from 'store/loginReducer';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
@@ -162,12 +160,13 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
+
+export interface HomePageProps {
+  isLoggedIn: boolean;
+  signEvent?: SignEvent;
 }
 
-export const HomePage = ({ isLoggedIn, signEvent }) => {
+export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -186,10 +185,6 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
 
   const myPublicKey = useMyPublicKey();
 
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey || '',
-    privateKey: '',
-  });
   const [discoverPks, setDiscoverPks] = useState<string[]>([]);
   const isReadonlyMode = isLoggedIn && signEvent == null;
 
@@ -408,16 +403,8 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: '',
-    });
-
     // update worker listener
     // update some deps like myPublicKey in the listener
-
     worker?.updateMsgListener(
       (message: FromWorkerMessageData) => {
         if (message.wsConnectStatus) {
@@ -553,22 +540,17 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
   }, [isLoggedIn, newConn]);
 
   const onSubmitText = async (text: string) => {
-    if (myKeyPair.privateKey === '') {
-      alert('set privateKey first!');
-      return;
-    }
-    if (!matchKeyPair(myKeyPair.publicKey, myKeyPair.privateKey)) {
-      alert('public key and private key not matched!');
-      return;
+    if (signEvent == null) {
+      return alert('no sign method!');
     }
 
     const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
+      myPublicKey,
       WellKnownEventKind.text_note,
       undefined,
       text,
     );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
+    const event = await signEvent(rawEvent);
     console.log(text, event);
 
     // publish to all connected relays
@@ -609,7 +591,7 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
                   <p style={{ color: 'gray', fontSize: '14px' }}>
                     {t('homeFeed.globalFeed')}
                   </p>
-                  {Msgs(globalMsgList, worker!, myKeyPair, userMap, relayUrls)}
+                  {Msgs(globalMsgList, worker!, userMap, relayUrls)}
                 </div>
               )}
               {msgList.length === 0 && isLoggedIn && (
@@ -620,7 +602,7 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
               )}
               {msgList.length > 0 &&
                 isLoggedIn &&
-                Msgs(msgList, worker!, myKeyPair, userMap, relayUrls)}
+                Msgs(msgList, worker!, userMap, relayUrls)}
             </ul>
           </div>
         </>
@@ -648,7 +630,6 @@ export const HomePage = ({ isLoggedIn, signEvent }) => {
                 }
                 worker={worker}
                 profileEvent={myProfileEvent}
-                privKey={''}
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}

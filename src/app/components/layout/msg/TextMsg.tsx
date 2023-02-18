@@ -143,11 +143,6 @@ const styles = {
   },
 };
 
-interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 export interface TextMsgProps {
   name?: string;
   avatar?: string;
@@ -156,7 +151,6 @@ export interface TextMsgProps {
   content: string;
   createdAt: number;
   eventId: string;
-  keyPair?: KeyPair;
   style?: React.CSSProperties;
   worker: CallWorker;
   seen?: string[];
@@ -172,7 +166,6 @@ export const TextMsg = ({
   content,
   createdAt,
   eventId,
-  keyPair,
   style,
   worker,
   seen,
@@ -197,7 +190,6 @@ export const TextMsg = ({
           <ReactionGroups
             msgEvent={msgEvent}
             worker={worker!}
-            keyPair={keyPair!}
             pk={pk}
             eventId={eventId}
             seen={seen}
@@ -215,7 +207,6 @@ export const ProfileTextMsg = ({
   content,
   createdAt,
   eventId,
-  keyPair,
   worker,
 }: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
@@ -243,12 +234,7 @@ export const ProfileTextMsg = ({
                 <Tipping eventId={eventId} />
               </span>
               <span style={styles.reaction}>
-                <Like
-                  toEventId={eventId}
-                  toPublicKey={pk}
-                  worker={worker}
-                  signPrivKey={keyPair?.privateKey}
-                />
+                <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
               </span>
               <span style={styles.reaction}>
                 <Repost eventId={eventId} />
@@ -266,7 +252,6 @@ export const ProfileTextMsg = ({
                 <ReplyButton
                   replyToEventId={eventId}
                   replyToPublicKey={pk}
-                  myKeyPair={keyPair}
                   worker={worker}
                 />
               </span>
@@ -286,7 +271,6 @@ export interface BlogMsgProps {
   blogName: string;
   articleId: string;
   createdAt: number;
-  keyPair?: KeyPair;
   onSubmitShare: (event: Event) => any;
 }
 
@@ -298,7 +282,6 @@ export const BlogMsg = ({
   blogName,
   articleId,
   createdAt,
-  keyPair,
   onSubmitShare,
 }: BlogMsgProps) => {
   const { t } = useTranslation();
@@ -357,7 +340,6 @@ export const BlogMsg = ({
             onClose={() => setIsShareModalOpen(false)}
             pk={pk}
             id={articleId}
-            loginUser={keyPair}
             onSubmit={onSubmitShare}
           />
         </Grid>
@@ -469,13 +451,11 @@ export const ReactionGroups = ({
   eventId,
   worker,
   pk,
-  keyPair,
   seen,
   relays,
 }: {
   msgEvent: TextNoteEvent;
   worker: CallWorker;
-  keyPair: KeyPair;
   pk: string;
   eventId: string;
   seen?: string[];
@@ -564,12 +544,7 @@ export const ReactionGroups = ({
             alert('working on it!');
           }}
         >
-          <Like
-            toEventId={eventId}
-            toPublicKey={pk}
-            worker={worker}
-            signPrivKey={keyPair?.privateKey}
-          />
+          <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
         </span>
         <span
           style={styles.reaction}
@@ -595,7 +570,6 @@ export const ReactionGroups = ({
           <ReplyButton
             replyToEventId={eventId}
             replyToPublicKey={pk}
-            myKeyPair={keyPair}
             worker={worker}
           />
         </span>
