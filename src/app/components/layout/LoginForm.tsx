@@ -64,6 +64,17 @@ const LoginForm = ({
     setPrivKeyInputValue(data.privKey);
   };
 
+  const signWithNip07 = async () => {
+    if (!window.nostr) {
+      return alert('window.nostr not found! did you install the extension?');
+    }
+
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.nip07,
+    };
+    doLogin(loginRequest);
+  };
+
   if (isLoggedIn) {
     return (
       <div>
@@ -157,6 +168,10 @@ const LoginForm = ({
           />
         </label>
         <br />
+        <button type="button" onClick={signWithNip07}>
+          {t('loginForm.signWithNip07')}
+        </button>
+        &nbsp;&nbsp;
         <button type="submit">{t('loginForm.signIn')}</button>
         &nbsp;&nbsp;
         <button type="button" onClick={newKeyPair}>
