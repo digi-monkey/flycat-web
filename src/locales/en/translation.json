@@ -105,7 +105,7 @@
     "noBlogShareName": "unknown blog name"
   },
   "blog": {
-    "edit": "edit",
+    "edit": "Edit",
     "postOn": "submit",
     "lastUpdatedAt": "last updated at",
     "rePostShare": "share to feed",

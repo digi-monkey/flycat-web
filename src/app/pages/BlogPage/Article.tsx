@@ -9,6 +9,7 @@ import { EventSetMetadataContent, PublicKey } from 'service/api';
 import ReactMarkdown from 'react-markdown';
 import PostUpdate from './PostUpdate';
 import { useTranslation } from 'react-i18next';
+import EditIcon from '@mui/icons-material/Edit';
 
 export interface ArticleProps {
   article: ArticleDataSchema & { page_id: number };
@@ -100,7 +101,7 @@ export function Article(props: ArticleProps) {
       {isOwner && (
         <span style={{ float: 'right' as const }}>
           <a href="#" onClick={() => seUpdateModalIsOpen(true)}>
-            {t('blog.edit')}
+            <EditIcon style={{ height: '14px' }} />
           </a>
           &nbsp;
         </span>
