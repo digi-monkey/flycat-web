@@ -8,10 +8,10 @@ declare global {
 }
 
 export enum LoginMode {
-  local, // default
-  nip07, // https://github.com/nostr-protocol/nips/blob/master/07.md
-  metamask,
-  nexus,
+  local = 'local', // default
+  nip07 = 'nip07', // https://github.com/nostr-protocol/nips/blob/master/07.md
+  metamask = 'metamask',
+  nexus = 'nexus',
 }
 
 export enum LoginActionType {
