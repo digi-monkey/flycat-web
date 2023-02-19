@@ -4,6 +4,9 @@ import { Nip06 } from 'service/nip/06';
 declare global {
   interface Window {
     nostr?: Nip06;
+    webln?: {
+      enable: () => any;
+    };
   }
 }
 
@@ -118,6 +121,8 @@ export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
           'action.publicKey can not be null under local login mode',
         );
       }
+      saveTempMyPublicKey(action.publicKey);
+
       return {
         mode,
         isLoggedIn: true,

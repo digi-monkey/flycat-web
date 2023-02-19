@@ -65,8 +65,15 @@ const LoginForm = ({
   };
 
   const signWithNip07 = async () => {
+    if (typeof window.webln !== 'undefined') {
+      await window.webln.enable();
+      console.debug('lighting wallet: window.webln enabled');
+    }
+
     if (!window.nostr) {
-      return alert('window.nostr not found! did you install the extension?');
+      return alert(
+        'window.nostr not found! did you install the Nip07 wallet extension?',
+      );
     }
 
     const loginRequest: LoginRequest = {
@@ -185,12 +192,6 @@ const LoginForm = ({
     );
   }
 };
-
-const localLogin = (publicKey, privateKey) => ({
-  type: 'LOGIN',
-  publicKey,
-  privateKey,
-});
 
 const logout = () => ({
   type: 'LOGOUT',
