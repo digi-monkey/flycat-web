@@ -92,15 +92,15 @@
     "signOut": "Sign Out",
     "pubKey": "PublicKey",
     "privKey": "PrivateKey",
-    "signWithNip07": "Sign With Nos2x",
+    "signWithNip07": "Wallet Extension",
     "signWithMetamask": "Sign With Metamask",
     "signWithNexus": "Sign With Nexus",
-    "signIn": "Sign In",
+    "signIn": "Submit",
     "cancel": "Cancel",
     "signAs": "Hi, you are sign-in as",
     "pkHint": ": required",
     "privHint": ": optional for read-only",
-    "genNewKey": "New Key Pair"
+    "genNewKey": "Gen Random KeyPair"
   },
   "thread": {
     "title": "Thread",

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
-import LoginForm from './LoginForm';
+import LoginCard from './LoginCard';
 import Setting from './Setting';
 import {
   Search,
@@ -285,7 +285,7 @@ export const MenuList = ({ isLoggedIn }) => {
               textAlign: 'center',
             }}
           >
-            <LoginForm onCancel={() => setIsOpenLoginForm(false)} />
+            <LoginCard onCancel={() => setIsOpenLoginForm(false)} />
           </div>
         )}
         <div
@@ -378,7 +378,7 @@ export const LoginFormTip = ({
             textAlign: 'center',
           }}
         >
-          <LoginForm onCancel={() => setIsOpenLoginForm(false)} />
+          <LoginCard onCancel={() => setIsOpenLoginForm(false)} />
         </div>
       )}
       <div
