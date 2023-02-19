@@ -1,5 +1,6 @@
-import { RawEvent, Event } from 'service/api';
+import { RawEvent, Event, nip19Decode, Nip19DataType } from 'service/api';
 import { Nip06 } from 'service/nip/06';
+import { BitAccount, BitIndexer } from 'dotbit';
 
 declare global {
   interface Window {
@@ -12,9 +13,11 @@ declare global {
 
 export enum LoginMode {
   local = 'local', // default
-  nip07 = 'nip07', // https://github.com/nostr-protocol/nips/blob/master/07.md
+  nip07Wallet = 'nip07', // https://github.com/nostr-protocol/nips/blob/master/07.md
   metamask = 'metamask',
   nexus = 'nexus',
+  dotbit = 'dotbit',
+  nip05Domain = 'nip05',
 }
 
 export enum LoginActionType {
@@ -29,6 +32,8 @@ export interface LoginRequest {
   mode: LoginMode;
   publicKey?: string;
   privateKey?: string;
+  didAlias?: string;
+  nip05DomainName?: string;
 }
 
 export interface LoginAction {
@@ -46,8 +51,12 @@ export interface Signer {
   isLoggedIn: boolean;
   getPublicKey: GetPublicKey;
   signEvent?: SignEvent;
+
   publicKey?: string; // for saving in localStorage under local mode
   privateKey?: string; // for saving in localStorage under local mode
+
+  didAlias?: string; // only for dotbit mode
+  nip05DomainName?: string; // only for nip05 mode
 }
 
 function loginPending() {
@@ -112,35 +121,35 @@ export const loginReducer = (
   }
 };
 
-export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
-  const mode = action.mode;
+export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
+  const mode = request.mode;
   switch (mode) {
     case LoginMode.local:
-      if (!action.publicKey || action.publicKey.length === 0) {
+      if (!request.publicKey || request.publicKey.length === 0) {
         throw new Error(
           'action.publicKey can not be null under local login mode',
         );
       }
-      saveTempMyPublicKey(action.publicKey);
+      saveTempMyPublicKey(request.publicKey);
 
       return {
         mode,
         isLoggedIn: true,
         getPublicKey: async () => {
-          return action.publicKey!;
+          return request.publicKey!;
         },
         signEvent:
-          action.privateKey && action.privateKey?.length > 0
+          request.privateKey && request.privateKey?.length > 0
             ? async (raw: RawEvent) => {
-                return await raw.toEvent(action.privateKey!);
+                return await raw.toEvent(request.privateKey!);
               }
             : undefined,
 
-        publicKey: action.publicKey,
-        privateKey: action.privateKey,
+        publicKey: request.publicKey,
+        privateKey: request.privateKey,
       };
 
-    case LoginMode.nip07:
+    case LoginMode.nip07Wallet:
       if (!window.nostr) {
         throw new Error('window.nostr not found!');
       }
@@ -158,6 +167,49 @@ export async function getLoginInfo(action: LoginRequest): Promise<Signer> {
           return await window.nostr!.signEvent(raw);
         },
       };
+
+    case LoginMode.dotbit: {
+      if (request.didAlias == null) {
+        throw new Error('didAlias not found in dotbit mode');
+      }
+      const pk = await requestPublicKeyFromDotBit(request.didAlias);
+      saveTempMyPublicKey(pk);
+
+      const isLoggedIn = pk != null && pk.length > 0;
+
+      return {
+        mode,
+        isLoggedIn: isLoggedIn,
+        getPublicKey: async () => {
+          return await requestPublicKeyFromDotBit(request.didAlias!);
+        },
+        signEvent: undefined,
+        didAlias: request.didAlias,
+      };
+    }
+
+    case LoginMode.nip05Domain: {
+      if (request.nip05DomainName == null) {
+        throw new Error('nip05DomainName not found in nip05 mode');
+      }
+
+      const pk = await requestPublicKeyFromNip05DomainName(
+        request.nip05DomainName,
+      );
+      saveTempMyPublicKey(pk);
+
+      return {
+        mode,
+        isLoggedIn: true,
+        getPublicKey: async () => {
+          return await requestPublicKeyFromNip05DomainName(
+            request.nip05DomainName!,
+          );
+        },
+        signEvent: undefined,
+        nip05DomainName: request.nip05DomainName,
+      };
+    }
 
     case LoginMode.metamask:
       throw new Error('not impl');
@@ -183,4 +235,62 @@ export function loadTempMyPublicKey() {
 
 export function clearTempMyPublicKey() {
   if (loadTempMyPublicKey() != null) localStorage.removeItem(tempMyPkItemKey);
+}
+
+export async function requestPublicKeyFromDotBit(
+  didAlias: string,
+): Promise<string> {
+  if (!didAlias.endsWith('.bit')) {
+    throw new Error('dotbit alias must ends with .bit');
+  }
+
+  const account = new BitAccount({
+    account: didAlias,
+    bitIndexer: new BitIndexer({
+      uri: 'https://indexer-v1.did.id',
+    }),
+  });
+  const records = await account.records('profile.nostr');
+  const record = records[0];
+  if (record == null || record.value.length === 0) {
+    throw new Error('nostr key value not found in' + didAlias);
+  }
+
+  const npubPk = record.value;
+  const decoded = nip19Decode(npubPk);
+  if (decoded.type !== Nip19DataType.Pubkey) {
+    throw new Error(
+      'nip19Decode error: invalid nostr key value in dotbit ' +
+        didAlias +
+        ' ' +
+        npubPk,
+    );
+  }
+  const pk = decoded.data;
+  return pk;
+}
+
+export async function requestPublicKeyFromNip05DomainName(
+  domainName: string,
+): Promise<string> {
+  if (!domainName.includes('@')) {
+    throw new Error('invalid domain name! not including @');
+  }
+
+  const username = domainName.split('@')[0];
+  const website = domainName.split('@')[1];
+
+  const response = await fetch(
+    `https://${website}/.well-known/nostr.json?name=${username}`,
+  );
+  const data = await response.json();
+  if (data == null || data.names == null) {
+    throw new Error('invalid domain for nip05 ' + domainName);
+  }
+  const pk = data.names[username];
+  if (pk == null) {
+    throw new Error('invalid username for nip05 ' + domainName);
+  }
+
+  return pk;
 }

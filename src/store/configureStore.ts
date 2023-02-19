@@ -9,7 +9,12 @@ import {
 } from '@reduxjs/toolkit';
 import { createInjectorsEnhancer } from 'redux-injectors';
 import createSagaMiddleware from 'redux-saga';
-import { LoginMode, loginReducer } from './loginReducer';
+import {
+  LoginMode,
+  loginReducer,
+  requestPublicKeyFromDotBit,
+  requestPublicKeyFromNip05DomainName,
+} from './loginReducer';
 
 import { createReducer } from './reducers';
 import { relayReducer } from './relayReducer';
@@ -45,6 +50,13 @@ export function toSavableRootState(state: RootState): SavableRootState {
   if (state.loginReducer.publicKey) {
     savableState.loginReducer.publicKey = state.loginReducer.publicKey;
   }
+  if (state.loginReducer.didAlias) {
+    savableState.loginReducer.didAlias = state.loginReducer.didAlias;
+  }
+  if (state.loginReducer.nip05DomainName) {
+    savableState.loginReducer.nip05DomainName =
+      state.loginReducer.nip05DomainName;
+  }
   return savableState;
 }
 
@@ -56,9 +68,31 @@ export function toRootState(state: SavableRootState): RootState {
           return state.loginReducer.publicKey!;
         };
 
-      case LoginMode.nip07:
+      case LoginMode.nip07Wallet:
         return async () => {
           const pk = await window.nostr?.getPublicKey()!;
+          return pk;
+        };
+
+      case LoginMode.dotbit:
+        return async () => {
+          if (state.loginReducer.didAlias == null) {
+            throw new Error('state.loginReducer.didAlias == null');
+          }
+          const pk = await requestPublicKeyFromDotBit(
+            state.loginReducer.didAlias,
+          );
+          return pk;
+        };
+
+      case LoginMode.nip05Domain:
+        return async () => {
+          if (state.loginReducer.nip05DomainName == null) {
+            throw new Error('state.loginReducer.nip05DomainName == null');
+          }
+          const pk = await requestPublicKeyFromNip05DomainName(
+            state.loginReducer.nip05DomainName,
+          );
           return pk;
         };
 
@@ -77,11 +111,16 @@ export function toRootState(state: SavableRootState): RootState {
             }
           : undefined;
 
-      case LoginMode.nip07:
+      case LoginMode.nip07Wallet:
         return async (raw: RawEvent) => {
           return await window.nostr!.signEvent(raw);
         };
 
+      case LoginMode.dotbit:
+        return undefined;
+
+      case LoginMode.nip05Domain:
+        return undefined;
       default:
         throw new Error('unsupported mode');
     }
@@ -98,6 +137,12 @@ export function toRootState(state: SavableRootState): RootState {
   }
   if (state.loginReducer.publicKey) {
     loginReducer.publicKey = state.loginReducer.publicKey;
+  }
+  if (state.loginReducer.didAlias) {
+    loginReducer.didAlias = state.loginReducer.didAlias;
+  }
+  if (state.loginReducer.nip05DomainName) {
+    loginReducer.nip05DomainName = state.loginReducer.nip05DomainName;
   }
 
   const rootState: RootState = {
@@ -136,7 +181,9 @@ export function readStore(): RootState | any {
 
 // Function to Load the store from local storage if it exists
 const loadStore = () => {
-  return readStore();
+  const store = readStore();
+  console.log(store);
+  return store;
 };
 
 export function configureAppStore() {

@@ -57,6 +57,8 @@ const LoginCard = ({
   const myPublicKey = useReadonlyMyPublicKey();
   const [pubKeyInputValue, setPubKeyInputValue] = useState<string>('');
   const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
+  const [dotBitInputValue, setDotBitInputValue] = useState<string>('');
+  const [domainNameInputValue, setDomainNameInputValue] = useState<string>('');
 
   const newKeyPair = () => {
     const data = randomKeyPair();
@@ -77,7 +79,23 @@ const LoginCard = ({
     }
 
     const loginRequest: LoginRequest = {
-      mode: LoginMode.nip07,
+      mode: LoginMode.nip07Wallet,
+    };
+    doLogin(loginRequest);
+  };
+
+  const signWithDotBit = async () => {
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.dotbit,
+      didAlias: dotBitInputValue,
+    };
+    doLogin(loginRequest);
+  };
+
+  const signWithDomainNameNip05 = async () => {
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.nip05Domain,
+      nip05DomainName: domainNameInputValue,
     };
     doLogin(loginRequest);
   };
@@ -227,6 +245,55 @@ const LoginCard = ({
             {t('loginForm.signIn')}
           </Button>
         </div>
+        <ThinHr />
+        <span style={styles.title}>{'Dotbit'}</span>
+        <div>
+          <input
+            type="text"
+            placeholder={'example.bit'}
+            name="dotbitDomainName"
+            style={styles.input}
+            value={dotBitInputValue}
+            onChange={event => setDotBitInputValue(event.target.value)}
+          />
+          <div style={{ margin: '10px 0px' }}>
+            <Button
+              fullWidth
+              type="button"
+              onClick={signWithDotBit}
+              variant="outlined"
+              color="success"
+            >
+              {t('loginForm.signIn')}
+            </Button>
+          </div>
+        </div>
+        <ThinHr />
+
+        <span style={styles.title}>{'DomainName Nip05'}</span>
+        <div>
+          <input
+            type="text"
+            placeholder={'user@domain.com'}
+            name="nip05DomainName"
+            style={styles.input}
+            value={domainNameInputValue}
+            onChange={event => setDomainNameInputValue(event.target.value)}
+          />
+          <div style={{ margin: '10px 0px' }}>
+            <Button
+              fullWidth
+              type="button"
+              onClick={signWithDomainNameNip05}
+              variant="outlined"
+              color="success"
+            >
+              {t('loginForm.signIn')}
+            </Button>
+          </div>
+        </div>
+
+        <ThinHr />
         <div style={{ margin: '10px 0px' }}>
           <Button
             fullWidth

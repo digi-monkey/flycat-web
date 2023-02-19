@@ -35,7 +35,7 @@
     "cross-env": "7.0.3",
     "crypto-js": "4.1.1",
     "dompurify": "2.4.3",
-    "dotbit": "0.3.0",
+    "dotbit": "0.4.16",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-react-hooks": "4.3.0",
@@ -81,9 +81,9 @@
     "web-vitals": "2.1.2"
   },
   "scripts": {
-    "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  react-scripts start",
-    "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  react-scripts build",
-    "test": "react-scripts test",
+    "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  craco start",
+    "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "start:prod": "yarn run build && serve -s build",
     "test:generators": "ts-node ./internals/testing/generators/test-generators.ts",
@@ -139,6 +139,7 @@
     }
   },
   "devDependencies": {
+    "@craco/craco": "7.0.0",
     "@types/sharedworker": "0.0.88"
   }
 }
