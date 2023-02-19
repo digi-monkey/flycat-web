@@ -482,12 +482,16 @@ export const ReactionGroups = ({
       <span>
         <span style={styles.reaction} onClick={handleClick}>
           {seen?.map(url => (
-            <span style={{ color: 'green' }}>|</span>
+            <span key={url} style={{ color: 'green' }}>
+              |
+            </span>
           ))}
           {relays
             ?.filter(r => !seen?.includes(r))
             .map(url => (
-              <span style={{ color: '#c6c0c0' }}>|</span>
+              <span key={url} style={{ color: '#c6c0c0' }}>
+                |
+              </span>
             ))}
         </span>
         <Popover
@@ -503,9 +507,11 @@ export const ReactionGroups = ({
           <div style={{ padding: '10px', fontSize: '14px', width: '100%' }}>
             <div style={{ display: 'block' }}>{t('seen.title')}</div>
             <div>
-              {seen?.map(url => (
-                <li>{url}</li>
-              ))}
+              {seen &&
+                seen.length > 0 &&
+                seen
+                  ?.filter(url => url != null && url !== '')
+                  .map(url => <li key={url}>{url}</li>)}
             </div>
 
             <button
