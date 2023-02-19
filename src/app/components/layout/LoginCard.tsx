@@ -1,4 +1,6 @@
 import { Button } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -170,7 +172,7 @@ const LoginCard = ({
           <Button
             fullWidth
             type="button"
-            variant="outlined"
+            variant="contained"
             color="success"
             onClick={doLogout}
           >
@@ -181,7 +183,7 @@ const LoginCard = ({
           <Button
             fullWidth
             type="button"
-            variant="outlined"
+            variant="contained"
             color="success"
             onClick={onCancel}
           >
@@ -193,11 +195,16 @@ const LoginCard = ({
   } else {
     return (
       <form onSubmit={onSubmit}>
+        <div style={{ width: '100%', height: '60px', textAlign: 'right' }}>
+          <IconButton onClick={onCancel} aria-label="delete">
+            <CancelOutlinedIcon />
+          </IconButton>
+        </div>
         <span style={styles.title}>{t('nav.menu.signIn')}</span>
         <div style={{ margin: '10px 0px' }}>
           <Button
             fullWidth
-            variant="outlined"
+            variant="contained"
             color="success"
             onClick={signWithNip07}
           >
@@ -210,44 +217,48 @@ const LoginCard = ({
 
         <ThinHr />
 
-        <span style={styles.title}>{'With Key Pair'}</span>
-        <label>
-          <input
-            type="text"
-            placeholder={t('loginForm.pubKey') + t('loginForm.pkHint')}
-            name="publicKey"
-            style={styles.input}
-            value={pubKeyInputValue}
-            onChange={event => setPubKeyInputValue(event.target.value)}
-          />
-          <input
-            type="text"
-            placeholder={t('loginForm.privKey') + t('loginForm.privHint')}
-            name="privateKey"
-            style={styles.input}
-            value={privKeyInputValue}
-            onChange={event => setPrivKeyInputValue(event.target.value)}
-          />
-        </label>
-        <div style={{ margin: '10px 0px' }}>
-          <Button
-            fullWidth
-            type="button"
-            variant="outlined"
-            color="success"
-            onClick={newKeyPair}
-          >
-            {t('loginForm.genNewKey')}
-          </Button>
-        </div>
-        <div style={{ margin: '10px 0px' }}>
-          <Button fullWidth type="submit" variant="outlined" color="success">
-            {t('loginForm.signIn')}
-          </Button>
-        </div>
-        <ThinHr />
-        <span style={styles.title}>{'Dotbit'}</span>
         <div>
+          <span style={styles.title}>{'With Key Pair'}</span>
+          <label>
+            <input
+              type="text"
+              placeholder={t('loginForm.pubKey') + t('loginForm.pkHint')}
+              name="publicKey"
+              style={styles.input}
+              value={pubKeyInputValue}
+              onChange={event => setPubKeyInputValue(event.target.value)}
+            />
+            <input
+              type="text"
+              placeholder={t('loginForm.privKey') + t('loginForm.privHint')}
+              name="privateKey"
+              style={styles.input}
+              value={privKeyInputValue}
+              onChange={event => setPrivKeyInputValue(event.target.value)}
+            />
+          </label>
+          <div style={{ margin: '10px 0px' }}>
+            <Button
+              fullWidth
+              type="button"
+              variant="contained"
+              color="success"
+              onClick={newKeyPair}
+            >
+              {t('loginForm.genNewKey')}
+            </Button>
+          </div>
+          <div style={{ margin: '10px 0px' }}>
+            <Button fullWidth type="submit" variant="contained" color="success">
+              {t('loginForm.signIn')}
+            </Button>
+          </div>
+        </div>
+
+        <ThinHr />
+
+        <div>
+          <span style={styles.title}>{'Dotbit'}</span>
           <input
             type="text"
             placeholder={'example.bit'}
@@ -261,7 +272,7 @@ const LoginCard = ({
               fullWidth
               type="button"
               onClick={signWithDotBit}
-              variant="outlined"
+              variant="contained"
               color="success"
             >
               {t('loginForm.signIn')}
@@ -270,8 +281,8 @@ const LoginCard = ({
         </div>
         <ThinHr />
 
-        <span style={styles.title}>{'DomainName Nip05'}</span>
         <div>
+          <span style={styles.title}>{'DomainName Nip05'}</span>
           <input
             type="text"
             placeholder={'user@domain.com'}
@@ -285,7 +296,7 @@ const LoginCard = ({
               fullWidth
               type="button"
               onClick={signWithDomainNameNip05}
-              variant="outlined"
+              variant="contained"
               color="success"
             >
               {t('loginForm.signIn')}
@@ -294,17 +305,6 @@ const LoginCard = ({
         </div>
 
         <ThinHr />
-        <div style={{ margin: '10px 0px' }}>
-          <Button
-            fullWidth
-            type="button"
-            variant="outlined"
-            color="success"
-            onClick={onCancel}
-          >
-            {t('loginForm.cancel')}
-          </Button>
-        </div>
       </form>
     );
   }
