@@ -1,3 +1,5 @@
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -21,20 +23,19 @@ const styles = {
 
 export interface SettingProps {
   isLoggedIn;
-  publicKey;
-  privateKey;
+  myPrivateKey;
   onCancel: () => any;
   version: string;
 }
 
 export const Setting = ({
   isLoggedIn,
-  publicKey,
-  privateKey,
+  myPrivateKey,
   onCancel,
   version,
 }: SettingProps) => {
   const { t } = useTranslation();
+  const publicKey = useReadonlyMyPublicKey();
   return (
     <>
       <span style={styles.title}>{'Key'}</span>
@@ -45,11 +46,13 @@ export const Setting = ({
             textToCopy={nip19Encode(publicKey, Nip19DataType.Pubkey)}
             successMsg={'PublicKey copied to clipboard!'}
           />
-          <CopyText
-            name={t('loginForm.privKey')}
-            textToCopy={nip19Encode(privateKey, Nip19DataType.Privkey)}
-            successMsg={'PrivateKey copied to clipboard!'}
-          />
+          {myPrivateKey && myPrivateKey.length > 0 && (
+            <CopyText
+              name={t('loginForm.privKey')}
+              textToCopy={nip19Encode(myPrivateKey, Nip19DataType.Privkey)}
+              successMsg={'PrivateKey copied to clipboard!'}
+            />
+          )}
         </div>
       )}
       {!isLoggedIn && t('UserRequiredLoginBox.loginFirst')}
@@ -73,10 +76,4 @@ export const Setting = ({
   );
 };
 
-const mapStateToProps = state => ({
-  isLoggedIn: state.loginReducer.isLoggedIn,
-  publicKey: state.loginReducer.publicKey,
-  privateKey: state.loginReducer.privateKey,
-});
-
-export default connect(mapStateToProps)(Setting);
+export default connect(loginMapStateToProps)(Setting);
