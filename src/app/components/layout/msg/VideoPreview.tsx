@@ -13,11 +13,7 @@ export const VideoPreview = ({ url, autoPreview }: VideoPreviewProps) => {
 
   return (
     <div>
-      <video
-        style={{ height: '100px', minWidth: '300px' }}
-        controls
-        src={url}
-      />
+      <video style={{ minWidth: '300px', width: '100%' }} controls src={url} />
     </div>
   );
 };

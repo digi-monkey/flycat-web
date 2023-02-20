@@ -6,10 +6,11 @@ export function normalizeContent(text: string): {
   imageUrls: string[];
   videoUrls: string[];
   audioUrls: string[];
+  previewUrls: string[];
   modifiedText: string;
 } {
   // First, use a regular expression to find all URLs that start with "http" or "https"
-  const urlRegex = /https?:\/\/\S+/g;
+  const urlRegex = /(https?):\/\/[^\s/$.?#].[^\s]*/gm;
   const matches = text.match(urlRegex);
 
   // Initialize the imageUrls, videoUrls, and audioUrls arrays to empty arrays
@@ -54,7 +55,8 @@ export function normalizeContent(text: string): {
   }
 
   // Add link to url
-  modifiedText = linkify(modifiedText);
+  //modifiedText = linkify(modifiedText);
+  const previewUrls = extractUrls(modifiedText);
 
   modifiedText = DOMPurify.sanitize(modifiedText);
   DOMPurify.addHook('afterSanitizeAttributes', function (node) {
@@ -65,12 +67,18 @@ export function normalizeContent(text: string): {
     }
   });
 
-  return { imageUrls, videoUrls, audioUrls, modifiedText };
+  return { imageUrls, videoUrls, audioUrls, previewUrls, modifiedText };
 }
 
 export function linkify(content: string): string {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   return content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+}
+
+function extractUrls(text: string): string[] {
+  const urlRegex =
+    /(https?):\/\/[a-zA-Z0-9-.]+\.[a-zA-Z]{2,}(\/[^\\<>{}|;'"`()\s]*)?/gm;
+  return text.match(urlRegex) || [];
 }
 
 // only return the last url
