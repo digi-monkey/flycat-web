@@ -182,7 +182,6 @@ export function readStore(): RootState | any {
 // Function to Load the store from local storage if it exists
 const loadStore = () => {
   const store = readStore();
-  console.log(store);
   return store;
 };
 

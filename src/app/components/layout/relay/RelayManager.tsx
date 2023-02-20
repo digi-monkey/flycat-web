@@ -1,4 +1,6 @@
 import { Grid } from '@mui/material';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -6,7 +8,7 @@ import { RelayUrl } from 'service/api';
 import { equalMaps } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData } from 'service/worker/type';
+import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
 import styled from 'styled-components';
 import RelayAdder from './RelayAdder';
@@ -15,8 +17,6 @@ import RelayRemover from './RelayRemover';
 export interface State {
   loginReducer: {
     isLoggedIn: boolean;
-    publicKey: string;
-    privateKey: string;
   };
   relayReducer: RelayStoreType;
 }
@@ -24,12 +24,9 @@ export interface State {
 const mapStateToProps = (state: State) => {
   return {
     isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
     myCustomRelay: state.relayReducer,
   };
 };
-
-export type WsConnectStatus = Map<RelayUrl, boolean>;
 
 export const styles = {
   rightMenuLi: {
@@ -56,7 +53,6 @@ export const styles = {
 
 export interface RelayManagerProps {
   isLoggedIn;
-  myPublicKey;
   myCustomRelay: RelayStoreType;
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
   newConnCallback?: (conns: string[]) => any;
@@ -65,13 +61,15 @@ export interface RelayManagerProps {
 
 export function RelayManager({
   isLoggedIn,
-  myPublicKey,
   myCustomRelay,
   wsStatusCallback,
   newConnCallback,
 }: RelayManagerProps) {
   const { t } = useTranslation();
   const [relays, setRelays] = useState<string[]>([]);
+
+  const myPublicKey = useReadonlyMyPublicKey();
+
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );

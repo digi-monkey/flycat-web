@@ -14,21 +14,18 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager, {
-  WsConnectStatus,
-} from '../../components/layout/relay/RelayManager';
+import RelayManager from '../../components/layout/relay/RelayManager';
 import { Content } from '../../components/layout/msg/Content';
 import { useParams } from 'react-router-dom';
-import { FromWorkerMessageData } from 'service/worker/type';
-import { equalMaps, shortPublicKey } from 'service/helper';
+import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
-import defaultAvatar from '../../../resource/logo512.png';
 import { UserBox } from 'app/components/layout/UserBox';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
+import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -168,9 +165,7 @@ interface UserParams {
 export const ContactPage = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
+
   const myPublicKey = useReadonlyMyPublicKey();
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -178,53 +173,16 @@ export const ContactPage = ({ isLoggedIn }) => {
   const [userContactList, setUserContactList] = useState<ContactList>(
     new Map(),
   );
-  const [worker, setWorker] = useState<CallWorker>();
 
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
-  useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
-
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
-      },
-    );
-    setWorker(worker);
-    worker.pullWsConnectStatus();
-
-    return () => {
-      worker.removeListeners();
-    };
-  }, []);
+  const updateWorkerMsgListenerDeps = [
+    myPublicKey,
+    myContactEvent,
+    userContactEvent,
+  ];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
 
   function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
@@ -338,7 +296,7 @@ export const ContactPage = ({ isLoggedIn }) => {
     if (pks.length > 0) {
       worker?.subMetaDataAndContactList(pks);
     }
-  }, [wsConnectStatus, myPublicKey]);
+  }, [newConn, myPublicKey, userContactList.size]);
 
   return (
     <BaseLayout>
@@ -351,11 +309,7 @@ export const ContactPage = ({ isLoggedIn }) => {
                 <li key={index} style={styles.msgItem}>
                   <Grid container>
                     <Grid item xs={2}>
-                      <img
-                        style={styles.userProfileAvatar}
-                        src={user.picture || defaultAvatar}
-                        alt={'user-avatar'}
-                      />
+                      <ProfileAvatar picture={user.picture} name={user.name} />
                     </Grid>
                     <Grid item xs={10}>
                       <span style={styles.msgWord}>

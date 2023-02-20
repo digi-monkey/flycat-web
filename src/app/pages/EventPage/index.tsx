@@ -6,7 +6,6 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   isEventETag,
@@ -16,13 +15,9 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager, {
-  WsConnectStatus,
-} from '../../components/layout/relay/RelayManager';
+import RelayManager from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
-import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { TextMsg } from 'app/components/layout/msg/TextMsg';
 import { ShareMsg } from 'app/components/layout/msg/ShareMsg';
@@ -32,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
 
 export const styles = {
   root: {
@@ -170,56 +166,17 @@ interface UserParams {
 export const EventPage = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const { eventId } = useParams<UserParams>();
+
   const myPublicKey = useReadonlyMyPublicKey();
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
+  const updateWorkerMsgListenerDeps = [myPublicKey, isLoggedIn];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
+
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [worker, setWorker] = useState<CallWorker>();
-
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
-  useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
-
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
-      },
-    );
-    worker.pullWsConnectStatus();
-    setWorker(worker);
-  }, []);
 
   function onMsgHandler(data: any) {
     const msg = JSON.parse(data);
@@ -301,19 +258,19 @@ export const EventPage = ({ isLoggedIn }) => {
   useEffect(() => {
     worker?.subMsgByEventIds([eventId]);
     worker?.subMsgByETags([eventId]);
-  }, [wsConnectStatus]);
+  }, [newConn]);
 
   useEffect(() => {
     if (myPublicKey.length > 0) {
       worker?.subMetadata([myPublicKey]);
     }
-  }, [myPublicKey, wsConnectStatus]);
+  }, [myPublicKey, newConn]);
 
   useEffect(() => {
     if (unknownPks.length > 0) {
       worker?.subMetadata(unknownPks);
     }
-  }, [unknownPks, wsConnectStatus]);
+  }, [unknownPks, newConn]);
 
   useEffect(() => {
     const replyToEventIds = msgList
@@ -331,7 +288,7 @@ export const EventPage = ({ isLoggedIn }) => {
     if (newIds.length > 0) {
       worker?.subMsgByEventIds(newIds);
     }
-  }, [wsConnectStatus, msgList.length]);
+  }, [newConn, msgList.length]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);

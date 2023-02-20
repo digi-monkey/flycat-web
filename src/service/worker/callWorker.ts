@@ -16,6 +16,9 @@ import {
   ToWorkerMessageType,
 } from './type';
 
+export type OnWsConnStatus = (message: FromWorkerMessageData) => any;
+export type OnNostrData = (message: FromWorkerMessageData) => any;
+
 // this is main thread code that makes postMessage requests to a worker
 export class CallWorker {
   resolvers: { [key: string]: (arg: any) => unknown } = {};
@@ -29,8 +32,8 @@ export class CallWorker {
   worker = new SharedWorker(new URL('./worker.ts', import.meta.url));
 
   constructor(
-    onWsConnStatus?: (message: FromWorkerMessageData) => any,
-    onNostrData?: (message: FromWorkerMessageData) => any,
+    onWsConnStatus?: OnWsConnStatus,
+    onNostrData?: OnNostrData,
     workerId?: string,
   ) {
     if (workerId) {
