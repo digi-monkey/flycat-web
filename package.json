@@ -32,6 +32,7 @@
     "bech32": "2.0.0",
     "buffer": "6.0.3",
     "chalk": "4.1.2",
+    "cheerio": "1.0.0-rc.12",
     "cross-env": "7.0.3",
     "crypto-js": "4.1.1",
     "dompurify": "2.4.3",

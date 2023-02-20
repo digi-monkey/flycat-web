@@ -1,4 +1,5 @@
 import { Grid } from '@mui/material';
+import { UrlPreview } from 'app/components/URLPreview/URLPreview';
 import { useTimeSince } from 'hooks/useTimeSince';
 import React, { useEffect, useRef, useState } from 'react';
 import { normalizeContent } from 'service/helper';
@@ -13,7 +14,7 @@ export interface ContentProps {
 }
 
 export function Content({ text, classNames }: ContentProps) {
-  const { modifiedText, imageUrls, videoUrls, audioUrls } =
+  const { previewUrls, modifiedText, imageUrls, videoUrls, audioUrls } =
     normalizeContent(text);
   return (
     <span className={classNames}>
@@ -21,7 +22,7 @@ export function Content({ text, classNames }: ContentProps) {
       <p>
         {imageUrls.length > 0 &&
           imageUrls.map((url, index) => (
-            <span key={index}>
+            <span key={url}>
               <ImagePlate url={url} />
             </span>
           ))}
@@ -29,7 +30,7 @@ export function Content({ text, classNames }: ContentProps) {
       <p>
         {videoUrls.length > 0 &&
           videoUrls.map((url, index) => (
-            <span key={index}>
+            <span key={url}>
               <VideoPreview url={url} />
             </span>
           ))}
@@ -37,8 +38,20 @@ export function Content({ text, classNames }: ContentProps) {
       <p>
         {audioUrls.length > 0 &&
           audioUrls.map((url, index) => (
-            <span key={index}>
+            <span key={url}>
               <AudioPreview src={url} />
+            </span>
+          ))}
+      </p>
+      <p>
+        {previewUrls.length > 0 &&
+          previewUrls.map(url => (
+            <span key={url}>
+              <iframe
+                src={'https://ogp.deno.dev/?size=small&url=' + url}
+                height="200"
+                style={{ width: '500px', maxWidth: '100%;' }}
+              ></iframe>
             </span>
           ))}
       </p>
@@ -201,13 +214,13 @@ export function ImagePlate({ url }: { url: string }) {
         alt=""
         style={{
           maxWidth: '100%',
-          width: `48px`,
+          maxHeight: '300px',
           cursor: 'pointer',
         }}
         onClick={() => setShowPopup(true)}
       />
       {showPopup && (
-        <div style={{ maxWidth: '800px', maxHeight: '900px' }}>
+        <div style={{}}>
           <div
             style={{
               position: 'fixed',
@@ -233,14 +246,30 @@ export function ImagePlate({ url }: { url: string }) {
               padding: '2px',
               boxShadow: '0 0 5px white',
               zIndex: '500',
+              height: '100%',
+              maxHeight: '700px',
+              overflow: 'hidden',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             <div
-              style={{ position: 'relative', width: '100%', height: '100%' }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
             >
               <img
                 src={url}
-                style={{ width: '100%', height: '100%', maxHeight: '900px' }}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                }}
               />
             </div>
           </div>
