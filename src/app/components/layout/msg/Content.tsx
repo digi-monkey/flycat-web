@@ -214,15 +214,13 @@ export function ImagePlate({ url }: { url: string }) {
         alt=""
         style={{
           maxWidth: '100%',
-          width: `100%`,
+          maxHeight: '300px',
           cursor: 'pointer',
         }}
         onClick={() => setShowPopup(true)}
       />
       {showPopup && (
-        <div
-          style={{ maxWidth: '800px', maxHeight: '900px', overflow: 'scroll' }}
-        >
+        <div style={{}}>
           <div
             style={{
               position: 'fixed',
@@ -248,14 +246,30 @@ export function ImagePlate({ url }: { url: string }) {
               padding: '2px',
               boxShadow: '0 0 5px white',
               zIndex: '500',
+              height: '100%',
+              maxHeight: '700px',
+              overflow: 'hidden',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             <div
-              style={{ position: 'relative', width: '100%', height: '100%' }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
             >
               <img
                 src={url}
-                style={{ width: '100%', height: '100%', maxHeight: '900px' }}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                }}
               />
             </div>
           </div>
