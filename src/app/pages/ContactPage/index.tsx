@@ -7,7 +7,6 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   EventTags,
@@ -20,7 +19,6 @@ import RelayManager, {
 } from '../../components/layout/relay/RelayManager';
 import { Content } from '../../components/layout/msg/Content';
 import { useParams } from 'react-router-dom';
-import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { equalMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
@@ -29,19 +27,13 @@ import defaultAvatar from '../../../resource/logo512.png';
 import { UserBox } from 'app/components/layout/UserBox';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
 let userContactEvent: Event;
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 export const styles = {
   root: {
@@ -168,31 +160,24 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
 
 interface UserParams {
   publicKey: string;
 }
 
-export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const ContactPage = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const myPublicKey = useReadonlyMyPublicKey();
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
   const [userContactList, setUserContactList] = useState<ContactList>(
     new Map(),
   );
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
   const [worker, setWorker] = useState<CallWorker>();
 
   function _wsConnectStatus() {
@@ -267,7 +252,7 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.contact_list:
-          if (event.pubkey === myKeyPair.publicKey) {
+          if (event.pubkey === myPublicKey) {
             if (
               myContactEvent == null ||
               myContactEvent?.created_at! < event.created_at
@@ -291,15 +276,6 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       }
     }
   }
-
-  useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
 
   useEffect(() => {
     if (myContactEvent == null) return;
@@ -413,4 +389,4 @@ export const ContactPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(ContactPage);
+export default connect(loginMapStateToProps)(ContactPage);

@@ -33,8 +33,9 @@ export const DiscoveryFriend = ({
         {t('friendDiscover.title')}
       </div>
       {pks.length === 0 && <p>{t('friendDiscover.noFriend')}</p>}
-      {pks.map((a, index) => (
+      {pks.map((pk, index) => (
         <span
+          key={pk}
           style={{
             marginRight: '10px',
             display: 'inline-block',
@@ -43,8 +44,8 @@ export const DiscoveryFriend = ({
             overflowX: 'hidden',
           }}
         >
-          <ProfileAvatar picture={userMap.get(a)?.picture} name={a} />
-          <UserName name={userMap.get(a)?.name} pk={a} />
+          <ProfileAvatar picture={userMap.get(pk)?.picture} name={pk} />
+          <UserName name={userMap.get(pk)?.name} pk={pk} />
         </span>
       ))}
     </div>

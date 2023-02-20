@@ -165,3 +165,14 @@ export function maxStrings(str: string, maxLen: number = 100) {
     return str;
   }
 }
+
+export function isNip05DomainName(name: string): boolean {
+  // Regular expression pattern for email validation
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return regex.test(name);
+}
+
+export function isDotBitName(name: string): boolean {
+  return name.endsWith('.bit');
+}

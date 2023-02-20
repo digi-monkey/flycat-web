@@ -6,7 +6,6 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   EventTags,
@@ -17,7 +16,6 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import { matchKeyPair } from 'service/crypto';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
@@ -35,19 +33,14 @@ import { TopArticle } from 'app/components/layout/TopArticle';
 import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
 import { TextNoteEvent } from 'app/type';
+import { loginMapStateToProps } from 'app/helper';
+import { SignEvent } from 'store/loginReducer';
+import { useMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
 let myProfileEvent: Event;
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 const styles = {
   root: {
@@ -167,12 +160,13 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
+
+export interface HomePageProps {
+  isLoggedIn: boolean;
+  signEvent?: SignEvent;
 }
 
-export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -188,11 +182,11 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
+
+  const myPublicKey = useMyPublicKey();
+
   const [discoverPks, setDiscoverPks] = useState<string[]>([]);
+  const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const [worker, setWorker] = useState<CallWorker>();
   const relayUrls = Array.from(wsConnectStatus.keys());
@@ -409,13 +403,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-
     // update worker listener
     // update some deps like myPublicKey in the listener
     worker?.updateMsgListener(
@@ -432,19 +419,26 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
+        onMsgHandler.bind(worker)(message.nostrData);
       },
     );
-  }, [isLoggedIn]);
+  }, [myPublicKey, isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn !== true) return;
-    if (myPublicKey.length === 0) return;
+    if (!myPublicKey || myPublicKey.length === 0) return;
 
+    console.log('sub meta contact', myPublicKey);
+
+    const callRelay =
+      newConn.length === 0
+        ? { type: CallRelayType.all, data: [] }
+        : { type: CallRelayType.batch, data: newConn };
     worker?.subMetaDataAndContactList(
       [myPublicKey],
       false,
       'userMetaAndContact',
+      callRelay,
     );
   }, [myPublicKey, newConn]);
 
@@ -503,7 +497,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   useEffect(() => {
     const pks = Array.from(myContactList.keys());
     // subscribe myself msg too
-    if (!pks.includes(myPublicKey) && myPublicKey.length > 0) {
+    if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
@@ -528,7 +522,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
         data: newConn,
       });
     }
-  }, [myContactList.size, newConn]);
+  }, [myPublicKey, myContactList.size, newConn]);
 
   useEffect(() => {
     if (isLoggedIn) return;
@@ -546,22 +540,17 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [isLoggedIn, newConn]);
 
   const onSubmitText = async (text: string) => {
-    if (myKeyPair.privateKey === '') {
-      alert('set privateKey first!');
-      return;
-    }
-    if (!matchKeyPair(myKeyPair.publicKey, myKeyPair.privateKey)) {
-      alert('public key and private key not matched!');
-      return;
+    if (signEvent == null) {
+      return alert('no sign method!');
     }
 
     const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
+      myPublicKey,
       WellKnownEventKind.text_note,
       undefined,
       text,
     );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
+    const event = await signEvent(rawEvent);
     console.log(text, event);
 
     // publish to all connected relays
@@ -587,7 +576,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       <Left>
         <>
           <PubNoteTextarea
-            disabled={!myPrivateKey}
+            disabled={isReadonlyMode || !isLoggedIn}
             onSubmitText={onSubmitText}
           />
 
@@ -602,7 +591,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                   <p style={{ color: 'gray', fontSize: '14px' }}>
                     {t('homeFeed.globalFeed')}
                   </p>
-                  {Msgs(globalMsgList, worker!, myKeyPair, userMap, relayUrls)}
+                  {Msgs(globalMsgList, worker!, userMap, relayUrls)}
                 </div>
               )}
               {msgList.length === 0 && isLoggedIn && (
@@ -613,7 +602,7 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
               )}
               {msgList.length > 0 &&
                 isLoggedIn &&
-                Msgs(msgList, worker!, myKeyPair, userMap, relayUrls)}
+                Msgs(msgList, worker!, userMap, relayUrls)}
             </ul>
           </div>
         </>
@@ -641,7 +630,6 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                 }
                 worker={worker}
                 profileEvent={myProfileEvent}
-                privKey={myPrivateKey}
               />
             )}
             {!isLoggedIn && <UserRequiredLoginBox />}
@@ -664,4 +652,4 @@ export const HomePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(HomePage);
+export default connect(loginMapStateToProps)(HomePage);

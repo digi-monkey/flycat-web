@@ -164,11 +164,7 @@ export function ArticleTrendsItem({
       >
         <Grid container>
           <Grid item xs={12}>
-            <div
-              style={{ fontSize: '14px', fontWeight: '500', color: 'black' }}
-            >
-              {title}
-            </div>
+            <div style={{ fontSize: '14px', color: 'black' }}>{title}</div>
             <div style={{ fontSize: '12px', color: 'gray' }}>
               {/**
                *  

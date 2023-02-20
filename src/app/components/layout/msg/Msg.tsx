@@ -9,15 +9,9 @@ import { CallWorker } from 'service/worker/callWorker';
 import { ShareMsg } from './ShareMsg';
 import { TextMsg } from './TextMsg';
 
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 export const Msgs = (
   msgList: TextNoteEvent[],
   worker: CallWorker,
-  myKeyPair: KeyPair,
   userMap: UserMap,
   relays: string[],
 ) => {
@@ -53,7 +47,6 @@ export const Msgs = (
           key={msg.id}
           content={msg.content}
           eventId={msg.id}
-          keyPair={myKeyPair}
           userPk={msg.pubkey}
           userAvatar={userMap.get(msg.pubkey)?.picture}
           username={userMap.get(msg.pubkey)?.name}
@@ -76,7 +69,6 @@ export const Msgs = (
           name={userMap.get(msg.pubkey)?.name}
           content={msg.content}
           eventId={msg.id}
-          keyPair={myKeyPair}
           replyTo={msg.tags
             .filter(t => t[0] === EventTags.P)
             .map(t => {

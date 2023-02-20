@@ -267,13 +267,14 @@ export class CallWorker {
     pks: PublicKey[],
     keepAlive?: boolean,
     customId?: string,
+    callRelay?: CallRelay,
   ) {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.set_metadata, WellKnownEventKind.contact_list],
       limit: pks.length * 2,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subMsgAndMetaData(pks: PublicKey[], keepAlive?: boolean, customId?: string) {

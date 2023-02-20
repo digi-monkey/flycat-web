@@ -30,14 +30,8 @@ import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
 import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 export const styles = {
   root: {
@@ -168,18 +162,15 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
 
 interface UserParams {
   eventId: EventId;
 }
 
-export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const EventPage = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const { eventId } = useParams<UserParams>();
+  const myPublicKey = useReadonlyMyPublicKey();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
@@ -349,20 +340,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
   }, [msgList.length]);
 
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
-
-  useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
-
   const getEventIdsFromETags = (tags: any[]) => {
     const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
     return eventIds;
@@ -409,7 +386,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     key={msg.id}
                     content={msg.content}
                     eventId={msg.id}
-                    keyPair={myKeyPair}
                     userPk={msg.pubkey}
                     userAvatar={userMap.get(msg.pubkey)?.picture}
                     username={userMap.get(msg.pubkey)?.name}
@@ -432,7 +408,6 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     name={userMap.get(msg.pubkey)?.name}
                     content={msg.content}
                     eventId={msg.id}
-                    keyPair={myKeyPair}
                     replyTo={msg.tags
                       .filter(t => t[0] === EventTags.P)
                       .map(t => {
@@ -471,4 +446,4 @@ export const EventPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(EventPage);
+export default connect(loginMapStateToProps)(EventPage);

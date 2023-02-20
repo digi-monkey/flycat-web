@@ -22,7 +22,7 @@ import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
-import NavHeader from 'app/components/layout/NavHeader';
+import { NavHeader } from 'app/components/layout/NavHeader';
 import RelayManager from '../../components/layout/relay/RelayManager';
 import { ShareArticle } from 'app/components/layout/msg/Share';
 import { connect } from 'react-redux';
@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { CopyText } from 'app/components/layout/util/CopyText';
 import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
+import { loginMapStateToProps } from 'app/helper';
 
 const styles = {
   root: {
@@ -147,20 +148,12 @@ const styles = {
 let siteMetaDataEvent: Event;
 let articlePageEvent: Event;
 
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
-
 interface UserParams {
   publicKey: string;
   articleId: string;
 }
 
-export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
+export function ArticleRead() {
   const { t } = useTranslation();
   const { articleId, publicKey } = useParams<UserParams>();
 
@@ -373,14 +366,6 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
                     onClose={() => setIsShareModalOpen(false)}
                     pk={publicKey}
                     id={articleId}
-                    loginUser={
-                      isLoggedIn
-                        ? {
-                            publicKey: myPublicKey,
-                            privateKey: myPrivateKey,
-                          }
-                        : undefined
-                    }
                     onSubmit={onSubmitShare}
                   />
                   <span style={{ float: 'right' }}>
@@ -554,5 +539,3 @@ export function ArticleRead({ isLoggedIn, myPublicKey, myPrivateKey }) {
     </BaseLayout>
   );
 }
-
-export default connect(mapStateToProps)(ArticleRead);

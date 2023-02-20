@@ -20,6 +20,9 @@ import styled from 'styled-components';
 import { CallWorker } from 'service/worker/callWorker';
 import { ImageUploader } from './PubNoteTextarea';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 const styles = {
   userInfo: {
@@ -99,7 +102,6 @@ export interface UserBoxPros {
   about?: string;
   followCount?: number;
   relayConnectedCount?: number;
-  privKey?: string;
   profileEvent?: Event;
   worker?: CallWorker;
 }
@@ -113,7 +115,6 @@ export const UserBox = ({
   relayConnectedCount,
   worker,
   profileEvent,
-  privKey,
 }: UserBoxPros) => {
   const { t } = useTranslation();
   const [profile, setProfile] = useState<EventSetMetadataContent>();
@@ -121,6 +122,7 @@ export const UserBox = ({
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const myPublicKey = useReadonlyMyPublicKey();
 
   useEffect(() => {
     if (profileEvent != null) {
@@ -147,13 +149,9 @@ export const UserBox = ({
             </span>
           </span>
         </a>
-        {privKey && (
+        {myPublicKey === pk && (
           <span style={{ marginRight: '10px', color: 'gray' }}>
-            <ProfileEditPanel
-              privKey={privKey}
-              profile={profile}
-              worker={worker}
-            />
+            <ProfileEditPanel profile={profile} worker={worker} />
           </span>
         )}
         <a href={'/user/' + pk}>
@@ -395,13 +393,14 @@ const Div = styled.div`
 export const ProfileEditPanel = ({
   profile,
   worker,
-  privKey,
 }: {
   profile?: EventSetMetadataContent;
   worker?: CallWorker;
-  privKey?: string;
 }) => {
   const { t } = useTranslation();
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
 
   interface FormData {
     name?: string;
@@ -451,8 +450,8 @@ export const ProfileEditPanel = ({
 
   const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
     evt.preventDefault();
-    if (privKey == null) {
-      return alert('please sign-in first!');
+    if (signEvent == null) {
+      return alert('no sign method!');
     }
 
     const data: EventSetMetadataContent = {
@@ -466,7 +465,8 @@ export const ProfileEditPanel = ({
       nip05: formData.domainNameVerification || '',
     };
     console.log(data);
-    const event = await Nostr.newProfileEvent(data, privKey);
+    const rawEvent = await Nostr.newProfileRawEvent(data);
+    const event = await signEvent(rawEvent);
     if (worker == null) {
       return alert('something went wrong, please try again.');
     }

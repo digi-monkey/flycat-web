@@ -182,21 +182,9 @@ export function isArticleDataSchema(data: any): data is ArticleDataSchema {
 }
 
 export class Flycat {
-  publicKey: string;
-  privateKey: string;
   version: string;
 
-  constructor({
-    publicKey,
-    privateKey,
-    version = '',
-  }: {
-    publicKey: string;
-    privateKey: string;
-    version: string;
-  }) {
-    this.publicKey = publicKey;
-    this.privateKey = privateKey;
+  constructor({ version = '' }: { version: string }) {
     this.version = version;
   }
 
@@ -298,7 +286,7 @@ export class Flycat {
   }: {
     name: string;
     description: string;
-  }): Promise<Event> {
+  }): Promise<RawEvent> {
     const metaData: SiteMetaDataContentSchema = {
       site_name: name,
       site_description: description,
@@ -310,28 +298,27 @@ export class Flycat {
     const header = this.newSiteMetaDataHeader();
 
     const e = new RawEvent(
-      this.publicKey,
+      '',
       FlycatWellKnownEventKind.SiteMetaData,
       [header as any],
       content,
     );
-    return await e.toEvent(this.privateKey);
+    return e;
   }
 
-  async updateSite(metaData: SiteMetaDataContentSchema): Promise<Event> {
+  async updateSite(metaData: SiteMetaDataContentSchema): Promise<RawEvent> {
     const content = Flycat.serialize(metaData);
     const header = this.newSiteMetaDataHeader();
 
-    const e = new RawEvent(
-      this.publicKey,
+    return new RawEvent(
+      '',
       FlycatWellKnownEventKind.SiteMetaData,
       [header as any],
       content,
     );
-    return await e.toEvent(this.privateKey);
   }
 
-  async updateArticlePage(ap: ArticlePageContentSchema) {
+  async updateArticlePage(ap: ArticlePageContentSchema): Promise<RawEvent> {
     const kind = FlycatWellKnownEventKind.SiteMetaData + ap.page_id;
     if (!validateArticlePageKind(kind)) {
       throw new Error('invalid kind');
@@ -340,8 +327,7 @@ export class Flycat {
     const content = Flycat.serialize(ap);
     const header = this.newArticlePageHeader();
 
-    const e = new RawEvent(this.publicKey, kind, [header as any], content);
-    return await e.toEvent(this.privateKey);
+    return new RawEvent('', kind, [header as any], content);
   }
 
   newArticlePageContent(

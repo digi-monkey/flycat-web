@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Grid } from '@mui/material';
 import {
   EventSubResponse,
   EventSetMetadataContent,
@@ -12,7 +11,7 @@ import {
   PetName,
   Event,
 } from 'service/api';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
@@ -27,7 +26,6 @@ import {
 } from 'service/flycat-protocol';
 import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
-import NavHeader from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
@@ -35,18 +33,12 @@ import { UserBlogHeader } from 'app/components/layout/UserBox';
 import { ArticleMsg } from 'app/components/layout/msg/ArticleMsg';
 import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { RootState } from 'store/configureStore';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let siteMetaDataEvent: Event;
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 export const styles = {
   root: {
@@ -173,17 +165,19 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
 
 interface UserParams {
   publicKey: PublicKey;
 }
 
-export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const BlogPage = () => {
   const { publicKey } = useParams<UserParams>();
+
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
+
+  const myPublicKey = useReadonlyMyPublicKey();
 
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
@@ -198,8 +192,6 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [worker, setWorker] = useState<CallWorker>();
 
   const flycat = new Flycat({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
     version: '',
   });
 
@@ -356,7 +348,12 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   };
 
   const submitSiteMetaData = async (name: string, description: string) => {
-    const event = await flycat.newSite({ name, description });
+    if (signEvent == null) {
+      return alert('no sign method!');
+    }
+
+    const rawEvent = await flycat.newSite({ name, description });
+    const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
     // refresh blog data
@@ -364,6 +361,10 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   };
 
   const submitArticle = async (form: ArticlePostForm) => {
+    if (signEvent == null) {
+      return alert('no sign method!');
+    }
+
     const articleDataSchema = flycat.newArticleData(form);
     const duplicatedArray = articles.map(a => a.page_id);
     const pageIds = duplicatedArray.filter(
@@ -387,16 +388,18 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       ...articles,
       { ...articleDataSchema, ...{ page_id: pageId } },
     ]);
-    const apEvent = await flycat.updateArticlePage(ap);
+    const apRawEvent = await flycat.updateArticlePage(ap);
+    const apEvent = await signEvent(apRawEvent);
     worker?.pubEvent(apEvent);
 
     // remember to update the site metadata with new page id
     if (!siteMetaData?.page_ids.includes(pageId)) {
       const newPageIds = siteMetaData?.page_ids.concat(pageId);
       const metaData = { ...siteMetaData, ...{ page_ids: newPageIds } };
-      const siteEvent = await flycat.updateSite(
+      const rawSiteEvent = await flycat.updateSite(
         metaData as SiteMetaDataContentSchema,
       );
+      const siteEvent = await signEvent(rawSiteEvent);
       worker?.pubEvent(siteEvent);
     }
 
@@ -410,6 +413,9 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const submitUpdateArticle = async (
     article: ArticleDataSchema & { page_id: number },
   ) => {
+    if (signEvent == null) {
+      return alert('no sign method!');
+    }
     const pageData = articles
       .filter(a => a.page_id === article.page_id)
       .map(a => {
@@ -445,8 +451,8 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
       data: pageData,
     };
 
-    const event = await flycat.updateArticlePage(articlePage);
-
+    const rawEvent = await flycat.updateArticlePage(articlePage);
+    const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
   };
 
@@ -496,5 +502,4 @@ export const BlogPage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     </BaseLayout>
   );
 };
-
-export default connect(mapStateToProps)(BlogPage);
+export default BlogPage;

@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   EventETag,
   EventId,
   EventPTag,
   EventTags,
-  PrivateKey,
   PublicKey,
   RawEvent,
   WellKnownEventKind,
 } from 'service/api';
-import { matchKeyPair } from 'service/crypto';
 import { CallWorker } from 'service/worker/callWorker';
 import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 const styles = {
   smallBtn: {
@@ -30,24 +31,22 @@ const styles = {
   },
 };
 
-interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 function ReplyButton({
   replyToEventId,
   replyToPublicKey,
-  myKeyPair,
   worker,
 }: {
   replyToEventId: EventId;
   replyToPublicKey: PublicKey;
-  myKeyPair?: KeyPair;
   worker: CallWorker;
 }) {
   const { t } = useTranslation();
   const [showPopup, setShowPopup] = useState(false);
+
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
+  const myPublicKey = useReadonlyMyPublicKey();
 
   const handleClick = () => {
     setShowPopup(!showPopup);
@@ -55,22 +54,13 @@ function ReplyButton({
 
   const handleSubmit = async (text: string) => {
     console.log(text, replyToEventId, replyToPublicKey);
-    if (!myKeyPair) {
-      alert('login first!');
-      return;
-    }
 
-    if (myKeyPair.privateKey === '') {
-      alert('set privateKey first!');
-      return;
-    }
-    if (!matchKeyPair(myKeyPair.publicKey, myKeyPair.privateKey)) {
-      alert('public key and private key not matched!');
-      return;
+    if (signEvent == null) {
+      throw new Error('no sign method!');
     }
 
     const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
+      myPublicKey,
       WellKnownEventKind.text_note,
       [
         [EventTags.E, replyToEventId, ''] as EventETag,
@@ -78,7 +68,8 @@ function ReplyButton({
       ],
       text,
     );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
+
+    const event = await signEvent(rawEvent);
     console.log(text, event);
 
     // publish to all connected relays
@@ -94,7 +85,7 @@ function ReplyButton({
         {t('replyBtn.reply')}
       </button>
       {showPopup && (
-        <ReplyTextarea onSubmit={handleSubmit} disabled={!myKeyPair} />
+        <ReplyTextarea onSubmit={handleSubmit} disabled={signEvent == null} />
       )}
     </>
   );

@@ -16,12 +16,12 @@ import {
   Filter,
   deserializeMetadata,
 } from 'service/api';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import RelayManager, {
   WsConnectStatus,
 } from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
-import NavHeader from 'app/components/layout/NavHeader';
+import { NavHeader } from 'app/components/layout/NavHeader';
 import { FromWorkerMessageData } from 'service/worker/type';
 import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
@@ -42,19 +42,13 @@ import {
 } from 'service/flycat-protocol';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
+import { loginMapStateToProps } from 'app/helper';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
 let myContactEvent: Event;
 let userContactEvent: Event;
-
-const mapStateToProps = state => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myPublicKey: state.loginReducer.publicKey,
-    myPrivateKey: state.loginReducer.privateKey,
-  };
-};
 
 export const styles = {
   root: {
@@ -181,18 +175,14 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
-export interface KeyPair {
-  publicKey: PublicKey;
-  privateKey: PrivateKey;
-}
-
 interface UserParams {
   publicKey: string;
 }
 
-export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
+export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
+  const myPublicKey = useReadonlyMyPublicKey();
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
@@ -209,10 +199,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   const [articles, setArticles] = useState<
     (ArticleDataSchema & { page_id: number; pageCreatedAt: number })[]
   >([]);
-  const [myKeyPair, setMyKeyPair] = useState<KeyPair>({
-    publicKey: myPublicKey,
-    privateKey: myPrivateKey,
-  });
   const [worker, setWorker] = useState<CallWorker>();
 
   function _wsConnectStatus() {
@@ -314,7 +300,7 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
           break;
 
         case WellKnownEventKind.contact_list:
-          if (event.pubkey === myKeyPair.publicKey) {
+          if (event.pubkey === myPublicKey) {
             if (
               myContactEvent == null ||
               myContactEvent?.created_at! < event.created_at
@@ -417,15 +403,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }
 
   useEffect(() => {
-    if (isLoggedIn !== true) return;
-
-    setMyKeyPair({
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-    });
-  }, [isLoggedIn]);
-
-  useEffect(() => {
     if (myContactEvent == null) return;
 
     const contacts = myContactEvent.tags.filter(
@@ -504,6 +481,10 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   }, [siteMetaData]);
 
   const followUser = async () => {
+    if (signEvent == null) {
+      return alert('no sign method!');
+    }
+
     const contacts = Array.from(myContactList.entries());
     const tags = contacts.map(
       c =>
@@ -520,16 +501,20 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
 
     const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
+      myPublicKey,
       WellKnownEventKind.contact_list,
       tags,
     );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
+    const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
     alert('done, refresh page please!');
   };
   const unfollowUser = async () => {
+    if (signEvent == null) {
+      return alert('no sign method!');
+    }
+
     const contacts = Array.from(myContactList.entries());
     const tags = contacts
       .filter(c => c[0] !== publicKey)
@@ -547,11 +532,11 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
     }
 
     const rawEvent = new RawEvent(
-      myKeyPair.publicKey,
+      myPublicKey,
       WellKnownEventKind.contact_list,
       tags,
     );
-    const event = await rawEvent.toEvent(myKeyPair.privateKey);
+    const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
     alert('done, refresh page please!');
@@ -610,7 +595,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     key={index}
                     content={msg.content}
                     eventId={msg.id}
-                    keyPair={myKeyPair}
                     userPk={msg.pubkey}
                     createdAt={msg.created_at}
                     blogName={articleCache.blogName} //todo: fallback to query title
@@ -628,7 +612,6 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
                     pk={msg.pubkey}
                     content={msg.content}
                     eventId={msg.id}
-                    keyPair={myKeyPair}
                     replyTo={msg.tags
                       .filter(t => t[0] === EventTags.P)
                       .map(t => {
@@ -659,4 +642,4 @@ export const ProfilePage = ({ isLoggedIn, myPublicKey, myPrivateKey }) => {
   );
 };
 
-export default connect(mapStateToProps)(ProfilePage);
+export default connect(loginMapStateToProps)(ProfilePage);

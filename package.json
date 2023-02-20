@@ -35,7 +35,7 @@
     "cross-env": "7.0.3",
     "crypto-js": "4.1.1",
     "dompurify": "2.4.3",
-    "dotbit": "0.3.0",
+    "dotbit": "0.4.16",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-react-hooks": "4.3.0",
@@ -66,6 +66,7 @@
     "react-test-renderer": "18.1.0",
     "redux-injectors": "1.3.0",
     "redux-saga": "1.1.3",
+    "redux-thunk": "2.4.2",
     "rimraf": "3.0.2",
     "sanitize.css": "13.0.0",
     "serve": "13.0.2",
@@ -98,9 +99,11 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "chrome >= 67",
+      "edge >= 79",
+      "firefox >= 68",
+      "opera >= 54",
+      "safari >= 14"
     ],
     "development": [
       "last 1 chrome version",

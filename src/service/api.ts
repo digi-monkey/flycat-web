@@ -266,50 +266,34 @@ export interface RawEvent {
 }
 
 export class Nostr {
-  static async newLikeEvent(
-    toEventId: string,
-    toPublicKey: string,
-    privateKey: string,
-  ) {
-    const publicKey = getPublicKey(privateKey);
+  static async newLikeRawEvent(toEventId: string, toPublicKey: string) {
     const kind = WellKnownEventKind.like;
     const content = '+';
     const tag: EventETag = [EventTags.E, toEventId, ''];
     const tag1: EventPTag = [EventTags.P, toPublicKey, ''];
     const tags = [tag, tag1];
-    const rawEvent = new RawEvent(publicKey, kind, tags, content);
-    return await rawEvent.toEvent(privateKey);
+    const rawEvent = new RawEvent('', kind, tags, content);
+    return rawEvent;
   }
 
-  static async newDisLikeEvent(
+  static async newDisLikeRawEvent(
     toEventId: string,
     toPublicKey: string,
-    privateKey: string,
-  ) {
-    const publicKey = getPublicKey(privateKey);
+  ): Promise<RawEvent> {
     const kind = WellKnownEventKind.like;
     const content = '-';
     const tag: EventETag = [EventTags.E, toEventId, ''];
     const tag1: EventPTag = [EventTags.P, toPublicKey, ''];
     const tags = [tag, tag1];
-    const rawEvent = new RawEvent(publicKey, kind, tags, content);
-    return await rawEvent.toEvent(privateKey);
+    return new RawEvent('', kind, tags, content);
   }
 
-  static async newProfileEvent(
+  static async newProfileRawEvent(
     content: EventSetMetadataContent,
-    privateKey: string,
-  ) {
-    const publicKey = getPublicKey(privateKey);
+  ): Promise<RawEvent> {
     const kind = WellKnownEventKind.set_metadata;
     const tags = [];
-    const rawEvent = new RawEvent(
-      publicKey,
-      kind,
-      tags,
-      JSON.stringify(content),
-    );
-    return await rawEvent.toEvent(privateKey);
+    return new RawEvent('', kind, tags, JSON.stringify(content));
   }
 }
 

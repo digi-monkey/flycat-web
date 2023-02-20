@@ -12,6 +12,8 @@ import * as React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 
+import './polyfill';
+
 // Use consistent styling
 import 'sanitize.css/sanitize.css';
 
