@@ -168,6 +168,11 @@ const LoginCard = ({
   if (isLoggedIn) {
     return (
       <div>
+        <div style={{ width: '100%', height: '60px', textAlign: 'right' }}>
+          <IconButton onClick={onCancel} aria-label="delete">
+            <CancelOutlinedIcon />
+          </IconButton>
+        </div>
         <span style={styles.title}>{t('loginForm.welcome')}</span>
         <span style={styles.pk}>
           {myPublicKey &&
@@ -184,17 +189,6 @@ const LoginCard = ({
             onClick={doLogout}
           >
             {t('loginForm.signOut')}
-          </Button>
-        </div>
-        <div style={{ margin: '10px 0px' }}>
-          <Button
-            fullWidth
-            type="button"
-            variant="contained"
-            color="success"
-            onClick={onCancel}
-          >
-            {t('loginForm.cancel')}
           </Button>
         </div>
       </div>
