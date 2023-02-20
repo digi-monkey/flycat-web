@@ -1,6 +1,6 @@
-import { RawEvent, Event, nip19Decode, Nip19DataType } from 'service/api';
+import { RawEvent, Event } from 'service/api';
+import { getPublicKeyFromDotBit } from 'service/dotbit';
 import { Nip06 } from 'service/nip/06';
-import { BitAccount, BitIndexer } from 'dotbit';
 
 declare global {
   interface Window {
@@ -244,29 +244,10 @@ export async function requestPublicKeyFromDotBit(
     throw new Error('dotbit alias must ends with .bit');
   }
 
-  const account = new BitAccount({
-    account: didAlias,
-    bitIndexer: new BitIndexer({
-      uri: 'https://indexer-v1.did.id',
-    }),
-  });
-  const records = await account.records('profile.nostr');
-  const record = records[0];
-  if (record == null || record.value.length === 0) {
+  const pk = await getPublicKeyFromDotBit(didAlias);
+  if (pk == null) {
     throw new Error('nostr key value not found in' + didAlias);
   }
-
-  const npubPk = record.value;
-  const decoded = nip19Decode(npubPk);
-  if (decoded.type !== Nip19DataType.Pubkey) {
-    throw new Error(
-      'nip19Decode error: invalid nostr key value in dotbit ' +
-        didAlias +
-        ' ' +
-        npubPk,
-    );
-  }
-  const pk = decoded.data;
   return pk;
 }
 

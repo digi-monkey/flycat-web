@@ -81,9 +81,9 @@
     "web-vitals": "2.1.2"
   },
   "scripts": {
-    "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  craco start",
-    "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  craco build",
-    "test": "craco test",
+    "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  react-scripts start",
+    "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD)  react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:prod": "yarn run build && serve -s build",
     "test:generators": "ts-node ./internals/testing/generators/test-generators.ts",
@@ -99,9 +99,11 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "chrome >= 67",
+      "edge >= 79",
+      "firefox >= 68",
+      "opera >= 54",
+      "safari >= 14"
     ],
     "development": [
       "last 1 chrome version",
@@ -139,7 +141,6 @@
     }
   },
   "devDependencies": {
-    "@craco/craco": "7.0.0",
     "@types/sharedworker": "0.0.88"
   }
 }
