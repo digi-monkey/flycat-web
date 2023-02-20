@@ -100,7 +100,12 @@
     "signAs": "Hi, you are sign-in as",
     "pkHint": ": required",
     "privHint": ": optional for read-only",
-    "genNewKey": "Gen Random KeyPair"
+    "genNewKey": "Generate New Key",
+    "readonlyMode": "Readonly Mode",
+    "backUpPrivKeyHint": "Remember to back up this private key!",
+    "title": "Sign In",
+    "signInWithPrivKeyTitle": "With Private Key",
+    "recommend": "Recommend"
   },
   "thread": {
     "title": "Thread",

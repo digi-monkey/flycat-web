@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, Grid } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -11,14 +11,11 @@ import {
   nip19Decode,
   nip19Encode,
 } from 'service/api';
-import { matchKeyPair, randomKeyPair } from 'service/crypto';
-import {
-  login,
-  LoginActionType,
-  LoginMode,
-  LoginRequest,
-} from 'store/loginReducer';
+import { getPublicKey, matchKeyPair, randomKeyPair } from 'service/crypto';
+import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { ThinHr } from './ThinHr';
+import { isDotBitName, isNip05DomainName } from 'service/helper';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
 
 const styles = {
   pk: {
@@ -57,18 +54,17 @@ const LoginCard = ({
   const { t } = useTranslation();
 
   const myPublicKey = useReadonlyMyPublicKey();
-  const [pubKeyInputValue, setPubKeyInputValue] = useState<string>('');
   const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
-  const [dotBitInputValue, setDotBitInputValue] = useState<string>('');
-  const [domainNameInputValue, setDomainNameInputValue] = useState<string>('');
+  const [createdNewPublicKey, setCreatedNewPublicKey] = useState<string>();
+  const [readonlyInputValue, setReadonlyInputValue] = useState<string>('');
 
   const newKeyPair = () => {
     const data = randomKeyPair();
-    setPubKeyInputValue(data.pubKey);
+    setCreatedNewPublicKey(data.pubKey);
     setPrivKeyInputValue(data.privKey);
   };
 
-  const signWithNip07 = async () => {
+  const signWithNip07Wallet = async () => {
     if (typeof window.webln !== 'undefined') {
       await window.webln.enable();
       console.debug('lighting wallet: window.webln enabled');
@@ -86,33 +82,25 @@ const LoginCard = ({
     doLogin(loginRequest);
   };
 
-  const signWithDotBit = async () => {
+  const signWithDotBit = async (didAlias: string) => {
     const loginRequest: LoginRequest = {
       mode: LoginMode.dotbit,
-      didAlias: dotBitInputValue,
+      didAlias: didAlias,
     };
     doLogin(loginRequest);
   };
 
-  const signWithDomainNameNip05 = async () => {
+  const signWithDomainNameNip05 = async (nip05DomainName: string) => {
     const loginRequest: LoginRequest = {
       mode: LoginMode.nip05Domain,
-      nip05DomainName: domainNameInputValue,
+      nip05DomainName: nip05DomainName,
     };
     doLogin(loginRequest);
   };
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    let pubKey = event.currentTarget.publicKey.value;
-    let privKey = event.currentTarget.privateKey.value;
-
+  const signWithPublicKey = async (pubKey: string) => {
     if (typeof pubKey !== 'string') {
       alert('typeof pubKey !== "string"');
-      return;
-    }
-    if (typeof privKey !== 'string') {
-      alert('typeof privKey !== "string"');
       return;
     }
 
@@ -122,7 +110,6 @@ const LoginCard = ({
         return alert('bech32 encoded publickey decoded err');
       }
       pubKey = res.data;
-      console.log(pubKey, pubKey.length);
     }
 
     if (pubKey.length !== 64) {
@@ -130,25 +117,45 @@ const LoginCard = ({
       return;
     }
 
-    if (privKey.length > 0) {
-      if (privKey.startsWith(Nip19DataPrefix.Privkey)) {
-        const res = nip19Decode(privKey);
-        if (res.type !== Nip19DataType.Privkey) {
-          return alert('bech32 encoded privkey decoded err');
-        }
-        privKey = res.data;
-      }
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.local,
+      publicKey: pubKey,
+    };
+    doLogin(loginRequest);
+  };
 
-      if (pubKey.length !== 64) {
-        alert('only support 32 bytes hex private key now, wrong length');
-        return;
-      }
-
-      if (!matchKeyPair(pubKey, privKey)) {
-        alert('public key and private key not matched!');
-        return;
-      }
+  const signWithReadonly = async () => {
+    if (isNip05DomainName(readonlyInputValue)) {
+      return signWithDomainNameNip05(readonlyInputValue);
     }
+
+    if (isDotBitName(readonlyInputValue)) {
+      return signWithDotBit(readonlyInputValue);
+    }
+
+    return signWithPublicKey(readonlyInputValue);
+  };
+
+  const signWithPrivateKey = () => {
+    let privKey = privKeyInputValue;
+    if (privKey.length === 0) {
+      return alert('please input privKey!');
+    }
+
+    if (privKey.startsWith(Nip19DataPrefix.Privkey)) {
+      const res = nip19Decode(privKey);
+      if (res.type !== Nip19DataType.Privkey) {
+        return alert('bech32 encoded privkey decoded err');
+      }
+      privKey = res.data;
+    }
+
+    if (privKey.length !== 64) {
+      alert('only support 32 bytes hex private key now, wrong length');
+      return;
+    }
+
+    let pubKey = getPublicKey(privKey);
 
     const loginRequest: LoginRequest = {
       mode: LoginMode.local,
@@ -194,84 +201,44 @@ const LoginCard = ({
     );
   } else {
     return (
-      <form onSubmit={onSubmit}>
+      <div>
         <div style={{ width: '100%', height: '60px', textAlign: 'right' }}>
           <IconButton onClick={onCancel} aria-label="delete">
             <CancelOutlinedIcon />
           </IconButton>
         </div>
-        <span style={styles.title}>{t('nav.menu.signIn')}</span>
+        <span style={styles.title}>{t('loginForm.title')}</span>
         <div style={{ margin: '10px 0px' }}>
           <Button
             fullWidth
             variant="contained"
             color="success"
-            onClick={signWithNip07}
+            onClick={signWithNip07Wallet}
           >
             {t('loginForm.signWithNip07')}
           </Button>
           <span style={{ fontSize: '12px', color: 'gray', display: 'block' }}>
-            Recommend
+            {t('loginForm.recommend')}
           </span>
         </div>
 
         <ThinHr />
 
         <div>
-          <span style={styles.title}>{'With Key Pair'}</span>
-          <label>
-            <input
-              type="text"
-              placeholder={t('loginForm.pubKey') + t('loginForm.pkHint')}
-              name="publicKey"
-              style={styles.input}
-              value={pubKeyInputValue}
-              onChange={event => setPubKeyInputValue(event.target.value)}
-            />
-            <input
-              type="text"
-              placeholder={t('loginForm.privKey') + t('loginForm.privHint')}
-              name="privateKey"
-              style={styles.input}
-              value={privKeyInputValue}
-              onChange={event => setPrivKeyInputValue(event.target.value)}
-            />
-          </label>
-          <div style={{ margin: '10px 0px' }}>
-            <Button
-              fullWidth
-              type="button"
-              variant="contained"
-              color="success"
-              onClick={newKeyPair}
-            >
-              {t('loginForm.genNewKey')}
-            </Button>
-          </div>
-          <div style={{ margin: '10px 0px' }}>
-            <Button fullWidth type="submit" variant="contained" color="success">
-              {t('loginForm.signIn')}
-            </Button>
-          </div>
-        </div>
-
-        <ThinHr />
-
-        <div>
-          <span style={styles.title}>{'Dotbit'}</span>
+          <span style={styles.title}>{t('loginForm.readonlyMode')}</span>
           <input
             type="text"
-            placeholder={'example.bit'}
+            placeholder={'publicKey/nip05DomainName/.bit'}
             name="dotbitDomainName"
             style={styles.input}
-            value={dotBitInputValue}
-            onChange={event => setDotBitInputValue(event.target.value)}
+            value={readonlyInputValue}
+            onChange={event => setReadonlyInputValue(event.target.value)}
           />
           <div style={{ margin: '10px 0px' }}>
             <Button
               fullWidth
               type="button"
-              onClick={signWithDotBit}
+              onClick={signWithReadonly}
               variant="contained"
               color="success"
             >
@@ -279,33 +246,47 @@ const LoginCard = ({
             </Button>
           </div>
         </div>
+
         <ThinHr />
 
         <div>
-          <span style={styles.title}>{'DomainName Nip05'}</span>
+          <span style={styles.title}>
+            {t('loginForm.signInWithPrivKeyTitle')}
+          </span>
+          {createdNewPublicKey && (
+            <small>{t('loginForm.backUpPrivKeyHint')}</small>
+          )}
           <input
             type="text"
-            placeholder={'user@domain.com'}
-            name="nip05DomainName"
+            placeholder={t('loginForm.privKey')}
+            name="privateKey"
             style={styles.input}
-            value={domainNameInputValue}
-            onChange={event => setDomainNameInputValue(event.target.value)}
+            value={privKeyInputValue}
+            onChange={event => setPrivKeyInputValue(event.target.value)}
           />
           <div style={{ margin: '10px 0px' }}>
             <Button
               fullWidth
               type="button"
-              onClick={signWithDomainNameNip05}
+              onClick={signWithPrivateKey}
               variant="contained"
               color="success"
             >
               {t('loginForm.signIn')}
             </Button>
+            <button
+              type="button"
+              onClick={newKeyPair}
+              style={{
+                border: 'none',
+                background: 'none',
+              }}
+            >
+              {t('loginForm.genNewKey')}
+            </button>
           </div>
         </div>
-
-        <ThinHr />
-      </form>
+      </div>
     );
   }
 };

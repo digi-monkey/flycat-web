@@ -100,7 +100,12 @@
     "signAs": "Hi, 你登录的公钥",
     "pkHint": ": 必填",
     "privHint": ": 只读模式可不填",
-    "genNewKey": "注册随机密钥"
+    "genNewKey": "生成随机密钥",
+    "readonlyMode": "只看模式",
+    "backUpPrivKeyHint": "记得备份这个新的私钥!",
+    "title": "登陆",
+    "signInWithPrivKeyTitle": "使用私钥登陆",
+    "recommend": "推荐"
   },
   "thread": {
     "title": "交谈消息",
