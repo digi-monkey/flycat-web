@@ -331,13 +331,14 @@ export class CallWorker {
     pks: PublicKey[],
     keepAlive?: boolean,
     customId?: string,
+    callRelay?: { type: CallRelayType; data: string[] },
   ) {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.flycat_site_metadata],
       limit: pks.length,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   pubEvent(event: Event, callRelay?: { type: CallRelayType; data: string[] }) {

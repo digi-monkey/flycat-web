@@ -79,7 +79,6 @@ export function Backup({ isLoggedIn }) {
   }, [relays]);
 
   const updateWorkerMsgListenerDeps = [relayUrl];
-  onMsgHandler.bind(Backup);
   const { worker, newConn, wsConnectStatus } = useCallWorker({
     onMsgHandler,
     updateWorkerMsgListenerDeps,

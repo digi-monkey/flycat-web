@@ -19,7 +19,11 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { useParams } from 'react-router-dom';
 import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import {
+  CallRelayType,
+  FromWorkerMessageData,
+  WsConnectStatus,
+} from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
 import { NavHeader } from 'app/components/layout/NavHeader';
@@ -31,6 +35,7 @@ import { CopyText } from 'app/components/layout/util/CopyText';
 import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
+import { useCallWorker } from 'hooks/useWorker';
 
 const styles = {
   root: {
@@ -157,10 +162,6 @@ export function ArticleRead() {
   const { t } = useTranslation();
   const { articleId, publicKey } = useParams<UserParams>();
 
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
-  const [worker, setWorker] = useState<CallWorker>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<ArticleDataSchema>();
   const [siteMetaData, setSiteMetaData] = useState<SiteMetaDataContentSchema>();
@@ -171,6 +172,12 @@ export function ArticleRead() {
     event.preventDefault();
     alert('not supported');
   };
+
+  const updateWorkerMsgListenerDeps = [];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
 
   function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
@@ -262,47 +269,17 @@ export function ArticleRead() {
   }
 
   useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
+    if (newConn.length === 0) return;
 
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
-      },
-    );
-    setWorker(worker);
-    worker.pullWsConnectStatus();
-  }, []);
-
-  useEffect(() => {
-    worker?.subMetadata([publicKey]);
-    worker?.subBlogSiteMetadata([publicKey]);
-  }, [wsConnectStatus, publicKey]);
+    worker?.subMetadata([publicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [newConn, publicKey]);
 
   useEffect(() => {
     if (siteMetaData) {
