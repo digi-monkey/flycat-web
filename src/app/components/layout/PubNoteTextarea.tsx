@@ -129,8 +129,6 @@ export const PubNoteTextarea: React.FC<Props> = ({
 
   const isSendLightingInvoiceEnabled =
     mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
-  const [lightingInvoiceString, setLightingInvoiceString] = useState<string>();
-
   const makeInvoice = async () => {
     if (typeof window?.webln === 'undefined') {
       return alert('No WebLN available.');
@@ -138,10 +136,7 @@ export const PubNoteTextarea: React.FC<Props> = ({
 
     try {
       await window.webln.enable();
-      const result = await window.webln.makeInvoice({
-        // amount: 21
-      });
-      setLightingInvoiceString(result.paymentRequest);
+      const result = await window.webln.makeInvoice({});
       setText(prev => {
         if (result == null) return prev;
         const text = prev;

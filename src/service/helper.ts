@@ -3,6 +3,7 @@ import { isEventETag, isEventPTag, PublicKey } from 'service/api';
 import { FlycatShareHeader } from './flycat-protocol';
 
 export function normalizeContent(text: string): {
+  bolt11Invoices: string[];
   imageUrls: string[];
   videoUrls: string[];
   audioUrls: string[];
@@ -54,6 +55,11 @@ export function normalizeContent(text: string): {
     modifiedText = modifiedText.replace(url, '');
   }
 
+  const bolt11Invoices = extractBolt11InvoiceString(modifiedText);
+  for (const str of bolt11Invoices) {
+    modifiedText = modifiedText.replace(str, '');
+  }
+
   // Add link to url
   //modifiedText = linkify(modifiedText);
   const previewUrls = extractUrls(modifiedText);
@@ -67,7 +73,14 @@ export function normalizeContent(text: string): {
     }
   });
 
-  return { imageUrls, videoUrls, audioUrls, previewUrls, modifiedText };
+  return {
+    bolt11Invoices,
+    imageUrls,
+    videoUrls,
+    audioUrls,
+    previewUrls,
+    modifiedText,
+  };
 }
 
 export function linkify(content: string): string {
@@ -79,6 +92,12 @@ function extractUrls(text: string): string[] {
   const urlRegex =
     /(https?):\/\/[a-zA-Z0-9-.]+\.[a-zA-Z]{2,}(\/[^\\<>{}|;'"`()\s]*)?/gm;
   return text.match(urlRegex) || [];
+}
+
+function extractBolt11InvoiceString(text: string): string[] {
+  //const regex = /^(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+(x\d+)?[munp])?$/gm;
+  const regex = /(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+([munp])|\d+x\d+([munp]))?/g;
+  return text.match(regex) || [];
 }
 
 // only return the last url
