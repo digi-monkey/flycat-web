@@ -45,7 +45,7 @@ export function UrlPreview({ url }: PreviewProps) {
           />
         </span>
       )}
-      <div>
+      <div style={{ overflow: 'scroll' }}>
         {data.title && (
           <span
             style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}
