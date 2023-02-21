@@ -1,13 +1,12 @@
 import { RawEvent, Event } from 'service/api';
 import { getPublicKeyFromDotBit } from 'service/dotbit';
 import { Nip06 } from 'service/nip/06';
+import { WebLNProvider } from '@webbtc/webln-types';
 
 declare global {
   interface Window {
     nostr?: Nip06;
-    webln?: {
-      enable: () => any;
-    };
+    webln?: WebLNProvider;
   }
 }
 

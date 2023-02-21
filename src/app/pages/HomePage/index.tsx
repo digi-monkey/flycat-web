@@ -30,7 +30,7 @@ import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
 import { TextNoteEvent } from 'app/type';
 import { loginMapStateToProps } from 'app/helper';
-import { SignEvent } from 'store/loginReducer';
+import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 
@@ -160,10 +160,11 @@ export type ContactList = Map<
 
 export interface HomePageProps {
   isLoggedIn: boolean;
+  mode: LoginMode;
   signEvent?: SignEvent;
 }
 
-export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
+export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
 
   const maxMsgLength = 50;
@@ -473,6 +474,7 @@ export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
       <Left>
         <>
           <PubNoteTextarea
+            mode={mode}
             disabled={isReadonlyMode || !isLoggedIn}
             onSubmitText={onSubmitText}
           />
