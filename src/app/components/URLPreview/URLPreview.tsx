@@ -38,7 +38,11 @@ export function UrlPreview({ url }: PreviewProps) {
     >
       {data.image && (
         <span style={{ width: '100px', height: '100px', marginRight: '10px' }}>
-          <img src={data.image} alt={data.title} style={{ width: '100px' }} />
+          <img
+            src={data.image}
+            alt={data.title}
+            style={{ maxWidth: '100px', maxHeight: '100%' }}
+          />
         </span>
       )}
       <div>
