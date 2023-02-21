@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generatePreview, PreviewData } from '../../../service/url-preview';
+import { getUrlMetadata, UrlMetadata } from 'service/ogp';
 
 interface PreviewProps {
   url: string;
@@ -7,12 +7,12 @@ interface PreviewProps {
 
 // todo: this is often blocked by CORS
 export function UrlPreview({ url }: PreviewProps) {
-  const [data, setData] = useState<PreviewData>();
+  const [data, setData] = useState<UrlMetadata>();
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await generatePreview(url);
+        const result = await getUrlMetadata(url);
         setData(result);
       } catch (error) {
         console.error(error);
@@ -30,27 +30,32 @@ export function UrlPreview({ url }: PreviewProps) {
     <div
       style={{
         display: 'flex',
-        alignItems: 'center',
-        border: '1px solid gray',
+        // alignItems: 'center',
+        border: '1px solid #dbd5d5',
+        padding: '10px',
+        margin: '5px 0px',
       }}
     >
       {data.image && (
-        <img
-          src={data.image}
-          alt={data.title}
-          style={{ maxWidth: '200px', maxHeight: '200px', marginRight: '20px' }}
-        />
+        <span style={{ width: '100px', height: '100px', marginRight: '10px' }}>
+          <img
+            src={data.image}
+            alt={data.title}
+            style={{ maxWidth: '100px', maxHeight: '100%' }}
+          />
+        </span>
       )}
       <div>
         {data.title && (
-          <h1 style={{ fontSize: '28px', marginBottom: '10px' }}>
+          <span
+            style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}
+          >
             {data.title}
-          </h1>
+          </span>
         )}
+        <a href={data.url || url}>{data.url || url}</a>
         {data.description && (
-          <p style={{ fontSize: '16px', lineHeight: '1.5', color: '#333' }}>
-            {data.description}
-          </p>
+          <p style={{ fontSize: '12px', color: 'gray' }}>{data.description}</p>
         )}
       </div>
     </div>

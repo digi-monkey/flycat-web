@@ -47,11 +47,7 @@ export function Content({ text, classNames }: ContentProps) {
         {previewUrls.length > 0 &&
           previewUrls.map(url => (
             <span key={url}>
-              <iframe
-                src={'https://ogp.deno.dev/?size=small&url=' + url}
-                height="200"
-                style={{ width: '500px', maxWidth: '100%;' }}
-              ></iframe>
+              <UrlPreview url={url} />
             </span>
           ))}
       </p>
