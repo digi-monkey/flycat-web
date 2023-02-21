@@ -109,8 +109,7 @@ export function Backup({ isLoggedIn }) {
     const msg = JSON.parse(data);
     if (isEventSubResponse(msg)) {
       const event = msg[2];
-      if (msgRelayUrl == null) return;
-      console.log(msgRelayUrl, relayUrl);
+      if (msgRelayUrl == null || relayUrl == null) return;
 
       if (msgRelayUrl === relayUrl) {
         // Add the event to the events array
@@ -145,9 +144,9 @@ export function Backup({ isLoggedIn }) {
     if (relayUrl == null) return;
     if (relayStatusCacheValue !== true) return;
     if (!isConnected) return;
+    if (!worker) return;
 
     fetchBackUp();
-    console.log('fired', relayUrl);
   }, [
     isConnected,
     relayUrl,

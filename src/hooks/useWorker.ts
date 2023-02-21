@@ -81,10 +81,9 @@ export function useCallWorker({
         }
       },
       (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
+        onMsgHandler(message.nostrData, message.relayUrl);
       },
     );
-    console.log('updated', worker != null, updateWorkerMsgListenerDeps);
   }, updateWorkerMsgListenerDeps);
 
   useEffect(() => {

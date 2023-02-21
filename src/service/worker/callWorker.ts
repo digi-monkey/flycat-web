@@ -25,11 +25,28 @@ export class CallWorker {
   rejectors: { [key: string]: (arg: any) => unknown } = {};
   public workerId: string = 'defaultCallWorker';
   public _portId: number | undefined;
+  public lastOnMsgListener;
+  public listeners: { type: string; listener: any }[] = [];
 
   msgCount = 0;
   receiveCount = 0;
 
   worker = new SharedWorker(new URL('./worker.ts', import.meta.url));
+
+  addEventListener(type, listener) {
+    this.listeners.push({ type, listener });
+    this.worker.port.addEventListener(type, listener);
+  }
+
+  removeEventListener(type, listener) {
+    const index = this.listeners.findIndex(
+      l => l.type === type && l.listener === listener,
+    );
+    if (index !== -1) {
+      const { type, listener } = this.listeners.splice(index, 1)[0];
+      this.worker.port.removeEventListener(type, listener);
+    }
+  }
 
   constructor(
     onWsConnStatus?: OnWsConnStatus,
@@ -43,7 +60,8 @@ export class CallWorker {
       console.log('worker error: ', e);
     };
     //this.worker.port.start();
-    this.worker.port.onmessage = (event: MessageEvent) => {
+    this.lastOnMsgListener = (event: MessageEvent) => {
+      //console.log("constructor")
       // const id = workerId ? workerId : "unNamedWorker";
       if (workerId) {
         console.debug(`received port message on ${workerId}`);
@@ -76,6 +94,8 @@ export class CallWorker {
           break;
       }
     };
+    this.addEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
     this.worker.port.onmessageerror = e => {
       console.log('port error:', e);
     };
@@ -96,7 +116,10 @@ export class CallWorker {
     onWsConnStatus?: (message: FromWorkerMessageData) => any,
     onNostrData?: (message: FromWorkerMessageData) => any,
   ) {
-    this.worker.port.onmessage = (event: MessageEvent) => {
+    this.removeEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.removeEventListener("message", this.lastOnMsgListener);
+    this.lastOnMsgListener = (event: MessageEvent) => {
+      //console.log("updated..")
       // const id = workerId ? workerId : "unNamedWorker";
       if (this.workerId) {
         console.debug(`received port message on ${this.workerId}`);
@@ -122,6 +145,8 @@ export class CallWorker {
           break;
       }
     };
+    this.addEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
   }
 
   removeListeners() {
