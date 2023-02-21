@@ -16,13 +16,9 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager, {
-  WsConnectStatus,
-} from '../../components/layout/relay/RelayManager';
-import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
-import { equalMaps } from 'service/helper';
+import RelayManager from '../../components/layout/relay/RelayManager';
+import { CallRelayType } from 'service/worker/type';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
 import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +32,7 @@ import { TextNoteEvent } from 'app/type';
 import { loginMapStateToProps } from 'app/helper';
 import { SignEvent } from 'store/loginReducer';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -168,12 +165,6 @@ export interface HomePageProps {
 
 export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
-  const [lastWsConnectStatus, setLastWsConnectStatus] =
-    useState<WsConnectStatus>(new Map());
-  const [newConn, setNewConn] = useState<string[]>([]);
 
   const maxMsgLength = 50;
   const maxDiscoverPkLength = 50;
@@ -184,60 +175,16 @@ export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
 
   const myPublicKey = useMyPublicKey();
+  const updateWorkerMsgListenerDeps = [myPublicKey, isLoggedIn];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
 
   const [discoverPks, setDiscoverPks] = useState<string[]>([]);
   const isReadonlyMode = isLoggedIn && signEvent == null;
 
-  const [worker, setWorker] = useState<CallWorker>();
   const relayUrls = Array.from(wsConnectStatus.keys());
-
-  // use in listener to get runtime updated value
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
-  useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
-
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(worker)(message.nostrData, message.relayUrl);
-      },
-      'homeIndex',
-    );
-    setWorker(worker);
-    worker.pullWsConnectStatus();
-
-    return () => {
-      worker.removeListeners();
-    };
-  }, []);
 
   function onMsgHandler(this, nostrData: any, relayUrl?: string) {
     const msg = JSON.parse(nostrData);
@@ -403,28 +350,6 @@ export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
   }
 
   useEffect(() => {
-    // update worker listener
-    // update some deps like myPublicKey in the listener
-    worker?.updateMsgListener(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          const data = Array.from(message.wsConnectStatus.entries());
-          for (const d of data) {
-            setWsConnectStatus(prev => {
-              const newMap = new Map(prev);
-              newMap.set(d[0], d[1]);
-              return newMap;
-            });
-          }
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(worker)(message.nostrData);
-      },
-    );
-  }, [myPublicKey, isLoggedIn]);
-
-  useEffect(() => {
     if (isLoggedIn !== true) return;
     if (!myPublicKey || myPublicKey.length === 0) return;
 
@@ -441,34 +366,6 @@ export const HomePage = ({ isLoggedIn, signEvent }: HomePageProps) => {
       callRelay,
     );
   }, [myPublicKey, newConn]);
-
-  useEffect(() => {
-    if (equalMaps(lastWsConnectStatus, wsConnectStatus)) {
-      return;
-    }
-
-    const newConn: string[] = Array.from(wsConnectStatus)
-      .map(cur => {
-        const url = cur[0];
-        const isConnected = cur[1];
-        if (
-          lastWsConnectStatus.get(url) &&
-          lastWsConnectStatus.get(url) === false &&
-          isConnected === true
-        ) {
-          return url;
-        }
-
-        if (!lastWsConnectStatus.get(url) && isConnected) {
-          return url;
-        }
-
-        return null;
-      })
-      .filter(s => s != null) as string[];
-    setLastWsConnectStatus(wsConnectStatus);
-    setNewConn(newConn);
-  }, [wsConnectStatus]);
 
   useEffect(() => {
     if (myContactEvent == null) return;

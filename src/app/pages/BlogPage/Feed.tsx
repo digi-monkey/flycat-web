@@ -30,11 +30,16 @@ import {
 import { equalMaps, shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import {
+  CallRelayType,
+  FromWorkerMessageData,
+  WsConnectStatus,
+} from 'service/worker/type';
 import { ContactList } from '.';
 import defaultAvatar from '../../../resource/logo512.png';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -158,23 +163,16 @@ const hardCodedBlogPk =
 
 export const BlogFeed = ({ isLoggedIn }) => {
   const { t } = useTranslation();
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
   const myPublicKey = useReadonlyMyPublicKey();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
 
-  const [worker, setWorker] = useState<CallWorker>();
   const [siteMetaData, setSiteMetaData] = useState<
     (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
   >([]);
   const [globalSiteMetaData, setGlobalSiteMetaData] = useState<
     (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
   >([]);
-  // todo can we rm this
-  const [isSiteMetaDataLoading, setIsSiteMetaDataLoading] = useState(true);
-
   const [articles, setArticles] = useState<
     (ArticleDataSchema & { pk: PublicKey; pageCreatedAt: number })[]
   >([]);
@@ -187,57 +185,17 @@ export const BlogFeed = ({ isLoggedIn }) => {
     })[]
   >([]);
 
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
+  const updateWorkerMsgListenerDeps = [
+    myContactEvent,
+    myPublicKey,
+    myContactList.size,
+  ];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
 
-  useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
-
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(worker)(message.nostrData);
-      },
-    );
-    worker.pullWsConnectStatus();
-    setWorker(worker);
-
-    return () => {
-      worker.removeListeners();
-    };
-  }, []);
-
-  const getContactList = () => {
-    return myContactList;
-  };
-
-  function onMsgHandler(this, res: any) {
+  function onMsgHandler(this, res: any, relayUrl?: string) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -272,7 +230,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
           break;
 
         case FlycatWellKnownEventKind.SiteMetaData:
-          if (getContactList().has(event.pubkey)) {
+          if (myContactList.has(event.pubkey)) {
             //todo: fix, this is not working
             const oldData = siteMetaData.filter(s => s.pk === event.pubkey);
             if (
@@ -300,7 +258,6 @@ export const BlogFeed = ({ isLoggedIn }) => {
             }
 
             setSiteMetaData(newMap);
-            setIsSiteMetaDataLoading(false);
           }
 
           // global blog sites
@@ -326,7 +283,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
             newMap.push(data);
           }
 
-          this.subMetadata([event.pubkey]);
+          worker?.subMetadata([event.pubkey]);
           setGlobalSiteMetaData(newMap);
           break;
 
@@ -450,12 +407,19 @@ export const BlogFeed = ({ isLoggedIn }) => {
   }
 
   useEffect(() => {
+    if (newConn.length === 0) return;
     if (isLoggedIn !== true) return;
     if (myPublicKey == null) return;
 
-    worker?.subContactList([myPublicKey]);
-    worker?.subMetadata([myPublicKey]);
-  }, [myPublicKey, wsConnectStatus]);
+    worker?.subContactList([myPublicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+    worker?.subMetadata([myPublicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [myPublicKey, newConn]);
 
   useEffect(() => {
     if (myContactEvent == null) return;
@@ -494,33 +458,36 @@ export const BlogFeed = ({ isLoggedIn }) => {
   }, [myContactList]);
 
   useEffect(() => {
+    if (newConn.length === 0) return;
     if (isLoggedIn) return;
 
-    worker?.subMetadata([hardCodedBlogPk]);
-    worker?.subBlogSiteMetadata([hardCodedBlogPk]);
-  }, [isLoggedIn, wsConnectStatus]);
+    worker?.subMetadata([hardCodedBlogPk], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+    worker?.subBlogSiteMetadata([hardCodedBlogPk], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [isLoggedIn, newConn]);
 
   useEffect(() => {
+    if (newConn.length === 0) return;
     const globalBlogFilter: Filter = {
       kinds: [WellKnownEventKind.flycat_site_metadata],
       limit: 50,
     };
-    worker?.subFilter(globalBlogFilter, true, 'globalBlogSites');
-  }, [wsConnectStatus]);
-
-  /*
-  useEffect(() => {
-    if (!isSiteMetaDataLoading && siteMetaData.length > 0) {
-      subArticles();
-    }
-  }, [isLoggedIn, isSiteMetaDataLoading, siteMetaData]);
-  */
+    worker?.subFilter(globalBlogFilter, true, 'globalBlogSites', {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [newConn]);
 
   useEffect(() => {
     if (globalSiteMetaData.length > 0) {
       subArticles();
     }
-  }, [isLoggedIn, globalSiteMetaData]);
+  }, [isLoggedIn, globalSiteMetaData.length]);
 
   const subArticles = () => {
     const siteMetadata = globalSiteMetaData.filter(
@@ -539,7 +506,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
     if (uniqueKinds.length === 0) return;
 
     const authors = siteMetaData.map(s => s.pk);
-    if (myPublicKey.length > 0) {
+    if (myPublicKey.length > 0 && !authors.includes(myPublicKey)) {
       authors.push(myPublicKey);
     }
     if (!isLoggedIn) {

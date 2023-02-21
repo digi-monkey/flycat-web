@@ -132,7 +132,10 @@ export interface ArticleMsgProps {
       page_id: number;
     },
   ) => Promise<void>;
-  subArticlePages: (siteMetaData: SiteMetaDataContentSchema) => Promise<void>;
+  subArticlePages: (
+    siteMetaData: SiteMetaDataContentSchema,
+    relays?: string[],
+  ) => Promise<void>;
 }
 
 export const ArticleMsg = ({

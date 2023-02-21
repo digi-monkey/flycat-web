@@ -13,7 +13,7 @@ import defaultAvatar from '../../../resource/logo512.png';
 import { ProfileAvatar, ProfileBanner } from './msg/TextMsg';
 import { CopyText } from './util/CopyText';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
-import RelayManager, { WsConnectStatus } from './relay/RelayManager';
+import RelayManager from './relay/RelayManager';
 import { LoginFormTip } from './NavHeader';
 import SettingsIcon from '@mui/icons-material/Settings';
 import styled from 'styled-components';
@@ -23,6 +23,7 @@ import BorderColorIcon from '@mui/icons-material/BorderColor';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { WsConnectStatus } from 'service/worker/type';
 
 const styles = {
   userInfo: {

@@ -12,9 +12,7 @@ import {
   Event,
 } from 'service/api';
 import { connect, useSelector } from 'react-redux';
-import RelayManager, {
-  WsConnectStatus,
-} from '../../components/layout/relay/RelayManager';
+import RelayManager from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import {
   ArticleDataSchema,
@@ -26,7 +24,11 @@ import {
 } from 'service/flycat-protocol';
 import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
-import { FromWorkerMessageData } from 'service/worker/type';
+import {
+  CallRelayType,
+  FromWorkerMessageData,
+  WsConnectStatus,
+} from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
@@ -35,6 +37,7 @@ import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { RootState } from 'store/configureStore';
+import { useCallWorker } from 'hooks/useWorker';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -178,10 +181,11 @@ export const BlogPage = () => {
   );
 
   const myPublicKey = useReadonlyMyPublicKey();
-
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
+  const updateWorkerMsgListenerDeps = [];
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps,
+  });
 
   const isOwner = myPublicKey === publicKey;
   const [siteMetaData, setSiteMetaData] = useState<SiteMetaDataContentSchema>();
@@ -189,7 +193,6 @@ export const BlogPage = () => {
     (ArticleDataSchema & { page_id: number })[]
   >([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [worker, setWorker] = useState<CallWorker>();
 
   const flycat = new Flycat({
     version: '',
@@ -283,60 +286,31 @@ export const BlogPage = () => {
     }
   }
 
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
   useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
+    if (newConn.length === 0) return;
 
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler(message.nostrData);
-      },
-    );
-    setWorker(worker);
-    worker.pullWsConnectStatus();
-  }, []);
-
-  useEffect(() => {
-    worker?.subMetadata([publicKey]);
-    worker?.subBlogSiteMetadata([publicKey]);
-  }, [wsConnectStatus, publicKey]);
+    worker?.subMetadata([publicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn,
+    });
+  }, [newConn, publicKey]);
 
   useEffect(() => {
     if (siteMetaData) {
-      subArticlePages(siteMetaData);
+      subArticlePages(siteMetaData, newConn);
     }
-  }, [wsConnectStatus, siteMetaData]);
+  }, [newConn, siteMetaData]);
 
-  const subArticlePages = async (siteMetaData: SiteMetaDataContentSchema) => {
+  const subArticlePages = async (
+    siteMetaData: SiteMetaDataContentSchema,
+    relays: string[] = Array.from(wsConnectStatus.keys()),
+  ) => {
+    if (relays.length === 0) return;
+
     const filter: Filter = {
       authors: [publicKey],
       kinds: siteMetaData.page_ids.map(
@@ -344,7 +318,10 @@ export const BlogPage = () => {
       ),
       limit: 50,
     };
-    worker?.subFilter(filter);
+    worker?.subFilter(filter, undefined, undefined, {
+      type: CallRelayType.batch,
+      data: relays,
+    });
   };
 
   const submitSiteMetaData = async (name: string, description: string) => {
@@ -405,7 +382,7 @@ export const BlogPage = () => {
 
     // refresh
     if (siteMetaData) {
-      subArticlePages(siteMetaData);
+      subArticlePages(siteMetaData, Array.from(wsConnectStatus.keys()));
       alert("if you don't see it, refresh the page. sorry, will fix it soon");
     }
   };

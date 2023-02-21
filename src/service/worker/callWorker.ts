@@ -16,21 +16,41 @@ import {
   ToWorkerMessageType,
 } from './type';
 
+export type OnWsConnStatus = (message: FromWorkerMessageData) => any;
+export type OnNostrData = (message: FromWorkerMessageData) => any;
+
 // this is main thread code that makes postMessage requests to a worker
 export class CallWorker {
   resolvers: { [key: string]: (arg: any) => unknown } = {};
   rejectors: { [key: string]: (arg: any) => unknown } = {};
   public workerId: string = 'defaultCallWorker';
   public _portId: number | undefined;
+  public lastOnMsgListener;
+  public listeners: { type: string; listener: any }[] = [];
 
   msgCount = 0;
   receiveCount = 0;
 
   worker = new SharedWorker(new URL('./worker.ts', import.meta.url));
 
+  addEventListener(type, listener) {
+    this.listeners.push({ type, listener });
+    this.worker.port.addEventListener(type, listener);
+  }
+
+  removeEventListener(type, listener) {
+    const index = this.listeners.findIndex(
+      l => l.type === type && l.listener === listener,
+    );
+    if (index !== -1) {
+      const { type, listener } = this.listeners.splice(index, 1)[0];
+      this.worker.port.removeEventListener(type, listener);
+    }
+  }
+
   constructor(
-    onWsConnStatus?: (message: FromWorkerMessageData) => any,
-    onNostrData?: (message: FromWorkerMessageData) => any,
+    onWsConnStatus?: OnWsConnStatus,
+    onNostrData?: OnNostrData,
     workerId?: string,
   ) {
     if (workerId) {
@@ -40,7 +60,8 @@ export class CallWorker {
       console.log('worker error: ', e);
     };
     //this.worker.port.start();
-    this.worker.port.onmessage = (event: MessageEvent) => {
+    this.lastOnMsgListener = (event: MessageEvent) => {
+      //console.log("constructor")
       // const id = workerId ? workerId : "unNamedWorker";
       if (workerId) {
         console.debug(`received port message on ${workerId}`);
@@ -73,6 +94,8 @@ export class CallWorker {
           break;
       }
     };
+    this.addEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
     this.worker.port.onmessageerror = e => {
       console.log('port error:', e);
     };
@@ -93,7 +116,10 @@ export class CallWorker {
     onWsConnStatus?: (message: FromWorkerMessageData) => any,
     onNostrData?: (message: FromWorkerMessageData) => any,
   ) {
-    this.worker.port.onmessage = (event: MessageEvent) => {
+    this.removeEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.removeEventListener("message", this.lastOnMsgListener);
+    this.lastOnMsgListener = (event: MessageEvent) => {
+      //console.log("updated..")
       // const id = workerId ? workerId : "unNamedWorker";
       if (this.workerId) {
         console.debug(`received port message on ${this.workerId}`);
@@ -119,6 +145,8 @@ export class CallWorker {
           break;
       }
     };
+    this.addEventListener('message', this.lastOnMsgListener);
+    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
   }
 
   removeListeners() {
@@ -303,13 +331,14 @@ export class CallWorker {
     pks: PublicKey[],
     keepAlive?: boolean,
     customId?: string,
+    callRelay?: { type: CallRelayType; data: string[] },
   ) {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.flycat_site_metadata],
       limit: pks.length,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   pubEvent(event: Event, callRelay?: { type: CallRelayType; data: string[] }) {
