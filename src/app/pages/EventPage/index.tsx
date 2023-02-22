@@ -379,6 +379,10 @@ export const EventPage = ({ isLoggedIn }) => {
                         ? { border: '2px solid rgb(225, 215, 198)' }
                         : {}
                     }
+                    lightingAddress={
+                      userMap.get(msg.pubkey)?.lud06 ||
+                      userMap.get(msg.pubkey)?.lud16
+                    }
                   />
                 );
               }
