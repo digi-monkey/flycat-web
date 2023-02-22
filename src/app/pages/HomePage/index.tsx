@@ -187,7 +187,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
-  function onMsgHandler(this, nostrData: any, relayUrl?: string) {
+  function onMsgHandler(nostrData: any, relayUrl?: string) {
     const msg = JSON.parse(nostrData);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -248,7 +248,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               }
             }
             if (newPks.length > 0) {
-              this.subMetadata(newPks, false, 'homeMetadata');
+              worker?.subMetadata(newPks, false, 'homeMetadata');
             }
             return;
           }
@@ -299,7 +299,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
             }
           }
           if (newPks.length > 0) {
-            this.subMetadata(newPks);
+            worker?.subMetadata(newPks);
           }
           break;
 

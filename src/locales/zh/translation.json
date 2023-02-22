@@ -175,7 +175,8 @@
     "about": "关于",
     "banner": "背景图",
     "website": "网站",
-    "btcLightningAddress": "闪电网络收款地址",
+    "btcLightningAddress": "闪电网络收款地址 lud06",
+    "lud16": "闪电网络收款地址 lud16",
     "domainNameVerification": "NIP05 域名认证",
     "submit": "提交",
     "cancel": "取消"

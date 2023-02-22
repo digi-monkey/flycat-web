@@ -206,6 +206,11 @@ export function maxStrings(str: string, maxLen: number = 100) {
   }
 }
 
+// invalid string including ""
+export function isEmptyStr(text?: string) {
+  return text == null || text.length === 0;
+}
+
 export function isNip05DomainName(name: string): boolean {
   // Regular expression pattern for email validation
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

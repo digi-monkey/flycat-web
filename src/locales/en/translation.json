@@ -175,7 +175,8 @@
     "about": "About",
     "banner": "Banner",
     "website": "Website",
-    "btcLightningAddress": "Bitcoin Lightning Address",
+    "btcLightningAddress": "Bitcoin Lightning Address lud06",
+    "lud16": "Bitcoin Lightning Address lud16",
     "domainNameVerification": "Domain Name Verification",
     "submit": "Submit",
     "cancel": "Cancel"
