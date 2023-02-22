@@ -17,6 +17,7 @@ import {
   Key,
   Contacts,
   Backup,
+  Notifications,
 } from '@mui/icons-material';
 import styled from 'styled-components';
 import { loginMapStateToProps } from 'app/helper';
@@ -142,6 +143,13 @@ export const MenuList = ({ isLoggedIn }) => {
           <div>
             <Home /> &nbsp;
             {t('nav.menu.home')}
+          </div>
+        </MenuItem>
+
+        <MenuItem href="/notification">
+          <div>
+            <Notifications /> &nbsp;
+            {t('nav.menu.notification')}
           </div>
         </MenuItem>
 
