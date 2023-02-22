@@ -201,14 +201,16 @@ export const PubNoteTextarea: React.FC<Props> = ({
               style={{ display: 'none' }}
               onChange={handleFileSelect}
             />
-            <button
-              onClick={makeInvoice}
-              type="button"
-              disabled={!isSendLightingInvoiceEnabled}
-              style={styles.iconBtn}
-            >
-              <OfflineBoltOutlinedIcon />
-            </button>
+            {isSendLightingInvoiceEnabled && (
+              <button
+                onClick={makeInvoice}
+                type="button"
+                disabled={!isSendLightingInvoiceEnabled}
+                style={styles.iconBtn}
+              >
+                <OfflineBoltOutlinedIcon />
+              </button>
+            )}
             &nbsp;&nbsp;
             <button type="button" disabled={true} style={styles.iconBtn}>
               <TagFaces style={{ color: '#e2e2e2', cursor: 'default' }} />
