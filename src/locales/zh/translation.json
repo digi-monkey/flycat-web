@@ -198,5 +198,9 @@
   "friendDiscover": {
     "title": "朋友的朋友",
     "noFriend": "暂时还没有朋友"
+  },
+  "lighting": {
+    "pay": "电一下",
+    "atLeast": "最少"
   }
 }

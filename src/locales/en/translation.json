@@ -198,5 +198,9 @@
   "friendDiscover": {
     "title": "Friend Of Friend",
     "noFriend": "no friend yet"
+  },
+  "lighting": {
+    "pay": "Pay",
+    "atLeast": "at least"
   }
 }

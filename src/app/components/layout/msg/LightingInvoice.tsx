@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { decode } from 'service/lighting/bolt11';
 import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 import { getParams, LNURLPayParams } from 'js-lnurl';
+import { useTranslation } from 'react-i18next';
 
 export function LightingInvoice({ url }: { url: string }) {
+  const { t } = useTranslation();
   const [decodedData, setDecodedData] = useState<ReturnType<typeof decode>>();
   const [amount, setAmount] = useState<bigint>();
 
@@ -54,7 +56,7 @@ export function LightingInvoice({ url }: { url: string }) {
       </span>
       <span style={{}}>
         <Button fullWidth variant="outlined" color="success" onClick={pay}>
-          pay
+          {t('lighting.pay')}
         </Button>
       </span>
     </span>
@@ -62,6 +64,7 @@ export function LightingInvoice({ url }: { url: string }) {
 }
 
 export function LnUrlInvoice({ url }: { url: string }) {
+  const { t } = useTranslation();
   const [decodedData, setDecodedData] = useState<LNURLPayParams>();
   const [minSendable, setMinSendable] = useState<number>();
   const [maxSendable, setMaxSendable] = useState<number>();
@@ -120,12 +123,13 @@ export function LnUrlInvoice({ url }: { url: string }) {
       <span style={{ display: 'block', margin: '10px 0px' }}>{domain}</span>
 
       <span style={{ display: 'block', fontSize: '30px', margin: '10px 0px' }}>
-        <span style={{ fontSize: '12px' }}>at least</span> {minSendable} Sats
+        <span style={{ fontSize: '12px' }}>{t('lighting.atLeast')}</span>{' '}
+        {minSendable} Sats
         <ElectricBoltOutlinedIcon color="warning" />
       </span>
       <span style={{}}>
         <Button fullWidth variant="outlined" color="success" onClick={pay}>
-          pay
+          {t('lighting.pay')}
         </Button>
       </span>
     </span>
