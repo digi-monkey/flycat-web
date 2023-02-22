@@ -13,6 +13,7 @@ import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 
 import './polyfill';
+import './window';
 
 // Use consistent styling
 import 'sanitize.css/sanitize.css';

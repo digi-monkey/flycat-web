@@ -7,6 +7,8 @@ import {
   TagFaces,
   AlternateEmail,
 } from '@mui/icons-material';
+import { LoginMode } from 'store/loginReducer';
+import OfflineBoltOutlinedIcon from '@mui/icons-material/OfflineBoltOutlined';
 
 const styles = {
   postBox: {
@@ -44,11 +46,13 @@ const api = new Api();
 
 interface Props {
   disabled: boolean;
+  mode: LoginMode;
   onSubmitText: (text: string) => Promise<any>;
 }
 
 export const PubNoteTextarea: React.FC<Props> = ({
   disabled,
+  mode,
   onSubmitText,
 }) => {
   const { t } = useTranslation();
@@ -123,6 +127,27 @@ export const PubNoteTextarea: React.FC<Props> = ({
     setAttachImgs([]);
   };
 
+  const isSendLightingInvoiceEnabled =
+    mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
+  const makeInvoice = async () => {
+    if (typeof window?.webln === 'undefined') {
+      return alert('No WebLN available.');
+    }
+
+    try {
+      await window.webln.enable();
+      const result = await window.webln.makeInvoice({});
+      setText(prev => {
+        if (result == null) return prev;
+        const text = prev;
+        return text + '\n\n' + result.paymentRequest;
+      });
+    } catch (error) {
+      console.log(error);
+      return alert('An error occurred during the makeInvoice() call.');
+    }
+  };
+
   return (
     <div
       onFocus={() => setIsOnFocus(true)}
@@ -176,6 +201,17 @@ export const PubNoteTextarea: React.FC<Props> = ({
               style={{ display: 'none' }}
               onChange={handleFileSelect}
             />
+            {isSendLightingInvoiceEnabled && (
+              <button
+                onClick={makeInvoice}
+                type="button"
+                disabled={!isSendLightingInvoiceEnabled}
+                style={styles.iconBtn}
+              >
+                <OfflineBoltOutlinedIcon />
+              </button>
+            )}
+            &nbsp;&nbsp;
             <button type="button" disabled={true} style={styles.iconBtn}>
               <TagFaces style={{ color: '#e2e2e2', cursor: 'default' }} />
             </button>
