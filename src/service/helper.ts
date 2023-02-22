@@ -3,6 +3,7 @@ import { isEventETag, isEventPTag, PublicKey } from 'service/api';
 import { FlycatShareHeader } from './flycat-protocol';
 
 export function normalizeContent(text: string): {
+  lnUrls: string[];
   bolt11Invoices: string[];
   imageUrls: string[];
   videoUrls: string[];
@@ -55,6 +56,11 @@ export function normalizeContent(text: string): {
     modifiedText = modifiedText.replace(url, '');
   }
 
+  const lnUrls = extractLnUrlInvoiceString(modifiedText);
+  for (const str of lnUrls) {
+    modifiedText = modifiedText.replace(str.toUpperCase(), '');
+  }
+
   const bolt11Invoices = extractBolt11InvoiceString(modifiedText);
   for (const str of bolt11Invoices) {
     modifiedText = modifiedText.replace(str, '');
@@ -74,6 +80,7 @@ export function normalizeContent(text: string): {
   });
 
   return {
+    lnUrls,
     bolt11Invoices,
     imageUrls,
     videoUrls,
@@ -97,6 +104,12 @@ function extractUrls(text: string): string[] {
 function extractBolt11InvoiceString(text: string): string[] {
   //const regex = /^(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+(x\d+)?[munp])?$/gm;
   const regex = /(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+([munp])|\d+x\d+([munp]))?/g;
+  return text.match(regex) || [];
+}
+
+function extractLnUrlInvoiceString(text: string): string[] {
+  text = text.toLowerCase();
+  const regex = /,*?((lnurl)([0-9]{1,}[a-z0-9]+){1})/g;
   return text.match(regex) || [];
 }
 

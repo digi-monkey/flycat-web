@@ -6,7 +6,7 @@ import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
 import { AudioPreview } from './AudioPreview';
 import { Avatar } from './Avatar';
-import { LightingInvoice } from './LightingInvoice';
+import { LightingInvoice, LnUrlInvoice } from './LightingInvoice';
 import { VideoPreview } from './VideoPreview';
 
 export interface ContentProps {
@@ -16,6 +16,7 @@ export interface ContentProps {
 
 export function Content({ text, classNames }: ContentProps) {
   const {
+    lnUrls,
     bolt11Invoices,
     previewUrls,
     modifiedText,
@@ -63,6 +64,14 @@ export function Content({ text, classNames }: ContentProps) {
           bolt11Invoices.map(url => (
             <span key={url}>
               <LightingInvoice url={url} />
+            </span>
+          ))}
+      </p>
+      <p>
+        {lnUrls.length > 0 &&
+          lnUrls.map(url => (
+            <span key={url}>
+              <LnUrlInvoice url={url} />
             </span>
           ))}
       </p>
