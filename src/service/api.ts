@@ -363,6 +363,7 @@ export interface EventSetMetadataContent {
   about: string; // user description,
   picture: string; // image url
   lud06: string;
+  lud16: string;
   website: string;
   banner: string;
   nip05: string;

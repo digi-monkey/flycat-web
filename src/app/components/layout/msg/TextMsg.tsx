@@ -7,7 +7,7 @@ import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
 import React, { useEffect, useState, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Event, PrivateKey, PublicKey } from 'service/api';
-import { shortPublicKey } from 'service/helper';
+import { isEmptyStr, shortPublicKey } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
@@ -156,6 +156,7 @@ export interface TextMsgProps {
   seen?: string[];
   relays?: string[];
   msgEvent: TextNoteEvent;
+  lightingAddress?: string;
 }
 
 export const TextMsg = ({
@@ -171,6 +172,7 @@ export const TextMsg = ({
   seen,
   relays,
   msgEvent,
+  lightingAddress,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
@@ -194,6 +196,7 @@ export const TextMsg = ({
             eventId={eventId}
             seen={seen}
             relays={relays}
+            lightingAddress={lightingAddress}
           />
         </span>
       </Grid>
@@ -208,6 +211,7 @@ export const ProfileTextMsg = ({
   createdAt,
   eventId,
   worker,
+  lightingAddress,
 }: Omit<TextMsgProps, 'avatar' | 'name'>) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
@@ -230,9 +234,11 @@ export const ProfileTextMsg = ({
             <span style={styles.time}>{useTimeSince(createdAt)}</span>
 
             <span style={{ marginLeft: '15px' }}>
-              <span style={styles.reaction}>
-                <Tipping eventId={eventId} />
-              </span>
+              {!isEmptyStr(lightingAddress) && (
+                <span style={styles.reaction}>
+                  <Tipping address={lightingAddress!} />
+                </span>
+              )}
               <span style={styles.reaction}>
                 <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
               </span>
@@ -453,6 +459,7 @@ export const ReactionGroups = ({
   pk,
   seen,
   relays,
+  lightingAddress,
 }: {
   msgEvent: TextNoteEvent;
   worker: CallWorker;
@@ -460,6 +467,7 @@ export const ReactionGroups = ({
   eventId: string;
   seen?: string[];
   relays?: string[];
+  lightingAddress?: string;
 }) => {
   const { t } = useTranslation();
 
@@ -536,14 +544,12 @@ export const ReactionGroups = ({
           </div>
         </Popover>
 
-        <span
-          style={styles.reaction}
-          onClick={() => {
-            alert('working on it!');
-          }}
-        >
-          <Tipping eventId={eventId} />
+        <span style={styles.reaction}>
+          {!isEmptyStr(lightingAddress) && (
+            <Tipping address={lightingAddress!} />
+          )}
         </span>
+        {/*
         <span
           style={styles.reaction}
           onClick={() => {
@@ -552,6 +558,7 @@ export const ReactionGroups = ({
         >
           <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
         </span>
+        */}
         <span
           style={styles.reaction}
           onClick={() => {

@@ -78,6 +78,9 @@ export const Msgs = (
               };
             })}
           createdAt={msg.created_at}
+          lightingAddress={
+            userMap.get(msg.pubkey)?.lud06 || userMap.get(msg.pubkey)?.lud16
+          }
         />
       );
     }

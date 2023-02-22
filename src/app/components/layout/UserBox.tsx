@@ -409,27 +409,22 @@ export const ProfileEditPanel = ({
     about?: string;
     website?: string;
     bitcoinLightningAddress?: string;
+    bitcoinLightningAddressLud16?: string;
     domainNameVerification?: string;
   }
+
   const initialFormData: FormData = {
     name: profile?.display_name,
     username: profile?.name,
     about: profile?.about,
     website: profile?.website,
     bitcoinLightningAddress: profile?.lud06,
+    bitcoinLightningAddressLud16: profile?.lud16,
     domainNameVerification: profile?.nip05,
   };
 
   useEffect(() => {
     console.log(profile);
-    const initialFormData = {
-      name: profile?.display_name,
-      username: profile?.name,
-      about: profile?.about,
-      website: profile?.website,
-      bitcoinLightningAddress: profile?.lud06,
-      domainNameVerification: profile?.nip05,
-    };
     setFormData(initialFormData);
     setAvatar(profile?.picture);
     setBanner(profile?.banner);
@@ -461,6 +456,7 @@ export const ProfileEditPanel = ({
       about: formData.about || '',
       picture: avatar || '',
       lud06: formData.bitcoinLightningAddress || '',
+      lud16: formData.bitcoinLightningAddressLud16 || '',
       website: formData.website || '',
       banner: banner || '',
       nip05: formData.domainNameVerification || '',
@@ -589,6 +585,18 @@ export const ProfileEditPanel = ({
                   id="bitcoinLightningAddress"
                   name="bitcoinLightningAddress"
                   value={formData.bitcoinLightningAddress}
+                  onChange={handleInputChange}
+                />
+              </Div>
+              <Div>
+                <label htmlFor="bitcoinLightningAddress">
+                  {t('profileEditPanel.lud16')}
+                </label>
+                <Input
+                  type="text"
+                  id="bitcoinLightningAddressLud16"
+                  name="bitcoinLightningAddressLud16"
+                  value={formData.bitcoinLightningAddressLud16}
                   onChange={handleInputChange}
                 />
               </Div>
