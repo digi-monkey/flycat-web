@@ -620,7 +620,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                       })}
                     createdAt={msg.created_at}
                     worker={worker!}
-                    lightingAddress={userMap.get(msg.pubkey)?.lud06}
+                    lightingAddress={
+                      userMap.get(msg.pubkey)?.lud06 ||
+                      userMap.get(msg.pubkey)?.lud16
+                    }
                   />
                 );
               }

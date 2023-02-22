@@ -239,9 +239,11 @@ export const ProfileTextMsg = ({
                   <Tipping address={lightingAddress!} />
                 </span>
               )}
+              {/*
               <span style={styles.reaction}>
                 <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
               </span>
+              */}
               <span style={styles.reaction}>
                 <Repost eventId={eventId} />
               </span>
