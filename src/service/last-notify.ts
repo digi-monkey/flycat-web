@@ -7,5 +7,5 @@ export function get(): number {
 }
 
 export function update(secs: number) {
-  return localStorage.setItem(KEY, (secs * 1000).toString());
+  return localStorage.setItem(KEY, secs.toString());
 }

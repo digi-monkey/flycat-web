@@ -141,6 +141,14 @@ export class CallWorker {
             onNostrData(data);
           }
           break;
+
+        case FromWorkerMessageType.PORT_ID:
+          if (data.portId == null) {
+            throw new Error('missing data.portId');
+          }
+          this._portId = data.portId;
+          break;
+
         default:
           break;
       }

@@ -424,7 +424,8 @@ export const ProfileEditPanel = ({
   };
 
   useEffect(() => {
-    console.log(profile);
+    if (profile == null) return;
+
     setFormData(initialFormData);
     setAvatar(profile?.picture);
     setBanner(profile?.banner);

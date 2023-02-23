@@ -123,6 +123,17 @@ export const SearchBox = () => {
   );
 };
 
+const NotificationCount = styled.span`
+  display: inline-block;
+  margin-left: 5px;
+  padding: 3px 5px;
+  border-radius: 50%;
+  color: red;
+  :hover {
+    color: gray;
+  }
+`;
+
 export const MenuList = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const version = useVersion() + '-' + useCommitId();
@@ -149,13 +160,17 @@ export const MenuList = ({ isLoggedIn }) => {
           </div>
         </MenuItem>
 
-        <MenuItem href="/notification">
-          <div>
-            <Notifications /> &nbsp;
-            {t('nav.menu.notification')}
-            {newNotifyCount > 0 && <span>+{newNotifyCount}</span>}
-          </div>
-        </MenuItem>
+        {isLoggedIn && myPublicKey && myPublicKey.length > 0 && (
+          <MenuItem href="/notification">
+            <div>
+              <Notifications /> &nbsp;
+              {t('nav.menu.notification')}
+              {newNotifyCount > 0 && (
+                <NotificationCount>+{newNotifyCount}</NotificationCount>
+              )}
+            </div>
+          </MenuItem>
+        )}
 
         <MenuItem href="/blog">
           <div>

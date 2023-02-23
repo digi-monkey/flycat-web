@@ -40,7 +40,6 @@ export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
   useEffect(() => {
     if (event == null) {
       worker.subMsgByEventIds([eventId]);
-      console.log('sub2..');
     }
   }, [event, worker]);
 
@@ -81,11 +80,10 @@ export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
   useEffect(() => {
     if (event == null) {
       worker.subMsgByEventIds([msg.id]);
-      console.log('sub1..');
     }
   }, [event, worker]);
   const read = async () => {
-    const link = '/event/' + msg.id;
+    const link = '/event/' + (event?.id || msg.id);
     window.open(link, '__blank');
     const lastReadTime = get();
     if (msg.created_at > lastReadTime) {
@@ -149,8 +147,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     onMsgHandler: onMsgHandler2,
     updateWorkerMsgListenerDeps: [userMap.size],
   });
-
-  console.log(worker?.portId, worker2?.portId);
 
   function onMsgHandler(nostrData: any, relayUrl?: string) {
     const msg = JSON.parse(nostrData);
@@ -323,7 +319,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         data: newConn,
       },
     });
-    console.log('sub..', newConn);
   }, [newConn, myPublicKey]);
 
   return (

@@ -19,7 +19,6 @@ export function useNotification() {
     updateWorkerMsgListenerDeps: [myPublicKey],
   });
   function onMsgHandler(nostrData: any, relayUrl?: string) {
-    if (worker?.portId == null) return;
     const msg = JSON.parse(nostrData);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -28,6 +27,8 @@ export function useNotification() {
         event.kind !== WellKnownEventKind.text_note
       )
         return;
+      const lastReadTime = get();
+      if (event.created_at <= lastReadTime) return;
 
       setNotes(oldArray => {
         if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -54,18 +55,17 @@ export function useNotification() {
     if (worker?.portId == null) return;
 
     const lastReadTime = get();
+    const since = lastReadTime + 1; // exclude the last read msg itself
     worker?.subMsgByPTags({
       publicKeys: [myPublicKey],
-      since: lastReadTime,
+      since,
       callRelay: {
         type: CallRelayType.batch,
         data: newConn,
       },
       customId: 'useNotification',
     });
-    console.log('sub new notify..', newConn);
   }, [newConn, myPublicKey]);
 
-  console.log(notes, worker?.portId);
   return notes.length;
 }
