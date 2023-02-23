@@ -8,7 +8,7 @@ import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { UserMap } from 'service/type';
-import { get } from 'service/last-notify';
+import { defaultLastNotifyTime, get, update } from 'service/last-notify';
 import {
   deserializeMetadata,
   Event,
@@ -28,27 +28,42 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { CallWorker } from 'service/worker/callWorker';
 import { Content } from 'app/components/layout/msg/Content';
 
-export interface Likes {
-  publicKeys: string[];
-  eventId: string;
-}
-
 export interface ItemProps {
   msg: Event;
   userMap: UserMap;
   event: Event;
+  eventId: string;
+  worker: CallWorker;
 }
 
-export function LikeItem({ msg, userMap, event }: ItemProps) {
+export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
+  useEffect(() => {
+    if (event == null) {
+      worker.subMsgByEventIds([eventId]);
+      console.log('sub2..');
+    }
+  }, [event, worker]);
+
+  const read = async () => {
+    const link = '/event/' + eventId;
+    window.open(link, '__blank');
+    const lastReadTime = get();
+    if (msg.created_at > lastReadTime) {
+      update(msg.created_at);
+    }
+  };
+
   return (
     <span
       style={{
         display: 'block',
         margin: '10px 0px',
         padding: '5px',
-        background: '#F4F5F4',
+        borderBottom: '1px dashed rgb(221, 221, 221)',
+        cursor: 'pointer',
       }}
       key={msg.id}
+      onClick={read}
     >
       <span style={{ color: 'red' }}>
         <FavoriteIcon />
@@ -56,20 +71,34 @@ export function LikeItem({ msg, userMap, event }: ItemProps) {
       <span style={{ margin: '0px 5px' }}>
         <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
       </span>
-      liked your <a href={'/event/' + msg.id}>note</a>{' '}
+      liked your <a href={'/event/' + event?.id}>note</a>{' '}
       <span style={{}}>"{maxStrings(event?.content || '', 30)}"</span>
     </span>
   );
 }
 
-export function ReplyItem({ msg, userMap, event }: ItemProps) {
+export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
+  useEffect(() => {
+    if (event == null) {
+      worker.subMsgByEventIds([msg.id]);
+      console.log('sub1..');
+    }
+  }, [event, worker]);
+  const read = async () => {
+    const link = '/event/' + msg.id;
+    window.open(link, '__blank');
+    const lastReadTime = get();
+    if (msg.created_at > lastReadTime) {
+      update(msg.created_at);
+    }
+  };
   return (
     <span
       style={{
         display: 'block',
         margin: '10px 0px',
         padding: '5px',
-        background: '#F4F5F4',
+        borderBottom: '1px dashed rgb(221, 221, 221)',
       }}
       key={msg.id}
     >
@@ -82,12 +111,18 @@ export function ReplyItem({ msg, userMap, event }: ItemProps) {
           <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
         </span>
         <span style={{ fontSize: '12px', color: 'gray' }}>
-          replying to your <a href={'/event/' + msg.id}>note</a> "
-          {maxStrings(event?.content || '', 30)}"
+          {event?.id && (
+            <span>
+              replying to your <a href={'/event/' + event?.id}>note</a> "
+              {maxStrings(event?.content || '', 30)}"
+            </span>
+          )}
+          {!event?.id && <span>mentioned you</span>}
         </span>
         <a
           style={{ textDecoration: 'none', color: 'black' }}
-          href={'/event/' + msg.id}
+          href={'#'}
+          onClick={read}
         >
           <Content text={msg?.content} />
         </a>
@@ -96,32 +131,26 @@ export function ReplyItem({ msg, userMap, event }: ItemProps) {
   );
 }
 
-function getNotifyToEventId(msg: Event): string | null {
-  return msg.tags.filter(t => t[0] === EventTags.E).map(t => t[1])[0];
-}
-
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const { t } = useTranslation();
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [textNotes, setTextNotes] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
-  const [likes, setLikes] = useState<{}>([]);
   const myPublicKey = useReadonlyMyPublicKey();
-  const updateWorkerMsgListenerDeps = [myPublicKey];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
+
+  const updateWorkerMsgListenerDeps = [myPublicKey, userMap.size];
+  const { worker, newConn } = useCallWorker({
     onMsgHandler,
     updateWorkerMsgListenerDeps,
   });
 
-  const filter: Filter = {
-    ids: msgList.map(m => getNotifyToEventId(m)!),
-  };
-  const notes = useNotes(filter, []);
+  const { worker: worker2, newConn: newConn2 } = useCallWorker({
+    onMsgHandler: onMsgHandler2,
+    updateWorkerMsgListenerDeps: [userMap.size],
+  });
 
-  useEffect(() => {
-    setTextNotes(notes);
-  }, [notes]);
+  console.log(worker?.portId, worker2?.portId);
 
   function onMsgHandler(nostrData: any, relayUrl?: string) {
     const msg = JSON.parse(nostrData);
@@ -204,10 +233,88 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     }
   }
 
+  function onMsgHandler2(nostrData: any, relayUrl?: string) {
+    const msg = JSON.parse(nostrData);
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
+      switch (event.kind) {
+        case WellKnownEventKind.set_metadata:
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
+          setUserMap(prev => {
+            const newMap = new Map(prev);
+            const oldData = newMap.get(event.pubkey);
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
+
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
+            return newMap;
+          });
+          break;
+
+        case WellKnownEventKind.contact_list:
+          // do nothing
+          break;
+
+        default:
+          if (event.kind !== WellKnownEventKind.text_note) return;
+          setTextNotes(oldArray => {
+            if (!oldArray.map(e => e.id).includes(event.id)) {
+              // do not add duplicated msg
+
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
+              // sort by timestamp
+              const sortedItems = newItems.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return sortedItems;
+            }
+
+            return oldArray;
+          });
+
+          /*
+          // check if need to sub new user metadata
+          const newPks: string[] = [];
+          for (const t of event.tags) {
+            if (isEventPTag(t)) {
+              const pk = t[1];
+              if (userMap.get(pk) == null && !newPks.includes(pk)) {
+                newPks.push(pk);
+              }
+            }
+          }
+          if (
+            userMap.get(event.pubkey) == null &&
+            !newPks.includes(event.pubkey)
+          ) {
+            newPks.push(event.pubkey);
+          }
+
+          if (newPks.length > 0) {
+            worker2?.subMetadata(newPks);
+          }
+	  */
+
+          break;
+      }
+    }
+  }
+
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
+    if (newConn.length === 0) return;
 
-    const lastReadTime = get();
+    const lastReadTime = defaultLastNotifyTime;
     worker?.subMsgByPTags({
       publicKeys: [myPublicKey],
       since: lastReadTime,
@@ -216,7 +323,8 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         data: newConn,
       },
     });
-  }, [worker, newConn, myPublicKey]);
+    console.log('sub..', newConn);
+  }, [newConn, myPublicKey]);
 
   return (
     <BaseLayout>
@@ -234,8 +342,10 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                           t => t.id === getNotifyToEventId(msg),
                         )[0]
                       }
+                      eventId={getNotifyToEventId(msg)!}
                       msg={msg}
                       userMap={userMap}
+                      worker={worker2!}
                       key={msg.id}
                     />
                   );
@@ -248,8 +358,10 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                           t => t.id === getNotifyToEventId(msg),
                         )[0]
                       }
+                      eventId={getNotifyToEventId(msg)!}
                       msg={msg}
                       userMap={userMap}
+                      worker={worker2!}
                       key={msg.id}
                     />
                   );
@@ -277,3 +389,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 }
 
 export default connect(loginMapStateToProps)(Notification);
+
+function getNotifyToEventId(msg: Event): string | null {
+  return msg.tags.filter(t => t[0] === EventTags.E).map(t => t[1])[0];
+}

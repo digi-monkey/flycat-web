@@ -22,6 +22,7 @@ import {
 import styled from 'styled-components';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useNotification } from 'hooks/useNotification';
 
 const styles = {
   root: {
@@ -131,6 +132,8 @@ export const MenuList = ({ isLoggedIn }) => {
   const myPublicKey = useReadonlyMyPublicKey();
   // const myPublicKey: any = undefined;
 
+  const newNotifyCount = useNotification();
+
   return (
     <div>
       <ul style={styles.ul}>
@@ -150,6 +153,7 @@ export const MenuList = ({ isLoggedIn }) => {
           <div>
             <Notifications /> &nbsp;
             {t('nav.menu.notification')}
+            {newNotifyCount > 0 && <span>+{newNotifyCount}</span>}
           </div>
         </MenuItem>
 
