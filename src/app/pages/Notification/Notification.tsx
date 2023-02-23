@@ -37,6 +37,7 @@ export interface ItemProps {
 }
 
 export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
       worker.subMsgByEventIds([eventId]);
@@ -70,13 +71,15 @@ export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
       <span style={{ margin: '0px 5px' }}>
         <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
       </span>
-      liked your <a href={'/event/' + event?.id}>note</a>{' '}
+      {t('notification.likedYour')}
+      <a href={'/event/' + event?.id}>{t('notification.note')}</a>{' '}
       <span style={{}}>"{maxStrings(event?.content || '', 30)}"</span>
     </span>
   );
 }
 
 export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
       worker.subMsgByEventIds([msg.id]);
@@ -111,11 +114,12 @@ export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
         <span style={{ fontSize: '12px', color: 'gray' }}>
           {event?.id && (
             <span>
-              replying to your <a href={'/event/' + event?.id}>note</a> "
+              {t('notification.replyToYour')}{' '}
+              <a href={'/event/' + event?.id}>{t('notification.note')}</a> "
               {maxStrings(event?.content || '', 30)}"
             </span>
           )}
-          {!event?.id && <span>mentioned you</span>}
+          {!event?.id && <span>{t('notification.mentionYou')}</span>}
         </span>
         <a
           style={{ textDecoration: 'none', color: 'black' }}
@@ -130,8 +134,6 @@ export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
 }
 
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
-  const { t } = useTranslation();
-
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [textNotes, setTextNotes] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);

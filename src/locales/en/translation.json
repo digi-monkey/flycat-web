@@ -13,7 +13,7 @@
   "nav": {
     "menu": {
       "home": "Home",
-      "notification": "notification",
+      "notification": "Notification",
       "profile": "Profile",
       "blog": "Blog",
       "blogDashboard": "Write",
@@ -204,5 +204,11 @@
   "lighting": {
     "pay": "Pay",
     "atLeast": "at least"
+  },
+  "notification": {
+    "replyToYour": "replying to your ",
+    "note": "note",
+    "mentionYou": "mentioned you",
+    "likedYour": "liked your "
   }
 }

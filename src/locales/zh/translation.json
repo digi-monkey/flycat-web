@@ -204,5 +204,11 @@
   "lighting": {
     "pay": "电一下",
     "atLeast": "最少"
+  },
+  "notification": {
+    "replyToYour": "回复了你的",
+    "note": "消息",
+    "mentionYou": "提到了你",
+    "likedYour": "喜欢了你的"
   }
 }
