@@ -20,7 +20,12 @@ import { connect, useSelector } from 'react-redux';
 import RelayManager from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import { NavHeader } from 'app/components/layout/NavHeader';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import {
+  CallRelay,
+  CallRelayType,
+  FromWorkerMessageData,
+  WsConnectStatus,
+} from 'service/worker/type';
 import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
@@ -42,6 +47,7 @@ import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -181,9 +187,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
   const myPublicKey = useReadonlyMyPublicKey();
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
 
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -197,51 +200,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [articles, setArticles] = useState<
     (ArticleDataSchema & { page_id: number; pageCreatedAt: number })[]
   >([]);
-  const [worker, setWorker] = useState<CallWorker>();
 
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
+  const { worker, newConn } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps: [myPublicKey, publicKey],
+  });
 
-  useEffect(() => {
-    const worker = new CallWorker(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-            // no changed
-            console.debug('[wsConnectStatus] same, not updating');
-            return;
-          }
-
-          const data = Array.from(message.wsConnectStatus.entries());
-          setWsConnectStatus(prev => {
-            const newMap = new Map(prev);
-            for (const d of data) {
-              const relayUrl = d[0];
-              const isConnected = d[1];
-              if (
-                newMap.get(relayUrl) &&
-                newMap.get(relayUrl) === isConnected
-              ) {
-                continue; // no changed
-              }
-
-              newMap.set(relayUrl, isConnected);
-            }
-
-            return newMap;
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        onMsgHandler.bind(worker)(message.nostrData);
-      },
-    );
-    worker.pullWsConnectStatus();
-    setWorker(worker);
-  }, []);
-
-  function onMsgHandler(this, res: any) {
+  function onMsgHandler(res: any) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -292,7 +257,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               }
             }
             if (newPks.length > 0) {
-              this.subMetadata(newPks);
+              worker?.subMetadata(newPks);
             }
           }
           break;
@@ -451,17 +416,22 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   useEffect(() => {
     // todo: validate publicKey
     if (publicKey.length === 0) return;
+    if (newConn.length === 0) return;
 
     const pks = [publicKey];
     if (isLoggedIn && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
-    worker?.subContactList(pks);
-    worker?.subMetadata(pks);
-    worker?.subMsg([publicKey]);
-    worker?.subBlogSiteMetadata([publicKey]);
-  }, [wsConnectStatus]);
+    const callRelay: CallRelay = {
+      type: CallRelayType.batch,
+      data: newConn,
+    };
+    worker?.subContactList(pks, undefined, undefined, callRelay);
+    worker?.subMetadata(pks, undefined, undefined, callRelay);
+    worker?.subMsg([publicKey], undefined, undefined, callRelay);
+    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, callRelay);
+  }, [newConn]);
 
   useEffect(() => {
     if (siteMetaData == null) return;

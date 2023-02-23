@@ -1,6 +1,7 @@
 import { Grid } from '@mui/material';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -56,7 +57,6 @@ export interface RelayManagerProps {
   myCustomRelay: RelayStoreType;
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
   newConnCallback?: (conns: string[]) => any;
-  newDisConnCallback?: (disConns: string[]) => any;
 }
 
 export function RelayManager({
@@ -69,38 +69,10 @@ export function RelayManager({
   const [relays, setRelays] = useState<string[]>([]);
 
   const myPublicKey = useReadonlyMyPublicKey();
-
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
-  const [newConn, setNewConn] = useState<string[]>([]);
-  const [newDisConn, setNewDisConn] = useState<string[]>([]);
-
-  // new connection diff
-  useEffect(() => {
-    const conns = Array.from(wsConnectStatus)
-      .filter(s => s[1] === true)
-      .map(s => s[0]);
-    const newConnAdd: string[] = [];
-    const newConnDelete: string[] = [];
-    for (const c of conns) {
-      if (!newConn.includes(c)) {
-        newConnAdd.push(c);
-      }
-      if (wsConnectStatus.get(c) === false && newConn.includes(c)) {
-        newConnDelete.push(c);
-      }
-      if (newConn.includes(c) && !newConnDelete.includes(c)) {
-        newConnDelete.push(c);
-      }
-    }
-
-    setNewConn(prev => {
-      let arr = prev;
-      arr = arr.concat(newConnAdd);
-      return arr.filter(s => !newConnDelete.includes(s));
-    });
-  }, [wsConnectStatus]);
+  const { worker, newConn, wsConnectStatus } = useCallWorker({
+    onMsgHandler: () => {},
+    updateWorkerMsgListenerDeps: [],
+  });
 
   useEffect(() => {
     if (newConnCallback) {
@@ -108,46 +80,11 @@ export function RelayManager({
     }
   }, [newConn]);
 
-  const [worker, setWorker] = useState<CallWorker>();
-
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
   useEffect(() => {
     if (wsStatusCallback) {
       wsStatusCallback(wsConnectStatus);
     }
   }, [wsConnectStatus]);
-
-  useEffect(() => {
-    const worker = new CallWorker((message: FromWorkerMessageData) => {
-      if (message.wsConnectStatus) {
-        if (equalMaps(_wsConnectStatus(), message.wsConnectStatus)) {
-          // no changed
-          console.debug('[wsConnectStatus] same, not updating');
-          return;
-        }
-
-        const data = Array.from(message.wsConnectStatus.entries());
-        setWsConnectStatus(prev => {
-          const newMap = new Map(prev);
-          for (const d of data) {
-            const relayUrl = d[0];
-            const isConnected = d[1];
-            if (newMap.get(relayUrl) && newMap.get(relayUrl) === isConnected) {
-              continue; // no changed
-            }
-
-            newMap.set(relayUrl, isConnected);
-          }
-
-          return newMap;
-        });
-      }
-    });
-    setWorker(worker);
-  }, []);
 
   useEffect(() => {
     // remove duplicated relay
