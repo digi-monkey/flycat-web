@@ -57,7 +57,7 @@ export function useCallWorker({
       (message: FromWorkerMessageData) => {
         onMsgHandler(message.nostrData, message.relayUrl);
       },
-      workerAliasName || 'unknown',
+      workerAliasName || 'unnamedCallWorker',
     );
     setWorker(worker);
     worker.pullWsConnectStatus();
