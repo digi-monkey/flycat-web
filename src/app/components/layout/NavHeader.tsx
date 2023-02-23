@@ -17,10 +17,12 @@ import {
   Key,
   Contacts,
   Backup,
+  Notifications,
 } from '@mui/icons-material';
 import styled from 'styled-components';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useNotification } from 'hooks/useNotification';
 
 const styles = {
   root: {
@@ -121,6 +123,17 @@ export const SearchBox = () => {
   );
 };
 
+const NotificationCount = styled.span`
+  display: inline-block;
+  margin-left: 5px;
+  padding: 3px 5px;
+  border-radius: 50%;
+  color: red;
+  :hover {
+    color: gray;
+  }
+`;
+
 export const MenuList = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const version = useVersion() + '-' + useCommitId();
@@ -129,6 +142,8 @@ export const MenuList = ({ isLoggedIn }) => {
 
   const myPublicKey = useReadonlyMyPublicKey();
   // const myPublicKey: any = undefined;
+
+  const newNotifyCount = useNotification();
 
   return (
     <div>
@@ -144,6 +159,18 @@ export const MenuList = ({ isLoggedIn }) => {
             {t('nav.menu.home')}
           </div>
         </MenuItem>
+
+        {isLoggedIn && myPublicKey && myPublicKey.length > 0 && (
+          <MenuItem href="/notification">
+            <div>
+              <Notifications /> &nbsp;
+              {t('nav.menu.notification')}
+              {newNotifyCount > 0 && (
+                <NotificationCount>+{newNotifyCount}</NotificationCount>
+              )}
+            </div>
+          </MenuItem>
+        )}
 
         <MenuItem href="/blog">
           <div>

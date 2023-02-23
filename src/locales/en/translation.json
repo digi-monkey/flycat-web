@@ -13,6 +13,7 @@
   "nav": {
     "menu": {
       "home": "Home",
+      "notification": "notification",
       "profile": "Profile",
       "blog": "Blog",
       "blogDashboard": "Write",

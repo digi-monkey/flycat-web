@@ -23,6 +23,7 @@ import RelayManager from './components/layout/relay/RelayManager';
 import { ArticleRead } from './pages/ArticleReadPage/ArticleRead';
 import BlogFeed from './pages/BlogPage/Feed';
 import Backup from './pages/Backup/Backup';
+import Notification from './pages/Notification/Notification';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -37,6 +38,10 @@ export function App() {
       </Helmet>
 
       <Switch>
+        <Route path="/notification">
+          <Notification />
+        </Route>
+
         <Route path="/article/:publicKey/:articleId">
           <ArticleRead />
         </Route>

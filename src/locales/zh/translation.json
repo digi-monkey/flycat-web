@@ -13,6 +13,7 @@
   "nav": {
     "menu": {
       "home": "首页",
+      "notification": "通知",
       "profile": "我的空间",
       "blog": "博客",
       "blogDashboard": "写作",

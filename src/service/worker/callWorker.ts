@@ -141,6 +141,14 @@ export class CallWorker {
             onNostrData(data);
           }
           break;
+
+        case FromWorkerMessageType.PORT_ID:
+          if (data.portId == null) {
+            throw new Error('missing data.portId');
+          }
+          this._portId = data.portId;
+          break;
+
         default:
           break;
       }
@@ -254,13 +262,46 @@ export class CallWorker {
     return this.subFilter(filter, keepAlive, customId);
   }
 
-  subMsgByETags(eventIds: EventId[], keepAlive?: boolean, customId?: string) {
+  subMsgByETags(
+    eventIds: EventId[],
+    keepAlive?: boolean,
+    customId?: string,
+    callRelay?: CallRelay,
+  ) {
     const filter: Filter = {
       kinds: [WellKnownEventKind.text_note],
       '#e': eventIds,
       limit: 50,
     };
-    return this.subFilter(filter, keepAlive, customId);
+    return this.subFilter(filter, keepAlive, customId, callRelay);
+  }
+
+  subMsgByPTags({
+    publicKeys,
+    kinds,
+    since,
+    keepAlive,
+    customId,
+    callRelay,
+  }: {
+    publicKeys: PublicKey[];
+    kinds?: WellKnownEventKind[];
+    since?: number;
+    keepAlive?: boolean;
+    customId?: string;
+    callRelay?: CallRelay;
+  }) {
+    const filter: Filter = {
+      '#p': publicKeys,
+      limit: 50,
+    };
+    if (kinds) {
+      filter.kinds = kinds;
+    }
+    if (since) {
+      filter.since = since;
+    }
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subMetadata(
