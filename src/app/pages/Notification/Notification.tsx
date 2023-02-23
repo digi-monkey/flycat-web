@@ -26,6 +26,7 @@ import { ProfileAvatar, TextMsg } from 'app/components/layout/msg/TextMsg';
 import { maxStrings } from 'service/helper';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { CallWorker } from 'service/worker/callWorker';
+import { Content } from 'app/components/layout/msg/Content';
 
 export interface Likes {
   publicKeys: string[];
@@ -80,12 +81,16 @@ export function ReplyItem({ msg, userMap, event }: ItemProps) {
         <span style={{ margin: '0px 5px' }}>
           <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
         </span>
-        {'says '}
-        <span style={{ fontSize: '16px' }}>{msg.content}</span>
-      </span>
-      <span style={{ display: 'block', fontSize: '12px', color: 'gray' }}>
-        replying to your <a href={'/event/' + msg.id}>note</a> "
-        {maxStrings(event?.content || '', 30)}"
+        <span style={{ fontSize: '12px', color: 'gray' }}>
+          replying to your <a href={'/event/' + msg.id}>note</a> "
+          {maxStrings(event?.content || '', 30)}"
+        </span>
+        <a
+          style={{ textDecoration: 'none', color: 'black' }}
+          href={'/event/' + msg.id}
+        >
+          <Content text={msg?.content} />
+        </a>
       </span>
     </span>
   );
