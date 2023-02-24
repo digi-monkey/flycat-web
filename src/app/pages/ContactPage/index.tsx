@@ -12,6 +12,7 @@ import {
   EventTags,
   EventContactListPTag,
   deserializeMetadata,
+  RawEvent,
 } from 'service/api';
 import { connect } from 'react-redux';
 import RelayManager from '../../components/layout/relay/RelayManager';
@@ -26,6 +27,13 @@ import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
+import { ThinHr } from 'app/components/layout/ThinHr';
+import { CallRelayType, WsConnectStatus } from 'service/worker/type';
+import { Seen } from 'app/components/layout/msg/reaction/Seen';
+import RestoreIcon from '@mui/icons-material/Restore';
+import { CallWorker } from 'service/worker/callWorker';
+import { SignEvent } from 'store/loginReducer';
+import { useTimeSince } from 'hooks/useTimeSince';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -162,7 +170,9 @@ interface UserParams {
   publicKey: string;
 }
 
-export const ContactPage = ({ isLoggedIn }) => {
+export type EventWithSeen = Event & { seen?: string[] };
+
+export const ContactPage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
   const { publicKey } = useParams<UserParams>();
 
@@ -170,6 +180,7 @@ export const ContactPage = ({ isLoggedIn }) => {
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());
+  const [historyContacts, setHistoryContacts] = useState<EventWithSeen[]>([]);
   const [userContactList, setUserContactList] = useState<ContactList>(
     new Map(),
   );
@@ -184,7 +195,25 @@ export const ContactPage = ({ isLoggedIn }) => {
     updateWorkerMsgListenerDeps,
   });
 
-  function onMsgHandler(res: any) {
+  const {
+    worker: worker2,
+    newConn: newConn2,
+    wsConnectStatus: wsConnectStatus2,
+  } = useCallWorker({
+    onMsgHandler: onMsgHandler2,
+    updateWorkerMsgListenerDeps: [myPublicKey],
+  });
+
+  useEffect(() => {
+    if (newConn2.length === 0) return;
+
+    worker2?.subContactList([myPublicKey], undefined, undefined, {
+      type: CallRelayType.batch,
+      data: newConn2,
+    });
+  }, [newConn2]);
+
+  function onMsgHandler(res: any, relayUrl?: string) {
     const msg = JSON.parse(res);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -226,6 +255,44 @@ export const ContactPage = ({ isLoggedIn }) => {
             ) {
               userContactEvent = event;
             }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  function onMsgHandler2(res: any, relayUrl?: string) {
+    const msg = JSON.parse(res);
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
+      switch (event.kind) {
+        case WellKnownEventKind.contact_list:
+          if (event.pubkey === myPublicKey) {
+            console.log(event.tags.length, relayUrl);
+
+            setHistoryContacts(prev => {
+              if (prev.map(p => p.id).includes(event.id)) {
+                let data = prev;
+                const index = data.findIndex(d => d.id === event.id);
+                if (index === -1) return prev;
+
+                if (!data[index].seen?.includes(relayUrl!)) {
+                  data[index].seen?.push(relayUrl!);
+                  return data;
+                }
+
+                return prev;
+              }
+
+              let data = [...prev, { ...event, ...{ seen: [relayUrl!] } }];
+              data = data.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return data;
+            });
           }
           break;
 
@@ -294,7 +361,10 @@ export const ContactPage = ({ isLoggedIn }) => {
     }
 
     if (pks.length > 0) {
-      worker?.subMetaDataAndContactList(pks);
+      worker?.subMetaDataAndContactList(pks, undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn || Array.from(wsConnectStatus.keys()),
+      });
     }
   }, [newConn, myPublicKey, userContactList.size]);
 
@@ -303,6 +373,22 @@ export const ContactPage = ({ isLoggedIn }) => {
       <Left>
         <div style={styles.message}>
           <ul style={styles.msgsUl}>
+            {isLoggedIn && (
+              <div style={{ margin: '10px 0px' }}>
+                <h4>{t('contact.historyFollowingTitle')}</h4>
+                {historyContacts.map(c => (
+                  <HistoryFollowing
+                    event={c}
+                    signEvent={signEvent}
+                    worker={worker2}
+                    wsConnectStatus={wsConnectStatus2}
+                  />
+                ))}
+                <ThinHr />
+              </div>
+            )}
+
+            <h4>{t('contact.currentFollowings')}</h4>
             {Array.from(userMap.entries())
               .filter(u => u[0] !== myPublicKey && u[0] !== publicKey)
               .map(([pk, user], index) => (
@@ -344,3 +430,63 @@ export const ContactPage = ({ isLoggedIn }) => {
 };
 
 export default connect(loginMapStateToProps)(ContactPage);
+
+const HistoryFollowing = ({
+  event,
+  signEvent,
+  worker,
+  wsConnectStatus,
+}: {
+  event: EventWithSeen;
+  signEvent?: SignEvent;
+  worker?: CallWorker;
+  wsConnectStatus: WsConnectStatus;
+}) => {
+  const { t } = useTranslation();
+  const recovery = async () => {
+    let rawEvent = new RawEvent('', event.kind, event.tags, event.content);
+    if (signEvent == null) {
+      return alert('sign method is null!');
+    }
+    const newEvent = await signEvent(rawEvent);
+    console.log('old event:', event, 'new Event: ', newEvent);
+    if (worker == null) {
+      return alert('worker is null, please re-try');
+    }
+    worker?.pubEvent(newEvent);
+    alert(
+      `send to ${
+        Array.from(wsConnectStatus.keys()).length
+      } relays. please try refresh the page!`,
+    );
+  };
+
+  return (
+    <div style={{ padding: '10px 0px' }}>
+      <span style={{ display: 'block' }}>
+        {event.tags.length} -{' '}
+        <span style={{ fontSize: '12px', color: 'gray' }}>
+          {useTimeSince(event.created_at)}
+        </span>
+      </span>
+      <Seen
+        seen={event.seen!}
+        relays={Array.from(wsConnectStatus.keys())}
+        worker={worker!}
+        event={event}
+      />
+      <button
+        style={{
+          background: 'none',
+          border: 'none',
+          fontSize: '14px',
+          color: 'gray',
+        }}
+        onClick={recovery}
+      >
+        <RestoreIcon style={{ color: 'gray', fontSize: '14px' }} />{' '}
+        {t('contact.recoveryBtn')}
+      </button>
+    </div>
+  );
+};

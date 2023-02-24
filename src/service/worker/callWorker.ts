@@ -327,7 +327,7 @@ export class CallWorker {
     const filter: Filter = {
       authors: pks,
       kinds: [WellKnownEventKind.contact_list],
-      limit: pks.length,
+      limit: Math.max(pks.length, 50),
     };
     return this.subFilter(filter, keepAlive, customId, callRelay);
   }
