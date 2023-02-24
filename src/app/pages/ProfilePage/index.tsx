@@ -457,9 +457,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     console.log('contact-length: ', contacts.length);
     if (contacts.length === 0) {
       const isConfirmed = window.confirm(
-        'hey you have 0 followings, if you think this is a bug, please click NO and try again, otherwise you might lost all your following!',
+        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
-
       if (!isConfirmed) {
         return;
       }
@@ -496,7 +495,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const contacts = Array.from(myContactList.entries());
     if (contacts.length === 0) {
       const isConfirmed = window.confirm(
-        'hey you have 0 followings, if you think this is a bug, please click NO and try again, otherwise you might lost all your following!',
+        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
       if (!isConfirmed) {
         return;
