@@ -454,6 +454,15 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     }
 
     const contacts = Array.from(myContactList.entries());
+    console.log('contact-length: ', contacts.length);
+    if (contacts.length === 0) {
+      const isConfirmed = window.confirm(
+        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
+      );
+      if (!isConfirmed) {
+        return;
+      }
+    }
     const tags = contacts.map(
       c =>
         [
@@ -484,6 +493,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     }
 
     const contacts = Array.from(myContactList.entries());
+    if (contacts.length === 0) {
+      const isConfirmed = window.confirm(
+        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
+      );
+      if (!isConfirmed) {
+        return;
+      }
+    }
     const tags = contacts
       .filter(c => c[0] !== publicKey)
       .map(

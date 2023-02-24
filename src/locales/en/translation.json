@@ -145,7 +145,10 @@
     "submit": "submit"
   },
   "contact": {
-    "noAbout": "no about"
+    "noAbout": "no about",
+    "historyFollowingTitle": "History Followings",
+    "currentFollowings": "Current Followings",
+    "recoveryBtn": "Recovery"
   },
   "setting": {
     "version": "Client Version: ",
