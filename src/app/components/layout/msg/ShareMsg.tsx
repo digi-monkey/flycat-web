@@ -1,3 +1,6 @@
+// @deprecated legacy-blog share msg
+// will remove after
+
 import { Grid } from '@mui/material';
 import { ArticleShareContent } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';

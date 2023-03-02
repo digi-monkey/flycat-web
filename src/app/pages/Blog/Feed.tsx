@@ -1,5 +1,4 @@
 import { Grid } from '@mui/material';
-import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { ProfileAvatar, ProfileName } from 'app/components/layout/msg/TextMsg';
 import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
@@ -7,15 +6,13 @@ import {
   deserializeMetadata,
   EventSetMetadataContent,
   EventSubResponse,
-  isEventPTag,
   isEventSubResponse,
-  PublicKey,
   WellKnownEventKind,
 } from 'service/api';
-import { maxStrings } from 'service/helper';
 import { Article, Nip23 } from 'service/nip/23';
 import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
+import { BlogFeedItem } from './FeedItem';
 
 export function BlogFeeds() {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -162,53 +159,12 @@ const ArticleListItem = ({
                 createdAt={a.updated_at}
                 pk={a.pubKey}
               />
-              <div
-                style={{
-                  display: 'flex',
-                  // alignItems: 'center',
-                  border: '1px solid #dbd5d5',
-                  padding: '10px',
-                  margin: '5px 0px',
-                  cursor: 'pointer',
-                }}
-                onClick={() =>
-                  window.open('/post/' + a.pubKey + '/' + a.id, '__blank')
+              <BlogFeedItem
+                article={a}
+                lightingAddress={
+                  userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
                 }
-              >
-                {a.image && (
-                  <span
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      marginRight: '10px',
-                    }}
-                  >
-                    <img
-                      src={a.image}
-                      alt={a.title}
-                      style={{ maxWidth: '100px', maxHeight: '100%' }}
-                    />
-                  </span>
-                )}
-                <div style={{ overflow: 'scroll' }}>
-                  {a.title && (
-                    <span
-                      style={{
-                        fontSize: '16px',
-                        marginBottom: '5px',
-                        display: 'block',
-                      }}
-                    >
-                      {a.title}
-                    </span>
-                  )}
-                  {a.summary && (
-                    <p style={{ fontSize: '12px', color: 'gray' }}>
-                      {maxStrings(a.summary, 140)}
-                    </p>
-                  )}
-                </div>
-              </div>
+              />
             </span>
           </div>
         </Grid>
