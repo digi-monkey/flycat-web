@@ -304,6 +304,11 @@ export const ImageUploader = ({
     formData.append('submit', 'Upload Image');
     const url = await api.uploadImage(formData);
 
+    if (!url.startsWith('https')) {
+      // error
+      return alert(url);
+    }
+
     // record url
     setAttachImgs(prev => {
       const newList = prev;

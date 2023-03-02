@@ -5,6 +5,7 @@ import {
   PublicKey,
   WellKnownEventKind,
 } from 'service/api';
+import { Nip23 } from 'service/nip/23';
 import {
   CallRelay,
   CallRelayType,
@@ -240,11 +241,15 @@ export class CallWorker {
     keepAlive?: boolean,
     customId?: string,
     callRelay?: CallRelay,
+    overrides?: Omit<Filter, 'authors | ids '>,
   ) {
     const filter: Filter = {
-      authors: pks,
-      limit: 50,
-      kinds: [WellKnownEventKind.text_note],
+      ...{
+        authors: pks,
+        limit: 50,
+        kinds: [WellKnownEventKind.text_note],
+      },
+      ...overrides,
     };
 
     return this.subFilter(filter, keepAlive, customId, callRelay);
@@ -366,6 +371,26 @@ export class CallWorker {
       limit: pks.length,
     };
     return this.subFilter(filter, keepAlive, customId);
+  }
+
+  subNip23Posts({
+    pks,
+    keepAlive,
+    customId,
+    callRelay,
+  }: {
+    pks: PublicKey[];
+    keepAlive?: boolean;
+    customId?: string;
+    callRelay?: { type: CallRelayType; data: string[] };
+  }) {
+    const filter = Nip23.filter({
+      authors: pks,
+      overrides: {
+        limit: 50,
+      },
+    });
+    return this.subFilter(filter, keepAlive, customId, callRelay);
   }
 
   subBlogSiteMetadata(

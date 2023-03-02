@@ -414,17 +414,7 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
           </ul>
         </div>
       </Left>
-      <Right>
-        <UserBox
-          pk={publicKey}
-          name={userMap.get(publicKey)?.name}
-          about={userMap.get(publicKey)?.about}
-          avatar={userMap.get(publicKey)?.picture}
-          followCount={userContactList.size}
-        />
-        <hr />
-        <RelayManager />
-      </Right>
+      <Right></Right>
     </BaseLayout>
   );
 };

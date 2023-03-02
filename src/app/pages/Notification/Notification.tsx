@@ -3,8 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { useTranslation } from 'react-i18next';
-import RelayManager from 'app/components/layout/relay/RelayManager';
-import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { UserMap } from 'service/type';
@@ -27,6 +25,7 @@ import { maxStrings } from 'service/helper';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { CallWorker } from 'service/worker/callWorker';
 import { Content } from 'app/components/layout/msg/Content';
+import { Nip23 } from 'service/nip/23';
 
 export interface ItemProps {
   msg: Event;
@@ -78,11 +77,11 @@ export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
   );
 }
 
-export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
+export function ReplyItem({ msg, userMap, event, eventId, worker }: ItemProps) {
   const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
-      worker.subMsgByEventIds([msg.id]);
+      worker.subMsgByEventIds([eventId]);
     }
   }, [event, worker]);
   const read = async () => {
@@ -133,9 +132,76 @@ export function ReplyItem({ msg, userMap, event, worker }: ItemProps) {
   );
 }
 
+export function ArticleCommentItem({
+  msg,
+  userMap,
+  event,
+  eventId,
+  worker,
+}: ItemProps) {
+  const { t } = useTranslation();
+  useEffect(() => {
+    if (event == null) {
+      worker.subMsgByEventIds([eventId]);
+    }
+  }, [event, worker]);
+  const read = async () => {
+    const article = Nip23.toArticle(event);
+    const link = '/post/' + event.pubkey + '/' + article.id;
+    window.open(link, '__blank');
+    const lastReadTime = get();
+    if (msg.created_at > lastReadTime) {
+      update(msg.created_at);
+    }
+  };
+  return (
+    <span
+      style={{
+        display: 'block',
+        margin: '10px 0px',
+        padding: '5px',
+        borderBottom: '1px dashed rgb(221, 221, 221)',
+      }}
+      key={msg.id}
+    >
+      <span style={{ marginBottom: '10px' }}>
+        <ProfileAvatar
+          picture={userMap.get(msg.pubkey)?.picture}
+          name={userMap.get(msg.pubkey)?.name}
+        />
+        <span style={{ margin: '0px 5px' }}>
+          <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
+        </span>
+        <span style={{ fontSize: '12px', color: 'gray' }}>
+          {event?.kind === Nip23.kind && (
+            <span>
+              {' replying to your '}
+              <a
+                href={'/post/' + event.pubkey + '/' + Nip23.toArticle(event).id}
+              >
+                {'article'}
+              </a>{' '}
+              "{Nip23.toArticle(event).title || ''}"
+            </span>
+          )}
+          {!event?.id && <span>{'reply to your article'}</span>}
+        </span>
+        <a
+          style={{ textDecoration: 'none', color: 'black' }}
+          href={'#'}
+          onClick={read}
+        >
+          <Content text={msg?.content} />
+        </a>
+      </span>
+    </span>
+  );
+}
+
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [textNotes, setTextNotes] = useState<Event[]>([]);
+  const [articleNotes, setArticleNotes] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const myPublicKey = useReadonlyMyPublicKey();
 
@@ -147,7 +213,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const { worker: worker2, newConn: newConn2 } = useCallWorker({
     onMsgHandler: onMsgHandler2,
-    updateWorkerMsgListenerDeps: [userMap.size],
+    updateWorkerMsgListenerDeps: [userMap.size, myPublicKey],
   });
 
   function onMsgHandler(nostrData: any, relayUrl?: string) {
@@ -186,7 +252,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           )
             return;
 
-          if (event.pubkey === myPublicKey) return;
+          // if (event.pubkey === myPublicKey) return;
 
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -256,12 +322,8 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           });
           break;
 
-        case WellKnownEventKind.contact_list:
-          // do nothing
-          break;
-
-        default:
-          if (event.kind !== WellKnownEventKind.text_note) return;
+        case WellKnownEventKind.text_note:
+          if (event.pubkey === myPublicKey) return;
           setTextNotes(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
@@ -279,30 +341,30 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
             return oldArray;
           });
+          break;
 
-          /*
-          // check if need to sub new user metadata
-          const newPks: string[] = [];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null && !newPks.includes(pk)) {
-                newPks.push(pk);
-              }
+        case WellKnownEventKind.long_form:
+          if (event.pubkey === myPublicKey) return;
+          setArticleNotes(oldArray => {
+            if (!oldArray.map(e => e.id).includes(event.id)) {
+              // do not add duplicated msg
+
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
+              // sort by timestamp
+              const sortedItems = newItems.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return sortedItems;
             }
-          }
-          if (
-            userMap.get(event.pubkey) == null &&
-            !newPks.includes(event.pubkey)
-          ) {
-            newPks.push(event.pubkey);
-          }
 
-          if (newPks.length > 0) {
-            worker2?.subMetadata(newPks);
-          }
-	  */
+            return oldArray;
+          });
+          break;
 
+        default:
           break;
       }
     }
@@ -348,39 +410,47 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   );
 
                 case WellKnownEventKind.text_note:
-                  return (
-                    <ReplyItem
-                      event={
-                        textNotes.filter(
-                          t => t.id === getNotifyToEventId(msg),
-                        )[0]
-                      }
-                      eventId={getNotifyToEventId(msg)!}
-                      msg={msg}
-                      userMap={userMap}
-                      worker={worker2!}
-                      key={msg.id}
-                    />
-                  );
+                  const addr = getAddrTag(msg);
+                  if (addr && addr.startsWith(Nip23.kind.toString())) {
+                    const articleEvent = articleNotes.filter(
+                      t => t.id === getNotifyToEventId(msg),
+                    )[0];
+                    return (
+                      <ArticleCommentItem
+                        event={articleEvent}
+                        eventId={getNotifyToEventId(msg)!}
+                        msg={msg}
+                        userMap={userMap}
+                        worker={worker2!}
+                        key={msg.id}
+                      />
+                    );
+                  } else {
+                    const textEvent = textNotes.filter(
+                      t => t.id === getNotifyToEventId(msg),
+                    )[0];
+                    return (
+                      <ReplyItem
+                        event={textEvent}
+                        eventId={getNotifyToEventId(msg)!}
+                        msg={msg}
+                        userMap={userMap}
+                        worker={worker2!}
+                        key={msg.id}
+                      />
+                    );
+                  }
 
                 default:
                   break;
               }
             })}
-      </Left>
-      <Right>
-        {isLoggedIn && (
-          <UserBox
-            pk={myPublicKey}
-            avatar={userMap.get(myPublicKey)?.picture}
-            name={userMap.get(myPublicKey)?.name}
-            about={userMap.get(myPublicKey)?.about}
-          />
+
+        {msgList.filter(m => m.pubkey !== myPublicKey).length === 0 && (
+          <p>{'no data in last 24 hours'}</p>
         )}
-        {!isLoggedIn && <UserRequiredLoginBox />}
-        <hr />
-        <RelayManager />
-      </Right>
+      </Left>
+      <Right></Right>
     </BaseLayout>
   );
 }
@@ -389,4 +459,8 @@ export default connect(loginMapStateToProps)(Notification);
 
 function getNotifyToEventId(msg: Event): string | null {
   return msg.tags.filter(t => t[0] === EventTags.E).map(t => t[1])[0];
+}
+
+function getAddrTag(msg: Event): string | null {
+  return msg.tags.filter(t => t[0] === EventTags.A).map(t => t[1])[0];
 }

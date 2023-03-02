@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
 import LoginCard from './LoginCard';
-import Setting from './Setting';
 import {
   Search,
   Home,
@@ -180,7 +179,7 @@ export const MenuList = ({ isLoggedIn }) => {
         </MenuItem>
 
         {isLoggedIn && myPublicKey && myPublicKey.length > 0 ? (
-          <MenuItem href={'/blog/' + myPublicKey}>
+          <MenuItem href="/write">
             <div>
               <Create /> &nbsp;
               {t('nav.menu.blogDashboard')}
@@ -235,54 +234,6 @@ export const MenuList = ({ isLoggedIn }) => {
             {t('nav.menu.backup')}
           </div>
         </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            setIsOpenSetting(true);
-          }}
-        >
-          <div>
-            <Settings /> &nbsp;
-            {t('nav.menu.setting')}
-          </div>
-        </MenuItem>
-        {isOpenSetting && (
-          <div
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              background: 'white',
-              padding: '20px',
-              zIndex: 999,
-              width: '400px',
-              height: 'auto',
-              boxShadow: '0px 0px 10px #ccc',
-              borderRadius: '5px',
-              textAlign: 'center',
-            }}
-          >
-            <Setting
-              version={version}
-              onCancel={() => setIsOpenSetting(false)}
-            />
-          </div>
-        )}
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 2,
-            background: 'black',
-            opacity: 0.5,
-            filter: 'blur(5px)',
-            display: isOpenSetting ? 'block' : 'none',
-          }}
-        ></div>
 
         <MenuItem
           onClick={() => {

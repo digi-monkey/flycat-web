@@ -30,6 +30,9 @@ import reportWebVitals from 'reportWebVitals';
 // Initialize languages
 import './locales/i18n';
 
+import { ThemeProvider } from '@mui/material/styles';
+import { flycatTheme } from './theme/flycat';
+
 import { inject } from '@vercel/analytics';
 
 inject();
@@ -41,7 +44,9 @@ ReactDOMClient.createRoot(MOUNT_NODE!).render(
   <Provider store={store}>
     <HelmetProvider>
       <React.StrictMode>
-        <App />
+        <ThemeProvider theme={flycatTheme}>
+          <App />
+        </ThemeProvider>
       </React.StrictMode>
     </HelmetProvider>
   </Provider>,

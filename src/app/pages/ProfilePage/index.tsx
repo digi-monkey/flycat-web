@@ -6,48 +6,35 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   EventTags,
   EventContactListPTag,
   isEventPTag,
   RawEvent,
-  Filter,
   deserializeMetadata,
 } from 'service/api';
-import { connect, useSelector } from 'react-redux';
-import RelayManager from '../../components/layout/relay/RelayManager';
+import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { NavHeader } from 'app/components/layout/NavHeader';
-import {
-  CallRelay,
-  CallRelayType,
-  FromWorkerMessageData,
-  WsConnectStatus,
-} from 'service/worker/type';
-import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
+import { CallRelay, CallRelayType } from 'service/worker/type';
+import { getPkFromFlycatShareHeader } from 'service/helper';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
 import { UserHeader, UserProfileBox } from 'app/components/layout/UserBox';
 import { ProfileShareMsg, ShareMsg } from 'app/components/layout/msg/ShareMsg';
 import { ProfileTextMsg } from 'app/components/layout/msg/TextMsg';
 import { t } from 'i18next';
-import {
-  isFlycatShareHeader,
-  CacheIdentifier,
-  SiteMetaDataContentSchema,
-  Flycat,
-  ArticleDataSchema,
-  validateArticlePageKind,
-  ArticlePageContentSchema,
-  FlycatWellKnownEventKind,
-} from 'service/flycat-protocol';
+import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
+import { Article, Nip23 } from 'service/nip/23';
+import { Box, Button, useTheme } from '@mui/material';
+import { CommitCalendar } from 'app/components/ContributorCalendar/Calendar';
+import BasicTabs from 'app/components/layout/SimpleTabs';
+import { BlogFeedItem } from '../Blog/FeedItem';
+import { useDateBookData } from 'hooks/useDateBookData';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -185,6 +172,7 @@ interface UserParams {
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { publicKey } = useParams<UserParams>();
   const myPublicKey = useReadonlyMyPublicKey();
 
@@ -194,12 +182,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [userContactList, setUserContactList] = useState<ContactList>(
     new Map(),
   );
-  const [siteMetaData, setSiteMetaData] = useState<
-    SiteMetaDataContentSchema & { created_at: number }
-  >();
-  const [articles, setArticles] = useState<
-    (ArticleDataSchema & { page_id: number; pageCreatedAt: number })[]
-  >([]);
+  const [articles, setArticles] = useState<Article[]>([]);
 
   const { worker, newConn } = useCallWorker({
     onMsgHandler,
@@ -282,84 +265,35 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           }
           break;
 
-        case WellKnownEventKind.flycat_site_metadata:
-          if (
-            siteMetaData != null &&
-            siteMetaData.created_at >= event.created_at
-          ) {
-            // outdated data
-            return;
-          }
+        case WellKnownEventKind.long_form:
+          const article = Nip23.toArticle(event);
+          setArticles(prev => {
+            if (prev.map(p => p.eventId).includes(event.id)) return prev;
 
-          try {
-            const site = Flycat.deserialize(
-              event.content,
-            ) as SiteMetaDataContentSchema;
-            const data = { ...site, ...{ created_at: event.created_at } };
-            setSiteMetaData(data);
-          } catch (error: any) {
-            console.log('Flycat.deserialize failed', error.message);
-          }
+            const index = prev.findIndex(p => p.id === article.id);
+            if (index !== -1) {
+              const old = prev[index];
+              if (old.updated_at >= article.updated_at) {
+                return prev;
+              } else {
+                return prev.map((p, id) => {
+                  if (id === index) return article;
+                  return p;
+                });
+              }
+            }
+
+            // only add un-duplicated and replyTo msg
+            const newItems = [...prev, article];
+            // sort by timestamp in asc
+            const sortedItems = newItems.sort((a, b) =>
+              a.updated_at >= b.updated_at ? -1 : 1,
+            );
+            return sortedItems;
+          });
           break;
 
         default:
-          try {
-            if (validateArticlePageKind(event.kind)) {
-              const ap = Flycat.deserialize(
-                event.content,
-              ) as ArticlePageContentSchema;
-              if (ap.article_ids.length !== ap.data.length) {
-                throw new Error('unexpected data');
-              }
-
-              // set new articles
-              setArticles(oldArray => {
-                let updatedArray = [...oldArray];
-
-                // check if there is old article updated
-                for (const newItem of ap.data) {
-                  let index = updatedArray.findIndex(
-                    item => item.id === newItem.id,
-                  );
-                  if (index !== -1) {
-                    if (newItem.updated_at > updatedArray[index].updated_at) {
-                      updatedArray[index] = {
-                        ...newItem,
-                        ...{
-                          page_id: updatedArray[index].page_id,
-                          pageCreatedAt: event.created_at,
-                        },
-                      };
-                    }
-                  }
-                }
-
-                // check if there is new article added
-                const newData: (ArticleDataSchema & {
-                  page_id: number;
-                  pageCreatedAt: number;
-                })[] = [];
-                for (const a of ap.data) {
-                  if (!updatedArray.map(o => o.id).includes(a.id)) {
-                    newData.push({
-                      ...a,
-                      ...{
-                        page_id: ap.page_id,
-                        pageCreatedAt: event.created_at,
-                      },
-                    });
-                  }
-                }
-
-                // sort by timestamp
-                const unsorted = [...updatedArray, ...newData];
-                const sorted = unsorted.sort((a, b) =>
-                  a.created_at >= b.created_at ? -1 : 1,
-                );
-                return sorted;
-              });
-            }
-          } catch (error) {}
           break;
       }
     }
@@ -430,23 +364,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     worker?.subContactList(pks, undefined, undefined, callRelay);
     worker?.subMetadata(pks, undefined, undefined, callRelay);
     worker?.subMsg([publicKey], undefined, undefined, callRelay);
-    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, callRelay);
+    worker?.subNip23Posts({ pks: [publicKey], callRelay });
   }, [newConn]);
 
-  useEffect(() => {
-    if (siteMetaData == null) return;
-
-    const pageIds = siteMetaData.page_ids.map(
-      p => p + FlycatWellKnownEventKind.SiteMetaData,
-    );
-    if (pageIds.length === 0) return;
-
-    const filter: Filter = {
-      authors: [publicKey],
-      kinds: pageIds,
-    };
-    worker?.subFilter(filter);
-  }, [siteMetaData]);
+  const dateBooks = useDateBookData(articles);
 
   const followUser = async () => {
     if (signEvent == null) {
@@ -529,6 +450,101 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const followOrUnfollowOnClick =
     isLoggedIn && myContactList.get(publicKey) ? unfollowUser : followUser;
 
+  const directorys: string[][] = articles
+    .filter(a => a.dirs != null)
+    .map(a => a.dirs!);
+
+  const tabItems = {
+    note: (
+      <ul style={styles.msgsUl}>
+        {msgList.map((msg, index) => {
+          //@ts-ignore
+          const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(t =>
+            isFlycatShareHeader(t),
+          );
+          if (flycatShareHeaders.length > 0) {
+            const blogPk = getPkFromFlycatShareHeader(
+              flycatShareHeaders[flycatShareHeaders.length - 1],
+            );
+            const cacheHeaders = msg.tags.filter(t => t[0] === CacheIdentifier);
+            let articleCache = {
+              title: t('thread.noArticleShareTitle'),
+              url: '',
+              blogName: t('thread.noBlogShareName'),
+              blogPicture: '',
+            };
+            if (cacheHeaders.length > 0) {
+              const cache = cacheHeaders[cacheHeaders.length - 1];
+              articleCache = {
+                title: cache[1],
+                url: cache[2],
+                blogName: cache[3],
+                blogPicture: cache[4],
+              };
+            }
+            return (
+              <ProfileShareMsg
+                msgEvent={msg}
+                worker={worker!}
+                key={index}
+                content={msg.content}
+                eventId={msg.id}
+                userPk={msg.pubkey}
+                createdAt={msg.created_at}
+                blogName={articleCache.blogName} //todo: fallback to query title
+                blogAvatar={
+                  articleCache.blogPicture || userMap.get(blogPk)?.picture
+                }
+                articleTitle={articleCache.title} //todo: fallback to query title
+              />
+            );
+          } else {
+            return (
+              <ProfileTextMsg
+                msgEvent={msg}
+                key={msg.id}
+                pk={msg.pubkey}
+                content={msg.content}
+                eventId={msg.id}
+                replyTo={msg.tags
+                  .filter(t => t[0] === EventTags.P)
+                  .map(t => {
+                    return {
+                      name: userMap.get(t[1])?.name,
+                      pk: t[1],
+                    };
+                  })}
+                createdAt={msg.created_at}
+                worker={worker!}
+                lightingAddress={
+                  userMap.get(msg.pubkey)?.lud06 ||
+                  userMap.get(msg.pubkey)?.lud16
+                }
+              />
+            );
+          }
+        })}
+      </ul>
+    ),
+    post: (
+      <ul style={styles.msgsUl}>
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <Button
+            fullWidth
+            variant="text"
+            onClick={() => {
+              window.open('/blog/' + publicKey, '__blank');
+            }}
+          >
+            {"go to the user's blog page"}
+          </Button>
+        </div>
+        {articles.map(a => (
+          <BlogFeedItem article={a} />
+        ))}
+      </ul>
+    ),
+  };
   return (
     <BaseLayout>
       <Left>
@@ -537,95 +553,89 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             pk={publicKey}
             followOrUnfollow={!(isLoggedIn && myContactList.get(publicKey))}
             followOrUnfollowOnClick={followOrUnfollowOnClick}
-            avatar={userMap.get(publicKey)?.picture}
-            name={userMap.get(publicKey)?.name}
-            blogName={siteMetaData?.site_name}
-            articleCount={articles.length}
+            metadata={userMap.get(publicKey)}
           />
         </div>
 
+        <div style={{ marginTop: '20px' }}>
+          <CommitCalendar pk={publicKey} />
+        </div>
+
         <div style={styles.message}>
-          <ul style={styles.msgsUl}>
-            {msgList.map((msg, index) => {
-              //@ts-ignore
-              const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(
-                t => isFlycatShareHeader(t),
-              );
-              if (flycatShareHeaders.length > 0) {
-                const blogPk = getPkFromFlycatShareHeader(
-                  flycatShareHeaders[flycatShareHeaders.length - 1],
-                );
-                const cacheHeaders = msg.tags.filter(
-                  t => t[0] === CacheIdentifier,
-                );
-                let articleCache = {
-                  title: t('thread.noArticleShareTitle'),
-                  url: '',
-                  blogName: t('thread.noBlogShareName'),
-                  blogPicture: '',
-                };
-                if (cacheHeaders.length > 0) {
-                  const cache = cacheHeaders[cacheHeaders.length - 1];
-                  articleCache = {
-                    title: cache[1],
-                    url: cache[2],
-                    blogName: cache[3],
-                    blogPicture: cache[4],
-                  };
-                }
-                return (
-                  <ProfileShareMsg
-                    msgEvent={msg}
-                    worker={worker!}
-                    key={index}
-                    content={msg.content}
-                    eventId={msg.id}
-                    userPk={msg.pubkey}
-                    createdAt={msg.created_at}
-                    blogName={articleCache.blogName} //todo: fallback to query title
-                    blogAvatar={
-                      articleCache.blogPicture || userMap.get(blogPk)?.picture
-                    }
-                    articleTitle={articleCache.title} //todo: fallback to query title
-                  />
-                );
-              } else {
-                return (
-                  <ProfileTextMsg
-                    msgEvent={msg}
-                    key={msg.id}
-                    pk={msg.pubkey}
-                    content={msg.content}
-                    eventId={msg.id}
-                    replyTo={msg.tags
-                      .filter(t => t[0] === EventTags.P)
-                      .map(t => {
-                        return {
-                          name: userMap.get(t[1])?.name,
-                          pk: t[1],
-                        };
-                      })}
-                    createdAt={msg.created_at}
-                    worker={worker!}
-                    lightingAddress={
-                      userMap.get(msg.pubkey)?.lud06 ||
-                      userMap.get(msg.pubkey)?.lud16
-                    }
-                  />
-                );
-              }
-            })}
-          </ul>
+          <BasicTabs items={tabItems} />
         </div>
       </Left>
       <Right>
-        <UserProfileBox
-          pk={publicKey}
-          about={userMap.get(publicKey)?.about}
-          followCount={userContactList.size}
-        />
-        <hr />
-        <RelayManager />
+        {dateBooks.length > 0 && (
+          <div style={{ marginTop: '10px' }}>{'Collection'}</div>
+        )}
+        <div style={{ marginTop: '20px', fontSize: '14px' }}>
+          {dateBooks.map(book => (
+            <div
+              style={{
+                color: 'gray',
+                padding: '5px 0px',
+                margin: '10px 0px',
+                borderBottom: '1px dashed rgb(221, 221, 221)',
+                textTransform: 'capitalize',
+              }}
+            >
+              <span>{book.title}</span>
+              <span style={{ float: 'right' }}>
+                {'('}
+                {book.count}
+                {')'}
+              </span>
+            </div>
+          ))}
+          {directorys
+            .map(d => d[0])
+            .filter((value, index, self) => self.indexOf(value) === index)
+            .map(dir => (
+              <div
+                style={{
+                  color: 'gray',
+                  padding: '5px 0px',
+                  margin: '10px 0px',
+                  borderBottom: '1px dashed rgb(221, 221, 221)',
+                  textTransform: 'capitalize',
+                }}
+              >
+                <span>{dir}</span>
+
+                <span style={{ float: 'right' }}>
+                  {'('}
+                  {
+                    articles
+                      .filter(a => a.dirs != null)
+                      .filter(a => a.dirs![0] === dir).length
+                  }
+                  {')'}
+                </span>
+              </div>
+            ))}
+        </div>
+        <div>
+          <div style={{ marginTop: '20px', fontSize: '14px' }}>
+            {articles
+              .map(article => article.hashTags)
+              .flat(Infinity)
+              .map(t => (
+                <span
+                  style={{
+                    background: theme.palette.secondary.main,
+                    margin: '5px',
+                    display: 'inline-block',
+                    padding: '5px',
+                    borderRadius: '5px',
+                    color: 'gray',
+                  }}
+                >
+                  #{t}
+                </span>
+              ))}
+          </div>
+        </div>
       </Right>
     </BaseLayout>
   );

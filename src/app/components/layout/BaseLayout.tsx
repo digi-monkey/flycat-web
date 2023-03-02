@@ -1,6 +1,22 @@
 import { Grid } from '@mui/material';
-import React from 'react';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
+import React, { useEffect, useReducer, useState } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  isEventSubResponse,
+  EventSubResponse,
+  WellKnownEventKind,
+  EventSetMetadataContent,
+  deserializeMetadata,
+} from 'service/api';
+import { isEmptyStr } from 'service/helper';
+import { UserMap } from 'service/type';
+import { CallRelayType } from 'service/worker/type';
+import { RootState } from 'store/configureStore';
+import UserMenu from '../Navbar/UserMenu';
 import { NavHeader, MenuList, MenuListDefault } from './NavHeader';
+import { UserBox, UserRequiredLoginBox } from './UserBox';
 
 const styles = {
   root: {
@@ -122,9 +138,62 @@ const styles = {
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
+  silent?: boolean;
 }
 
-export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
+export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
+  const isLoggedIn = useSelector(
+    (state: RootState) => state.loginReducer.isLoggedIn,
+  );
+  const myPublicKey = useReadonlyMyPublicKey();
+  const { worker, newConn } = useCallWorker({
+    onMsgHandler,
+    updateWorkerMsgListenerDeps: [],
+  });
+  const [userMap, setUserMap] = useState<UserMap>(new Map());
+
+  function onMsgHandler(data: any) {
+    const msg = JSON.parse(data);
+    if (isEventSubResponse(msg)) {
+      const event = (msg as EventSubResponse)[2];
+      switch (event.kind) {
+        case WellKnownEventKind.set_metadata:
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
+          setUserMap(prev => {
+            const newMap = new Map(prev);
+            const oldData = newMap.get(event.pubkey);
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
+
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
+            return newMap;
+          });
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (newConn.length === 0) return;
+
+    if (!isEmptyStr(myPublicKey) && userMap.get(myPublicKey) == null) {
+      worker?.subMetadata([myPublicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      });
+    }
+  }, [newConn]);
+
   const left: React.ReactNode[] = [];
   const right: React.ReactNode[] = [];
   React.Children.forEach(children, (child: React.ReactNode) => {
@@ -155,42 +224,67 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
               position: 'sticky',
               top: '10px',
               zIndex: '1',
+              display: silent != null && silent === true ? 'none' : 'block',
             }}
           >
             <MenuListDefault />
           </div>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <div
-            style={{
-              position: 'sticky' as const,
-              top: '0px',
-              background: 'white',
-              //   background: '#e0e0e0',
-              padding: '10px 3%',
-              //marginTop: '20px',
-              //marginBottom: '20px',
-              //  borderBottom: "1px solid #e0e0e0"
-            }}
-          >
-            <NavHeader />
-          </div>
-          <div style={styles.left}>{left}</div>
-        </Grid>
-        <Grid item xs={12} sm={4} style={{ zIndex: '0' }}>
-          <div
-            style={{
-              // paddingTop: '10px',
-              paddingLeft: '60px',
-              //position: 'sticky' as const,
-              //top: '0',
-              zIndex: '1',
-              maxWidth: '100%',
-              width: '400px',
-            }}
-          >
-            {right}
-          </div>
+        <Grid item xs={12} sm={10}>
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              sm={8}
+              style={{ paddingLeft: '20px', paddingRight: '20px' }}
+            >
+              <div
+                style={{
+                  position: 'sticky' as const,
+                  top: '0px',
+                  background: 'white',
+                  //   background: '#e0e0e0',
+                  padding: '10px 3%',
+                  //marginTop: '20px',
+                  //marginBottom: '20px',
+                  //  borderBottom: "1px solid #e0e0e0"
+                }}
+              >
+                <NavHeader />
+              </div>
+              <div style={styles.left}>{left}</div>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sm={4}
+              style={{
+                paddingLeft: '30px',
+                zIndex: '1',
+                width: '400px',
+              }}
+            >
+              <div
+                style={{
+                  position: 'sticky' as const,
+                  top: '0px',
+                  background: 'white',
+                  paddingTop: '10px',
+                  paddingBottom: '10px',
+                }}
+              >
+                {isLoggedIn && (
+                  <UserMenu
+                    pk={myPublicKey}
+                    userInfo={userMap.get(myPublicKey)}
+                  />
+                )}
+                {!isLoggedIn && <UserRequiredLoginBox />}
+              </div>
+
+              <div>{right}</div>
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </div>
@@ -205,7 +299,7 @@ export const Left: React.FC<LeftProps> = ({ children }) => (
 );
 
 export interface RightProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 export const Right: React.FC<RightProps> = ({ children }) => (
   <div>{children}</div>

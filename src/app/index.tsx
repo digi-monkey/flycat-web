@@ -17,13 +17,19 @@ import { NotFoundPage } from './components/NotFoundPage/Loadable';
 import { useTranslation } from 'react-i18next';
 import { ProfilePage } from './pages/ProfilePage/Loadable';
 import { EventPage } from './pages/EventPage/Loadable';
-import { BlogPage } from './pages/BlogPage/Loadable';
+import { BlogPage } from './pages/legacy-blog/Loadable';
 import { ContactPage } from './pages/ContactPage/Loadable';
 import RelayManager from './components/layout/relay/RelayManager';
 import { ArticleRead } from './pages/ArticleReadPage/ArticleRead';
-import BlogFeed from './pages/BlogPage/Feed';
+import BlogFeed from './pages/legacy-blog/Feed';
 import Backup from './pages/Backup/Backup';
 import Notification from './pages/Notification/Notification';
+import { BlogFeedPage } from './pages/Blog/FeedPage';
+import { NewArticle } from './pages/Blog/Article';
+import Writer from './pages/Blog/Write';
+import Edit from './pages/Blog/Edit';
+import PersonalBlog from './pages/Blog/Personal';
+import EditProfilePage from './pages/Setting/Setting';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -38,6 +44,30 @@ export function App() {
       </Helmet>
 
       <Switch>
+        <Route path="/setting">
+          <EditProfilePage />
+        </Route>
+
+        <Route path="/blog/:publicKey">
+          <PersonalBlog />
+        </Route>
+
+        <Route path="/write">
+          <Writer />
+        </Route>
+
+        <Route path="/blog">
+          <BlogFeedPage />
+        </Route>
+
+        <Route path="/edit/:publicKey/:articleId">
+          <Edit />
+        </Route>
+
+        <Route path="/post/:publicKey/:articleId?">
+          <NewArticle />
+        </Route>
+
         <Route path="/notification">
           <Notification />
         </Route>
@@ -53,7 +83,7 @@ export function App() {
             <RelayManager />
           </div>
         </Route>
-        <Route path="/blog/:publicKey">
+        <Route path="/legacy-blog/:publicKey">
           <BlogPage />
         </Route>
         <Route path="/contact/:publicKey">
@@ -65,7 +95,7 @@ export function App() {
         <Route path="/event/:eventId">
           <EventPage />
         </Route>
-        <Route exact path="/blog">
+        <Route exact path="/legacy-blog">
           <BlogFeed />
         </Route>
         <Route exact path="/" component={HomePage} />
