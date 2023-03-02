@@ -467,6 +467,7 @@ export function Comment({ comments, userMap, worker }: CommentProps) {
     <div>
       {comments.map(comment => (
         <li
+          key={comment.id}
           style={{
             margin: '10px 0px',
             borderBottom: '1px dotted gray',

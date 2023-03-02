@@ -230,41 +230,13 @@ export const ProfileTextMsg = ({
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
-          <div style={{ marginTop: '15px' }}>
-            <span style={styles.time}>{useTimeSince(createdAt)}</span>
-
-            <span style={{ marginLeft: '15px' }}>
-              {!isEmptyStr(lightingAddress) && (
-                <span style={styles.reaction}>
-                  <Tipping address={lightingAddress!} />
-                </span>
-              )}
-              {/*
-              <span style={styles.reaction}>
-                <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
-              </span>
-              */}
-              <span style={styles.reaction}>
-                <Repost eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Bookmark eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Delete eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ShowThread eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ReplyButton
-                  replyToEventId={eventId}
-                  replyToPublicKey={pk}
-                  worker={worker}
-                />
-              </span>
-            </span>
-          </div>
+          <ProfileReactionGroups
+            eventId={eventId}
+            pk={pk}
+            createdAt={createdAt}
+            worker={worker}
+            lightingAddress={lightingAddress}
+          />
         </Grid>
       </Grid>
     </li>
@@ -591,6 +563,54 @@ export const ReactionGroups = ({
     </div>
   );
 };
+
+export const ProfileReactionGroups = ({
+  eventId,
+  worker,
+  pk,
+  lightingAddress,
+  createdAt,
+}: {
+  worker: CallWorker;
+  pk: string;
+  eventId: string;
+  createdAt: number;
+  lightingAddress?: string;
+}) => {
+  return (
+    <div style={{ marginTop: '15px' }}>
+      <span style={styles.time}>{useTimeSince(createdAt)}</span>
+
+      <span style={{ marginLeft: '15px' }}>
+        {!isEmptyStr(lightingAddress) && (
+          <span style={styles.reaction}>
+            <Tipping address={lightingAddress!} />
+          </span>
+        )}
+        <span style={styles.reaction}>
+          <Repost eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <Bookmark eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <Delete eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <ShowThread eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <ReplyButton
+            replyToEventId={eventId}
+            replyToPublicKey={pk}
+            worker={worker}
+          />
+        </span>
+      </span>
+    </div>
+  );
+};
+
 function getRandomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';

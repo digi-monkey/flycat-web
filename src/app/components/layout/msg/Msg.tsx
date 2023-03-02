@@ -1,9 +1,11 @@
+import { BlogMsgItem } from 'app/pages/Blog/MsgItem';
 import { TextNoteEvent } from 'app/type';
 import { t } from 'i18next';
 import React from 'react';
 import { EventTags, Event, PrivateKey, PublicKey } from 'service/api';
 import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
 import { getPkFromFlycatShareHeader } from 'service/helper';
+import { Nip23 } from 'service/nip/23';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { ShareMsg } from './ShareMsg';
@@ -16,44 +18,17 @@ export const Msgs = (
   relays: string[],
 ) => {
   return msgList.map((msg, index) => {
-    //@ts-ignore
-    const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(t =>
-      isFlycatShareHeader(t),
-    );
-    if (flycatShareHeaders.length > 0) {
-      const blogPk = getPkFromFlycatShareHeader(
-        flycatShareHeaders[flycatShareHeaders.length - 1],
-      );
-      const cacheHeaders = msg.tags.filter(t => t[0] === CacheIdentifier);
-      let articleCache = {
-        title: t('thread.noArticleShareTitle'),
-        url: '',
-        blogName: t('thread.noBlogShareName'),
-        blogPicture: '',
-      };
-      if (cacheHeaders.length > 0) {
-        const cache = cacheHeaders[cacheHeaders.length - 1];
-        articleCache = {
-          title: cache[1],
-          url: cache[2],
-          blogName: cache[3],
-          blogPicture: cache[4],
-        };
-      }
+    if (Nip23.isBlogMsg(msg)) {
       return (
-        <ShareMsg
-          msgEvent={msg}
+        <BlogMsgItem
+          event={msg}
+          seen={msg.seen}
+          relays={relays}
           worker={worker!}
+          userMap={userMap}
           key={msg.id}
-          content={msg.content}
-          eventId={msg.id}
-          userPk={msg.pubkey}
           userAvatar={userMap.get(msg.pubkey)?.picture}
-          username={userMap.get(msg.pubkey)?.name}
-          createdAt={msg.created_at}
-          blogName={articleCache.blogName} //todo: fallback to query title
-          blogAvatar={articleCache.blogPicture || userMap.get(blogPk)?.picture}
-          articleTitle={articleCache.title} //todo: fallback to query title
+          userName={userMap.get(msg.pubkey)?.name}
         />
       );
     } else {
