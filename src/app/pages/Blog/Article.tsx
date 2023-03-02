@@ -79,10 +79,6 @@ export function NewArticle() {
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
 
-      if (event.pubkey !== publicKey) {
-        return;
-      }
-
       if (event.kind === WellKnownEventKind.set_metadata) {
         const metadata: EventSetMetadataContent = JSON.parse(event.content);
         setUserMap(prev => {
@@ -112,6 +108,7 @@ export function NewArticle() {
           }
           return prevArticle;
         });
+        return;
       }
 
       if (event.kind === WellKnownEventKind.text_note) {
@@ -126,6 +123,7 @@ export function NewArticle() {
           }
           return prev;
         });
+        return;
       }
     }
   }
