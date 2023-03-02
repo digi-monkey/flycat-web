@@ -874,7 +874,7 @@ export function normalizeMetadata(
   metadata: EventSetMetadataContent,
 ): EventSetMetadataContent {
   metadata.name = maxStrings(metadata.name, 30);
-  metadata.about = maxStrings(metadata.about, 100);
+  metadata.about = maxStrings(metadata.about, 500);
   return metadata;
 }
 

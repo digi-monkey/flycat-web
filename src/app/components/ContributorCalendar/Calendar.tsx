@@ -84,7 +84,7 @@ export function CommitCalendar({ pk }: { pk: string }) {
   return (
     <div>
       <Calendar
-        values={getCommitCountByDay(msgList)}
+        values={values}
         until={until}
         panelAttributes={panelAttributes}
         panelColors={panelColors}
