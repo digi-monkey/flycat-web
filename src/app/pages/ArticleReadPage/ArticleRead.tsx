@@ -509,9 +509,6 @@ export function ArticleRead() {
         >
           {siteMetaData?.site_description}
         </div>
-
-        <hr />
-        <RelayManager />
       </Right>
     </BaseLayout>
   );

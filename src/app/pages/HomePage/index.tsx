@@ -33,6 +33,8 @@ import { loginMapStateToProps } from 'app/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
+import BasicTabs from 'app/components/layout/SimpleTabs';
+import { BlogFeeds } from '../Blog/Feed';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -469,73 +471,52 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     }
   }, [newConn]);
 
+  const tabItems = {
+    note: (
+      <>
+        <PubNoteTextarea
+          mode={mode}
+          disabled={isReadonlyMode || !isLoggedIn}
+          onSubmitText={onSubmitText}
+        />
+
+        <div style={styles.message}>
+          <ul style={styles.msgsUl}>
+            {msgList.length === 0 && !isLoggedIn && (
+              <div>
+                <p style={{ color: 'gray' }}>
+                  {t('UserRequiredLoginBox.loginFirst')} <LoginFormTip />
+                </p>
+                <hr />
+                <p style={{ color: 'gray', fontSize: '14px' }}>
+                  {t('homeFeed.globalFeed')}
+                </p>
+                {Msgs(globalMsgList, worker!, userMap, relayUrls)}
+              </div>
+            )}
+            {msgList.length === 0 && isLoggedIn && (
+              <div>
+                <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
+                <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
+              </div>
+            )}
+            {msgList.length > 0 &&
+              isLoggedIn &&
+              Msgs(msgList, worker!, userMap, relayUrls)}
+          </ul>
+        </div>
+      </>
+    ),
+    post: <BlogFeeds />,
+  };
+
   return (
     <BaseLayout>
       <Left>
-        <>
-          <PubNoteTextarea
-            mode={mode}
-            disabled={isReadonlyMode || !isLoggedIn}
-            onSubmitText={onSubmitText}
-          />
-
-          <div style={styles.message}>
-            <ul style={styles.msgsUl}>
-              {msgList.length === 0 && !isLoggedIn && (
-                <div>
-                  <p style={{ color: 'gray' }}>
-                    {t('UserRequiredLoginBox.loginFirst')} <LoginFormTip />
-                  </p>
-                  <hr />
-                  <p style={{ color: 'gray', fontSize: '14px' }}>
-                    {t('homeFeed.globalFeed')}
-                  </p>
-                  {Msgs(globalMsgList, worker!, userMap, relayUrls)}
-                </div>
-              )}
-              {msgList.length === 0 && isLoggedIn && (
-                <div>
-                  <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
-                  <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
-                </div>
-              )}
-              {msgList.length > 0 &&
-                isLoggedIn &&
-                Msgs(msgList, worker!, userMap, relayUrls)}
-            </ul>
-          </div>
-        </>
+        <BasicTabs items={tabItems} />
       </Left>
       <Right>
         <>
-          <div
-            style={{
-              position: 'sticky',
-              top: '0px',
-              paddingTop: '10px',
-              background: 'white',
-              paddingBottom: '10px',
-            }}
-          >
-            {isLoggedIn && (
-              <UserBox
-                pk={myPublicKey}
-                followCount={myContactList.size}
-                avatar={userMap.get(myPublicKey)?.picture}
-                name={userMap.get(myPublicKey)?.name}
-                about={userMap.get(myPublicKey)?.about}
-                relayConnectedCount={
-                  Array.from(wsConnectStatus).filter(w => w[1] === true).length
-                }
-                worker={worker}
-                profileEvent={myProfileEvent}
-              />
-            )}
-            {!isLoggedIn && <UserRequiredLoginBox />}
-          </div>
-
-          <TopArticle userMap={userMap} />
-          <ThinHr />
           <DiscoveryFriend
             userMap={userMap}
             pks={discoverPks
@@ -543,9 +524,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               .slice(0, maxDiscoverPkLength)}
           />
         </>
-        <div style={{ display: 'none' }}>
-          <RelayManager />
-        </div>
       </Right>
     </BaseLayout>
   );

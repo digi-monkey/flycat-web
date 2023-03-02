@@ -473,8 +473,6 @@ export const BlogPage = () => {
             onSubmit={submitSiteMetaData}
           />
         </div>
-        <hr />
-        <RelayManager />
       </Right>
     </BaseLayout>
   );

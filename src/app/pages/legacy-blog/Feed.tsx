@@ -525,13 +525,13 @@ export const BlogFeed = ({ isLoggedIn }) => {
     <BaseLayout>
       <Left>
         <div style={styles.message}>
-          <div>{t('blogFeed.title')}</div>
+          <div>{t('blogFeed.title')} (deprecated)</div>
           <hr />
           <div>
             <p>{globalSiteMetaData.length} Total Blogs Created</p>
             {globalSiteMetaData.map((s, index) => (
               <a
-                href={'/blog/' + s.pk}
+                href={'/legacy-blog/' + s.pk}
                 target="_blank"
                 style={{
                   textDecoration: 'none',
@@ -625,20 +625,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
           </ul>
         </div>
       </Left>
-      <Right>
-        {isLoggedIn && (
-          <UserBox
-            pk={myPublicKey}
-            followCount={myContactList.size}
-            avatar={userMap.get(myPublicKey)?.picture}
-            name={userMap.get(myPublicKey)?.name}
-            about={userMap.get(myPublicKey)?.about}
-          />
-        )}
-        {!isLoggedIn && <UserRequiredLoginBox />}
-        <hr />
-        <RelayManager />
-      </Right>
+      <Right></Right>
     </BaseLayout>
   );
 };

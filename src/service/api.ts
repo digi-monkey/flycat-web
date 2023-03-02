@@ -148,6 +148,7 @@ export type SubscriptionId = HexStr;
 export type ErrorReason = Utf8Str;
 export type Reason = Utf8Str;
 export type Challenge = string;
+export type Naddr = string; // <kind>:<pubkey>:<d-identifier>
 
 export type EventId = Hash32Bytes;
 export type PublicKey = Hash32Bytes;
@@ -161,14 +162,21 @@ export enum WellKnownEventKind {
   contact_list = 3,
   like = 7,
   flycat_site_metadata = 10000,
+  long_form = 30023, // see nip23
 }
 export enum EventTags {
   E = 'e',
   P = 'p',
+  D = 'd',
+  T = 't',
+  A = 'a',
 }
 
 export type EventETag = [EventTags.E, EventId, RelayUrl];
 export type EventPTag = [EventTags.P, PublicKey, RelayUrl];
+export type EventDTag = [EventTags.D, string];
+export type EventATag = [EventTags.A, Naddr, RelayUrl]; // ["a", "<kind>:<pubkey>:<d-identifier>", "<relay url>"]
+export type EventTTag = [EventTags.T, string];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
 
 // relay response
@@ -234,6 +242,9 @@ export interface Filter {
   kinds?: EventKind[];
   '#e'?: EventId[];
   '#p'?: PublicKey[];
+  '#d'?: string[];
+  '#t'?: string[];
+  '#a'?: string[];
   since?: number;
   until?: number;
   limit?: number;
@@ -242,6 +253,9 @@ export interface Filter {
 export type Tags = (
   | EventETag
   | EventPTag
+  | EventDTag
+  | EventTTag
+  | EventATag
   | EventContactListPTag
   | string[]
   | any[]
@@ -337,6 +351,9 @@ export class RawEvent implements RawEvent {
   }
 
   async sign(privateKey: PrivateKey): Promise<Signature> {
+    if (this.pubkey == null || this.pubkey.length === 0) {
+      this.pubkey = getPublicKey(privateKey);
+    }
     const hash = this.sha256();
     return await schnorrSign(hash, privateKey);
   }

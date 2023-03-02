@@ -390,19 +390,7 @@ export const EventPage = ({ isLoggedIn }) => {
           </ul>
         </div>
       </Left>
-      <Right>
-        {isLoggedIn && (
-          <UserBox
-            pk={myPublicKey}
-            avatar={userMap.get(myPublicKey)?.picture}
-            name={userMap.get(myPublicKey)?.name}
-            about={userMap.get(myPublicKey)?.about}
-          />
-        )}
-        {!isLoggedIn && <UserRequiredLoginBox />}
-        <hr />
-        <RelayManager />
-      </Right>
+      <Right></Right>
     </BaseLayout>
   );
 };

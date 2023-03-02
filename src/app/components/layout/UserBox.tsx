@@ -24,6 +24,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { WsConnectStatus } from 'service/worker/type';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 
 const styles = {
   userInfo: {
@@ -103,36 +106,14 @@ export interface UserBoxPros {
   about?: string;
   followCount?: number;
   relayConnectedCount?: number;
-  profileEvent?: Event;
-  worker?: CallWorker;
 }
 
-export const UserBox = ({
-  pk,
-  avatar,
-  name,
-  about,
-  followCount,
-  relayConnectedCount,
-  worker,
-  profileEvent,
-}: UserBoxPros) => {
+export const UserBox = ({ pk, avatar, relayConnectedCount }: UserBoxPros) => {
   const { t } = useTranslation();
-  const [profile, setProfile] = useState<EventSetMetadataContent>();
   const size = '30px';
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
-  const myPublicKey = useReadonlyMyPublicKey();
-
-  useEffect(() => {
-    if (profileEvent != null) {
-      try {
-        const data: EventSetMetadataContent = JSON.parse(profileEvent.content);
-        setProfile(data);
-      } catch {}
-    }
-  }, [profileEvent]);
 
   return (
     <>
@@ -150,18 +131,12 @@ export const UserBox = ({
             </span>
           </span>
         </a>
-        {myPublicKey === pk && (
-          <span style={{ marginRight: '10px', color: 'gray' }}>
-            <ProfileEditPanel profile={profile} worker={worker} />
-          </span>
-        )}
-        <a href={'/user/' + pk}>
-          <ProfileAvatar
-            style={{ width: size, height: size }}
-            picture={avatar}
-            name={pk}
-          />
-        </a>
+
+        <ProfileAvatar
+          style={{ width: size, height: size }}
+          picture={avatar}
+          name={pk}
+        />
         {/*
           <span style={styles.name}>{name}</span>
           <span style={styles.about}>
@@ -271,57 +246,62 @@ export const UserProfileBox = ({ pk, about, followCount }: UserBoxPros) => {
 };
 
 export interface UserHeaderProps {
-  pk: PublicKey;
-  avatar?: string;
-  name?: string;
-  articleCount?: number;
-  blogName?: string;
+  pk: string;
+  metadata?: EventSetMetadataContent;
   followOrUnfollowOnClick: () => any;
   followOrUnfollow: boolean;
 }
 export const UserHeader = ({
   pk,
-  avatar,
-  name,
+  metadata,
   followOrUnfollowOnClick,
   followOrUnfollow,
-  articleCount,
-  blogName,
 }: UserHeaderProps) => {
   const { t } = useTranslation();
   return (
     <div style={styles.userProfile}>
       <Grid container spacing={1} style={{ background: '#F7F5EB' }}>
         <Grid item xs={2}>
-          <ProfileAvatar style={styles.userProfileAvatar} picture={avatar} />
+          <ProfileAvatar
+            style={styles.userProfileAvatar}
+            picture={metadata?.picture || ''}
+          />
         </Grid>
         <Grid item xs={10}>
-          <div style={styles.userProfileName}>{name}</div>
-          <div style={styles.userProfileBtnGroup}>
-            <button onClick={followOrUnfollowOnClick} style={styles.simpleBtn}>
-              {followOrUnfollow
-                ? t('UserBlogHeader.toFollow')
-                : t('UserBlogHeader.toUnFollow')}
-            </button>
-            &nbsp;
-            <button
-              onClick={() => {
-                window.open(`/blog/${pk}`, '_blank');
+          <div style={styles.userProfileName}>
+            {metadata?.name}
+            <span
+              onClick={followOrUnfollowOnClick}
+              style={{
+                cursor: 'pointer',
+                marginLeft: '20px',
               }}
-              style={styles.simpleBtn}
             >
-              {t('UserHeader.hisBlog')}
-              {blogName && (
-                <span style={{ color: 'gray', fontSize: '14px' }}>
-                  {'（' +
-                    t('profile.postArticles', {
-                      count: articleCount,
-                      siteName: blogName,
-                    }) +
-                    ')'}
-                </span>
+              {followOrUnfollow ? (
+                <PersonAddIcon style={{ color: 'gray' }} />
+              ) : (
+                <PersonRemoveIcon style={{ color: 'gray' }} />
               )}
-            </button>
+            </span>
+            <span
+              style={{
+                cursor: 'pointer',
+                marginLeft: '10px',
+              }}
+            >
+              <ElectricBoltOutlinedIcon
+                style={{ color: 'gray', lineHeight: '12px' }}
+              />
+            </span>
+          </div>
+          <div
+            style={{
+              color: 'gray',
+              fontSize: '12px',
+              marginTop: '10px',
+            }}
+          >
+            {metadata?.about}
           </div>
         </Grid>
       </Grid>

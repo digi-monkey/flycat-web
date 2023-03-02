@@ -297,9 +297,7 @@ export function Backup({ isLoggedIn }) {
         )}
       </Left>
       <Right>
-        <div>
-          <RelayManager />
-        </div>
+        <RelayManager />
       </Right>
     </BaseLayout>
   );

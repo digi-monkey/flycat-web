@@ -221,3 +221,13 @@ export function isNip05DomainName(name: string): boolean {
 export function isDotBitName(name: string): boolean {
   return name.endsWith('.bit');
 }
+
+export function formatDate(secs: number): string {
+  const date = new Date(secs * 1000); // Convert seconds to milliseconds
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2); // Add leading zero if necessary
+  const day = ('0' + date.getDate()).slice(-2); // Add leading zero if necessary
+  const hours = ('0' + date.getHours()).slice(-2); // Add leading zero if necessary
+  const minutes = ('0' + date.getMinutes()).slice(-2); // Add leading zero if necessary
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}

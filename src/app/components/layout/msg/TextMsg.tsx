@@ -370,7 +370,6 @@ export const ProfileBanner = ({
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
   useEffect(() => {
-    console.log(picture);
     if (picture != null) {
       setUrl(picture);
     }

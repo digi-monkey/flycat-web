@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import { Article } from 'app/pages/BlogPage/Article';
+import { Article } from 'app/pages/legacy-blog/Article';
 import { useTimeSince } from 'hooks/useTimeSince';
 import React from 'react';
 import { EventSetMetadataContent, PublicKey } from 'service/api';
