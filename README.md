@@ -2,14 +2,12 @@
 
 Another [Nostr](https://github.com/nostr-protocol/nips) web client.
 
-Integrating with [flycat protocol](https://github.com/digi-monkey/flycat-protocol) to bring a blogging and reading experience on Nostr.
+~~Integrating with [flycat protocol](https://github.com/digi-monkey/flycat-protocol) to bring a blogging and reading experience on Nostr.~~ 🎉🎉🎉 We have migrated to [Nip-23](https://github.com/nostr-protocol/nips/blob/master/23.md) for interoperability!
 
 ## Main Differences
 
-- new feature: create blog right on Nostr
-- use SharedWorker to manage websocket connections, which should consume less traffic for relays
-- typescript + React, easy to maintain and extend from
-- 2000s style UI weather you like it or not
+- short notes and long blog posts all-in-one web client
+- use SharedWorker to manage websocket connections across different tabs
 
 ## Join
 
