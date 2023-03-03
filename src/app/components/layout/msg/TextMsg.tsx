@@ -18,7 +18,7 @@ import { Bookmark } from './reaction/Bookmark';
 import { Repost } from './reaction/Repost';
 import { Tipping } from './reaction/Tipping';
 import { Delete } from './reaction/Delete';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 import { CallRelayType } from 'service/worker/type';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 
@@ -155,7 +155,7 @@ export interface TextMsgProps {
   worker: CallWorker;
   seen?: string[];
   relays?: string[];
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
   lightingAddress?: string;
 }
 
@@ -449,7 +449,7 @@ export const ReactionGroups = ({
   relays,
   lightingAddress,
 }: {
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
   worker: CallWorker;
   pk: string;
   eventId: string;
@@ -635,7 +635,7 @@ function getRandomColor() {
   return color;
 }
 
-function getEventFromTextNoteEvent(data: TextNoteEvent): Event {
+function getEventFromTextNoteEvent(data: EventWithSeen): Event {
   return {
     id: data.id,
     pubkey: data.pubkey,

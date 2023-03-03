@@ -29,6 +29,7 @@ import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { Msgs } from 'app/components/layout/msg/Msg';
+import { EventWithSeen } from 'app/type';
 
 export const styles = {
   root: {
@@ -176,10 +177,10 @@ export const EventPage = ({ isLoggedIn }) => {
   });
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
-  const [msgList, setMsgList] = useState<Event[]>([]);
+  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
-  function onMsgHandler(data: any) {
+  function onMsgHandler(data: any, relayUrl?: string) {
     const msg = JSON.parse(data);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -218,12 +219,22 @@ export const EventPage = ({ isLoggedIn }) => {
                   event.id === eventId)
               ) {
                 // only add un-duplicated and replyTo msg
-                const newItems = [...oldArray, event];
+                const newItems = [
+                  ...oldArray,
+                  { ...event, ...{ seen: [relayUrl!] } },
+                ];
                 // sort by timestamp in asc
                 const sortedItems = newItems.sort((a, b) =>
                   a.created_at >= b.created_at ? 1 : -1,
                 );
                 return sortedItems;
+              } else {
+                const id = oldArray.findIndex(s => s.id === event.id);
+                if (id === -1) return oldArray;
+
+                if (!oldArray[id].seen?.includes(relayUrl!)) {
+                  oldArray[id].seen?.push(relayUrl!);
+                }
               }
               return oldArray;
             });

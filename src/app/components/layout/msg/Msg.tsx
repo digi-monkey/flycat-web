@@ -1,5 +1,5 @@
 import { BlogMsgItem } from 'app/pages/Blog/MsgItem';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 import { t } from 'i18next';
 import React from 'react';
 import { EventTags, Event, PrivateKey, PublicKey } from 'service/api';
@@ -12,7 +12,7 @@ import { ShareMsg } from './ShareMsg';
 import { TextMsg } from './TextMsg';
 
 export const Msgs = (
-  msgList: TextNoteEvent[],
+  msgList: EventWithSeen[],
   worker: CallWorker,
   userMap: UserMap,
   relays: string[],

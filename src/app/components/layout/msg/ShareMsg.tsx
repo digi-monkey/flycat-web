@@ -10,7 +10,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { CallWorker } from 'service/worker/callWorker';
 import { ProfileAvatar, ProfileName, ReactionGroups } from './TextMsg';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 
 const styles = {
   root: {
@@ -135,7 +135,7 @@ export interface ShareMsgProps {
   blogName: string;
   articleTitle: string;
   worker: CallWorker;
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
 }
 
 // only support blog article share msg now
