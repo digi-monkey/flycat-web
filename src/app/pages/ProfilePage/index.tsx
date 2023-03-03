@@ -474,9 +474,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               <ProfileTextMsg
                 msgEvent={msg}
                 key={msg.id}
-                pk={msg.pubkey}
-                content={msg.content}
-                eventId={msg.id}
+                userMap={userMap}
                 replyTo={msg.tags
                   .filter(t => t[0] === EventTags.P)
                   .map(t => {
@@ -485,7 +483,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                       pk: t[1],
                     };
                   })}
-                createdAt={msg.created_at}
                 worker={worker!}
                 lightingAddress={
                   userMap.get(msg.pubkey)?.lud06 ||

@@ -2,13 +2,10 @@ import { BlogMsgItem } from 'app/pages/Blog/MsgItem';
 import { EventWithSeen } from 'app/type';
 import { t } from 'i18next';
 import React from 'react';
-import { EventTags, Event, PrivateKey, PublicKey } from 'service/api';
-import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
-import { getPkFromFlycatShareHeader } from 'service/helper';
+import { EventTags } from 'service/api';
 import { Nip23 } from 'service/nip/23';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
-import { ShareMsg } from './ShareMsg';
 import { TextMsg } from './TextMsg';
 
 export const Msgs = (
@@ -35,15 +32,10 @@ export const Msgs = (
       return (
         <TextMsg
           msgEvent={msg}
-          seen={msg.seen}
           relays={relays}
           worker={worker!}
           key={msg.id}
-          pk={msg.pubkey}
-          avatar={userMap.get(msg.pubkey)?.picture}
-          name={userMap.get(msg.pubkey)?.name}
-          content={msg.content}
-          eventId={msg.id}
+          userMap={userMap}
           replyTo={msg.tags
             .filter(t => t[0] === EventTags.P)
             .map(t => {
@@ -52,7 +44,6 @@ export const Msgs = (
                 pk: t[1],
               };
             })}
-          createdAt={msg.created_at}
           lightingAddress={
             userMap.get(msg.pubkey)?.lud06 || userMap.get(msg.pubkey)?.lud16
           }

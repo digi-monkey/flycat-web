@@ -15,14 +15,8 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager from '../../components/layout/relay/RelayManager';
 import { useParams } from 'react-router-dom';
 import { UserMap } from 'service/type';
-import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
-import { TextMsg } from 'app/components/layout/msg/TextMsg';
-import { ShareMsg } from 'app/components/layout/msg/ShareMsg';
-import { isFlycatShareHeader, CacheIdentifier } from 'service/flycat-protocol';
-import { equalMaps, getPkFromFlycatShareHeader } from 'service/helper';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
@@ -30,6 +24,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { Msgs } from 'app/components/layout/msg/Msg';
 import { EventWithSeen } from 'app/type';
+import { ThinHr } from 'app/components/layout/ThinHr';
 
 export const styles = {
   root: {
@@ -321,7 +316,7 @@ export const EventPage = ({ isLoggedIn }) => {
       <Left>
         <div style={styles.message}>
           <h3>{t('thread.title')}</h3>
-          <hr />
+          <ThinHr></ThinHr>
           <ul style={styles.msgsUl}>
             {msgList.length > 0 && Msgs(msgList, worker!, userMap, relayUrls)}
           </ul>
