@@ -61,15 +61,17 @@ export function BlogMsgItem({
         display: 'block',
         borderBottom: '1px dashed #ddd',
         padding: '15px 0',
+        wordBreak: 'break-all',
       }}
+      key={event.id}
     >
       <Grid container>
-        <div style={{ width: '75px' }}>
+        <div style={{ width: '75px', minWidth: '75px' }}>
           <ProfileAvatar picture={userAvatar} name={event.pubkey} />
         </div>
 
-        <span style={{ float: 'right', width: '80%' }}>
-          <span>
+        <div style={{ flex: '1', maxWidth: '100%' }}>
+          <span style={{ fontSize: '14px', display: 'block' }}>
             <ProfileName
               name={userName}
               pk={event.pubkey}
@@ -96,7 +98,7 @@ export function BlogMsgItem({
               userMap.get(event.pubkey)?.lud16
             }
           />
-        </span>
+        </div>
       </Grid>
     </li>
   );
@@ -188,7 +190,6 @@ export function ArticleMsgContent({
         style={{
           margin: '10px 0px',
           background: 'rgb(247, 245, 235)',
-          padding: '5px',
           borderRadius: '5px',
         }}
         onClick={() => {
@@ -196,7 +197,7 @@ export function ArticleMsgContent({
           window.open(url, '_blank');
         }}
       >
-        <div style={{ margin: '5px 0px', padding: '10px 0px' }}>
+        <div style={{ margin: '5px 0px', padding: '10px' }}>
           <div style={{ display: 'flex', cursor: 'pointer' }}>
             <span
               style={{
