@@ -16,18 +16,13 @@ import {
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager from '../../components/layout/relay/RelayManager';
 import { CallRelayType } from 'service/worker/type';
 import { UserMap } from 'service/type';
-import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import { PubNoteTextarea } from 'app/components/layout/PubNoteTextarea';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
 import { Msgs } from 'app/components/layout/msg/Msg';
-import { TopArticle } from 'app/components/layout/TopArticle';
-import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
-import { ThinHr } from 'app/components/layout/ThinHr';
 import { EventWithSeen } from 'app/type';
 import { loginMapStateToProps } from 'app/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
@@ -35,6 +30,9 @@ import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import BasicTabs from 'app/components/layout/SimpleTabs';
 import { BlogFeeds } from '../Blog/Feed';
+import PublicIcon from '@mui/icons-material/Public';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import { Button, useTheme } from '@mui/material';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -168,9 +166,9 @@ export interface HomePageProps {
 
 export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const maxMsgLength = 50;
-  const maxDiscoverPkLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
 
@@ -184,7 +182,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     updateWorkerMsgListenerDeps,
   });
 
-  const [discoverPks, setDiscoverPks] = useState<string[]>([]);
   const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const relayUrls = Array.from(wsConnectStatus.keys());
@@ -193,6 +190,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     const msg = JSON.parse(nostrData);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
+      console.log(event.kind);
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
           if (
@@ -313,36 +311,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
             ) {
               myContactEvent = event;
             }
-          } else {
-            // discover pks(friend of friend)
-            const contacts: string[] = event.tags
-              .filter(t => t[0] === EventTags.P)
-              .map(s => s[1])
-              .filter(
-                pk =>
-                  !myContactList.has(pk) &&
-                  pk != myPublicKey &&
-                  !discoverPks.includes(pk),
-              );
-            if (
-              contacts.length === 0 ||
-              discoverPks.length >= maxDiscoverPkLength
-            ) {
-              return;
-            }
-
-            setDiscoverPks(prev => {
-              const d = prev;
-              return d
-                .concat(contacts)
-                .reduce((acc, curr) => {
-                  if (!acc.includes(curr)) {
-                    acc.push(curr);
-                  }
-                  return acc;
-                }, [] as string[])
-                .slice(0, maxDiscoverPkLength);
-            });
           }
           break;
 
@@ -410,7 +378,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         type: CallRelayType.batch,
         data: newConn,
       });
-      //worker?.subMsgAndMetaData(pks, true, 'homeMsgAndMetadata');
     }
   }, [myContactList.size, newConn]);
 
@@ -457,20 +424,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     worker?.pubEvent(event);
   };
 
-  useEffect(() => {
-    if (discoverPks.length > 0 && newConn.length > 0) {
-      const metadata = discoverPks
-        .filter(c => !userMap.get(c))
-        .slice(0, maxDiscoverPkLength);
-      if (metadata.length > 0) {
-        worker?.subMetadata(metadata, false, 'home-discovery-pk-meta', {
-          type: CallRelayType.batch,
-          data: newConn,
-        });
-      }
-    }
-  }, [newConn]);
-
   const tabItems = {
     note: (
       <>
@@ -516,14 +469,44 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         <BasicTabs items={tabItems} />
       </Left>
       <Right>
-        <>
-          <DiscoveryFriend
-            userMap={userMap}
-            pks={discoverPks
-              .filter(pk => !myContactList.has(pk))
-              .slice(0, maxDiscoverPkLength)}
-          />
-        </>
+        <div
+          style={{
+            width: '100%',
+            textAlign: 'right',
+            marginTop: '40px',
+            display: 'none',
+          }}
+        >
+          <Button onClick={() => (window.location.href = '/universe')}>
+            <span
+              style={{
+                textTransform: 'capitalize',
+                cursor: 'pointer',
+                color: 'gray',
+              }}
+            >
+              <PublicIcon />
+              <span style={{ marginLeft: '5px' }}>
+                {'explore nostr universe'}
+              </span>
+            </span>
+          </Button>
+
+          <Button onClick={() => (window.location.href = '/fof')}>
+            <span
+              style={{
+                textTransform: 'capitalize',
+                cursor: 'pointer',
+                color: 'gray',
+              }}
+            >
+              <GroupAddIcon />
+              <span style={{ marginLeft: '5px' }}>
+                {'find friend of friends'}
+              </span>
+            </span>
+          </Button>
+        </div>
       </Right>
     </BaseLayout>
   );
