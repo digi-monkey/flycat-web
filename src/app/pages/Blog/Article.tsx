@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTimeSince } from 'hooks/useTimeSince';
 import {
   Event,
@@ -28,6 +28,7 @@ import { RootState } from 'store/configureStore';
 import { CallWorker } from 'service/worker/callWorker';
 import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 import { ThinHr } from 'app/components/layout/ThinHr';
+import { Nip08, RenderFlag } from 'service/nip/08';
 
 interface UserParams {
   publicKey: string;
@@ -46,6 +47,7 @@ export function NewArticle() {
   const myPublicKey = useReadonlyMyPublicKey();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<Article>();
+  const [articleEvent, setArticleEvent] = useState<Event>();
   const [comments, setComments] = useState<Event[]>([]);
   const [inputComment, setInputComment] = useState('');
 
@@ -101,12 +103,17 @@ export function NewArticle() {
       if (event.kind === WellKnownEventKind.long_form) {
         if (event.pubkey !== publicKey) return;
         const article = Nip23.toArticle(event);
-
         setArticle(prevArticle => {
-          if (!prevArticle || article?.updated_at > prevArticle.updated_at) {
+          if (!prevArticle || article?.updated_at >= prevArticle.updated_at) {
             return article;
           }
           return prevArticle;
+        });
+        setArticleEvent(prev => {
+          if (!prev || prev?.created_at < event.created_at) {
+            return event;
+          }
+          return prev;
         });
         return;
       }
@@ -153,6 +160,19 @@ export function NewArticle() {
       'article-data',
     );
   }, [article]);
+
+  const content = useMemo(() => {
+    if (articleEvent == null) return;
+
+    let event = articleEvent;
+    event.content = Nip08.replaceMentionPublickey(
+      event,
+      userMap,
+      RenderFlag.Markdown,
+    );
+    event.content = Nip08.replaceMentionEventId(event, RenderFlag.Markdown);
+    return event.content;
+  }, [articleEvent, userMap]);
 
   return (
     <BaseLayout silent={true}>
@@ -289,7 +309,7 @@ export function NewArticle() {
                   ),
                 }}
               >
-                {article?.content ?? ''}
+                {content ?? ''}
               </ReactMarkdown>
             </div>
             <div

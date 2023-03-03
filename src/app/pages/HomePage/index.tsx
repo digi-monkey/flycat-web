@@ -190,7 +190,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     const msg = JSON.parse(nostrData);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
-      console.log(event.kind);
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
           if (
