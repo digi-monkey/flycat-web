@@ -388,7 +388,11 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
               </div>
             )}
 
-            <h4>{t('contact.currentFollowings')}</h4>
+            <h4>
+              {userMap.get(publicKey)?.name}
+              {"'s "}
+              {t('contact.currentFollowings')}
+            </h4>
             {Array.from(userMap.entries())
               .filter(u => u[0] !== myPublicKey && u[0] !== publicKey)
               .map(([pk, user], index) => (

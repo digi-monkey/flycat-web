@@ -27,6 +27,8 @@ import { WsConnectStatus } from 'service/worker/type';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
+import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
+import { payLnUrlInWebLn } from 'service/lighting/lighting';
 
 const styles = {
   userInfo: {
@@ -283,13 +285,31 @@ export const UserHeader = ({
                 <PersonRemoveIcon style={{ color: 'gray' }} />
               )}
             </span>
+            {(metadata?.lud06 || metadata?.lud16) && (
+              <span
+                onClick={() => {
+                  const url = metadata?.lud06 || metadata?.lud16;
+                  payLnUrlInWebLn(url);
+                }}
+                style={{
+                  cursor: 'pointer',
+                  marginLeft: '10px',
+                }}
+              >
+                <ElectricBoltOutlinedIcon
+                  style={{ color: 'gray', lineHeight: '12px' }}
+                />
+              </span>
+            )}
+
             <span
+              onClick={() => (window.location.href = '/contact/' + pk)}
               style={{
                 cursor: 'pointer',
                 marginLeft: '10px',
               }}
             >
-              <ElectricBoltOutlinedIcon
+              <PermContactCalendarIcon
                 style={{ color: 'gray', lineHeight: '12px' }}
               />
             </span>

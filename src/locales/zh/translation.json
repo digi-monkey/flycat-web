@@ -145,7 +145,10 @@
     "submit": "发布"
   },
   "contact": {
-    "noAbout": "暂无介绍"
+    "noAbout": "暂无介绍",
+    "historyFollowingTitle": "我的历史关注",
+    "currentFollowings": "当前的关注列表",
+    "recoveryBtn": "恢复此版本"
   },
   "setting": {
     "version": "客户端版本：",
