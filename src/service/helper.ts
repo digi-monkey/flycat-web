@@ -70,7 +70,11 @@ export function normalizeContent(text: string): {
   //modifiedText = linkify(modifiedText);
   const previewUrls = extractUrls(modifiedText);
 
-  modifiedText = DOMPurify.sanitize(modifiedText);
+  const allowedTags = ['a'];
+  modifiedText = DOMPurify.sanitize(modifiedText, {
+    ALLOWED_TAGS: allowedTags,
+  });
+
   DOMPurify.addHook('afterSanitizeAttributes', function (node) {
     // set all elements owning target to target=_blank
     if ('target' in node) {

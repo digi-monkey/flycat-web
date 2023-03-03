@@ -304,6 +304,7 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
   const [plainText, setPlainText] = useState('');
 
   useEffect(() => {
+    /*
     // Extract all the anchor tags from modifiedText
     const anchorTagRegex = /<a.*?>(.*?)<\/a>/g;
     const anchorTags = modifiedText.match(anchorTagRegex);
@@ -330,7 +331,10 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
 
       setHtml(html);
     }
-    setPlainText(plainText);
+    
+    setPlainText(markdownIt.render(plainText));
+    */
+    setHtml(modifiedText);
   }, [modifiedText]);
 
   return (

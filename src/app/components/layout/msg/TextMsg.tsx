@@ -4,7 +4,7 @@ import {
   Content,
 } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Event, PrivateKey, PublicKey } from 'service/api';
 import { isEmptyStr, shortPublicKey } from 'service/helper';
@@ -21,6 +21,8 @@ import { Delete } from './reaction/Delete';
 import { EventWithSeen } from 'app/type';
 import { CallRelayType } from 'service/worker/type';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
+import { Nip08 } from 'service/nip/08';
+import { UserMap } from 'service/type';
 
 const styles = {
   root: {
@@ -144,16 +146,9 @@ const styles = {
 };
 
 export interface TextMsgProps {
-  name?: string;
-  avatar?: string;
-  pk: string;
+  userMap: UserMap;
   replyTo: { name?: string; pk: string }[];
-  content: string;
-  createdAt: number;
-  eventId: string;
-  style?: React.CSSProperties;
   worker: CallWorker;
-  seen?: string[];
   relays?: string[];
   msgEvent: EventWithSeen;
   lightingAddress?: string;
@@ -161,21 +156,22 @@ export interface TextMsgProps {
 
 export const TextMsg = ({
   replyTo,
-  avatar,
-  name,
-  pk,
-  content,
-  createdAt,
-  eventId,
-  style,
+  userMap,
   worker,
-  seen,
   relays,
   msgEvent,
   lightingAddress,
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
+
+  const content = useMemo(() => {
+    let event = msgEvent;
+    event.content = Nip08.replaceMentionPublickey(event, userMap);
+    event.content = Nip08.replaceMentionEventId(event);
+    return event.content;
+  }, [msgEvent, userMap]);
+
   return (
     <li
       style={{
@@ -195,11 +191,18 @@ export const TextMsg = ({
         }}
       >
         <div style={{ width: '75px', minWidth: '75px' }}>
-          <ProfileAvatar name={pk} picture={avatar} />
+          <ProfileAvatar
+            name={msgEvent.pubkey}
+            picture={userMap.get(msgEvent.pubkey)?.picture}
+          />
         </div>
         <div style={{ flex: '1', maxWidth: '100%' }}>
           <span style={{ fontSize: '14px', display: 'block' }}>
-            <ProfileName name={name} createdAt={createdAt} pk={pk} />
+            <ProfileName
+              name={userMap.get(msgEvent.pubkey)?.name}
+              createdAt={msgEvent.created_at}
+              pk={msgEvent.pubkey}
+            />
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
@@ -207,9 +210,9 @@ export const TextMsg = ({
           <ReactionGroups
             msgEvent={msgEvent}
             worker={worker!}
-            pk={pk}
-            eventId={eventId}
-            seen={seen}
+            pk={msgEvent.pubkey}
+            eventId={msgEvent.id}
+            seen={msgEvent.seen}
             relays={relays}
             lightingAddress={lightingAddress}
           />
@@ -221,17 +224,22 @@ export const TextMsg = ({
 
 export const ProfileTextMsg = ({
   replyTo,
-  pk,
-  content,
-  createdAt,
-  eventId,
   worker,
   lightingAddress,
-}: Omit<TextMsgProps, 'avatar' | 'name'>) => {
+  msgEvent,
+  userMap,
+}: TextMsgProps) => {
   const { t } = useTranslation();
   const [hover, setHover] = React.useState(false);
   //const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
   const bg = { backgroundColor: 'white' };
+
+  const content = useMemo(() => {
+    let event = msgEvent;
+    event.content = Nip08.replaceMentionPublickey(event, userMap);
+    event.content = Nip08.replaceMentionEventId(event);
+    return event.content;
+  }, [msgEvent, userMap]);
 
   return (
     <li
@@ -246,9 +254,9 @@ export const ProfileTextMsg = ({
             <Content text={content} />
           </span>
           <ProfileReactionGroups
-            eventId={eventId}
-            pk={pk}
-            createdAt={createdAt}
+            eventId={msgEvent.id}
+            pk={msgEvent.pubkey}
+            createdAt={msgEvent.created_at}
             worker={worker}
             lightingAddress={lightingAddress}
           />
