@@ -199,19 +199,17 @@ export function ArticleMsgContent({
       >
         <div style={{ margin: '5px 0px', padding: '10px' }}>
           <div style={{ display: 'flex', cursor: 'pointer' }}>
-            <span
-              style={{
-                width: '100px',
-                height: '100px',
-                marginRight: '10px',
-              }}
-            >
-              <img
-                src={image}
-                alt=""
-                style={{ maxWidth: '100px', maxHeight: '100%' }}
-              />
-            </span>
+            {image && (
+              <span
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  marginRight: '10px',
+                }}
+              >
+                <img src={image} alt="" style={{ width: '100%' }} />
+              </span>
+            )}
 
             <div style={{ overflow: 'scroll' }}>
               <span
