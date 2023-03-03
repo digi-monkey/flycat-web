@@ -139,9 +139,17 @@ const styles = {
 export interface BaseLayoutProps {
   children: React.ReactNode;
   silent?: boolean;
+  metaPage?: {
+    title?: string;
+    link?: string;
+  };
 }
 
-export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
+export const BaseLayout: React.FC<BaseLayoutProps> = ({
+  children,
+  silent,
+  metaPage,
+}) => {
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
@@ -204,19 +212,11 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
       right.push(child);
     }
   });
+
   return (
     <div style={styles.root}>
       <Grid container style={{ zIndex: '1' }}>
-        <Grid
-          item
-          xs={12}
-          sm={2}
-          style={
-            {
-              //borderRight: "1px solid #e0e0e0"
-            }
-          }
-        >
+        <Grid item xs={12} sm={2}>
           <div
             style={{
               width: '100%',
@@ -247,7 +247,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
                   zIndex: '2',
                 }}
               >
-                <NavHeader />
+                <NavHeader title={metaPage?.title} link={metaPage?.link} />
               </div>
               <div style={styles.left}>{left}</div>
             </Grid>

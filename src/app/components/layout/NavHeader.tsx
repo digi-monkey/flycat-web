@@ -55,7 +55,11 @@ const styles = {
   },
 };
 
-export function NavHeader() {
+export interface NavHeaderProps {
+  title?: string;
+  link?: string;
+}
+export function NavHeader({ title, link }: NavHeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -63,7 +67,16 @@ export function NavHeader() {
       <Grid item xs={12} sm={6}>
         <div>
           <Grid container>
-            <div style={styles.title}>{t('nav.menu.home')}</div>
+            <div style={styles.title}>
+              <a
+                href={link || '/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'black' }}
+              >
+                {title || t('nav.menu.home')}
+              </a>
+            </div>
           </Grid>
         </div>
       </Grid>
