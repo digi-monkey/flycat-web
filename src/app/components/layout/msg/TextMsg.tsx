@@ -177,13 +177,28 @@ export const TextMsg = ({
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
   return (
-    <li style={{ ...styles.msgItem, ...bg, ...style }}>
-      <Grid container>
-        <div style={{ width: '75px' }}>
+    <li
+      style={{
+        display: 'block',
+        borderBottom: '1px dashed #ddd',
+        padding: '15px 0',
+        wordBreak: 'break-all',
+      }}
+      key={msgEvent.id}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '100%',
+          display: 'flex',
+          justifyContent: 'flex-start',
+        }}
+      >
+        <div style={{ width: '75px', minWidth: '75px' }}>
           <ProfileAvatar name={pk} picture={avatar} />
         </div>
-        <span style={{ float: 'right', width: '80%' }}>
-          <span style={styles.msgWord}>
+        <div style={{ flex: '1', maxWidth: '100%' }}>
+          <span style={{ fontSize: '14px', display: 'block' }}>
             <ProfileName name={name} createdAt={createdAt} pk={pk} />
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
@@ -198,8 +213,8 @@ export const TextMsg = ({
             relays={relays}
             lightingAddress={lightingAddress}
           />
-        </span>
-      </Grid>
+        </div>
+      </div>
     </li>
   );
 };
