@@ -315,4 +315,20 @@ export class Nip23 {
     const aTags = event.tags.filter(t => t === this.toAddr(article));
     return eTags.length > 0 || aTags.length > 0;
   }
+
+  static addrToUrl(addr: string) {
+    const list = addr.split(':');
+    return `/post/${list[1]}/${list[2]}`;
+  }
+
+  // check a tag for long form kind
+  static isBlogMsg(event: Event): boolean {
+    return (
+      event.kind === WellKnownEventKind.text_note &&
+      event.tags.filter(
+        t =>
+          t[0] === EventTags.A && t[1].split(':')[0] === this.kind.toString(),
+      ).length > 0
+    );
+  }
 }

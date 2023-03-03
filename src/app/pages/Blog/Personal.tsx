@@ -27,6 +27,7 @@ import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { useTheme } from '@mui/material';
 import { DateBook } from './DateBook';
+import { TagItem } from './hashTags/TagItem';
 
 export const styles = {
   root: {
@@ -312,19 +313,9 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
           {articles
             .map(article => article.hashTags)
             .flat(Infinity)
+            .filter(t => typeof t === 'string')
             .map(t => (
-              <div
-                style={{
-                  background: theme.palette.secondary.main,
-                  margin: '5px',
-                  padding: '5px',
-                  borderRadius: '5px',
-                  color: 'gray',
-                  display: 'inline-block',
-                }}
-              >
-                {t}
-              </div>
+              <TagItem tag={t as string} />
             ))}
         </div>
       </Right>

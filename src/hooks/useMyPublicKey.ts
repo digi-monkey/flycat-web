@@ -28,9 +28,7 @@ export function useMyPublicKey() {
   };
 
   useEffect(() => {
-    if (isExtensionLoaded) {
-      doSetMyPublicKey();
-    }
+    doSetMyPublicKey();
   }, [getMyPublicKey, isExtensionLoaded]);
 
   return myPublicKey;

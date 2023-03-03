@@ -18,7 +18,7 @@ import { Bookmark } from './reaction/Bookmark';
 import { Repost } from './reaction/Repost';
 import { Tipping } from './reaction/Tipping';
 import { Delete } from './reaction/Delete';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 import { CallRelayType } from 'service/worker/type';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 
@@ -155,7 +155,7 @@ export interface TextMsgProps {
   worker: CallWorker;
   seen?: string[];
   relays?: string[];
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
   lightingAddress?: string;
 }
 
@@ -177,13 +177,28 @@ export const TextMsg = ({
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
   return (
-    <li style={{ ...styles.msgItem, ...bg, ...style }}>
-      <Grid container>
-        <div style={{ width: '75px' }}>
+    <li
+      style={{
+        display: 'block',
+        borderBottom: '1px dashed #ddd',
+        padding: '15px 0',
+        wordBreak: 'break-all',
+      }}
+      key={msgEvent.id}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '100%',
+          display: 'flex',
+          justifyContent: 'flex-start',
+        }}
+      >
+        <div style={{ width: '75px', minWidth: '75px' }}>
           <ProfileAvatar name={pk} picture={avatar} />
         </div>
-        <span style={{ float: 'right', width: '80%' }}>
-          <span style={styles.msgWord}>
+        <div style={{ flex: '1', maxWidth: '100%' }}>
+          <span style={{ fontSize: '14px', display: 'block' }}>
             <ProfileName name={name} createdAt={createdAt} pk={pk} />
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
@@ -198,8 +213,8 @@ export const TextMsg = ({
             relays={relays}
             lightingAddress={lightingAddress}
           />
-        </span>
-      </Grid>
+        </div>
+      </div>
     </li>
   );
 };
@@ -230,41 +245,13 @@ export const ProfileTextMsg = ({
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
           </span>
-          <div style={{ marginTop: '15px' }}>
-            <span style={styles.time}>{useTimeSince(createdAt)}</span>
-
-            <span style={{ marginLeft: '15px' }}>
-              {!isEmptyStr(lightingAddress) && (
-                <span style={styles.reaction}>
-                  <Tipping address={lightingAddress!} />
-                </span>
-              )}
-              {/*
-              <span style={styles.reaction}>
-                <Like toEventId={eventId} toPublicKey={pk} worker={worker} />
-              </span>
-              */}
-              <span style={styles.reaction}>
-                <Repost eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Bookmark eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <Delete eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ShowThread eventId={eventId} />
-              </span>
-              <span style={styles.reaction}>
-                <ReplyButton
-                  replyToEventId={eventId}
-                  replyToPublicKey={pk}
-                  worker={worker}
-                />
-              </span>
-            </span>
-          </div>
+          <ProfileReactionGroups
+            eventId={eventId}
+            pk={pk}
+            createdAt={createdAt}
+            worker={worker}
+            lightingAddress={lightingAddress}
+          />
         </Grid>
       </Grid>
     </li>
@@ -462,7 +449,7 @@ export const ReactionGroups = ({
   relays,
   lightingAddress,
 }: {
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
   worker: CallWorker;
   pk: string;
   eventId: string;
@@ -591,6 +578,54 @@ export const ReactionGroups = ({
     </div>
   );
 };
+
+export const ProfileReactionGroups = ({
+  eventId,
+  worker,
+  pk,
+  lightingAddress,
+  createdAt,
+}: {
+  worker: CallWorker;
+  pk: string;
+  eventId: string;
+  createdAt: number;
+  lightingAddress?: string;
+}) => {
+  return (
+    <div style={{ marginTop: '15px' }}>
+      <span style={styles.time}>{useTimeSince(createdAt)}</span>
+
+      <span style={{ marginLeft: '15px' }}>
+        {!isEmptyStr(lightingAddress) && (
+          <span style={styles.reaction}>
+            <Tipping address={lightingAddress!} />
+          </span>
+        )}
+        <span style={styles.reaction}>
+          <Repost eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <Bookmark eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <Delete eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <ShowThread eventId={eventId} />
+        </span>
+        <span style={styles.reaction}>
+          <ReplyButton
+            replyToEventId={eventId}
+            replyToPublicKey={pk}
+            worker={worker}
+          />
+        </span>
+      </span>
+    </div>
+  );
+};
+
 function getRandomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
@@ -600,7 +635,7 @@ function getRandomColor() {
   return color;
 }
 
-function getEventFromTextNoteEvent(data: TextNoteEvent): Event {
+function getEventFromTextNoteEvent(data: EventWithSeen): Event {
   return {
     id: data.id,
     pubkey: data.pubkey,

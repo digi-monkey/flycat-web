@@ -33,8 +33,10 @@ import { Article, Nip23 } from 'service/nip/23';
 import { Box, Button, useTheme } from '@mui/material';
 import { CommitCalendar } from 'app/components/ContributorCalendar/Calendar';
 import BasicTabs from 'app/components/layout/SimpleTabs';
-import { BlogFeedItem } from '../Blog/FeedItem';
+import { PersonalBlogFeedItem } from '../Blog/FeedItem';
 import { useDateBookData } from 'hooks/useDateBookData';
+import { TagItem } from '../Blog/hashTags/TagItem';
+import { ProfileBlogMsgItem } from '../Blog/MsgItem';
 
 // don't move to useState inside components
 // it will trigger more times unnecessary
@@ -458,44 +460,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     note: (
       <ul style={styles.msgsUl}>
         {msgList.map((msg, index) => {
-          //@ts-ignore
-          const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(t =>
-            isFlycatShareHeader(t),
-          );
-          if (flycatShareHeaders.length > 0) {
-            const blogPk = getPkFromFlycatShareHeader(
-              flycatShareHeaders[flycatShareHeaders.length - 1],
-            );
-            const cacheHeaders = msg.tags.filter(t => t[0] === CacheIdentifier);
-            let articleCache = {
-              title: t('thread.noArticleShareTitle'),
-              url: '',
-              blogName: t('thread.noBlogShareName'),
-              blogPicture: '',
-            };
-            if (cacheHeaders.length > 0) {
-              const cache = cacheHeaders[cacheHeaders.length - 1];
-              articleCache = {
-                title: cache[1],
-                url: cache[2],
-                blogName: cache[3],
-                blogPicture: cache[4],
-              };
-            }
+          if (Nip23.isBlogMsg(msg)) {
             return (
-              <ProfileShareMsg
-                msgEvent={msg}
+              <ProfileBlogMsgItem
+                event={msg}
+                userMap={userMap}
                 worker={worker!}
-                key={index}
-                content={msg.content}
-                eventId={msg.id}
-                userPk={msg.pubkey}
-                createdAt={msg.created_at}
-                blogName={articleCache.blogName} //todo: fallback to query title
-                blogAvatar={
-                  articleCache.blogPicture || userMap.get(blogPk)?.picture
-                }
-                articleTitle={articleCache.title} //todo: fallback to query title
+                key={msg.id}
               />
             );
           } else {
@@ -540,7 +511,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </Button>
         </div>
         {articles.map(a => (
-          <BlogFeedItem article={a} />
+          <PersonalBlogFeedItem
+            article={a}
+            lightingAddress={
+              userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
+            }
+          />
         ))}
       </ul>
     ),
@@ -620,19 +596,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             {articles
               .map(article => article.hashTags)
               .flat(Infinity)
+              .filter(t => typeof t === 'string')
               .map(t => (
-                <span
-                  style={{
-                    background: theme.palette.secondary.main,
-                    margin: '5px',
-                    display: 'inline-block',
-                    padding: '5px',
-                    borderRadius: '5px',
-                    color: 'gray',
-                  }}
-                >
-                  #{t}
-                </span>
+                <TagItem tag={t as string} />
               ))}
           </div>
         </div>

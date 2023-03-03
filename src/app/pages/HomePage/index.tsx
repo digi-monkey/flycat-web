@@ -28,7 +28,7 @@ import { Msgs } from 'app/components/layout/msg/Msg';
 import { TopArticle } from 'app/components/layout/TopArticle';
 import { DiscoveryFriend } from 'app/components/layout/DiscoverFriend';
 import { ThinHr } from 'app/components/layout/ThinHr';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 import { loginMapStateToProps } from 'app/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
@@ -172,7 +172,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const maxMsgLength = 50;
   const maxDiscoverPkLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
-  const [msgList, setMsgList] = useState<TextNoteEvent[]>([]);
+  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>(new Map());

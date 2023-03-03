@@ -1,3 +1,6 @@
+// @deprecated legacy-blog share msg
+// will remove after
+
 import { Grid } from '@mui/material';
 import { ArticleShareContent } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
@@ -7,7 +10,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { CallWorker } from 'service/worker/callWorker';
 import { ProfileAvatar, ProfileName, ReactionGroups } from './TextMsg';
-import { TextNoteEvent } from 'app/type';
+import { EventWithSeen } from 'app/type';
 
 const styles = {
   root: {
@@ -132,7 +135,7 @@ export interface ShareMsgProps {
   blogName: string;
   articleTitle: string;
   worker: CallWorker;
-  msgEvent: TextNoteEvent;
+  msgEvent: EventWithSeen;
 }
 
 // only support blog article share msg now

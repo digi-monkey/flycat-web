@@ -49,8 +49,9 @@
 }
 
 /* Styles for suggestions */
-.ReactTags__suggestions {
+/*.ReactTags__suggestions {
 }
+*/
 .ReactTags__suggestions ul {
   list-style-type: none;
   padding: 0;

@@ -28,6 +28,8 @@ import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
+import { Msgs } from 'app/components/layout/msg/Msg';
+import { EventWithSeen } from 'app/type';
 
 export const styles = {
   root: {
@@ -175,10 +177,10 @@ export const EventPage = ({ isLoggedIn }) => {
   });
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
-  const [msgList, setMsgList] = useState<Event[]>([]);
+  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
-  function onMsgHandler(data: any) {
+  function onMsgHandler(data: any, relayUrl?: string) {
     const msg = JSON.parse(data);
     if (isEventSubResponse(msg)) {
       const event = (msg as EventSubResponse)[2];
@@ -217,12 +219,22 @@ export const EventPage = ({ isLoggedIn }) => {
                   event.id === eventId)
               ) {
                 // only add un-duplicated and replyTo msg
-                const newItems = [...oldArray, event];
+                const newItems = [
+                  ...oldArray,
+                  { ...event, ...{ seen: [relayUrl!] } },
+                ];
                 // sort by timestamp in asc
                 const sortedItems = newItems.sort((a, b) =>
                   a.created_at >= b.created_at ? 1 : -1,
                 );
                 return sortedItems;
+              } else {
+                const id = oldArray.findIndex(s => s.id === event.id);
+                if (id === -1) return oldArray;
+
+                if (!oldArray[id].seen?.includes(relayUrl!)) {
+                  oldArray[id].seen?.push(relayUrl!);
+                }
               }
               return oldArray;
             });
@@ -302,6 +314,8 @@ export const EventPage = ({ isLoggedIn }) => {
     return eventIds;
   };
 
+  const relayUrls = Array.from(wsConnectStatus.keys());
+
   return (
     <BaseLayout>
       <Left>
@@ -309,84 +323,7 @@ export const EventPage = ({ isLoggedIn }) => {
           <h3>{t('thread.title')}</h3>
           <hr />
           <ul style={styles.msgsUl}>
-            {msgList.map((msg, index) => {
-              //@ts-ignore
-              const flycatShareHeaders: FlycatShareHeader[] = msg.tags.filter(
-                t => isFlycatShareHeader(t),
-              );
-              if (flycatShareHeaders.length > 0) {
-                const blogPk = getPkFromFlycatShareHeader(
-                  flycatShareHeaders[flycatShareHeaders.length - 1],
-                );
-                const cacheHeaders = msg.tags.filter(
-                  t => t[0] === CacheIdentifier,
-                );
-                let articleCache = {
-                  title: t('thread.noArticleShareTitle'),
-                  url: '',
-                  blogName: t('thread.noBlogShareName'),
-                  blogPicture: '',
-                };
-                if (cacheHeaders.length > 0) {
-                  const cache = cacheHeaders[cacheHeaders.length - 1];
-                  articleCache = {
-                    title: cache[1],
-                    url: cache[2],
-                    blogName: cache[3],
-                    blogPicture: cache[4],
-                  };
-                }
-                return (
-                  <ShareMsg
-                    msgEvent={msg}
-                    worker={worker!}
-                    key={msg.id}
-                    content={msg.content}
-                    eventId={msg.id}
-                    userPk={msg.pubkey}
-                    userAvatar={userMap.get(msg.pubkey)?.picture}
-                    username={userMap.get(msg.pubkey)?.name}
-                    createdAt={msg.created_at}
-                    blogName={articleCache.blogName} //todo: fallback to query title
-                    blogAvatar={
-                      articleCache.blogPicture || userMap.get(blogPk)?.picture
-                    }
-                    articleTitle={articleCache.title} //todo: fallback to query title
-                  />
-                );
-              } else {
-                return (
-                  <TextMsg
-                    msgEvent={msg}
-                    worker={worker!}
-                    key={msg.id}
-                    pk={msg.pubkey}
-                    avatar={userMap.get(msg.pubkey)?.picture}
-                    name={userMap.get(msg.pubkey)?.name}
-                    content={msg.content}
-                    eventId={msg.id}
-                    replyTo={msg.tags
-                      .filter(t => t[0] === EventTags.P)
-                      .map(t => {
-                        return {
-                          name: userMap.get(t[1])?.name,
-                          pk: t[1],
-                        };
-                      })}
-                    createdAt={msg.created_at}
-                    style={
-                      msg.id === eventId
-                        ? { border: '2px solid rgb(225, 215, 198)' }
-                        : {}
-                    }
-                    lightingAddress={
-                      userMap.get(msg.pubkey)?.lud06 ||
-                      userMap.get(msg.pubkey)?.lud16
-                    }
-                  />
-                );
-              }
-            })}
+            {msgList.length > 0 && Msgs(msgList, worker!, userMap, relayUrls)}
           </ul>
         </div>
       </Left>

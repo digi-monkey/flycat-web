@@ -30,10 +30,10 @@ export function UrlPreview({ url }: PreviewProps) {
     <div
       style={{
         display: 'flex',
-        // alignItems: 'center',
         border: '1px solid #dbd5d5',
         padding: '10px',
         margin: '5px 0px',
+        borderRadius: '5px',
       }}
     >
       {data.image && (
