@@ -27,7 +27,7 @@ export function Content({ text, classNames }: ContentProps) {
   return (
     <span className={classNames}>
       <Texting modifiedText={modifiedText} />
-      <p>
+      <p style={{ textAlign: 'center' }}>
         {imageUrls.length > 0 &&
           imageUrls.map((url, index) => (
             <span key={url}>
