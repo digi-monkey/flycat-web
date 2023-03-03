@@ -223,7 +223,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
               padding: '0px 20px 0px 0px',
               position: 'sticky',
               top: '10px',
-              zIndex: '1',
+              zIndex: '3',
               display: silent != null && silent === true ? 'none' : 'block',
             }}
           >
@@ -243,11 +243,8 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
                   position: 'sticky' as const,
                   top: '0px',
                   background: 'white',
-                  //   background: '#e0e0e0',
                   padding: '10px 3%',
-                  //marginTop: '20px',
-                  //marginBottom: '20px',
-                  //  borderBottom: "1px solid #e0e0e0"
+                  zIndex: '2',
                 }}
               >
                 <NavHeader />
@@ -271,6 +268,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent }) => {
                   background: 'white',
                   paddingTop: '10px',
                   paddingBottom: '10px',
+                  zIndex: '2',
                 }}
               >
                 {isLoggedIn && (
