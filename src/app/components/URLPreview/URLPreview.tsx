@@ -34,6 +34,7 @@ export function UrlPreview({ url }: PreviewProps) {
         padding: '10px',
         margin: '5px 0px',
         borderRadius: '5px',
+        wordBreak: 'break-all',
       }}
     >
       {data.image && (
