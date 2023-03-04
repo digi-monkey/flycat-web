@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { CallRelay, CallRelayType } from 'service/worker/type';
 import { UserMap } from 'service/type';
-import { t } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

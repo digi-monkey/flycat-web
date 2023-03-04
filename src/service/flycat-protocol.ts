@@ -1,4 +1,4 @@
-import { Event, PublicKey, RawEvent } from './api';
+import { PublicKey, RawEvent } from './api';
 import { generateRandomBytes } from './crypto';
 
 export type Version = string;

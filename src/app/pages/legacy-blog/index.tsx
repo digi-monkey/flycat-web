@@ -6,13 +6,11 @@ import {
   isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
-  PrivateKey,
   RelayUrl,
   PetName,
   Event,
 } from 'service/api';
-import { connect, useSelector } from 'react-redux';
-import RelayManager from '../../components/layout/relay/RelayManager';
+import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import {
   ArticleDataSchema,
@@ -24,16 +22,10 @@ import {
 } from 'service/flycat-protocol';
 import { SiteMeta } from './SiteMeta';
 import PostArticle, { ArticlePostForm } from './PostArticle';
-import {
-  CallRelayType,
-  FromWorkerMessageData,
-  WsConnectStatus,
-} from 'service/worker/type';
+import { CallRelayType } from 'service/worker/type';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
 import { UserBlogHeader } from 'app/components/layout/UserBox';
 import { ArticleMsg } from 'app/components/layout/msg/ArticleMsg';
-import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { RootState } from 'store/configureStore';

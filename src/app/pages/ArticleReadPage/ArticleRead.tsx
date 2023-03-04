@@ -18,23 +18,13 @@ import {
 } from 'service/api';
 import ReactMarkdown from 'react-markdown';
 import { useParams } from 'react-router-dom';
-import { CallWorker } from 'service/worker/callWorker';
-import {
-  CallRelayType,
-  FromWorkerMessageData,
-  WsConnectStatus,
-} from 'service/worker/type';
+import { CallRelayType } from 'service/worker/type';
 import { UserMap } from 'service/type';
 import { Grid } from '@mui/material';
-import { NavHeader } from 'app/components/layout/NavHeader';
-import RelayManager from '../../components/layout/relay/RelayManager';
 import { ShareArticle } from 'app/components/layout/msg/Share';
-import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { CopyText } from 'app/components/layout/util/CopyText';
-import { equalMaps } from 'service/helper';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
-import { loginMapStateToProps } from 'app/helper';
 import { useCallWorker } from 'hooks/useWorker';
 
 const styles = {

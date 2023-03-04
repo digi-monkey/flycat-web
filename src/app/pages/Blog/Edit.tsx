@@ -1,11 +1,9 @@
 // import react, react-markdown-editor-lite, and a markdown parser you like
 import React, { useEffect, useState } from 'react';
-import * as ReactDOM from 'react-dom';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
-import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { Button, OutlinedInput } from '@mui/material';
 import { useCallWorker } from 'hooks/useWorker';
 import { Article, DirTags, Nip23, Nip23ArticleMetaTags } from 'service/nip/23';

@@ -7,15 +7,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import {
-  EventSubResponse,
-  isEventSubResponse,
-  WellKnownEventKind,
-  Event,
-} from 'service/api';
+import { isEventSubResponse, WellKnownEventKind, Event } from 'service/api';
 import { isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
-import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
+import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
 import styled from 'styled-components';
 import EventData from './EventData';

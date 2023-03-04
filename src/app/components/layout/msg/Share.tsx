@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import {
-  PrivateKey,
-  PublicKey,
-  RawEvent,
-  Event,
-  WellKnownEventKind,
-} from 'service/api';
+import { PublicKey, RawEvent, Event, WellKnownEventKind } from 'service/api';
 import { FlagType, Flycat, ShareContentId } from 'service/flycat-protocol';
 import { RootState } from 'store/configureStore';
 

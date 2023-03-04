@@ -1,7 +1,7 @@
-import { Grid, Link } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useCommitId } from 'hooks/useCommitId';
 import { useVersion } from 'hooks/useVersion';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import logo from '../../../resource/logo512.png';
@@ -12,7 +12,6 @@ import {
   Article,
   Create,
   AccountBox,
-  Settings,
   Key,
   Contacts,
   Backup,

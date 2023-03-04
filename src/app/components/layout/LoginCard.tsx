@@ -1,4 +1,4 @@
-import { Button, Grid } from '@mui/material';
+import { Button } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -11,11 +11,10 @@ import {
   nip19Decode,
   nip19Encode,
 } from 'service/api';
-import { getPublicKey, matchKeyPair, randomKeyPair } from 'service/crypto';
+import { getPublicKey, randomKeyPair } from 'service/crypto';
 import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { ThinHr } from './ThinHr';
 import { isDotBitName, isNip05DomainName } from 'service/helper';
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
 
 const styles = {
   pk: {

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Event,
   EventSubResponse,
   EventSetMetadataContent,
   isEventSubResponse,
@@ -11,7 +10,6 @@ import {
   isEventETag,
   isEventPTag,
   EventId,
-  EventTags,
   deserializeMetadata,
 } from 'service/api';
 import { connect } from 'react-redux';

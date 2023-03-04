@@ -1,6 +1,5 @@
 import { BlogMsgItem } from 'app/pages/Blog/MsgItem';
 import { EventWithSeen } from 'app/type';
-import { t } from 'i18next';
 import React from 'react';
 import { EventTags } from 'service/api';
 import { Nip23 } from 'service/nip/23';
