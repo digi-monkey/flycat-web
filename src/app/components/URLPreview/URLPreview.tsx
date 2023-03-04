@@ -34,6 +34,7 @@ export function UrlPreview({ url }: PreviewProps) {
         padding: '10px',
         margin: '5px 0px',
         borderRadius: '5px',
+        wordBreak: 'break-all',
       }}
     >
       {data.image && (
@@ -45,7 +46,7 @@ export function UrlPreview({ url }: PreviewProps) {
           />
         </span>
       )}
-      <div style={{ overflow: 'scroll' }}>
+      <div style={{}}>
         {data.title && (
           <span
             style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}

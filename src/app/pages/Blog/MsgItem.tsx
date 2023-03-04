@@ -211,7 +211,7 @@ export function ArticleMsgContent({
               </span>
             )}
 
-            <div style={{ overflow: 'scroll' }}>
+            <div style={{}}>
               <span
                 style={{
                   fontSize: '16px',
