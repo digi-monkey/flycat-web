@@ -31,6 +31,7 @@ import Edit from './pages/Blog/Edit';
 import PersonalBlog from './pages/Blog/Personal';
 import EditProfilePage from './pages/Setting/Setting';
 import Universe from './pages/Universe/Universe';
+import FriendOfFriend from './pages/FoF/FriendOfFriend';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -45,6 +46,10 @@ export function App() {
       </Helmet>
 
       <Switch>
+        <Route path="/fof">
+          <FriendOfFriend />
+        </Route>
+
         <Route path="/universe">
           <Universe />
         </Route>

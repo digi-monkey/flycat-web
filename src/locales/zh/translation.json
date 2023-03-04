@@ -217,5 +217,8 @@
   "relayUniverse": {
     "title": "连接器小宇宙",
     "selectLabel": "选择连接器"
+  },
+  "fof": {
+    "title": "朋友的朋友"
   }
 }

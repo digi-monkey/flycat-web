@@ -217,5 +217,8 @@
   "relayUniverse": {
     "title": "relay universe",
     "selectLabel": "filter relay"
+  },
+  "fof": {
+    "title": "Friends of friends"
   }
 }

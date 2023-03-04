@@ -42,7 +42,7 @@ const LightBtn = styled.button`
   }
 `;
 
-export function Backup({ isLoggedIn }) {
+export function Universe({ isLoggedIn }) {
   const { t } = useTranslation();
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
   const myPublicKey = useReadonlyMyPublicKey();
@@ -206,7 +206,7 @@ export function Backup({ isLoggedIn }) {
   );
 }
 
-export default connect(loginMapStateToProps)(Backup);
+export default connect(loginMapStateToProps)(Universe);
 
 function ThinHr() {
   return <div style={{ borderBottom: '1px solid #f1eded' }} />;
