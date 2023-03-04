@@ -27,26 +27,11 @@ import styled from 'styled-components';
 import SimpleSelect from '../../components/inputs/Select';
 import PublicIcon from '@mui/icons-material/Public';
 import { ProfileAvatar, ProfileName } from 'app/components/layout/msg/TextMsg';
-
-const styles = {
-  label: { color: 'gray', fontSize: '14px' },
-  section: { marginBottom: '40px' },
-};
-
-const LightBtn = styled.button`
-  border: none;
-  color: white;
-  background: rgb(141, 197, 63);
-  margin-left: 10px;
-  :hover {
-    color: black;
-    background: white;
-    border: 1px solid rgb(141, 197, 63);
-  }
-`;
+import { useTheme } from '@mui/material';
 
 export function FriendOfFriend({ isLoggedIn }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const myPublicKey = useReadonlyMyPublicKey();
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -213,19 +198,21 @@ export function FriendOfFriend({ isLoggedIn }) {
     <BaseLayout>
       <Left>
         <div>
-          <div style={styles.section}>
+          <div style={{ marginBottom: '40px' }}>
             <h3 style={{ textTransform: 'capitalize' }}>{t('fof.title')}</h3>
             <ThinHr />
             <div style={{ margin: '10px' }}>
               {pks.map(pk => (
                 <span
                   style={{
-                    width: '80px',
-                    height: '100px',
+                    width: '120px',
+                    height: '200px',
                     overflow: 'scroll',
                     margin: '5px',
                     display: 'inline-block',
                     textAlign: 'center',
+                    padding: '5px',
+                    border: '1px solid ' + theme.palette.secondary.main,
                   }}
                 >
                   <a href={'/user/' + pk}>
@@ -237,6 +224,17 @@ export function FriendOfFriend({ isLoggedIn }) {
                       {userMap.get(pk)?.name || '__'}
                     </span>
                   </a>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      textAlign: 'left',
+                      color: 'gray',
+                      padding: '0px 10px',
+                    }}
+                  >
+                    {userMap.get(pk)?.about || 'no self description'}
+                  </span>
                 </span>
               ))}
             </div>
