@@ -473,7 +473,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
             width: '100%',
             textAlign: 'right',
             marginTop: '40px',
-            display: 'none',
           }}
         >
           <Button onClick={() => (window.location.href = '/universe')}>
