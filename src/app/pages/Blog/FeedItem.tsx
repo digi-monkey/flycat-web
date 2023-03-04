@@ -1,5 +1,4 @@
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useTimeSince } from 'hooks/useTimeSince';
 import React from 'react';
 import { maxStrings } from 'service/helper';
 import { Article } from 'service/nip/23';

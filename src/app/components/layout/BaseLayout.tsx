@@ -1,7 +1,7 @@
 import { Grid } from '@mui/material';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   isEventSubResponse,
@@ -15,8 +15,8 @@ import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
 import UserMenu from '../Navbar/UserMenu';
-import { NavHeader, MenuList, MenuListDefault } from './NavHeader';
-import { UserBox, UserRequiredLoginBox } from './UserBox';
+import { NavHeader, MenuListDefault } from './NavHeader';
+import { UserRequiredLoginBox } from './UserBox';
 
 const styles = {
   root: {

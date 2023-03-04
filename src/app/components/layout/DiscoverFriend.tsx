@@ -1,9 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
-import { ArticleTrendsItem } from './msg/Content';
-import { ProfileAvatar, ProfileName } from './msg/TextMsg';
+import { ProfileAvatar } from './msg/TextMsg';
 
 export const DiscoveryFriend = ({
   pks,

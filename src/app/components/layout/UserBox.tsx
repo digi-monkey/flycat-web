@@ -6,23 +6,19 @@ import {
   Nip19DataType,
   PublicKey,
   EventSetMetadataContent,
-  Event,
   Nostr,
 } from 'service/api';
-import defaultAvatar from '../../../resource/logo512.png';
 import { ProfileAvatar, ProfileBanner } from './msg/TextMsg';
 import { CopyText } from './util/CopyText';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 import RelayManager from './relay/RelayManager';
 import { LoginFormTip } from './NavHeader';
-import SettingsIcon from '@mui/icons-material/Settings';
 import styled from 'styled-components';
 import { CallWorker } from 'service/worker/callWorker';
 import { ImageUploader } from './PubNoteTextarea';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { WsConnectStatus } from 'service/worker/type';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';

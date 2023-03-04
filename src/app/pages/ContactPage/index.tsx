@@ -15,12 +15,10 @@ import {
   RawEvent,
 } from 'service/api';
 import { connect } from 'react-redux';
-import RelayManager from '../../components/layout/relay/RelayManager';
 import { Content } from '../../components/layout/msg/Content';
 import { useParams } from 'react-router-dom';
 import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
-import { UserBox } from 'app/components/layout/UserBox';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { loginMapStateToProps } from 'app/helper';

@@ -13,14 +13,12 @@ import {
   EventSetMetadataContent,
   EventSubResponse,
   EventTags,
-  Filter,
   isEventPTag,
   isEventSubResponse,
   WellKnownEventKind,
 } from 'service/api';
 import { CallRelayType } from 'service/worker/type';
-import { useNotes } from 'hooks/useNotes';
-import { ProfileAvatar, TextMsg } from 'app/components/layout/msg/TextMsg';
+import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 import { maxStrings } from 'service/helper';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { CallWorker } from 'service/worker/callWorker';

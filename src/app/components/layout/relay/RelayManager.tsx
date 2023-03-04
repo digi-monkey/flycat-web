@@ -1,15 +1,11 @@
 import { Grid } from '@mui/material';
-import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { RelayUrl } from 'service/api';
-import { equalMaps } from 'service/helper';
 import { defaultRelays } from 'service/relay';
-import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import { WsConnectStatus } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
 import styled from 'styled-components';
 import RelayAdder from './RelayAdder';

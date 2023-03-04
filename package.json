@@ -150,6 +150,7 @@
   "devDependencies": {
     "@types/react-tag-input": "6.6.1",
     "@types/sharedworker": "0.0.88",
-    "@webbtc/webln-types": "1.0.10"
+    "@webbtc/webln-types": "1.0.10",
+    "eslint-plugin-unused-imports": "2.0.0"
   }
 }

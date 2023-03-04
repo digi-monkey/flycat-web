@@ -4,16 +4,15 @@ import {
   Content,
 } from 'app/components/layout/msg/Content';
 import ReplyButton from 'app/components/layout/msg/reaction/ReplyBtn';
-import React, { useEffect, useMemo, useState, useTransition } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Event, PrivateKey, PublicKey } from 'service/api';
-import { isEmptyStr, shortPublicKey } from 'service/helper';
+import { Event } from 'service/api';
+import { isEmptyStr } from 'service/helper';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
 import { ReplyToUserList } from './ReplyToUserList';
 import { CallWorker } from 'service/worker/callWorker';
-import { Like } from './reaction/Like';
 import { Bookmark } from './reaction/Bookmark';
 import { Repost } from './reaction/Repost';
 import { Tipping } from './reaction/Tipping';

@@ -1,32 +1,22 @@
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
-import { Msgs } from 'app/components/layout/msg/Msg';
-import RelayManager from 'app/components/layout/relay/RelayManager';
 import { loginMapStateToProps } from 'app/helper';
 import { EventWithSeen } from 'app/type';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import {
-  EventSubResponse,
   isEventSubResponse,
   WellKnownEventKind,
   Event,
   EventSetMetadataContent,
   deserializeMetadata,
   EventTags,
-  EventContactListPTag,
 } from 'service/api';
-import { isValidWssUrl } from 'service/helper';
-import { defaultRelays } from 'service/relay';
 import { UserMap } from 'service/type';
-import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
-import { RootState } from 'store/configureStore';
-import styled from 'styled-components';
-import SimpleSelect from '../../components/inputs/Select';
-import PublicIcon from '@mui/icons-material/Public';
-import { ProfileAvatar, ProfileName } from 'app/components/layout/msg/TextMsg';
+import { CallRelayType } from 'service/worker/type';
+import { ProfileAvatar } from 'app/components/layout/msg/TextMsg';
 import { useTheme } from '@mui/material';
 
 export function FriendOfFriend({ isLoggedIn }) {

@@ -7,9 +7,10 @@ const prettierOptions = JSON.parse(
 
 module.exports = {
   extends: ['react-app', 'prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'unused-imports'],
   rules: {
     'prettier/prettier': ['error', prettierOptions],
+    'unused-imports/no-unused-imports-ts': ['error'],
   },
   overrides: [
     {

@@ -1,8 +1,6 @@
 import { BaseLayout, Left, Right } from 'app/components/layout/BaseLayout';
 import { LoginFormTip } from 'app/components/layout/NavHeader';
-import RelayManager from 'app/components/layout/relay/RelayManager';
 import { BlogMsg, ProfileAvatar } from 'app/components/layout/msg/TextMsg';
-import { UserBox, UserRequiredLoginBox } from 'app/components/layout/UserBox';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -27,16 +25,10 @@ import {
   validateArticlePageKind,
   ArticlePageContentSchema,
 } from 'service/flycat-protocol';
-import { equalMaps, shortPublicKey } from 'service/helper';
+import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
-import {
-  CallRelayType,
-  FromWorkerMessageData,
-  WsConnectStatus,
-} from 'service/worker/type';
+import { CallRelayType } from 'service/worker/type';
 import { ContactList } from '.';
-import defaultAvatar from '../../../resource/logo512.png';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';

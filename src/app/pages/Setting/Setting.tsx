@@ -1,12 +1,10 @@
-import { Button, Grid } from '@mui/material';
+import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   EventSetMetadataContent,
   EventSubResponse,
   isEventSubResponse,
-  Nip19DataType,
-  nip19Encode,
   Nostr,
   WellKnownEventKind,
 } from 'service/api';
@@ -22,7 +20,6 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { CallRelayType } from 'service/worker/type';
 import { BaseLayout, Left } from 'app/components/layout/BaseLayout';
-import { CopyText } from 'app/components/layout/util/CopyText';
 import { loginMapStateToProps } from 'app/helper';
 import { ThinHr } from 'app/components/layout/ThinHr';
 import { useCommitId } from 'hooks/useCommitId';

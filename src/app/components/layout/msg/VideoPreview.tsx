@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
 
 export interface VideoPreviewProps {
   url: string;
