@@ -10,10 +10,15 @@ import {
 interface Props<T> {
   options: T[];
   callBack: (option: string) => any;
+  defaultOption?: string;
 }
 
-const SimpleSelect = <T extends unknown>({ options, callBack }: Props<T>) => {
-  const [value, setValue] = useState<string>('');
+const SimpleSelect = <T extends unknown>({
+  options,
+  callBack,
+  defaultOption,
+}: Props<T>) => {
+  const [value, setValue] = useState<string>(defaultOption || '');
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     setValue(event.target.value);
@@ -31,13 +36,6 @@ const SimpleSelect = <T extends unknown>({ options, callBack }: Props<T>) => {
         value={value}
         onChange={handleChange}
         variant={'standard'}
-        style={{
-          margin: '0',
-          marginLeft: '10px',
-          padding: '0',
-          width: '100px',
-          display: 'inline',
-        }}
       >
         {options.map((option: any) => (
           <MenuItem key={option.toString()} value={option.toString()}>

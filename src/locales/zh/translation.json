@@ -213,5 +213,9 @@
     "note": "消息",
     "mentionYou": "提到了你",
     "likedYour": "喜欢了你的"
+  },
+  "relayUniverse": {
+    "title": "连接器小宇宙",
+    "selectLabel": "选择连接器"
   }
 }

@@ -19,7 +19,7 @@ import { CallRelayType, FromWorkerMessageData } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
 import styled from 'styled-components';
 import EventData from './EventData';
-import SimpleSelect from './Select';
+import SimpleSelect from '../../components/inputs/Select';
 import { BPEvent } from './type';
 
 const styles = {

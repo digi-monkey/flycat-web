@@ -30,6 +30,7 @@ import Writer from './pages/Blog/Write';
 import Edit from './pages/Blog/Edit';
 import PersonalBlog from './pages/Blog/Personal';
 import EditProfilePage from './pages/Setting/Setting';
+import Universe from './pages/Universe/Universe';
 
 export function App() {
   const { i18n } = useTranslation();
@@ -44,6 +45,10 @@ export function App() {
       </Helmet>
 
       <Switch>
+        <Route path="/universe">
+          <Universe />
+        </Route>
+
         <Route path="/setting">
           <EditProfilePage />
         </Route>

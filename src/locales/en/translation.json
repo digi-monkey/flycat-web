@@ -213,5 +213,9 @@
     "note": "note",
     "mentionYou": "mentioned you",
     "likedYour": "liked your "
+  },
+  "relayUniverse": {
+    "title": "relay universe",
+    "selectLabel": "filter relay"
   }
 }
