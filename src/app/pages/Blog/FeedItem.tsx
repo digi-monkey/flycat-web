@@ -46,7 +46,7 @@ export function PersonalBlogFeedItem({
             />
           </span>
         )}
-        <div style={{ overflow: 'scroll' }}>
+        <div style={{}}>
           {article.title && (
             <span
               style={{
@@ -114,7 +114,7 @@ export function BlogFeedItem({ article, lightingAddress }: BlogFeedItemProps) {
             />
           </span>
         )}
-        <div style={{ overflow: 'scroll' }}>
+        <div style={{}}>
           {article.title && (
             <span
               style={{
