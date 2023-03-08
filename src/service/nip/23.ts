@@ -303,8 +303,7 @@ export class Nip23 {
   static toPullCommentFilter(article: Article): Filter {
     return {
       kinds: [WellKnownEventKind.text_note],
-      '#e': [article.eventId],
-      '#a': this.toAddr(article),
+      '#a': this.toAddr(article).slice(0, 2),
     };
   }
 
