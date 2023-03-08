@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  EventSubResponse,
+  Event,
   EventSetMetadataContent,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
@@ -163,117 +162,109 @@ export const EventPage = ({ isLoggedIn }) => {
   const { eventId } = useParams<UserParams>();
 
   const myPublicKey = useReadonlyMyPublicKey();
-  const updateWorkerMsgListenerDeps = [myPublicKey, isLoggedIn];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
-  function onMsgHandler(data: any, relayUrl?: string) {
-    const msg = JSON.parse(data);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
-          });
-          break;
-
-        case WellKnownEventKind.text_note:
-          {
-            setMsgList(oldArray => {
-              const replyToEventIds = oldArray
-                .map(e => getEventIdsFromETags(e.tags))
-                .reduce((prev, current) => prev.concat(current), []);
-              const eTags = getEventIdsFromETags(event.tags);
-              if (
-                !oldArray.map(e => e.id).includes(event.id) &&
-                (replyToEventIds.includes(event.id) ||
-                  eTags.includes(eventId) ||
-                  event.id === eventId)
-              ) {
-                // only add un-duplicated and replyTo msg
-                const newItems = [
-                  ...oldArray,
-                  { ...event, ...{ seen: [relayUrl!] } },
-                ];
-                // sort by timestamp in asc
-                const sortedItems = newItems.sort((a, b) =>
-                  a.created_at >= b.created_at ? 1 : -1,
-                );
-                return sortedItems;
-              } else {
-                const id = oldArray.findIndex(s => s.id === event.id);
-                if (id === -1) return oldArray;
-
-                if (!oldArray[id].seen?.includes(relayUrl!)) {
-                  oldArray[id].seen?.push(relayUrl!);
-                }
-              }
-              return oldArray;
-            });
           }
 
-          // check if need to sub new user metadata
-          const newPks: PublicKey[] = [];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
-                newPks.push(pk);
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
+          });
+          return newMap;
+        });
+        break;
+
+      case WellKnownEventKind.text_note:
+        {
+          setMsgList(oldArray => {
+            const replyToEventIds = oldArray
+              .map(e => getEventIdsFromETags(e.tags))
+              .reduce((prev, current) => prev.concat(current), []);
+            const eTags = getEventIdsFromETags(event.tags);
+            if (
+              !oldArray.map(e => e.id).includes(event.id) &&
+              (replyToEventIds.includes(event.id) ||
+                eTags.includes(eventId) ||
+                event.id === eventId)
+            ) {
+              // only add un-duplicated and replyTo msg
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
+              // sort by timestamp in asc
+              const sortedItems = newItems.sort((a, b) =>
+                a.created_at >= b.created_at ? 1 : -1,
+              );
+              return sortedItems;
+            } else {
+              const id = oldArray.findIndex(s => s.id === event.id);
+              if (id === -1) return oldArray;
+
+              if (!oldArray[id].seen?.includes(relayUrl!)) {
+                oldArray[id].seen?.push(relayUrl!);
               }
             }
-          }
-          if (
-            userMap.get(event.pubkey) == null &&
-            !unknownPks.includes(event.pubkey)
-          ) {
-            newPks.push(event.pubkey);
-          }
-          if (newPks.length > 0) {
-            setUnknownPks([...unknownPks, ...newPks]);
-          }
-          break;
+            return oldArray;
+          });
+        }
 
-        default:
-          break;
-      }
+        // check if need to sub new user metadata
+        const newPks: PublicKey[] = [];
+        for (const t of event.tags) {
+          if (isEventPTag(t)) {
+            const pk = t[1];
+            if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
+              newPks.push(pk);
+            }
+          }
+        }
+        if (
+          userMap.get(event.pubkey) == null &&
+          !unknownPks.includes(event.pubkey)
+        ) {
+          newPks.push(event.pubkey);
+        }
+        if (newPks.length > 0) {
+          setUnknownPks([...unknownPks, ...newPks]);
+        }
+        break;
+
+      default:
+        break;
     }
   }
 
   useEffect(() => {
-    worker?.subMsgByEventIds([eventId]);
-    worker?.subMsgByETags([eventId]);
+    worker?.subMsgByEventIds([eventId])?.iterating({ cb: handEvent });
+    worker?.subMsgByETags([eventId])?.iterating({ cb: handEvent });
   }, [newConn]);
 
   useEffect(() => {
     if (myPublicKey.length > 0) {
-      worker?.subMetadata([myPublicKey]);
+      worker?.subMetadata([myPublicKey])?.iterating({ cb: handEvent });
     }
   }, [myPublicKey, newConn]);
 
   useEffect(() => {
     if (unknownPks.length > 0) {
-      worker?.subMetadata(unknownPks);
+      worker?.subMetadata(unknownPks)?.iterating({ cb: handEvent });
     }
   }, [unknownPks, newConn]);
 
@@ -291,14 +282,14 @@ export const EventPage = ({ isLoggedIn }) => {
       }
     }
     if (newIds.length > 0) {
-      worker?.subMsgByEventIds(newIds);
+      worker?.subMsgByEventIds(newIds)?.iterating({ cb: handEvent });
     }
   }, [newConn, msgList.length]);
 
   useEffect(() => {
     const msgIds = msgList.map(e => e.id);
     if (msgIds.length > 0) {
-      worker?.subMsgByETags(msgIds);
+      worker?.subMsgByETags(msgIds)?.iterating({ cb: handEvent });
     }
   }, [msgList.length]);
 

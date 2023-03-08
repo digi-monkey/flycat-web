@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Event,
-  EventSubResponse,
   EventSetMetadataContent,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
@@ -34,122 +32,6 @@ import PublicIcon from '@mui/icons-material/Public';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { Button, useTheme } from '@mui/material';
 
-// don't move to useState inside components
-// it will trigger more times unnecessary
-let myContactEvent: Event;
-let myProfileEvent: Event;
-
-const styles = {
-  root: {
-    maxWidth: '900px',
-    margin: '0 auto',
-  },
-  title: {
-    color: 'black',
-    fontSize: '2em',
-    fontWeight: '380',
-    diplay: 'block',
-    width: '100%',
-    margin: '5px',
-  },
-  ul: {
-    padding: '10px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  li: {
-    display: 'inline',
-    padding: '10px',
-  },
-  content: {
-    margin: '5px 0px',
-    minHeight: '700px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  left: {
-    height: '100%',
-    minHeight: '700px',
-    padding: '20px',
-  },
-  right: {
-    minHeight: '700px',
-    backgroundColor: '#E1D7C6',
-    padding: '20px',
-  },
-  postBox: {},
-  postHintText: {
-    color: '#acdae5',
-    marginBottom: '5px',
-  },
-  postTextArea: {
-    resize: 'none' as const,
-    boxShadow: 'inset 0 0 1px #aaa',
-    border: '1px solid #b9bcbe',
-    width: '100%',
-    height: '80px',
-    fontSize: '14px',
-    padding: '5px',
-    overflow: 'auto',
-  },
-  btn: {
-    display: 'box',
-    textAlign: 'right' as const,
-  },
-  message: {
-    marginTop: '5px',
-  },
-  msgsUl: {
-    padding: '5px',
-  },
-  msgItem: {
-    display: 'block',
-    borderBottom: '1px dashed #ddd',
-    padding: '15px 0',
-  },
-  avatar: {
-    display: 'block',
-    width: '60px',
-    height: '60px',
-  },
-  msgWord: {
-    fontSize: '14px',
-    display: 'block',
-  },
-  userName: {
-    textDecoration: 'underline',
-    marginRight: '5px',
-  },
-  time: {
-    color: 'gray',
-    fontSize: '12px',
-    marginTop: '5px',
-  },
-  smallBtn: {
-    fontSize: '12px',
-    marginLeft: '5px',
-    border: 'none' as const,
-  },
-  connected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'green',
-  },
-  disconnected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'red',
-  },
-  userProfileAvatar: {
-    width: '60px',
-    height: '60px',
-  },
-  userProfileName: {
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-};
-
 export type ContactList = Map<
   PublicKey,
   {
@@ -173,122 +55,56 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>(new Map());
+  const [myContactList, setMyContactList] =
+    useState<{ keys: PublicKey[]; created_at: number }>();
 
   const myPublicKey = useMyPublicKey();
-  const updateWorkerMsgListenerDeps = [myPublicKey, isLoggedIn];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker({});
 
   const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
-  function onMsgHandler(nostrData: any, relayUrl?: string) {
-    const msg = JSON.parse(nostrData);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          if (
-            myPublicKey &&
-            myPublicKey.length > 0 &&
-            event.pubkey === myPublicKey &&
-            (myProfileEvent == null ||
-              myProfileEvent.created_at < event.created_at)
-          ) {
-            myProfileEvent = event;
-          }
-
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent(event: Event, relayUrl?: string) {
+    console.debug(`[${worker?._workerId}]receive event`);
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
-          });
-          break;
-
-        case WellKnownEventKind.text_note:
-          if (!isLoggedIn) {
-            setGlobalMsgList(oldArray => {
-              if (!oldArray.map(e => e.id).includes(event.id)) {
-                // do not add duplicated msg
-                const newItems = [...oldArray, event];
-                // sort by timestamp
-                const sortedItems = newItems.sort((a, b) =>
-                  a.created_at >= b.created_at ? -1 : 1,
-                );
-                return sortedItems;
-              }
-              return oldArray;
-            });
-
-            // check if need to sub new user metadata
-            const newPks: string[] = [event.pubkey];
-            for (const t of event.tags) {
-              if (isEventPTag(t)) {
-                const pk = t[1];
-                if (userMap.get(pk) == null) {
-                  newPks.push(pk);
-                }
-              }
-            }
-            if (newPks.length > 0) {
-              worker?.subMetadata(newPks, false, 'homeMetadata');
-            }
-            return;
           }
 
-          setMsgList(oldArray => {
-            if (
-              oldArray.length > maxMsgLength &&
-              oldArray[oldArray.length - 1].created_at > event.created_at
-            ) {
-              return oldArray;
-            }
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
+          });
+          return newMap;
+        });
+        break;
 
+      case WellKnownEventKind.text_note:
+        if (!isLoggedIn) {
+          setGlobalMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
-
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
+              const newItems = [...oldArray, event];
               // sort by timestamp
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
               );
-              // cut to max size
-              if (sortedItems.length > maxMsgLength) {
-                return sortedItems.slice(0, maxMsgLength + 1);
-              }
               return sortedItems;
-            } else {
-              const id = oldArray.findIndex(s => s.id === event.id);
-              if (id === -1) return oldArray;
-
-              if (!oldArray[id].seen?.includes(relayUrl!)) {
-                oldArray[id].seen?.push(relayUrl!);
-              }
             }
             return oldArray;
           });
 
           // check if need to sub new user metadata
-          const newPks: string[] = [];
+          const newPks: string[] = [event.pubkey];
           for (const t of event.tags) {
             if (isEventPTag(t)) {
               const pk = t[1];
@@ -298,24 +114,85 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
             }
           }
           if (newPks.length > 0) {
-            worker?.subMetadata(newPks);
+            const sub = worker?.subMetadata(newPks, false, 'homeMetadata');
+            sub?.iterating({ cb: handleEvent });
           }
-          break;
+          return;
+        }
 
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myPublicKey) {
-            if (
-              myContactEvent == null ||
-              myContactEvent?.created_at! < event.created_at
-            ) {
-              myContactEvent = event;
+        setMsgList(oldArray => {
+          if (
+            oldArray.length > maxMsgLength &&
+            oldArray[oldArray.length - 1].created_at > event.created_at
+          ) {
+            return oldArray;
+          }
+
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            // cut to max size
+            if (sortedItems.length > maxMsgLength) {
+              return sortedItems.slice(0, maxMsgLength + 1);
+            }
+            return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
             }
           }
-          break;
+          return oldArray;
+        });
 
-        default:
-          break;
-      }
+        // check if need to sub new user metadata
+        const newPks: string[] = [];
+        for (const t of event.tags) {
+          if (isEventPTag(t)) {
+            const pk = t[1];
+            if (userMap.get(pk) == null) {
+              newPks.push(pk);
+            }
+          }
+        }
+        if (newPks.length > 0) {
+          const sub = worker?.subMetadata(newPks);
+          sub?.iterating({ cb: handleEvent });
+        }
+        break;
+
+      case WellKnownEventKind.contact_list:
+        if (event.pubkey === myPublicKey) {
+          setMyContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            return {
+              keys,
+              created_at: event.created_at,
+            };
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -323,72 +200,55 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     if (isLoggedIn !== true) return;
     if (!myPublicKey || myPublicKey.length === 0) return;
 
-    console.log('sub meta contact', myPublicKey);
+    subMetadataAndContactList();
+  }, [myPublicKey, newConn]);
 
+  function subMetadataAndContactList() {
     const callRelay =
       newConn.length === 0
         ? { type: CallRelayType.all, data: [] }
         : { type: CallRelayType.batch, data: newConn };
-    worker?.subMetaDataAndContactList(
+    const sub = worker?.subMetaDataAndContactList(
       [myPublicKey],
       false,
       'userMetaAndContact',
       callRelay,
-    );
-  }, [myPublicKey, newConn]);
-
-  useEffect(() => {
-    if (myContactEvent == null) return;
-
-    const contacts = myContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(myContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
+    )!;
+    sub?.iterating({
+      cb: handleEvent,
     });
-
-    setMyContactList(cList);
-  }, [myContactEvent]);
+  }
 
   useEffect(() => {
-    const pks = Array.from(myContactList.keys());
+    if (!myContactList || myContactList?.keys?.length === 0) return;
+
+    const pks = myContactList.keys;
     // subscribe myself msg too
     if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
     if (pks.length > 0 && newConn.length > 0) {
-      worker?.subMetadata(pks, false, 'homeMetadata', {
+      const callRelay = {
         type: CallRelayType.batch,
         data: newConn,
+      };
+      const subMetadata = worker?.subMetadata(
+        pks,
+        false,
+        'homeMetadata',
+        callRelay,
+      );
+      subMetadata?.iterating({
+        cb: handleEvent,
       });
-      worker?.subMsg(pks, true, 'homeMsg', {
-        type: CallRelayType.batch,
-        data: newConn,
-      });
-    }
-  }, [myContactList.size, newConn]);
 
-  useEffect(() => {
-    const pks = Array.from(myContactList.keys());
-    if (pks.length > 0 && newConn.length > 0) {
-      worker?.subContactList(pks, false, 'homeFriendDiscover', {
-        type: CallRelayType.batch,
-        data: newConn,
+      const subMsg = worker?.subMsg(pks, true, 'homeMsg', callRelay);
+      subMsg?.iterating({
+        cb: handleEvent,
       });
     }
-  }, [myPublicKey, myContactList.size, newConn]);
+  }, [myContactList?.created_at, newConn]);
 
   useEffect(() => {
     if (isLoggedIn) return;
@@ -399,9 +259,12 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
       kinds: [WellKnownEventKind.text_note],
       limit: 50,
     };
-    worker?.subFilter(filter, undefined, undefined, {
+    const sub = worker?.subFilter(filter, undefined, undefined, {
       type: CallRelayType.batch,
       data: newConn,
+    });
+    sub?.iterating({
+      cb: handleEvent,
     });
   }, [isLoggedIn, newConn]);
 
@@ -432,8 +295,8 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
           onSubmitText={onSubmitText}
         />
 
-        <div style={styles.message}>
-          <ul style={styles.msgsUl}>
+        <div style={{ marginTop: '5px' }}>
+          <ul style={{ padding: '5px' }}>
             {msgList.length === 0 && !isLoggedIn && (
               <div>
                 <p style={{ color: 'gray' }}>

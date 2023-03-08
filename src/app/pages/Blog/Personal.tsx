@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  EventSubResponse,
   EventSetMetadataContent,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
   PetName,
   deserializeMetadata,
+  Event,
 } from 'service/api';
 import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -163,67 +162,60 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [articles, setArticles] = useState<Article[]>([]);
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [myPublicKey, publicKey],
-  });
+  const { worker, newConn } = useCallWorker();
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.long_form:
-          const article = Nip23.toArticle(event);
-          setArticles(prev => {
-            if (prev.map(p => p.eventId).includes(event.id)) return prev;
+      case WellKnownEventKind.long_form:
+        const article = Nip23.toArticle(event);
+        setArticles(prev => {
+          if (prev.map(p => p.eventId).includes(event.id)) return prev;
 
-            const index = prev.findIndex(p => p.id === article.id);
-            if (index !== -1) {
-              const old = prev[index];
-              if (old.updated_at >= article.updated_at) {
-                return prev;
-              } else {
-                return prev.map((p, id) => {
-                  if (id === index) return article;
-                  return p;
-                });
-              }
+          const index = prev.findIndex(p => p.id === article.id);
+          if (index !== -1) {
+            const old = prev[index];
+            if (old.updated_at >= article.updated_at) {
+              return prev;
+            } else {
+              return prev.map((p, id) => {
+                if (id === index) return article;
+                return p;
+              });
             }
+          }
 
-            // only add un-duplicated and replyTo msg
-            const newItems = [...prev, article];
-            // sort by timestamp in asc
-            const sortedItems = newItems.sort((a, b) =>
-              a.updated_at >= b.updated_at ? -1 : 1,
-            );
-            return sortedItems;
-          });
-          break;
+          // only add un-duplicated and replyTo msg
+          const newItems = [...prev, article];
+          // sort by timestamp in asc
+          const sortedItems = newItems.sort((a, b) =>
+            a.updated_at >= b.updated_at ? -1 : 1,
+          );
+          return sortedItems;
+        });
+        break;
 
-        default:
-          break;
-      }
+      default:
+        break;
     }
   }
 
@@ -241,8 +233,12 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
       type: CallRelayType.batch,
       data: newConn,
     };
-    worker?.subMetadata(pks, undefined, undefined, callRelay);
-    worker?.subNip23Posts({ pks: [publicKey], callRelay });
+    worker
+      ?.subMetadata(pks, undefined, undefined, callRelay)
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subNip23Posts({ pks: [publicKey], callRelay })
+      ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
   const directorys: string[][] = articles

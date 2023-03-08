@@ -1,8 +1,12 @@
 import {
   Event,
   EventId,
+  EventSubResponse,
   Filter,
+  isEventSubResponse,
   PublicKey,
+  randomSubId,
+  RelayResponseType,
   WellKnownEventKind,
 } from 'service/api';
 import { Nip23 } from 'service/nip/23';
@@ -17,93 +21,156 @@ import {
   ToWorkerMessageType,
 } from './type';
 
+class GroupedAsyncGenerator<T, K> {
+  private resolveFunctions = new Map<
+    K,
+    (value: IteratorResult<T, any>) => void
+  >();
+
+  constructor(private messageStream: () => AsyncGenerator<T>) {}
+
+  async *getGenerator(key: K): AsyncGenerator<T, any, undefined> {
+    while (true) {
+      const { value, done } = await this.messageStream().next();
+      const data = JSON.parse(value.nostrData);
+      const subscriptionId = data[1]?.split(':')[1] as K;
+
+      if (subscriptionId === key) {
+        yield value as unknown as T;
+      }
+
+      if (done) {
+        this.resolveFunctions.get(subscriptionId)?.({
+          value: undefined,
+          done: true,
+        });
+        break;
+      }
+    }
+  }
+}
+
 export type OnWsConnStatus = (message: FromWorkerMessageData) => any;
 export type OnNostrData = (message: FromWorkerMessageData) => any;
 
+export interface CallResultHandler {
+  subscriptionId: string;
+  getIterator: () => AsyncGenerator<FromWorkerMessageData, void, unknown>;
+  iterating: ({
+    cb,
+    onDone,
+  }: {
+    cb: (data: Event, relayUrl?: string) => any;
+    onDone?: () => any;
+  }) => any;
+}
+
 // this is main thread code that makes postMessage requests to a worker
 export class CallWorker {
-  resolvers: { [key: string]: (arg: any) => unknown } = {};
-  rejectors: { [key: string]: (arg: any) => unknown } = {};
-  public workerId: string = 'defaultCallWorker';
+  public _workerId: string = 'defaultCallWorker';
   public _portId: number | undefined;
-  public lastOnMsgListener;
-  public listeners: { type: string; listener: any }[] = [];
 
-  msgCount = 0;
   receiveCount = 0;
+  iteratorCount = 0;
 
   worker = new SharedWorker(new URL('./worker.ts', import.meta.url));
 
-  addEventListener(type, listener) {
-    this.listeners.push({ type, listener });
-    this.worker.port.addEventListener(type, listener);
-  }
+  groupedEvents: GroupedAsyncGenerator<FromWorkerMessageData, string>;
 
-  removeEventListener(type, listener) {
-    const index = this.listeners.findIndex(
-      l => l.type === type && l.listener === listener,
-    );
-    if (index !== -1) {
-      const { type, listener } = this.listeners.splice(index, 1)[0];
-      this.worker.port.removeEventListener(type, listener);
-    }
-  }
-
-  constructor(
-    onWsConnStatus?: OnWsConnStatus,
-    onNostrData?: OnNostrData,
-    workerId?: string,
-  ) {
+  constructor(onWsConnStatus?: OnWsConnStatus, workerId?: string) {
     if (workerId) {
-      this.workerId = workerId;
+      this._workerId = workerId;
     }
     this.worker.onerror = e => {
       console.log('worker error: ', e);
     };
-    //this.worker.port.start();
-    this.lastOnMsgListener = (event: MessageEvent) => {
-      //console.log("constructor")
-      // const id = workerId ? workerId : "unNamedWorker";
-      if (workerId) {
-        console.debug(`received port message on ${workerId}`);
-      }
-      this.receiveCount++;
-      //console.log("client receive post message count=>", this.receiveCount, event.data.type);
+    this.worker.port.onmessageerror = e => {
+      console.log('port error:', e);
+    };
+    this.worker.port.onmessage = (event: MessageEvent) => {
       const res: FromPostMsg = event.data;
-      const data = res.data;
+      const data: FromWorkerMessageData = res.data;
 
+      // Determine the data type and wrap it in an async iterator
       switch (res.type) {
         case FromWorkerMessageType.WS_CONN_STATUS:
-          if (onWsConnStatus) {
-            onWsConnStatus(data);
-          }
-          break;
-
-        case FromWorkerMessageType.NOSTR_DATA:
-          if (onNostrData) {
-            onNostrData(data);
+          {
+            if (onWsConnStatus) {
+              onWsConnStatus(data);
+            }
           }
           break;
 
         case FromWorkerMessageType.PORT_ID:
-          if (data.portId == null) {
-            throw new Error('missing data.portId');
+          {
+            //console.log('portId:', data.portId);
+            if (data.portId == null) {
+              throw new Error('missing data.portId');
+            }
+            this._portId = data.portId;
           }
-          this._portId = data.portId;
           break;
         default:
           break;
       }
     };
-    this.addEventListener('message', this.lastOnMsgListener);
-    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
-    this.worker.port.onmessageerror = e => {
-      console.log('port error:', e);
-    };
+
+    const that = this;
+    async function* messageStream(): AsyncGenerator<FromWorkerMessageData> {
+      while (true) {
+        yield await new Promise<FromWorkerMessageData>(resolve => {
+          const listener = (event: MessageEvent) => {
+            const res: FromPostMsg = event.data;
+            const data: FromWorkerMessageData = res.data;
+
+            // Determine the data type and wrap it in an async iterator
+            switch (res.type) {
+              case FromWorkerMessageType.NOSTR_DATA:
+                {
+                  if (data.nostrData == null) {
+                    throw new Error('nostrData is null!');
+                  }
+                  const subResponse = JSON.parse(
+                    data.nostrData,
+                  ) as EventSubResponse;
+                  const [resHead] = subResponse;
+                  if (resHead !== RelayResponseType.SubEvent) {
+                    throw new Error('invalid subEvent response');
+                  }
+                  that.receiveCount++;
+                  resolve(data);
+                }
+                break;
+
+              case FromWorkerMessageType.PORT_ID:
+                {
+                  if (data.portId == null) {
+                    throw new Error('missing data.portId');
+                  }
+                  //console.log('inside, port id', data.portId);
+                  that._portId = data.portId;
+                }
+                break;
+
+              default:
+                break;
+            }
+
+            // release the listener
+            that.worker.port.removeEventListener('message', listener);
+          };
+          that.worker.port.addEventListener('message', listener);
+        });
+      }
+    }
+    //this.messageEvents = messageStream();
+    this.groupedEvents = new GroupedAsyncGenerator<
+      FromWorkerMessageData,
+      string
+    >(messageStream);
 
     // get ws status
     //this.pullWsConnectStatus();
-    var that = this;
     window.addEventListener('beforeunload', function () {
       that.closePort();
     });
@@ -111,57 +178,6 @@ export class CallWorker {
 
   get portId(): number {
     return this._portId!;
-  }
-
-  updateMsgListener(
-    onWsConnStatus?: (message: FromWorkerMessageData) => any,
-    onNostrData?: (message: FromWorkerMessageData) => any,
-  ) {
-    this.removeEventListener('message', this.lastOnMsgListener);
-    //this.worker.port.removeEventListener("message", this.lastOnMsgListener);
-    this.lastOnMsgListener = (event: MessageEvent) => {
-      //console.log("updated..")
-      // const id = workerId ? workerId : "unNamedWorker";
-      if (this.workerId) {
-        console.debug(`received port message on ${this.workerId}`);
-      }
-      this.receiveCount++;
-      //console.log("client receive post message count=>", this.receiveCount, event.data.type);
-      const res: FromPostMsg = event.data;
-      const data = res.data;
-
-      switch (res.type) {
-        case FromWorkerMessageType.WS_CONN_STATUS:
-          if (onWsConnStatus) {
-            onWsConnStatus(data);
-          }
-          break;
-
-        case FromWorkerMessageType.NOSTR_DATA:
-          if (onNostrData) {
-            onNostrData(data);
-          }
-          break;
-
-        case FromWorkerMessageType.PORT_ID:
-          if (data.portId == null) {
-            throw new Error('missing data.portId');
-          }
-          this._portId = data.portId;
-          break;
-
-        default:
-          break;
-      }
-    };
-    this.addEventListener('message', this.lastOnMsgListener);
-    //this.worker.port.addEventListener("message", this.lastOnMsgListener);
-  }
-
-  removeListeners() {
-    this.worker.onerror = null;
-    this.worker.port.onmessage = null;
-    this.worker.port.onmessageerror = null;
   }
 
   closePort() {
@@ -172,14 +188,57 @@ export class CallWorker {
     this.worker.port.postMessage(msg);
   }
 
-  call(msg: ToPostMsg) {
-    const __messageId = this.msgCount++;
+  call(msg: ToPostMsg): CallResultHandler | undefined {
+    if (
+      msg.type === ToWorkerMessageType.CALL_API &&
+      msg.data.callData &&
+      typeof msg.data.callData[2] === 'undefined'
+    ) {
+      // add a random sub id
+      msg.data.callData[2] = randomSubId(4);
+    }
+
     this.worker.port.postMessage(msg);
-    //console.debug('post..', msg);
-    return new Promise((resolve, reject) => {
-      this.resolvers[__messageId] = resolve;
-      this.rejectors[__messageId] = reject;
-    });
+    const that = this;
+
+    if (
+      msg.type === ToWorkerMessageType.CALL_API &&
+      msg.data.callData &&
+      msg.data.callData[2]
+    ) {
+      const subscriptionId = msg.data.callData[2];
+      return {
+        subscriptionId,
+        getIterator: () => {
+          return this.groupedEvents.getGenerator(subscriptionId);
+        },
+        iterating: ({ cb, onDone }) => {
+          const iterator = this.groupedEvents.getGenerator(subscriptionId);
+
+          (async () => {
+            //await new Promise(resolve => setTimeout(resolve, 500));
+            while (true) {
+              const result = await iterator?.next();
+              if (result?.done) {
+                // todo: empty this.messageGroups[subscriptionId] value but not delete the key
+                if (onDone) onDone();
+                break;
+              } else {
+                const res = result?.value;
+                if (res == null) continue;
+                const msg = JSON.parse(res.nostrData); //todo: callback other datatype as well
+                if (isEventSubResponse(msg)) {
+                  const event = (msg as EventSubResponse)[2];
+                  cb(event, res.relayUrl);
+                }
+              }
+            }
+          })();
+        },
+      };
+    }
+
+    return undefined;
   }
 
   pullWsConnectStatus() {

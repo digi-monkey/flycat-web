@@ -48,10 +48,7 @@ export function Write({
   const [image, setImage] = useState<string>('');
   const [hashTags, setHashTags] = useState<string[]>([]);
   const [content, setContent] = useState<string>('');
-  const { worker } = useCallWorker({
-    onMsgHandler: () => {},
-    updateWorkerMsgListenerDeps: [],
-  });
+  const { worker } = useCallWorker();
   const myPublicKey = useReadonlyMyPublicKey();
 
   const publish = async () => {

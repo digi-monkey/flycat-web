@@ -11,10 +11,8 @@ import {
   deserializeMetadata,
   Event,
   EventSetMetadataContent,
-  EventSubResponse,
   EventTags,
   isEventPTag,
-  isEventSubResponse,
   WellKnownEventKind,
 } from 'service/api';
 import { CallRelayType } from 'service/worker/type';
@@ -31,13 +29,21 @@ export interface ItemProps {
   event: Event;
   eventId: string;
   worker: CallWorker;
+  iteratorCallBack: (event: Event, relayUrl?: string) => any;
 }
 
-export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
+export function LikeItem({
+  msg,
+  userMap,
+  eventId,
+  event,
+  worker,
+  iteratorCallBack,
+}: ItemProps) {
   const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
-      worker.subMsgByEventIds([eventId]);
+      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
     }
   }, [event, worker]);
 
@@ -75,11 +81,18 @@ export function LikeItem({ msg, userMap, eventId, event, worker }: ItemProps) {
   );
 }
 
-export function ReplyItem({ msg, userMap, event, eventId, worker }: ItemProps) {
+export function ReplyItem({
+  msg,
+  userMap,
+  event,
+  eventId,
+  worker,
+  iteratorCallBack,
+}: ItemProps) {
   const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
-      worker.subMsgByEventIds([eventId]);
+      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
     }
   }, [event, worker]);
   const read = async () => {
@@ -136,11 +149,12 @@ export function ArticleCommentItem({
   event,
   eventId,
   worker,
+  iteratorCallBack,
 }: ItemProps) {
   const { t } = useTranslation();
   useEffect(() => {
     if (event == null) {
-      worker.subMsgByEventIds([eventId]);
+      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
     }
   }, [event, worker]);
   const read = async () => {
@@ -203,168 +217,150 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [msgList, setMsgList] = useState<Event[]>([]);
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const updateWorkerMsgListenerDeps = [myPublicKey, userMap.size];
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const updateWorkerMsgListenerDeps = [];
+  const { worker, newConn } = useCallWorker();
+  const { worker: worker2, newConn: newConn2 } = useCallWorker();
 
-  const { worker: worker2, newConn: newConn2 } = useCallWorker({
-    onMsgHandler: onMsgHandler2,
-    updateWorkerMsgListenerDeps: [userMap.size, myPublicKey],
-  });
-
-  function onMsgHandler(nostrData: any, relayUrl?: string) {
-    const msg = JSON.parse(nostrData);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent1(event: Event, relayUrl?: string) {
+    console.log('handleEvent1: ', event.kind);
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.contact_list:
-          // do nothing
-          break;
+      default:
+        if (
+          event.kind !== WellKnownEventKind.text_note &&
+          event.kind !== WellKnownEventKind.like
+        )
+          return;
 
-        default:
-          if (
-            event.kind !== WellKnownEventKind.text_note &&
-            event.kind !== WellKnownEventKind.like
-          )
-            return;
+        // if (event.pubkey === myPublicKey) return;
 
-          // if (event.pubkey === myPublicKey) return;
+        setMsgList(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
 
-          setMsgList(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          }
 
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return sortedItems;
-            }
+          return oldArray;
+        });
 
-            return oldArray;
-          });
-
-          // check if need to sub new user metadata
-          const newPks: string[] = [];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null && !newPks.includes(pk)) {
-                newPks.push(pk);
-              }
+        // check if need to sub new user metadata
+        const newPks: string[] = [];
+        for (const t of event.tags) {
+          if (isEventPTag(t)) {
+            const pk = t[1];
+            if (userMap.get(pk) == null && !newPks.includes(pk)) {
+              newPks.push(pk);
             }
           }
-          if (
-            userMap.get(event.pubkey) == null &&
-            !newPks.includes(event.pubkey)
-          ) {
-            newPks.push(event.pubkey);
-          }
+        }
+        if (
+          userMap.get(event.pubkey) == null &&
+          !newPks.includes(event.pubkey)
+        ) {
+          newPks.push(event.pubkey);
+        }
 
-          if (newPks.length > 0) {
-            worker?.subMetadata(newPks);
-          }
-          break;
-      }
+        if (newPks.length > 0) {
+          worker?.subMetadata(newPks)?.iterating({ cb: handleEvent1 });
+        }
+        break;
     }
   }
 
-  function onMsgHandler2(nostrData: any, relayUrl?: string) {
-    const msg = JSON.parse(nostrData);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent2(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.text_note:
-          if (event.pubkey === myPublicKey) return;
-          setTextNotes(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
+      case WellKnownEventKind.text_note:
+        if (event.pubkey === myPublicKey) return;
+        setTextNotes(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
 
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return sortedItems;
-            }
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          }
 
-            return oldArray;
-          });
-          break;
+          return oldArray;
+        });
+        break;
 
-        case WellKnownEventKind.long_form:
-          if (event.pubkey === myPublicKey) return;
-          setArticleNotes(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
+      case WellKnownEventKind.long_form:
+        if (event.pubkey === myPublicKey) return;
+        setArticleNotes(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
 
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return sortedItems;
-            }
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          }
 
-            return oldArray;
-          });
-          break;
+          return oldArray;
+        });
+        break;
 
-        default:
-          break;
-      }
+      default:
+        break;
     }
   }
 
@@ -373,14 +369,17 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     if (newConn.length === 0) return;
 
     const lastReadTime = defaultLastNotifyTime;
-    worker?.subMsgByPTags({
-      publicKeys: [myPublicKey],
-      since: lastReadTime,
-      callRelay: {
-        type: CallRelayType.batch,
-        data: newConn,
-      },
-    });
+    worker
+      ?.subMsgByPTags({
+        publicKeys: [myPublicKey],
+        kinds: [WellKnownEventKind.text_note, WellKnownEventKind.like],
+        since: lastReadTime,
+        callRelay: {
+          type: CallRelayType.batch,
+          data: newConn,
+        },
+      })
+      ?.iterating({ cb: handleEvent1 });
   }, [newConn, myPublicKey]);
 
   return (
@@ -404,6 +403,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                       userMap={userMap}
                       worker={worker2!}
                       key={msg.id}
+                      iteratorCallBack={handleEvent2}
                     />
                   );
 
@@ -421,6 +421,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                         userMap={userMap}
                         worker={worker2!}
                         key={msg.id}
+                        iteratorCallBack={handleEvent2}
                       />
                     );
                   } else {
@@ -435,6 +436,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                         userMap={userMap}
                         worker={worker2!}
                         key={msg.id}
+                        iteratorCallBack={handleEvent2}
                       />
                     );
                   }

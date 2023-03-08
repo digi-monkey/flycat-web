@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import {
   Event,
-  EventSubResponse,
   EventSetMetadataContent,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
@@ -32,11 +30,6 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import { CallWorker } from 'service/worker/callWorker';
 import { SignEvent } from 'store/loginReducer';
 import { useTimeSince } from 'hooks/useTimeSince';
-
-// don't move to useState inside components
-// it will trigger more times unnecessary
-let myContactEvent: Event;
-let userContactEvent: Event;
 
 export const styles = {
   root: {
@@ -177,179 +170,129 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
   const myPublicKey = useReadonlyMyPublicKey();
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>(new Map());
+  const [myContactList, setMyContactList] =
+    useState<{ keys: PublicKey[]; created_at: number }>();
   const [historyContacts, setHistoryContacts] = useState<EventWithSeen[]>([]);
-  const [userContactList, setUserContactList] = useState<ContactList>(
-    new Map(),
-  );
+  const [userContactList, setUserContactList] =
+    useState<{ keys: PublicKey[]; created_at: number }>();
 
-  const updateWorkerMsgListenerDeps = [
-    myPublicKey,
-    myContactEvent,
-    userContactEvent,
-  ];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const {
     worker: worker2,
     newConn: newConn2,
     wsConnectStatus: wsConnectStatus2,
-  } = useCallWorker({
-    onMsgHandler: onMsgHandler2,
-    updateWorkerMsgListenerDeps: [myPublicKey],
-  });
+  } = useCallWorker();
 
   useEffect(() => {
     if (newConn2.length === 0) return;
 
-    worker2?.subContactList([myPublicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn2,
-    });
+    worker2
+      ?.subContactList([myPublicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn2,
+      })
+      ?.iterating({ cb: handleEvent2 });
   }, [newConn2]);
 
-  function onMsgHandler(res: any, relayUrl?: string) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent1(event: Event, relayUrl?: string) {
+    console.log(event.kind);
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myPublicKey) {
-            if (
-              myContactEvent == null ||
-              myContactEvent?.created_at! < event.created_at
-            ) {
-              myContactEvent = event;
+      case WellKnownEventKind.contact_list:
+        if (event.pubkey === myPublicKey) {
+          setMyContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
             }
-          }
 
-          if (event.pubkey === publicKey) {
-            if (
-              userContactEvent == null ||
-              userContactEvent?.created_at! < event.created_at
-            ) {
-              userContactEvent = event;
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            return {
+              keys,
+              created_at: event.created_at,
+            };
+          });
+        }
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
             }
-          }
-          break;
 
-        default:
-          break;
-      }
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            return {
+              keys,
+              created_at: event.created_at,
+            };
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   }
 
-  function onMsgHandler2(res: any, relayUrl?: string) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myPublicKey) {
-            console.log(event.tags.length, relayUrl);
+  function handleEvent2(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.contact_list:
+        if (event.pubkey === myPublicKey) {
+          setHistoryContacts(prev => {
+            if (prev.map(p => p.id).includes(event.id)) {
+              let data = prev;
+              const index = data.findIndex(d => d.id === event.id);
+              if (index === -1) return prev;
 
-            setHistoryContacts(prev => {
-              if (prev.map(p => p.id).includes(event.id)) {
-                let data = prev;
-                const index = data.findIndex(d => d.id === event.id);
-                if (index === -1) return prev;
-
-                if (!data[index].seen?.includes(relayUrl!)) {
-                  data[index].seen?.push(relayUrl!);
-                  return data;
-                }
-
-                return prev;
+              if (!data[index].seen?.includes(relayUrl!)) {
+                data[index].seen?.push(relayUrl!);
+                return data;
               }
 
-              let data = [...prev, { ...event, ...{ seen: [relayUrl!] } }];
-              data = data.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return data;
-            });
-          }
-          break;
+              return prev;
+            }
 
-        default:
-          break;
-      }
+            let data = [...prev, { ...event, ...{ seen: [relayUrl!] } }];
+            data = data.sort((a, b) => (a.created_at >= b.created_at ? -1 : 1));
+            return data;
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   }
 
   useEffect(() => {
-    if (myContactEvent == null) return;
-
-    const contacts = myContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(myContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setMyContactList(cList);
-  }, [myContactEvent]);
-
-  useEffect(() => {
-    if (userContactEvent == null) return;
-
-    const contacts = userContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(userContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setUserContactList(cList);
-  }, [userContactEvent]);
-
-  useEffect(() => {
-    const pks = Array.from(userContactList.keys());
+    const pks = userContactList?.keys || [];
     //todo: validate publicKey
     if (publicKey.length > 0) {
       pks.push(publicKey);
@@ -359,12 +302,14 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
     }
 
     if (pks.length > 0) {
-      worker?.subMetaDataAndContactList(pks, undefined, undefined, {
-        type: CallRelayType.batch,
-        data: newConn || Array.from(wsConnectStatus.keys()),
-      });
+      worker
+        ?.subMetaDataAndContactList(pks, undefined, undefined, {
+          type: CallRelayType.batch,
+          data: newConn || Array.from(wsConnectStatus.keys()),
+        })
+        ?.iterating({ cb: handleEvent1 });
     }
-  }, [newConn, myPublicKey, userContactList.size]);
+  }, [newConn, myPublicKey, userContactList?.keys.length]);
 
   return (
     <BaseLayout>

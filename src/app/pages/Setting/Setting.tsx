@@ -2,9 +2,8 @@ import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Event,
   EventSetMetadataContent,
-  EventSubResponse,
-  isEventSubResponse,
   Nostr,
   WellKnownEventKind,
 } from 'service/api';
@@ -129,41 +128,38 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey }) => {
     EventSetMetadataContent & { created_at: number }
   >();
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler: (res: any, relayUrl?: string) => {
-      const msg = JSON.parse(res);
-      if (isEventSubResponse(msg)) {
-        const event = (msg as EventSubResponse)[2];
-        if (event.pubkey !== myPublicKey) return;
+  const { worker, newConn } = useCallWorker();
 
-        if (event.kind === WellKnownEventKind.set_metadata) {
-          const metadata: EventSetMetadataContent = JSON.parse(event.content);
-          setProfile(prev => {
-            if (prev?.created_at && prev.created_at >= event.created_at) {
-              return prev!;
-            }
+  function handleEvent(event: Event, relayUrl?: string) {
+    if (event.pubkey !== myPublicKey) return;
 
-            return {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            } as unknown as EventSetMetadataContent & { created_at: number };
-          });
-
-          return;
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = JSON.parse(event.content);
+      setProfile(prev => {
+        if (prev?.created_at && prev.created_at >= event.created_at) {
+          return prev!;
         }
-      }
-    },
-    updateWorkerMsgListenerDeps: [myPublicKey],
-  });
+
+        return {
+          ...metadata,
+          ...{ created_at: event.created_at },
+        } as unknown as EventSetMetadataContent & { created_at: number };
+      });
+
+      return;
+    }
+  }
 
   useEffect(() => {
     if (newConn.length === 0) return;
     if (myPublicKey == null) return;
 
-    worker?.subMetadata([myPublicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subMetadata([myPublicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
   }, [newConn, myPublicKey]);
 
   useEffect(() => {

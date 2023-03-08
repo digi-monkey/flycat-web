@@ -7,7 +7,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import {
-  isEventSubResponse,
   WellKnownEventKind,
   Event,
   EventSetMetadataContent,
@@ -31,86 +30,80 @@ export function FriendOfFriend({ isLoggedIn }) {
     useState<boolean>(false);
   const [pks, setPks] = useState<string[]>([]);
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [userMap.size, myPublicKey, userMap],
-  });
+  const { worker, newConn } = useCallWorker();
 
   // Total events we want to render in the activity list
   const contactEventLimits = 5;
   const maxPks = 150;
 
-  function onMsgHandler(this, data: any, relayUrl?: string) {
-    const msg = JSON.parse(data);
-    if (isEventSubResponse(msg)) {
-      const event = msg[2];
+  function handleEvent(event: Event, relayUrl?: string) {
+    console.debug(`[${worker?._workerId}]receive event`);
 
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = deserializeMetadata(
-          event.content,
-        );
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = deserializeMetadata(
+        event.content,
+      );
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
+          return newMap;
+        }
+
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
+        });
+        return newMap;
+      });
+      return;
+    }
+
+    if (event.kind === WellKnownEventKind.contact_list) {
+      if (event.pubkey === myPublicKey) {
+        setMyContactEvent(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
           }
 
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
-          return newMap;
+          return event;
         });
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.contact_list) {
-        if (event.pubkey === myPublicKey) {
-          setMyContactEvent(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            return event;
-          });
-        } else {
-          setContactEvents(oldArray => {
-            if (
-              oldArray.length > contactEventLimits &&
-              oldArray[oldArray.length - 1].created_at > event.created_at
-            ) {
-              return oldArray;
-            }
-
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
-
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              // cut to max size
-              if (sortedItems.length > contactEventLimits) {
-                return sortedItems.slice(0, contactEventLimits + 1);
-              }
-              return sortedItems;
-            } else {
-              const id = oldArray.findIndex(s => s.id === event.id);
-              if (id === -1) return oldArray;
-
-              if (!oldArray[id].seen?.includes(relayUrl!)) {
-                oldArray[id].seen?.push(relayUrl!);
-              }
-            }
+      } else {
+        setContactEvents(oldArray => {
+          if (
+            oldArray.length > contactEventLimits &&
+            oldArray[oldArray.length - 1].created_at > event.created_at
+          ) {
             return oldArray;
-          });
-        }
+          }
+
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            // cut to max size
+            if (sortedItems.length > contactEventLimits) {
+              return sortedItems.slice(0, contactEventLimits + 1);
+            }
+            return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
+            }
+          }
+          return oldArray;
+        });
       }
     }
   }
@@ -124,10 +117,11 @@ export function FriendOfFriend({ isLoggedIn }) {
       kinds: [WellKnownEventKind.contact_list],
       limit: 1,
     };
-    worker?.subFilter(filter, undefined, undefined, {
+    const sub = worker?.subFilter(filter, undefined, undefined, {
       type: CallRelayType.batch,
       data: newConn,
     });
+    sub?.iterating({ cb: handleEvent });
   }, [myPublicKey, newConn]);
 
   useEffect(() => {
@@ -141,7 +135,8 @@ export function FriendOfFriend({ isLoggedIn }) {
       ),
       kinds: [WellKnownEventKind.contact_list],
     };
-    worker?.subFilter(filter);
+    const sub = worker?.subFilter(filter);
+    sub?.iterating({ cb: handleEvent });
   }, [myContactEvent]);
 
   useEffect(() => {
@@ -153,8 +148,8 @@ export function FriendOfFriend({ isLoggedIn }) {
     const pks: string[] = Array.from(new Set(arr.flat()))
       .filter(pk => !myFollowingPks.includes(pk) && pk !== myPublicKey)
       .filter(p => userMap.get(p) == null);
-    worker?.subMetadata(pks);
-    console.log(pks.length, worker == null);
+    const sub = worker?.subMetadata(pks);
+    sub?.iterating({ cb: handleEvent });
   }, [isFetchAllContactEvent]);
 
   useEffect(() => {
