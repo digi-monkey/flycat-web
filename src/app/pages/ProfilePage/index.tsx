@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Event,
-  EventSubResponse,
   EventSetMetadataContent,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
@@ -33,11 +31,6 @@ import { PersonalBlogFeedItem } from '../Blog/FeedItem';
 import { useDateBookData } from 'hooks/useDateBookData';
 import { TagItem } from '../Blog/hashTags/TagItem';
 import { ProfileBlogMsgItem } from '../Blog/MsgItem';
-
-// don't move to useState inside components
-// it will trigger more times unnecessary
-let myContactEvent: Event;
-let userContactEvent: Event;
 
 export const styles = {
   root: {
@@ -164,6 +157,13 @@ export type ContactList = Map<
     name: PetName;
   }
 >;
+
+export interface ContactInfo {
+  created_at: number;
+  list: ContactList;
+  keys: string[];
+}
+
 interface UserParams {
   publicKey: string;
 }
@@ -176,174 +176,157 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>(new Map());
-  const [userContactList, setUserContactList] = useState<ContactList>(
-    new Map(),
-  );
+  const [myContactList, setMyContactList] = useState<ContactInfo>();
+  const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [articles, setArticles] = useState<Article[]>([]);
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [myPublicKey, publicKey],
-  });
+  const { worker, newConn } = useCallWorker();
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.text_note:
-          if (event.pubkey === publicKey) {
-            setMsgList(oldArray => {
-              if (!oldArray.map(e => e.id).includes(event.id)) {
-                // do not add duplicated msg
-                const newItems = [...oldArray, event];
-                // sort by timestamp
-                const sortedItems = newItems.sort((a, b) =>
-                  a.created_at >= b.created_at ? -1 : 1,
-                );
-                return sortedItems;
-              }
-              return oldArray;
-            });
-
-            // check if need to sub new user metadata
-            const newPks: string[] = [];
-            for (const t of event.tags) {
-              if (isEventPTag(t)) {
-                const pk = t[1];
-                if (userMap.get(pk) == null) {
-                  newPks.push(pk);
-                }
-              }
+      case WellKnownEventKind.text_note:
+        if (event.pubkey === publicKey) {
+          setMsgList(oldArray => {
+            if (!oldArray.map(e => e.id).includes(event.id)) {
+              // do not add duplicated msg
+              const newItems = [...oldArray, event];
+              // sort by timestamp
+              const sortedItems = newItems.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return sortedItems;
             }
-            if (newPks.length > 0) {
-              worker?.subMetadata(newPks);
-            }
-          }
-          break;
-
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myPublicKey) {
-            if (
-              myContactEvent == null ||
-              myContactEvent?.created_at! < event.created_at
-            ) {
-              myContactEvent = event;
-            }
-          }
-
-          if (event.pubkey === publicKey) {
-            if (
-              userContactEvent == null ||
-              userContactEvent?.created_at! < event.created_at
-            ) {
-              userContactEvent = event;
-            }
-          }
-          break;
-
-        case WellKnownEventKind.long_form:
-          const article = Nip23.toArticle(event);
-          setArticles(prev => {
-            if (prev.map(p => p.eventId).includes(event.id)) return prev;
-
-            const index = prev.findIndex(p => p.id === article.id);
-            if (index !== -1) {
-              const old = prev[index];
-              if (old.updated_at >= article.updated_at) {
-                return prev;
-              } else {
-                return prev.map((p, id) => {
-                  if (id === index) return article;
-                  return p;
-                });
-              }
-            }
-
-            // only add un-duplicated and replyTo msg
-            const newItems = [...prev, article];
-            // sort by timestamp in asc
-            const sortedItems = newItems.sort((a, b) =>
-              a.updated_at >= b.updated_at ? -1 : 1,
-            );
-            return sortedItems;
+            return oldArray;
           });
-          break;
 
-        default:
-          break;
-      }
+          // check if need to sub new user metadata
+          const newPks: string[] = [];
+          for (const t of event.tags) {
+            if (isEventPTag(t)) {
+              const pk = t[1];
+              if (userMap.get(pk) == null) {
+                newPks.push(pk);
+              }
+            }
+          }
+          if (newPks.length > 0) {
+            worker?.subMetadata(newPks)?.iterating({ cb: handleEvent });
+          }
+        }
+        break;
+
+      case WellKnownEventKind.contact_list:
+        if (event.pubkey === myPublicKey) {
+          setMyContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+        break;
+
+      case WellKnownEventKind.long_form:
+        const article = Nip23.toArticle(event);
+        setArticles(prev => {
+          if (prev.map(p => p.eventId).includes(event.id)) return prev;
+
+          const index = prev.findIndex(p => p.id === article.id);
+          if (index !== -1) {
+            const old = prev[index];
+            if (old.updated_at >= article.updated_at) {
+              return prev;
+            } else {
+              return prev.map((p, id) => {
+                if (id === index) return article;
+                return p;
+              });
+            }
+          }
+
+          // only add un-duplicated and replyTo msg
+          const newItems = [...prev, article];
+          // sort by timestamp in asc
+          const sortedItems = newItems.sort((a, b) =>
+            a.updated_at >= b.updated_at ? -1 : 1,
+          );
+          return sortedItems;
+        });
+        break;
+
+      default:
+        break;
     }
   }
-
-  useEffect(() => {
-    if (myContactEvent == null) return;
-
-    const contacts = myContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(myContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setMyContactList(cList);
-  }, [myContactEvent]);
-
-  useEffect(() => {
-    if (userContactEvent == null) return;
-
-    const contacts = userContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(userContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setUserContactList(cList);
-  }, [userContactEvent]);
 
   useEffect(() => {
     // todo: validate publicKey
@@ -359,10 +342,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       type: CallRelayType.batch,
       data: newConn,
     };
-    worker?.subContactList(pks, undefined, undefined, callRelay);
-    worker?.subMetadata(pks, undefined, undefined, callRelay);
-    worker?.subMsg([publicKey], undefined, undefined, callRelay);
-    worker?.subNip23Posts({ pks: [publicKey], callRelay });
+    worker
+      ?.subContactList(pks, undefined, undefined, callRelay)
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subMetadata(pks, undefined, undefined, callRelay)
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subMsg([publicKey], undefined, undefined, callRelay)
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subNip23Posts({ pks: [publicKey], callRelay })
+      ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
   const dateBooks = useDateBookData(articles);
@@ -371,10 +362,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     if (signEvent == null) {
       return alert('no sign method!');
     }
+    if (!myContactList) return;
 
-    const contacts = Array.from(myContactList.entries());
-    console.log('contact-length: ', contacts.length);
-    if (contacts.length === 0) {
+    const pks = myContactList.keys;
+    if (pks.length === 0) {
       const isConfirmed = window.confirm(
         'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
@@ -382,17 +373,17 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         return;
       }
     }
-    const tags = contacts.map(
-      c =>
+    const tags = pks.map(
+      pk =>
         [
           EventTags.P,
-          c[0],
-          c[1].relayer ?? '',
-          c[1].name ?? '',
+          pk,
+          myContactList.list.get(pk)?.relayer ?? '',
+          myContactList.list.get(pk)?.name ?? '',
         ] as EventContactListPTag,
     );
     tags.push([EventTags.P, publicKey, '', '']);
-    if (tags.length != contacts.length + 1) {
+    if (tags.length != pks.length + 1) {
       return alert('something went wrong with contact list');
     }
 
@@ -410,9 +401,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     if (signEvent == null) {
       return alert('no sign method!');
     }
+    if (!myContactList) return;
 
-    const contacts = Array.from(myContactList.entries());
-    if (contacts.length === 0) {
+    const pks = myContactList.keys;
+    if (pks.length === 0) {
       const isConfirmed = window.confirm(
         'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
@@ -420,18 +412,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         return;
       }
     }
-    const tags = contacts
-      .filter(c => c[0] !== publicKey)
+    const tags = pks
+      .filter(pk => pk !== publicKey)
       .map(
-        c =>
+        pk =>
           [
             EventTags.P,
-            c[0],
-            c[1].relayer ?? '',
-            c[1].name ?? '',
+            pk,
+            myContactList.list.get(pk)?.relayer ?? '',
+            myContactList.list.get(pk)?.name ?? '',
           ] as EventContactListPTag,
       );
-    if (tags.length != contacts.length - 1) {
+    if (tags.length != pks.length - 1) {
       return alert('something went wrong with contact list');
     }
 
@@ -446,7 +438,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     alert('done, refresh page please!');
   };
   const followOrUnfollowOnClick =
-    isLoggedIn && myContactList.get(publicKey) ? unfollowUser : followUser;
+    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey)
+      ? unfollowUser
+      : followUser;
 
   const directorys: string[][] = articles
     .filter(a => a.dirs != null)
@@ -520,7 +514,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <div style={styles.userProfile}>
           <UserHeader
             pk={publicKey}
-            followOrUnfollow={!(isLoggedIn && myContactList.get(publicKey))}
+            followOrUnfollow={!followOrUnfollowOnClick}
             followOrUnfollowOnClick={followOrUnfollowOnClick}
             metadata={userMap.get(publicKey)}
           />

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  EventSubResponse,
   EventSetMetadataContent,
   Filter,
-  isEventSubResponse,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
@@ -173,11 +171,7 @@ export const BlogPage = () => {
   );
 
   const myPublicKey = useReadonlyMyPublicKey();
-  const updateWorkerMsgListenerDeps = [];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const isOwner = myPublicKey === publicKey;
   const [siteMetaData, setSiteMetaData] = useState<SiteMetaDataContentSchema>();
@@ -190,105 +184,103 @@ export const BlogPage = () => {
     version: '',
   });
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
+  function handleEvent(event: Event, relayUrl?: string) {
+    console.log(event.kind);
+    if (event.pubkey !== publicKey) {
+      return;
+    }
 
-      if (event.pubkey !== publicKey) {
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = JSON.parse(event.content);
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = JSON.parse(event.content);
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
           return newMap;
-        });
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.flycat_site_metadata) {
-        if (
-          siteMetaDataEvent == null ||
-          siteMetaDataEvent.created_at < event.created_at
-        ) {
-          const data = Flycat.deserialize(
-            event.content,
-          ) as SiteMetaDataContentSchema;
-          siteMetaDataEvent = event;
-          setSiteMetaData(data);
         }
-        return;
-      }
 
-      if (validateArticlePageKind(event.kind)) {
-        const ap = Flycat.deserialize(
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
+        });
+        return newMap;
+      });
+      return;
+    }
+
+    if (event.kind === WellKnownEventKind.flycat_site_metadata) {
+      if (
+        siteMetaDataEvent == null ||
+        siteMetaDataEvent.created_at < event.created_at
+      ) {
+        const data = Flycat.deserialize(
           event.content,
-        ) as ArticlePageContentSchema;
-        if (ap.article_ids.length !== ap.data.length) {
-          throw new Error('unexpected data');
+        ) as SiteMetaDataContentSchema;
+        siteMetaDataEvent = event;
+        setSiteMetaData(data);
+      }
+      return;
+    }
+
+    if (validateArticlePageKind(event.kind)) {
+      const ap = Flycat.deserialize(event.content) as ArticlePageContentSchema;
+      if (ap.article_ids.length !== ap.data.length) {
+        throw new Error('unexpected data');
+      }
+
+      // set new articles
+      setArticles(oldArray => {
+        let updatedArray = [...oldArray];
+
+        // check if there is old article updated
+        for (const newItem of ap.data) {
+          let index = updatedArray.findIndex(item => item.id === newItem.id);
+          if (index !== -1) {
+            if (newItem.updated_at > updatedArray[index].updated_at) {
+              updatedArray[index] = {
+                ...newItem,
+                ...{ page_id: updatedArray[index].page_id },
+              };
+            }
+          }
         }
 
-        // set new articles
-        setArticles(oldArray => {
-          let updatedArray = [...oldArray];
-
-          // check if there is old article updated
-          for (const newItem of ap.data) {
-            let index = updatedArray.findIndex(item => item.id === newItem.id);
-            if (index !== -1) {
-              if (newItem.updated_at > updatedArray[index].updated_at) {
-                updatedArray[index] = {
-                  ...newItem,
-                  ...{ page_id: updatedArray[index].page_id },
-                };
-              }
-            }
+        // check if there is new article added
+        const newData: (ArticleDataSchema & { page_id: number })[] = [];
+        for (const a of ap.data) {
+          if (!updatedArray.map(o => o.id).includes(a.id)) {
+            newData.push({ ...a, ...{ page_id: ap.page_id } });
           }
+        }
 
-          // check if there is new article added
-          const newData: (ArticleDataSchema & { page_id: number })[] = [];
-          for (const a of ap.data) {
-            if (!updatedArray.map(o => o.id).includes(a.id)) {
-              newData.push({ ...a, ...{ page_id: ap.page_id } });
-            }
-          }
+        // sort by timestamp
+        const unsorted = [...updatedArray, ...newData];
+        const sorted = unsorted.sort((a, b) =>
+          a.created_at >= b.created_at ? -1 : 1,
+        );
+        return sorted;
+      });
 
-          // sort by timestamp
-          const unsorted = [...updatedArray, ...newData];
-          const sorted = unsorted.sort((a, b) =>
-            a.created_at >= b.created_at ? -1 : 1,
-          );
-          return sorted;
-        });
-
-        return;
-      }
+      return;
     }
   }
 
   useEffect(() => {
     if (newConn.length === 0) return;
 
-    worker?.subMetadata([publicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
-    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subMetadata([publicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subBlogSiteMetadata([publicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
   useEffect(() => {
@@ -310,10 +302,12 @@ export const BlogPage = () => {
       ),
       limit: 50,
     };
-    worker?.subFilter(filter, undefined, undefined, {
-      type: CallRelayType.batch,
-      data: relays,
-    });
+    worker
+      ?.subFilter(filter, undefined, undefined, {
+        type: CallRelayType.batch,
+        data: relays,
+      })
+      ?.iterating({ cb: handleEvent });
   };
 
   const submitSiteMetaData = async (name: string, description: string) => {
@@ -326,7 +320,7 @@ export const BlogPage = () => {
     worker?.pubEvent(event);
 
     // refresh blog data
-    worker?.subBlogSiteMetadata([publicKey]);
+    worker?.subBlogSiteMetadata([publicKey])?.iterating({ cb: handleEvent });
   };
 
   const submitArticle = async (form: ArticlePostForm) => {

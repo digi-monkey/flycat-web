@@ -9,8 +9,6 @@ import {
   Event,
   EventContactListPTag,
   EventSetMetadataContent,
-  EventSubResponse,
-  isEventSubResponse,
   WellKnownEventKind,
   Filter,
   PublicKey,
@@ -28,14 +26,9 @@ import {
 import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
-import { ContactList } from '.';
 import { loginMapStateToProps } from 'app/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-
-// don't move to useState inside components
-// it will trigger more times unnecessary
-let myContactEvent: Event;
 
 const styles = {
   root: {
@@ -157,7 +150,8 @@ export const BlogFeed = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>(new Map());
+  const [myContactList, setMyContactList] =
+    useState<{ keys: PublicKey[]; created_at: number }>();
 
   const [siteMetaData, setSiteMetaData] = useState<
     (SiteMetaDataContentSchema & { pk: string; created_at: number })[]
@@ -177,83 +171,52 @@ export const BlogFeed = ({ isLoggedIn }) => {
     })[]
   >([]);
 
-  const updateWorkerMsgListenerDeps = [
-    myContactEvent,
-    myPublicKey,
-    myContactList.size,
-  ];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
-  function onMsgHandler(this, res: any, relayUrl?: string) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = JSON.parse(event.content);
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = JSON.parse(event.content);
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
+          }
+
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
           });
-          break;
+          return newMap;
+        });
+        break;
 
-        case WellKnownEventKind.contact_list:
-          if (event.pubkey === myPublicKey) {
-            if (
-              myContactEvent == null ||
-              myContactEvent?.created_at! < event.created_at
-            ) {
-              myContactEvent = event;
-            }
-          }
-          break;
-
-        case FlycatWellKnownEventKind.SiteMetaData:
-          if (myContactList.has(event.pubkey)) {
-            //todo: fix, this is not working
-            const oldData = siteMetaData.filter(s => s.pk === event.pubkey);
-            if (
-              oldData.length > 0 &&
-              oldData[0].created_at >= event.created_at
-            ) {
-              // the new data is outdated
-              return;
+      case WellKnownEventKind.contact_list:
+        if (event.pubkey === myPublicKey) {
+          setMyContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
             }
 
-            const newMap = siteMetaData;
-            const siteMeta = Flycat.deserialize(
-              event.content,
-            ) as SiteMetaDataContentSchema;
-            const data = {
-              ...siteMeta,
-              ...{
-                created_at: event.created_at,
-                pk: event.pubkey,
-              },
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            return {
+              keys,
+              created_at: event.created_at,
             };
-            if (!newMap.map(a => a.pk).includes(data.pk)) {
-              // don't add duplicate one
-              newMap.push(data);
-            }
+          });
+        }
+        break;
 
-            setSiteMetaData(newMap);
-          }
-
-          // global blog sites
-          const oldData = globalSiteMetaData.filter(s => s.pk === event.pubkey);
+      case FlycatWellKnownEventKind.SiteMetaData:
+        if (myContactList?.keys.includes(event.pubkey)) {
+          //todo: fix, this is not working
+          const oldData = siteMetaData.filter(s => s.pk === event.pubkey);
           if (oldData.length > 0 && oldData[0].created_at >= event.created_at) {
             // the new data is outdated
             return;
@@ -275,126 +238,151 @@ export const BlogFeed = ({ isLoggedIn }) => {
             newMap.push(data);
           }
 
-          worker?.subMetadata([event.pubkey]);
-          setGlobalSiteMetaData(newMap);
-          break;
+          setSiteMetaData(newMap);
+        }
 
-        default:
-          if (validateArticlePageKind(event.kind)) {
-            if (!isLoggedIn) {
-              const ap = Flycat.deserialize(
-                event.content,
-              ) as ArticlePageContentSchema;
-              if (ap.article_ids.length !== ap.data.length) {
-                throw new Error('unexpected data');
-              }
+        // global blog sites
+        const oldData = globalSiteMetaData.filter(s => s.pk === event.pubkey);
+        if (oldData.length > 0 && oldData[0].created_at >= event.created_at) {
+          // the new data is outdated
+          return;
+        }
 
-              // set new articles
-              setGlobalArticles(oldArray => {
-                let updatedArray = [...oldArray];
+        const newMap = siteMetaData;
+        const siteMeta = Flycat.deserialize(
+          event.content,
+        ) as SiteMetaDataContentSchema;
+        const data = {
+          ...siteMeta,
+          ...{
+            created_at: event.created_at,
+            pk: event.pubkey,
+          },
+        };
+        if (!newMap.map(a => a.pk).includes(data.pk)) {
+          // don't add duplicate one
+          newMap.push(data);
+        }
 
-                // check if there is old article updated
-                for (const newItem of ap.data) {
-                  let index = updatedArray.findIndex(
-                    item => item.id === newItem.id,
-                  );
-                  if (index !== -1) {
-                    if (newItem.updated_at > updatedArray[index].updated_at) {
-                      updatedArray[index] = {
-                        ...newItem,
-                        ...{
-                          page_id: updatedArray[index].page_id,
-                          pageCreatedAt: event.created_at,
-                          pk: event.pubkey,
-                        },
-                      };
-                    }
-                  }
-                }
+        worker?.subMetadata([event.pubkey])?.iterating({ cb: handEvent });
+        setGlobalSiteMetaData(newMap);
+        break;
 
-                // check if there is new article added
-                const newData: (ArticleDataSchema & {
-                  page_id: number;
-                  pageCreatedAt: number;
-                  pk: PublicKey;
-                })[] = [];
-                for (const a of ap.data) {
-                  if (!updatedArray.map(o => o.id).includes(a.id)) {
-                    newData.push({
-                      ...a,
+      default:
+        if (validateArticlePageKind(event.kind)) {
+          if (!isLoggedIn) {
+            const ap = Flycat.deserialize(
+              event.content,
+            ) as ArticlePageContentSchema;
+            if (ap.article_ids.length !== ap.data.length) {
+              throw new Error('unexpected data');
+            }
+
+            // set new articles
+            setGlobalArticles(oldArray => {
+              let updatedArray = [...oldArray];
+
+              // check if there is old article updated
+              for (const newItem of ap.data) {
+                let index = updatedArray.findIndex(
+                  item => item.id === newItem.id,
+                );
+                if (index !== -1) {
+                  if (newItem.updated_at > updatedArray[index].updated_at) {
+                    updatedArray[index] = {
+                      ...newItem,
                       ...{
-                        page_id: ap.page_id,
+                        page_id: updatedArray[index].page_id,
                         pageCreatedAt: event.created_at,
                         pk: event.pubkey,
                       },
-                    });
+                    };
                   }
                 }
+              }
 
+              // check if there is new article added
+              const newData: (ArticleDataSchema & {
+                page_id: number;
+                pageCreatedAt: number;
+                pk: PublicKey;
+              })[] = [];
+              for (const a of ap.data) {
+                if (!updatedArray.map(o => o.id).includes(a.id)) {
+                  newData.push({
+                    ...a,
+                    ...{
+                      page_id: ap.page_id,
+                      pageCreatedAt: event.created_at,
+                      pk: event.pubkey,
+                    },
+                  });
+                }
+              }
+
+              // sort by timestamp
+              const unsorted = [...updatedArray, ...newData];
+              const sorted = unsorted.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return sorted;
+            });
+            return;
+          }
+
+          // sign-in
+          const oldData = articles.filter(p => p.pk === event.pubkey);
+          if (
+            oldData.length > 0 &&
+            oldData[0].pageCreatedAt >= event.created_at
+          ) {
+            // outdate
+            return;
+          }
+
+          setArticles(pre => {
+            const newData = pre;
+            try {
+              const ap = Flycat.deserialize(
+                event.content,
+              ) as ArticlePageContentSchema;
+
+              const newArticle: (ArticleDataSchema & {
+                pk: PublicKey;
+                pageCreatedAt: number;
+              })[] = [];
+
+              for (const a of ap.data) {
+                const data: ArticleDataSchema & {
+                  pk: PublicKey;
+                  pageCreatedAt: number;
+                } = {
+                  ...a,
+                  ...{ pk: event.pubkey, pageCreatedAt: event.created_at },
+                };
+                newArticle.push(data);
+              }
+
+              for (const a of newArticle) {
+                if (!newData.map(i => i.id).includes(a.id)) {
+                  newData.push(a);
+                }
+              }
+              if (newData.length > 0) {
                 // sort by timestamp
-                const unsorted = [...updatedArray, ...newData];
-                const sorted = unsorted.sort((a, b) =>
+                const sorted = newData.sort((a, b) =>
                   a.created_at >= b.created_at ? -1 : 1,
                 );
                 return sorted;
-              });
-              return;
-            }
-
-            // sign-in
-            const oldData = articles.filter(p => p.pk === event.pubkey);
-            if (
-              oldData.length > 0 &&
-              oldData[0].pageCreatedAt >= event.created_at
-            ) {
-              // outdate
-              return;
-            }
-
-            setArticles(pre => {
-              const newData = pre;
-              try {
-                const ap = Flycat.deserialize(
-                  event.content,
-                ) as ArticlePageContentSchema;
-
-                const newArticle: (ArticleDataSchema & {
-                  pk: PublicKey;
-                  pageCreatedAt: number;
-                })[] = [];
-
-                for (const a of ap.data) {
-                  const data: ArticleDataSchema & {
-                    pk: PublicKey;
-                    pageCreatedAt: number;
-                  } = {
-                    ...a,
-                    ...{ pk: event.pubkey, pageCreatedAt: event.created_at },
-                  };
-                  newArticle.push(data);
-                }
-
-                for (const a of newArticle) {
-                  if (!newData.map(i => i.id).includes(a.id)) {
-                    newData.push(a);
-                  }
-                }
-                if (newData.length > 0) {
-                  // sort by timestamp
-                  const sorted = newData.sort((a, b) =>
-                    a.created_at >= b.created_at ? -1 : 1,
-                  );
-                  return sorted;
-                } else {
-                  return pre;
-                }
-              } catch (error: any) {
+              } else {
                 return pre;
               }
-            });
-          }
-          break;
-      }
+            } catch (error: any) {
+              return pre;
+            }
+          });
+        }
+        break;
     }
   }
 
@@ -403,64 +391,48 @@ export const BlogFeed = ({ isLoggedIn }) => {
     if (isLoggedIn !== true) return;
     if (myPublicKey == null) return;
 
-    worker?.subContactList([myPublicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
-    worker?.subMetadata([myPublicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subContactList([myPublicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handEvent });
+    worker
+      ?.subMetadata([myPublicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handEvent });
   }, [myPublicKey, newConn]);
 
   useEffect(() => {
-    if (myContactEvent == null) return;
+    if (!myContactList) return;
 
-    const contacts = myContactEvent.tags.filter(
-      t => t[0] === EventTags.P,
-    ) as EventContactListPTag[];
-
-    let cList: ContactList = new Map(myContactList);
-
-    contacts.forEach(c => {
-      const pk = c[1];
-      const relayer = c[2];
-      const name = c[3];
-      if (!cList.has(pk)) {
-        cList.set(pk, {
-          relayer,
-          name,
-        });
-      }
-    });
-
-    setMyContactList(cList);
-  }, [myContactEvent]);
-
-  useEffect(() => {
-    if (myContactList.size > 0) {
-      const pks = Array.from(myContactList.keys());
-      if (myPublicKey.length > 0) {
-        pks.push(myPublicKey);
-      }
-
-      worker?.subMetadata(pks);
-      worker?.subBlogSiteMetadata(pks);
+    const pks = myContactList.keys;
+    if (myPublicKey.length > 0) {
+      pks.push(myPublicKey);
     }
+
+    worker?.subMetadata(pks)?.iterating({ cb: handEvent });
+    worker?.subBlogSiteMetadata(pks)?.iterating({ cb: handEvent });
   }, [myContactList]);
 
   useEffect(() => {
     if (newConn.length === 0) return;
     if (isLoggedIn) return;
 
-    worker?.subMetadata([hardCodedBlogPk], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
-    worker?.subBlogSiteMetadata([hardCodedBlogPk], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subMetadata([hardCodedBlogPk], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handEvent });
+    worker
+      ?.subBlogSiteMetadata([hardCodedBlogPk], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handEvent });
   }, [isLoggedIn, newConn]);
 
   useEffect(() => {
@@ -469,10 +441,12 @@ export const BlogFeed = ({ isLoggedIn }) => {
       kinds: [WellKnownEventKind.flycat_site_metadata],
       limit: 50,
     };
-    worker?.subFilter(globalBlogFilter, true, 'globalBlogSites', {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subFilter(globalBlogFilter, true, 'globalBlogSites', {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handEvent });
   }, [newConn]);
 
   useEffect(() => {
@@ -484,7 +458,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
   const subArticles = () => {
     const siteMetadata = globalSiteMetaData.filter(
       s =>
-        myContactList.has(s.pk) ||
+        myContactList?.keys.includes(s.pk) ||
         s.pk === myPublicKey ||
         s.pk === hardCodedBlogPk,
     );
@@ -510,7 +484,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
       kinds: uniqueKinds,
     };
 
-    worker?.subFilter(filter);
+    worker?.subFilter(filter)?.iterating({ cb: handEvent });
   };
 
   return (
@@ -598,7 +572,10 @@ export const BlogFeed = ({ isLoggedIn }) => {
               isLoggedIn &&
               // todo: fix the filter hack
               articles
-                .filter(a => myContactList.has(a.pk) || a.pk === myPublicKey)
+                .filter(
+                  a =>
+                    myContactList?.keys.includes(a.pk) || a.pk === myPublicKey,
+                )
                 .map((a, index) => (
                   <BlogMsg
                     key={a.pk + a.id}

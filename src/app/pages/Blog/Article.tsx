@@ -3,8 +3,6 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import {
   Event,
   EventSetMetadataContent,
-  EventSubResponse,
-  isEventSubResponse,
   WellKnownEventKind,
 } from 'service/api';
 import ReactMarkdown from 'react-markdown';
@@ -71,67 +69,59 @@ export function NewArticle() {
     alert('published! please refresh the page, sorry will fix this soon!');
   };
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [publicKey],
-  });
+  const { worker, newConn } = useCallWorker();
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = JSON.parse(event.content);
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
+  function handleEvent(event: Event, relayUrl?: string) {
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = JSON.parse(event.content);
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
           return newMap;
-        });
-        return;
-      }
+        }
 
-      if (event.kind === WellKnownEventKind.long_form) {
-        if (event.pubkey !== publicKey) return;
-        const article = Nip23.toArticle(event);
-        setArticle(prevArticle => {
-          if (!prevArticle || article?.updated_at >= prevArticle.updated_at) {
-            return article;
-          }
-          return prevArticle;
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
         });
-        setArticleEvent(prev => {
-          if (!prev || prev?.created_at < event.created_at) {
-            return event;
-          }
-          return prev;
-        });
-        return;
-      }
+        return newMap;
+      });
+      return;
+    }
 
-      if (event.kind === WellKnownEventKind.text_note) {
-        // if (article == null) return;
-        // if (!Nip23.isCommentEvent(event, article)) return;
+    if (event.kind === WellKnownEventKind.long_form) {
+      if (event.pubkey !== publicKey) return;
+      const article = Nip23.toArticle(event);
+      setArticle(prevArticle => {
+        if (!prevArticle || article?.updated_at >= prevArticle.updated_at) {
+          return article;
+        }
+        return prevArticle;
+      });
+      setArticleEvent(prev => {
+        if (!prev || prev?.created_at < event.created_at) {
+          return event;
+        }
+        return prev;
+      });
+      return;
+    }
 
-        setComments(prev => {
-          if (!prev.map(p => p.id).includes(event.id)) {
-            return [...prev, event].sort((a, b) =>
-              a.created_at >= b.created_at ? 1 : -1,
-            );
-          }
-          return prev;
-        });
-        return;
-      }
+    if (event.kind === WellKnownEventKind.text_note) {
+      // if (article == null) return;
+      // if (!Nip23.isCommentEvent(event, article)) return;
+
+      setComments(prev => {
+        if (!prev.map(p => p.id).includes(event.id)) {
+          return [...prev, event].sort((a, b) =>
+            a.created_at >= b.created_at ? 1 : -1,
+          );
+        }
+        return prev;
+      });
+      return;
     }
   }
 
@@ -143,22 +133,24 @@ export function NewArticle() {
       data: newConn,
     };
 
-    worker?.subMetadata([publicKey], undefined, undefined, callRelay);
+    worker
+      ?.subMetadata([publicKey], undefined, undefined, callRelay)
+      ?.iterating({ cb: handleEvent });
     const filter = Nip23.filter({
       authors: [publicKey],
       articleIds: [articleId],
     });
-    worker?.subFilter(filter, undefined, 'article-data', callRelay);
+    worker
+      ?.subFilter(filter, undefined, 'article-data', callRelay)
+      ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
   useEffect(() => {
     if (article == null) return;
 
-    worker?.subFilter(
-      Nip23.toPullCommentFilter(article),
-      undefined,
-      'article-data',
-    );
+    worker
+      ?.subFilter(Nip23.toPullCommentFilter(article), undefined, 'article-data')
+      ?.iterating({ cb: handleEvent });
   }, [article]);
 
   const content = useMemo(() => {

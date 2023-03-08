@@ -14,8 +14,7 @@ import { ImageUploader } from '../../components/layout/PubNoteTextarea';
 import { useParams } from 'react-router-dom';
 import { CallRelayType } from 'service/worker/type';
 import {
-  isEventSubResponse,
-  EventSubResponse,
+  Event,
   WellKnownEventKind,
   EventSetMetadataContent,
 } from 'service/api';
@@ -73,53 +72,45 @@ export function Write({
   const [predefineHashTags, setPredefineHashTags] = useState<TagObj[]>([]);
   const [hashTags, setHashTags] = useState<string[]>([]);
   const [content, setContent] = useState<string>('');
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [],
-  });
+  const { worker, newConn } = useCallWorker();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  function onMsgHandler(res: any, relayUrl?: string) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
+  function handleEvent(event: Event, relayUrl?: string) {
+    if (event.pubkey !== publicKey) {
+      return;
+    }
 
-      if (event.pubkey !== publicKey) {
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = JSON.parse(event.content);
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = JSON.parse(event.content);
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
           return newMap;
+        }
+
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
         });
-        return;
-      }
+        return newMap;
+      });
+      return;
+    }
 
-      if (event.kind === WellKnownEventKind.long_form) {
-        if (event.pubkey !== publicKey) return;
+    if (event.kind === WellKnownEventKind.long_form) {
+      if (event.pubkey !== publicKey) return;
 
-        const data = Nip23.toArticle(event);
+      const data = Nip23.toArticle(event);
 
-        setArticle(article => {
-          if (article?.updated_at && article?.updated_at >= data?.updated_at) {
-            return article;
-          }
+      setArticle(article => {
+        if (article?.updated_at && article?.updated_at >= data?.updated_at) {
+          return article;
+        }
 
-          return data;
-        });
-      }
+        return data;
+      });
     }
   }
 
@@ -157,10 +148,12 @@ export function Write({
       authors: [publicKey],
       articleIds: [articleId],
     });
-    worker?.subFilter(filter, undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subFilter(filter, undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
   useEffect(() => {

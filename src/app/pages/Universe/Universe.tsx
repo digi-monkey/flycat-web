@@ -8,8 +8,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect, useSelector } from 'react-redux';
 import {
-  isEventSubResponse,
   WellKnownEventKind,
+  Event,
   EventSetMetadataContent,
   deserializeMetadata,
 } from 'service/api';
@@ -38,7 +38,7 @@ const LightBtn = styled.button`
   }
 `;
 
-export function Universe({ isLoggedIn }) {
+export function Backup({ isLoggedIn }) {
   const { t } = useTranslation();
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
   const myPublicKey = useReadonlyMyPublicKey();
@@ -55,75 +55,62 @@ export function Universe({ isLoggedIn }) {
   const [events, setEvents] = useState<EventWithSeen[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [selectedRelayUrl, userMap.size],
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   useEffect(() => {
     setSelectedRelayUrl(defaultRelays[0]);
   }, []);
 
-  // Total events we want to render in the activity list
-  const eventsToRenderLimit = 300;
-
-  function onMsgHandler(this, data: any, relayUrl?: string) {
-    const msg = JSON.parse(data);
-    if (isEventSubResponse(msg)) {
-      const event = msg[2];
-      if (relayUrl !== selectedRelayUrl) return;
-
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = deserializeMetadata(
-          event.content,
-        );
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
+  function handleEvent(event: Event, relayUrl?: string) {
+    console.debug(`[${worker?._workerId}]receive event`);
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = deserializeMetadata(
+        event.content,
+      );
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
           return newMap;
-        });
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.text_note) {
-        // Add the event to the events array
-        setEvents(oldArray => {
-          if (oldArray.map(e => e.id).includes(event.id)) {
-            const id = oldArray.findIndex(s => s.id === event.id);
-            if (id === -1) return oldArray;
-
-            if (!oldArray[id].seen?.includes(relayUrl!)) {
-              oldArray[id].seen?.push(relayUrl!);
-            }
-            return oldArray;
-          }
-
-          const newItems = [
-            ...oldArray,
-            { ...event, ...{ seen: [relayUrl!] } },
-          ];
-          // sort by timestamp
-          const sortedItems = newItems.sort((a, b) =>
-            a.created_at >= b.created_at ? -1 : 1,
-          );
-          return sortedItems;
-        });
-
-        if (userMap.get(event.pubkey) == null) {
-          worker?.subMetadata([event.pubkey]);
         }
 
-        return;
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
+        });
+        return newMap;
+      });
+      return;
+    }
+
+    if (event.kind === WellKnownEventKind.text_note) {
+      // Add the event to the events array
+      setEvents(oldArray => {
+        if (oldArray.map(e => e.id).includes(event.id)) {
+          const id = oldArray.findIndex(s => s.id === event.id);
+          if (id === -1) return oldArray;
+
+          if (!oldArray[id].seen?.includes(relayUrl!)) {
+            oldArray[id].seen?.push(relayUrl!);
+          }
+          return oldArray;
+        }
+
+        const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
+        // sort by timestamp
+        const sortedItems = newItems.sort((a, b) =>
+          a.created_at >= b.created_at ? -1 : 1,
+        );
+        return sortedItems;
+      });
+
+      if (userMap.get(event.pubkey) == null) {
+        const sub = worker?.subMetadata([event.pubkey]);
+        sub?.iterating({ cb: handleEvent });
       }
+
+      return;
     }
   }
 
@@ -138,10 +125,12 @@ export function Universe({ isLoggedIn }) {
 
   const fetchEvents = async () => {
     const filter = { kinds: [WellKnownEventKind.text_note], limit: 100 };
-    worker?.subFilter(filter, undefined, undefined, {
+    const sub = worker?.subFilter(filter, undefined, undefined, {
       type: CallRelayType.single,
       data: [selectedRelayUrl!],
     });
+    console.log(sub?.subscriptionId);
+    sub?.iterating({ cb: handleEvent });
   };
 
   useEffect(() => {
@@ -202,7 +191,7 @@ export function Universe({ isLoggedIn }) {
   );
 }
 
-export default connect(loginMapStateToProps)(Universe);
+export default connect(loginMapStateToProps)(Backup);
 
 function ThinHr() {
   return <div style={{ borderBottom: '1px solid #f1eded' }} />;

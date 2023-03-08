@@ -11,9 +11,7 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import {
   Event,
   EventSetMetadataContent,
-  EventSubResponse,
   Filter,
-  isEventSubResponse,
   WellKnownEventKind,
 } from 'service/api';
 import ReactMarkdown from 'react-markdown';
@@ -163,76 +161,65 @@ export function ArticleRead() {
     alert('not supported');
   };
 
-  const updateWorkerMsgListenerDeps = [];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
-  function onMsgHandler(res: any) {
-    const msg = JSON.parse(res);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
+  function handleEvent(event: Event) {
+    if (event.pubkey !== publicKey) {
+      return;
+    }
 
-      if (event.pubkey !== publicKey) {
-        return;
-      }
-
-      if (event.kind === WellKnownEventKind.set_metadata) {
-        const metadata: EventSetMetadataContent = JSON.parse(event.content);
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
+    if (event.kind === WellKnownEventKind.set_metadata) {
+      const metadata: EventSetMetadataContent = JSON.parse(event.content);
+      setUserMap(prev => {
+        const newMap = new Map(prev);
+        const oldData = newMap.get(event.pubkey);
+        if (oldData && oldData.created_at > event.created_at) {
+          // the new data is outdated
           return newMap;
+        }
+
+        newMap.set(event.pubkey, {
+          ...metadata,
+          ...{ created_at: event.created_at },
         });
-        return;
-      }
+        return newMap;
+      });
+      return;
+    }
 
-      if (event.kind === WellKnownEventKind.flycat_site_metadata) {
-        if (
-          siteMetaDataEvent == null ||
-          siteMetaDataEvent.created_at < event.created_at
-        ) {
-          const data = Flycat.deserialize(
-            event.content,
-          ) as SiteMetaDataContentSchema;
-          siteMetaDataEvent = event;
-          setSiteMetaData(data);
-        }
-        return;
-      }
-
-      if (validateArticlePageKind(event.kind)) {
-        const ap = Flycat.deserialize(
+    if (event.kind === WellKnownEventKind.flycat_site_metadata) {
+      if (
+        siteMetaDataEvent == null ||
+        siteMetaDataEvent.created_at < event.created_at
+      ) {
+        const data = Flycat.deserialize(
           event.content,
-        ) as ArticlePageContentSchema;
-        if (ap.article_ids.length !== ap.data.length) {
-          throw new Error('unexpected data');
-        }
-
-        // set new article
-        for (const article of ap.data) {
-          if (
-            article.id.toString() === articleId &&
-            (articlePageEvent == null ||
-              event.created_at > articlePageEvent.created_at)
-          ) {
-            articlePageEvent = event;
-            console.log(article);
-            setArticle(article);
-          }
-        }
-        return;
+        ) as SiteMetaDataContentSchema;
+        siteMetaDataEvent = event;
+        setSiteMetaData(data);
       }
+      return;
+    }
+
+    if (validateArticlePageKind(event.kind)) {
+      const ap = Flycat.deserialize(event.content) as ArticlePageContentSchema;
+      if (ap.article_ids.length !== ap.data.length) {
+        throw new Error('unexpected data');
+      }
+
+      // set new article
+      for (const article of ap.data) {
+        if (
+          article.id.toString() === articleId &&
+          (articlePageEvent == null ||
+            event.created_at > articlePageEvent.created_at)
+        ) {
+          articlePageEvent = event;
+          console.log(article);
+          setArticle(article);
+        }
+      }
+      return;
     }
   }
 
@@ -254,21 +241,21 @@ export function ArticleRead() {
     );
   };
 
-  function _wsConnectStatus() {
-    return wsConnectStatus;
-  }
-
   useEffect(() => {
     if (newConn.length === 0) return;
 
-    worker?.subMetadata([publicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
-    worker?.subBlogSiteMetadata([publicKey], undefined, undefined, {
-      type: CallRelayType.batch,
-      data: newConn,
-    });
+    worker
+      ?.subMetadata([publicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
+    worker
+      ?.subBlogSiteMetadata([publicKey], undefined, undefined, {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
   useEffect(() => {
@@ -285,7 +272,7 @@ export function ArticleRead() {
       ),
       limit: 50,
     };
-    worker?.subFilter(filter);
+    worker?.subFilter(filter)?.iterating({ cb: handleEvent });
   };
   return (
     <BaseLayout>

@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { connect, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { isEventSubResponse, WellKnownEventKind, Event } from 'service/api';
+import { WellKnownEventKind, Event } from 'service/api';
 import { isValidWssUrl } from 'service/helper';
 import { defaultRelays } from 'service/relay';
 import { CallRelayType } from 'service/worker/type';
@@ -73,11 +73,7 @@ export function Backup({ isLoggedIn }) {
     setRelayUrl(relayUrl);
   }, [relays]);
 
-  const updateWorkerMsgListenerDeps = [relayUrl];
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps,
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const relayStatusCacheValue = useMemo(() => {
     if (relayUrl) {
@@ -99,36 +95,32 @@ export function Backup({ isLoggedIn }) {
     relayUrl?.startsWith('ws://localhost') ||
     relayUrl?.startsWith('wss://localhost');
 
-  function onMsgHandler(this, data: any, msgRelayUrl?: string) {
-    const msg = JSON.parse(data);
-    if (isEventSubResponse(msg)) {
-      const event = msg[2];
-      if (msgRelayUrl == null || relayUrl == null) return;
+  function handleEvent(event: Event, msgRelayUrl?: string) {
+    if (msgRelayUrl == null || relayUrl == null) return;
 
-      if (msgRelayUrl === relayUrl) {
-        // Add the event to the events array
-        setEvents(prevEvents => {
-          // Extract the relevant data from the event
-          const { id, kind, created_at, content } = event;
-          if (prevEvents.map(e => e.id).includes(id)) {
-            // duplicated
-            return prevEvents;
-          }
+    if (msgRelayUrl === relayUrl) {
+      // Add the event to the events array
+      setEvents(prevEvents => {
+        // Extract the relevant data from the event
+        const { id, kind, created_at, content } = event;
+        if (prevEvents.map(e => e.id).includes(id)) {
+          // duplicated
+          return prevEvents;
+        }
 
-          return [{ id, kind, created_at, content }, ...prevEvents];
-        });
-      }
+        return [{ id, kind, created_at, content }, ...prevEvents];
+      });
+    }
 
-      if (msgRelayUrl !== relayUrl) {
-        // Add the event to the sync events array
-        setSyncEvents(prevEvents => {
-          if (prevEvents.map(e => e.id).includes(event.id)) {
-            // duplicated
-            return prevEvents;
-          }
-          return [event, ...prevEvents];
-        });
-      }
+    if (msgRelayUrl !== relayUrl) {
+      // Add the event to the sync events array
+      setSyncEvents(prevEvents => {
+        if (prevEvents.map(e => e.id).includes(event.id)) {
+          // duplicated
+          return prevEvents;
+        }
+        return [event, ...prevEvents];
+      });
     }
   }
 
@@ -166,18 +158,22 @@ export function Backup({ isLoggedIn }) {
 
   const fetchBackUp = async () => {
     const filter = { authors: [myPublicKey], limit: 1000 };
-    worker?.subFilter(filter, undefined, undefined, {
-      type: CallRelayType.single,
-      data: [relayUrl!],
-    });
+    worker
+      ?.subFilter(filter, undefined, undefined, {
+        type: CallRelayType.single,
+        data: [relayUrl!],
+      })
+      ?.iterating({ cb: handleEvent });
   };
 
   const sync = async () => {
     const filter = { authors: [myPublicKey], limit: 1000 };
-    worker?.subFilter(filter, undefined, undefined, {
-      type: CallRelayType.batch,
-      data: Array.from(wsConnectStatus.keys()).filter(s => s !== relayUrl),
-    });
+    worker
+      ?.subFilter(filter, undefined, undefined, {
+        type: CallRelayType.batch,
+        data: Array.from(wsConnectStatus.keys()).filter(s => s !== relayUrl),
+      })
+      ?.iterating({ cb: handleEvent });
   };
 
   const backupSync = async () => {

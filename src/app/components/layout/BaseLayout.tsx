@@ -4,8 +4,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  isEventSubResponse,
-  EventSubResponse,
+  Event,
   WellKnownEventKind,
   EventSetMetadataContent,
   deserializeMetadata,
@@ -154,40 +153,33 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
   const myPublicKey = useReadonlyMyPublicKey();
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler,
-    updateWorkerMsgListenerDeps: [],
-  });
+  const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
-  function onMsgHandler(data: any) {
-    const msg = JSON.parse(data);
-    if (isEventSubResponse(msg)) {
-      const event = (msg as EventSubResponse)[2];
-      switch (event.kind) {
-        case WellKnownEventKind.set_metadata:
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
+        setUserMap(prev => {
+          const newMap = new Map(prev);
+          const oldData = newMap.get(event.pubkey);
+          if (oldData && oldData.created_at > event.created_at) {
+            // the new data is outdated
             return newMap;
-          });
-          break;
+          }
 
-        default:
-          break;
-      }
+          newMap.set(event.pubkey, {
+            ...metadata,
+            ...{ created_at: event.created_at },
+          });
+          return newMap;
+        });
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -195,10 +187,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     if (newConn.length === 0) return;
 
     if (!isEmptyStr(myPublicKey) && userMap.get(myPublicKey) == null) {
-      worker?.subMetadata([myPublicKey], undefined, undefined, {
-        type: CallRelayType.batch,
-        data: newConn,
-      });
+      worker
+        ?.subMetadata([myPublicKey], undefined, undefined, {
+          type: CallRelayType.batch,
+          data: newConn,
+        })
+        ?.iterating({ cb: handleEvent });
     }
   }, [newConn]);
 

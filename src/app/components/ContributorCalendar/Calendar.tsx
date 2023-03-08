@@ -1,11 +1,7 @@
 import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import Calendar from 'react-github-contribution-calendar';
-import {
-  EventSubResponse,
-  isEventSubResponse,
-  WellKnownEventKind,
-} from 'service/api';
+import { Event, WellKnownEventKind } from 'service/api';
 import { CallRelayType } from 'service/worker/type';
 
 var panelColors = ['#EEEEEE', '#D6E685', '#8CC665', '#44A340', '#1E6823'];
@@ -36,42 +32,38 @@ export function CommitCalendar({ pk }: { pk: string }) {
   const [msgList, setMsgList] = useState<LightMsgList[]>([]); //seconds
   const [values, setValues] = useState<any>([]);
 
-  const { worker, newConn } = useCallWorker({
-    onMsgHandler: (nostrData: any) => {
-      const msg = JSON.parse(nostrData);
-      if (isEventSubResponse(msg)) {
-        const event = (msg as EventSubResponse)[2];
+  function handleEvent(event: Event, relayUrl?: string) {
+    if (event.pubkey !== pk) {
+      return;
+    }
 
-        if (event.pubkey !== pk) {
-          return;
+    if (event.kind === WellKnownEventKind.text_note) {
+      setMsgList(prev => {
+        if (!prev.map(p => p.id).includes(event.id)) {
+          return [...prev, { created_at: event.created_at, id: event.id }];
         }
+        return prev;
+      });
+    }
+  }
 
-        if (event.kind === WellKnownEventKind.text_note) {
-          setMsgList(prev => {
-            if (!prev.map(p => p.id).includes(event.id)) {
-              return [...prev, { created_at: event.created_at, id: event.id }];
-            }
-            return prev;
-          });
-        }
-      }
-    },
-    updateWorkerMsgListenerDeps: [pk],
-  });
+  const { worker, newConn } = useCallWorker();
 
   useEffect(() => {
     if (newConn.length === 0) return;
 
-    worker?.subMsg(
-      [pk],
-      undefined,
-      undefined,
-      {
-        type: CallRelayType.batch,
-        data: newConn,
-      },
-      { limit: 1000 },
-    );
+    worker
+      ?.subMsg(
+        [pk],
+        undefined,
+        undefined,
+        {
+          type: CallRelayType.batch,
+          data: newConn,
+        },
+        { limit: 1000 },
+      )
+      ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
   useEffect(() => {

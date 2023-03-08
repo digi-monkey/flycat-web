@@ -65,10 +65,7 @@ export function RelayManager({
   const [relays, setRelays] = useState<string[]>([]);
 
   const myPublicKey = useReadonlyMyPublicKey();
-  const { worker, newConn, wsConnectStatus } = useCallWorker({
-    onMsgHandler: () => {},
-    updateWorkerMsgListenerDeps: [],
-  });
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   useEffect(() => {
     if (newConnCallback) {
