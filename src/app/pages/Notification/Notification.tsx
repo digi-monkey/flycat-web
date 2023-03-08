@@ -25,27 +25,31 @@ import { Nip23 } from 'service/nip/23';
 
 export interface ItemProps {
   msg: Event;
-  userMap: UserMap;
-  event: Event;
   eventId: string;
+  userMap: UserMap;
   worker: CallWorker;
-  iteratorCallBack: (event: Event, relayUrl?: string) => any;
 }
 
-export function LikeItem({
-  msg,
-  userMap,
-  eventId,
-  event,
-  worker,
-  iteratorCallBack,
-}: ItemProps) {
+export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
   const { t } = useTranslation();
-  useEffect(() => {
-    if (event == null) {
-      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
+  const [toEvent, setToEvent] = useState<Event>();
+
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.text_note:
+        if (toEvent == null && event.id === eventId) {
+          setToEvent(event);
+        }
+        break;
+
+      default:
+        break;
     }
-  }, [event, worker]);
+  }
+
+  useEffect(() => {
+    worker.subMsgByEventIds([eventId])?.iterating({ cb: handleEvent });
+  }, [eventId]);
 
   const read = async () => {
     const link = '/event/' + eventId;
@@ -75,28 +79,34 @@ export function LikeItem({
         <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
       </span>
       {t('notification.likedYour')}
-      <a href={'/event/' + event?.id}>{t('notification.note')}</a>{' '}
-      <span style={{}}>"{maxStrings(event?.content || '', 30)}"</span>
+      <a href={'/event/' + eventId}>{t('notification.note')}</a>{' '}
+      <span style={{}}>"{maxStrings(toEvent?.content || '', 30)}"</span>
     </span>
   );
 }
 
-export function ReplyItem({
-  msg,
-  userMap,
-  event,
-  eventId,
-  worker,
-  iteratorCallBack,
-}: ItemProps) {
+export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
   const { t } = useTranslation();
-  useEffect(() => {
-    if (event == null) {
-      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
+  const [toEvent, setToEvent] = useState<Event>();
+
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.text_note:
+        if (toEvent == null && event.id === eventId) {
+          setToEvent(event);
+        }
+        break;
+
+      default:
+        break;
     }
-  }, [event, worker]);
+  }
+
+  useEffect(() => {
+    worker.subMsgByEventIds([eventId])?.iterating({ cb: handleEvent });
+  }, [eventId]);
   const read = async () => {
-    const link = '/event/' + (event?.id || msg.id);
+    const link = '/event/' + eventId;
     window.open(link, '__blank');
     const lastReadTime = get();
     if (msg.created_at > lastReadTime) {
@@ -122,14 +132,14 @@ export function ReplyItem({
           <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
         </span>
         <span style={{ fontSize: '12px', color: 'gray' }}>
-          {event?.id && (
+          {eventId && (
             <span>
               {t('notification.replyToYour')}{' '}
-              <a href={'/event/' + event?.id}>{t('notification.note')}</a> "
-              {maxStrings(event?.content || '', 30)}"
+              <a href={'/event/' + eventId}>{t('notification.note')}</a> "
+              {maxStrings(toEvent?.content || '', 30)}"
             </span>
           )}
-          {!event?.id && <span>{t('notification.mentionYou')}</span>}
+          {!eventId && <span>{t('notification.mentionYou')}</span>}
         </span>
         <a
           style={{ textDecoration: 'none', color: 'black' }}
@@ -146,26 +156,40 @@ export function ReplyItem({
 export function ArticleCommentItem({
   msg,
   userMap,
-  event,
   eventId,
   worker,
-  iteratorCallBack,
 }: ItemProps) {
   const { t } = useTranslation();
-  useEffect(() => {
-    if (event == null) {
-      worker.subMsgByEventIds([eventId])?.iterating({ cb: iteratorCallBack });
+  const [toEvent, setToEvent] = useState<Event>();
+
+  function handleEvent(event: Event, relayUrl?: string) {
+    switch (event.kind) {
+      case WellKnownEventKind.long_form:
+        if (toEvent == null && event.id === eventId) {
+          setToEvent(event);
+        }
+        break;
+
+      default:
+        break;
     }
-  }, [event, worker]);
+  }
+  useEffect(() => {
+    worker.subMsgByEventIds([eventId])?.iterating({ cb: handleEvent });
+  }, [eventId]);
+
   const read = async () => {
-    const article = Nip23.toArticle(event);
-    const link = '/post/' + event.pubkey + '/' + article.id;
+    if (toEvent == null) return;
+
+    const article = Nip23.toArticle(toEvent);
+    const link = '/post/' + toEvent.pubkey + '/' + article.id;
     window.open(link, '__blank');
     const lastReadTime = get();
     if (msg.created_at > lastReadTime) {
       update(msg.created_at);
     }
   };
+
   return (
     <span
       style={{
@@ -185,18 +209,20 @@ export function ArticleCommentItem({
           <a href={'/user/' + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</a>
         </span>
         <span style={{ fontSize: '12px', color: 'gray' }}>
-          {event?.kind === Nip23.kind && (
+          {toEvent?.kind === Nip23.kind && (
             <span>
               {' replying to your '}
               <a
-                href={'/post/' + event.pubkey + '/' + Nip23.toArticle(event).id}
+                href={
+                  '/post/' + toEvent?.pubkey + '/' + Nip23.toArticle(toEvent).id
+                }
               >
                 {'article'}
               </a>{' '}
-              "{Nip23.toArticle(event).title || ''}"
+              "{Nip23.toArticle(toEvent).title || ''}"
             </span>
           )}
-          {!event?.id && <span>{'reply to your article'}</span>}
+          {!eventId && <span>{'reply to your article'}</span>}
         </span>
         <a
           style={{ textDecoration: 'none', color: 'black' }}
@@ -217,10 +243,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [msgList, setMsgList] = useState<Event[]>([]);
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const updateWorkerMsgListenerDeps = [];
   const { worker, newConn } = useCallWorker();
-  const { worker: worker2, newConn: newConn2 } = useCallWorker();
-
   function handleEvent1(event: Event, relayUrl?: string) {
     console.log('handleEvent1: ', event.kind);
     switch (event.kind) {
@@ -295,75 +318,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     }
   }
 
-  function handleEvent2(event: Event, relayUrl?: string) {
-    switch (event.kind) {
-      case WellKnownEventKind.set_metadata:
-        const metadata: EventSetMetadataContent = deserializeMetadata(
-          event.content,
-        );
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
-          return newMap;
-        });
-        break;
-
-      case WellKnownEventKind.text_note:
-        if (event.pubkey === myPublicKey) return;
-        setTextNotes(oldArray => {
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [relayUrl!] } },
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            return sortedItems;
-          }
-
-          return oldArray;
-        });
-        break;
-
-      case WellKnownEventKind.long_form:
-        if (event.pubkey === myPublicKey) return;
-        setArticleNotes(oldArray => {
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [relayUrl!] } },
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            return sortedItems;
-          }
-
-          return oldArray;
-        });
-        break;
-
-      default:
-        break;
-    }
-  }
-
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
     if (newConn.length === 0) return;
@@ -393,17 +347,11 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                 case WellKnownEventKind.like:
                   return (
                     <LikeItem
-                      event={
-                        textNotes.filter(
-                          t => t.id === getNotifyToEventId(msg),
-                        )[0]
-                      }
                       eventId={getNotifyToEventId(msg)!}
                       msg={msg}
                       userMap={userMap}
-                      worker={worker2!}
+                      worker={worker!}
                       key={msg.id}
-                      iteratorCallBack={handleEvent2}
                     />
                   );
 
@@ -415,13 +363,11 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     )[0];
                     return (
                       <ArticleCommentItem
-                        event={articleEvent}
                         eventId={getNotifyToEventId(msg)!}
                         msg={msg}
                         userMap={userMap}
-                        worker={worker2!}
+                        worker={worker!}
                         key={msg.id}
-                        iteratorCallBack={handleEvent2}
                       />
                     );
                   } else {
@@ -430,13 +376,11 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     )[0];
                     return (
                       <ReplyItem
-                        event={textEvent}
                         eventId={getNotifyToEventId(msg)!}
                         msg={msg}
                         userMap={userMap}
-                        worker={worker2!}
+                        worker={worker!}
                         key={msg.id}
-                        iteratorCallBack={handleEvent2}
                       />
                     );
                   }
