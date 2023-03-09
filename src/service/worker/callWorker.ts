@@ -139,6 +139,9 @@ export class CallWorker {
                   }
                   that.receiveCount++;
                   resolve(data);
+
+                  // release the listener
+                  that.worker.port.removeEventListener('message', listener);
                 }
                 break;
 
@@ -155,9 +158,6 @@ export class CallWorker {
               default:
                 break;
             }
-
-            // release the listener
-            that.worker.port.removeEventListener('message', listener);
           };
           that.worker.port.addEventListener('message', listener);
         });
