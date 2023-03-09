@@ -285,24 +285,30 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             const sortedItems = newItems.sort((a, b) =>
               a.created_at >= b.created_at ? -1 : 1,
             );
+
+            // check if need to sub new user metadata
+            const newPks: string[] = [];
+            if (
+              userMap.get(event.pubkey) == null &&
+              !newPks.includes(event.pubkey)
+            ) {
+              newPks.push(event.pubkey);
+            }
+
+            if (newPks.length > 0) {
+              worker
+                ?.subMetadata(newPks, undefined, undefined, {
+                  type: CallRelayType.single,
+                  data: [relayUrl!],
+                })
+                ?.iterating({ cb: handleEvent });
+            }
             return sortedItems;
           }
 
           return oldArray;
         });
 
-        // check if need to sub new user metadata
-        const newPks: string[] = [];
-        if (
-          userMap.get(event.pubkey) == null &&
-          !newPks.includes(event.pubkey)
-        ) {
-          newPks.push(event.pubkey);
-        }
-
-        if (newPks.length > 0) {
-          worker?.subMetadata(newPks)?.iterating({ cb: handleEvent });
-        }
         break;
     }
   }
