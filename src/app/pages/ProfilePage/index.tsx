@@ -230,7 +230,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             }
           }
           if (newPks.length > 0) {
-            worker?.subMetadata(newPks)?.iterating({ cb: handleEvent });
+            worker
+              ?.subMetadata(newPks, false, undefined, {
+                type: CallRelayType.single,
+                data: [relayUrl!],
+              })
+              ?.iterating({ cb: handleEvent });
           }
         }
         break;

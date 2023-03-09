@@ -66,7 +66,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const relayUrls = Array.from(wsConnectStatus.keys());
 
   function handleEvent(event: Event, relayUrl?: string) {
-    console.debug(`[${worker?._workerId}]receive event`);
+    console.debug(`[${worker?._workerId}]receive event`, relayUrl, event.kind);
     switch (event.kind) {
       case WellKnownEventKind.set_metadata:
         const metadata: EventSetMetadataContent = deserializeMetadata(
@@ -98,25 +98,30 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
               );
+
+              // check if need to sub new user metadata
+              const newPks: string[] = [event.pubkey];
+              for (const t of event.tags) {
+                if (isEventPTag(t)) {
+                  const pk = t[1];
+                  if (userMap.get(pk) == null) {
+                    newPks.push(pk);
+                  }
+                }
+              }
+              if (newPks.length > 0) {
+                const sub = worker?.subMetadata(newPks, false, 'homeMetadata', {
+                  type: CallRelayType.single,
+                  data: [relayUrl!],
+                });
+                sub?.iterating({ cb: handleEvent });
+              }
+
               return sortedItems;
             }
             return oldArray;
           });
 
-          // check if need to sub new user metadata
-          const newPks: string[] = [event.pubkey];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null) {
-                newPks.push(pk);
-              }
-            }
-          }
-          if (newPks.length > 0) {
-            const sub = worker?.subMetadata(newPks, false, 'homeMetadata');
-            sub?.iterating({ cb: handleEvent });
-          }
           return;
         }
 
@@ -131,6 +136,25 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
 
+            // check if need to sub new user metadata
+            const newPks: string[] = [];
+            for (const t of event.tags) {
+              if (isEventPTag(t)) {
+                const pk = t[1];
+                if (userMap.get(pk) == null) {
+                  newPks.push(pk);
+                }
+              }
+            }
+            if (newPks.length > 0) {
+              const sub = worker?.subMetadata(newPks, false, undefined, {
+                type: CallRelayType.single,
+                data: [relayUrl!],
+              });
+              sub?.iterating({ cb: handleEvent });
+            }
+
+            // save event
             const newItems = [
               ...oldArray,
               { ...event, ...{ seen: [relayUrl!] } },
@@ -155,20 +179,6 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
           return oldArray;
         });
 
-        // check if need to sub new user metadata
-        const newPks: string[] = [];
-        for (const t of event.tags) {
-          if (isEventPTag(t)) {
-            const pk = t[1];
-            if (userMap.get(pk) == null) {
-              newPks.push(pk);
-            }
-          }
-        }
-        if (newPks.length > 0) {
-          const sub = worker?.subMetadata(newPks);
-          sub?.iterating({ cb: handleEvent });
-        }
         break;
 
       case WellKnownEventKind.contact_list:

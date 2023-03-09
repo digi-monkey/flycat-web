@@ -212,6 +212,27 @@ export const EventPage = ({ isLoggedIn }) => {
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? 1 : -1,
               );
+
+              // check if need to sub new user metadata
+              const newPks: PublicKey[] = [];
+              for (const t of event.tags) {
+                if (isEventPTag(t)) {
+                  const pk = t[1];
+                  if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
+                    newPks.push(pk);
+                  }
+                }
+              }
+              if (
+                userMap.get(event.pubkey) == null &&
+                !unknownPks.includes(event.pubkey)
+              ) {
+                newPks.push(event.pubkey);
+              }
+              if (newPks.length > 0) {
+                setUnknownPks([...unknownPks, ...newPks]);
+              }
+
               return sortedItems;
             } else {
               const id = oldArray.findIndex(s => s.id === event.id);
@@ -225,25 +246,6 @@ export const EventPage = ({ isLoggedIn }) => {
           });
         }
 
-        // check if need to sub new user metadata
-        const newPks: PublicKey[] = [];
-        for (const t of event.tags) {
-          if (isEventPTag(t)) {
-            const pk = t[1];
-            if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
-              newPks.push(pk);
-            }
-          }
-        }
-        if (
-          userMap.get(event.pubkey) == null &&
-          !unknownPks.includes(event.pubkey)
-        ) {
-          newPks.push(event.pubkey);
-        }
-        if (newPks.length > 0) {
-          setUnknownPks([...unknownPks, ...newPks]);
-        }
         break;
 
       default:
