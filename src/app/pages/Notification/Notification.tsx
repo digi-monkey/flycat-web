@@ -12,7 +12,6 @@ import {
   Event,
   EventSetMetadataContent,
   EventTags,
-  isEventPTag,
   WellKnownEventKind,
 } from 'service/api';
 import { CallRelayType } from 'service/worker/type';
@@ -238,14 +237,12 @@ export function ArticleCommentItem({
 
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [textNotes, setTextNotes] = useState<Event[]>([]);
-  const [articleNotes, setArticleNotes] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<Event[]>([]);
   const myPublicKey = useReadonlyMyPublicKey();
 
   const { worker, newConn } = useCallWorker();
-  function handleEvent1(event: Event, relayUrl?: string) {
-    console.log('handleEvent1: ', event.kind);
+  function handleEvent(event: Event, relayUrl?: string) {
+    console.log('handleEvent: ', event.kind);
     switch (event.kind) {
       case WellKnownEventKind.set_metadata:
         const metadata: EventSetMetadataContent = deserializeMetadata(
@@ -296,14 +293,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         // check if need to sub new user metadata
         const newPks: string[] = [];
-        for (const t of event.tags) {
-          if (isEventPTag(t)) {
-            const pk = t[1];
-            if (userMap.get(pk) == null && !newPks.includes(pk)) {
-              newPks.push(pk);
-            }
-          }
-        }
         if (
           userMap.get(event.pubkey) == null &&
           !newPks.includes(event.pubkey)
@@ -312,7 +301,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         }
 
         if (newPks.length > 0) {
-          worker?.subMetadata(newPks)?.iterating({ cb: handleEvent1 });
+          worker?.subMetadata(newPks)?.iterating({ cb: handleEvent });
         }
         break;
     }
@@ -333,7 +322,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           data: newConn,
         },
       })
-      ?.iterating({ cb: handleEvent1 });
+      ?.iterating({ cb: handleEvent });
   }, [newConn, myPublicKey]);
 
   return (
@@ -358,9 +347,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                 case WellKnownEventKind.text_note:
                   const addr = getAddrTag(msg);
                   if (addr && addr.startsWith(Nip23.kind.toString())) {
-                    const articleEvent = articleNotes.filter(
-                      t => t.id === getNotifyToEventId(msg),
-                    )[0];
                     return (
                       <ArticleCommentItem
                         eventId={getNotifyToEventId(msg)!}
@@ -371,9 +357,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                       />
                     );
                   } else {
-                    const textEvent = textNotes.filter(
-                      t => t.id === getNotifyToEventId(msg),
-                    )[0];
                     return (
                       <ReplyItem
                         eventId={getNotifyToEventId(msg)!}
