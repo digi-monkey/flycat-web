@@ -54,6 +54,7 @@ export class Nip08 {
       .map((t, index) => {
         if (t[0] === EventTags.E) {
           if (t[1] == null) throw new Error('invalid E tags!');
+          if (t[1].startsWith('naddr')) return null; // todo: handle this type
 
           return { index, eventId: t[1] };
         }
