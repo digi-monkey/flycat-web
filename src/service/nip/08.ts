@@ -1,6 +1,7 @@
 import { Event, EventTags, Nip19DataType, nip19Encode } from 'service/api';
 import { shortPublicKey } from 'service/helper';
 import { UserMap } from 'service/type';
+import { isValidPublicKey } from 'service/validator';
 
 export enum RenderFlag {
   Markdown,
@@ -53,8 +54,7 @@ export class Nip08 {
     const replacementData = event.tags
       .map((t, index) => {
         if (t[0] === EventTags.E) {
-          if (t[1] == null) throw new Error('invalid E tags!');
-          if (t[1].startsWith('naddr')) return null; // todo: handle this type
+          if (!isValidPublicKey(t[1])) return null; // todo: handle naddr type
 
           return { index, eventId: t[1] };
         }
