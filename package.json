@@ -30,6 +30,7 @@
     "@vercel/analytics": "0.1.8",
     "axios": "0.27.2",
     "bech32": "2.0.0",
+    "browser-image-compression": "2.0.2",
     "buffer": "6.0.3",
     "chalk": "4.1.2",
     "cross-env": "7.0.3",
@@ -148,6 +149,7 @@
     }
   },
   "devDependencies": {
+    "@types/browser-image-compression": "1.0.9",
     "@types/react-tag-input": "6.6.1",
     "@types/sharedworker": "0.0.88",
     "@webbtc/webln-types": "1.0.10",
