@@ -1,9 +1,5 @@
 // import react, react-markdown-editor-lite, and a markdown parser you like
 import React, { useEffect, useState } from 'react';
-import MarkdownIt from 'markdown-it';
-import MdEditor from 'react-markdown-editor-lite';
-// import style manually
-import 'react-markdown-editor-lite/lib/index.css';
 import { Button, OutlinedInput } from '@mui/material';
 import { useCallWorker } from 'hooks/useWorker';
 import { Article, DirTags, Nip23, Nip23ArticleMetaTags } from 'service/nip/23';
@@ -21,33 +17,7 @@ import {
 import { UserMap } from 'service/type';
 import { HashTags, TagObj } from './hashTags/HashTags';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-
-// Register plugins if required
-// MdEditor.use(YOUR_PLUGINS_HERE);
-
-// Initialize a markdown parser
-const mdParser = new MarkdownIt(/* Markdown-it options */);
-
-export function Editor({
-  value,
-  onText,
-}: {
-  onText: (text: string) => any;
-  value?: string;
-}) {
-  function handleEditorChange({ html, text }) {
-    onText(text);
-  }
-  return (
-    <MdEditor
-      value={value}
-      style={{ minHeight: '700px', height: '100%' }}
-      renderHTML={text => mdParser.render(text)}
-      onChange={handleEditorChange}
-      view={{ menu: true, md: true, html: false }}
-    />
-  );
-}
+import { Editor } from './Editor';
 
 interface UserParams {
   publicKey: string;

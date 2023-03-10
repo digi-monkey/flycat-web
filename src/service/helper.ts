@@ -1,6 +1,7 @@
 import DOMPurify from 'dompurify';
 import { isEventETag, isEventPTag, PublicKey } from 'service/api';
 import { FlycatShareHeader } from './flycat-protocol';
+import imageCompression from 'browser-image-compression';
 
 export function normalizeContent(text: string): {
   lnUrls: string[];
@@ -234,4 +235,17 @@ export function formatDate(secs: number): string {
   const hours = ('0' + date.getHours()).slice(-2); // Add leading zero if necessary
   const minutes = ('0' + date.getMinutes()).slice(-2); // Add leading zero if necessary
   return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+export async function compressImage(file: File): Promise<File> {
+  var options = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+  };
+  const compressedFile = await imageCompression(file, options);
+
+  console.debug('compressedFile instanceof Blob', file, compressedFile); // true
+
+  return compressedFile;
 }
