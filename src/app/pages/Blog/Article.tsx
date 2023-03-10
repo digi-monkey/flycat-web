@@ -290,15 +290,26 @@ export function NewArticle() {
                       {...props}
                     />
                   ),
-                  code: ({ node, ...props }) => (
-                    <div
-                      style={{
-                        background: theme.palette.secondary.main,
-                        padding: '20px',
-                      }}
-                      {...props}
-                    />
-                  ),
+                  code: ({ node, inline, ...props }) => {
+                    return inline ? (
+                      <span
+                        style={{
+                          background: theme.palette.secondary.main,
+                          padding: '5px',
+                        }}
+                        {...props}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          background: theme.palette.secondary.main,
+                          padding: '20px',
+                          borderRadius: '5px',
+                        }}
+                        {...props}
+                      />
+                    );
+                  },
                 }}
               >
                 {content ?? ''}
