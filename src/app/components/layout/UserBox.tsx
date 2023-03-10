@@ -247,13 +247,13 @@ export interface UserHeaderProps {
   pk: string;
   metadata?: EventSetMetadataContent;
   followOrUnfollowOnClick: () => any;
-  followOrUnfollow: boolean;
+  isFollowed: boolean;
 }
 export const UserHeader = ({
   pk,
   metadata,
   followOrUnfollowOnClick,
-  followOrUnfollow,
+  isFollowed,
 }: UserHeaderProps) => {
   const { t } = useTranslation();
   return (
@@ -275,7 +275,7 @@ export const UserHeader = ({
                 marginLeft: '20px',
               }}
             >
-              {followOrUnfollow ? (
+              {!isFollowed ? (
                 <PersonAddIcon style={{ color: 'gray' }} />
               ) : (
                 <PersonRemoveIcon style={{ color: 'gray' }} />

@@ -442,10 +442,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     alert('done, refresh page please!');
   };
-  const followOrUnfollowOnClick =
-    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey)
-      ? unfollowUser
-      : followUser;
+  const isFollowed =
+    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
+  const followOrUnfollowOnClick = isFollowed ? unfollowUser : followUser;
 
   const directorys: string[][] = articles
     .filter(a => a.dirs != null)
@@ -519,7 +518,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <div style={styles.userProfile}>
           <UserHeader
             pk={publicKey}
-            followOrUnfollow={!followOrUnfollowOnClick}
+            isFollowed={isFollowed}
             followOrUnfollowOnClick={followOrUnfollowOnClick}
             metadata={userMap.get(publicKey)}
           />
