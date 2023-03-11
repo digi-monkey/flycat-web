@@ -31,6 +31,7 @@ import { BlogFeeds } from '../Blog/Feed';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { Button, useTheme } from '@mui/material';
+import CreateIcon from '@mui/icons-material/Create';
 
 export type ContactList = Map<
   PublicKey,
@@ -332,7 +333,29 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         </div>
       </>
     ),
-    post: <BlogFeeds />,
+    post: (
+      <div>
+        <div
+          style={{
+            margin: '10px 0px 40px 0px',
+          }}
+        >
+          <Button
+            fullWidth
+            variant="contained"
+            style={{
+              textTransform: 'capitalize',
+              color: 'white',
+            }}
+            onClick={() => (window.location.href = '/write')}
+          >
+            <CreateIcon />
+            &nbsp;{t('nav.menu.blogDashboard')}
+          </Button>
+        </div>
+        <BlogFeeds />
+      </div>
+    ),
   };
 
   return (

@@ -199,7 +199,6 @@ export class CallWorker {
     }
 
     this.worker.port.postMessage(msg);
-    const that = this;
 
     if (
       msg.type === ToWorkerMessageType.CALL_API &&

@@ -198,7 +198,7 @@ export function NewArticle() {
                     fontSize: '25px',
                     margin: '20px 0px',
                     fontWeight: 'bold',
-                    textTransform: 'uppercase',
+                    textTransform: 'capitalize',
                   }}
                 >
                   {article?.title}
@@ -215,9 +215,11 @@ export function NewArticle() {
                       {userMap.get(publicKey)?.name}
                     </span>
                   </a>
-                  <span style={{ margin: '0px 10px' }}>
-                    {formatDate(article?.published_at!)}
-                  </span>
+                  {article?.published_at && (
+                    <span style={{ margin: '0px 10px' }}>
+                      {formatDate(article?.published_at)}
+                    </span>
+                  )}
 
                   {publicKey === myPublicKey && (
                     <a

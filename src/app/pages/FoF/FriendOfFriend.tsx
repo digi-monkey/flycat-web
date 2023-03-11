@@ -135,9 +135,13 @@ export function FriendOfFriend({ isLoggedIn }) {
       ),
       kinds: [WellKnownEventKind.contact_list],
     };
-    const sub = worker?.subFilter(filter);
-    sub?.iterating({ cb: handleEvent });
-  }, [myContactEvent]);
+    worker
+      ?.subFilter(filter, undefined, 'getFof', {
+        type: CallRelayType.batch,
+        data: newConn,
+      })
+      ?.iterating({ cb: handleEvent });
+  }, [myContactEvent, newConn]);
 
   useEffect(() => {
     if (isFetchAllContactEvent === false) return;
