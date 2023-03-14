@@ -10,6 +10,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import { Nip23 } from 'service/nip/23';
+import SharedWorkerPolyfill from './polyfill';
 import {
   CallRelay,
   CallRelayType,
@@ -73,7 +74,7 @@ export class CallWorker {
   receiveCount = 0;
   iteratorCount = 0;
 
-  worker = new SharedWorker(new URL('./worker.ts', import.meta.url));
+  worker = new SharedWorkerPolyfill();
 
   groupedEvents: GroupedAsyncGenerator<FromWorkerMessageData, string>;
 
