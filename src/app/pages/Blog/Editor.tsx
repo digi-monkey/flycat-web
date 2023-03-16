@@ -23,7 +23,7 @@ export function Editor({
   async function onImageUpload(file) {
     const imageFile = await compressImage(file);
     const formData = new FormData();
-    formData.append('fileToUpload', imageFile);
+    formData.append('fileToUpload', imageFile, imageFile.name);
     formData.append('submit', 'Upload Image');
     const url = await api.uploadImage(formData);
     if (!url.startsWith('http')) {
