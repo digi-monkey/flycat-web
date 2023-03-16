@@ -239,7 +239,7 @@ export function formatDate(secs: number): string {
 
 export async function compressImage(file: File): Promise<File> {
   var options = {
-    maxSizeMB: 1,
+    maxSizeMB: 0.9, // some png might not meets desire of 1mb
     maxWidthOrHeight: 1920,
     useWebWorker: true,
   };

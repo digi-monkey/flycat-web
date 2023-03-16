@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import { LoginMode } from 'store/loginReducer';
 import OfflineBoltOutlinedIcon from '@mui/icons-material/OfflineBoltOutlined';
+import { compressImage } from 'service/helper';
 
 const styles = {
   postBox: {
@@ -95,11 +96,16 @@ export const PubNoteTextarea: React.FC<Props> = ({
     fileName: string,
     imgType: string,
   ) => {
-    const imageFile = new File([blob], fileName, { type: imgType });
+    const file = new File([blob], fileName, { type: imgType });
+    const imageFile = await compressImage(file);
     const formData = new FormData();
-    formData.append('fileToUpload', imageFile);
+    formData.append('fileToUpload', imageFile, imageFile.name);
     formData.append('submit', 'Upload Image');
     const url = await api.uploadImage(formData);
+    if (!url.startsWith('http')) {
+      setIsUploading(false);
+      return alert(url);
+    }
 
     // record url
     setAttachImgs(prev => {
