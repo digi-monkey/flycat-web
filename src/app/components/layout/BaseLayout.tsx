@@ -1,7 +1,7 @@
-import { Grid } from '@mui/material';
+import { Box, Grid, Hidden, Toolbar, useTheme } from '@mui/material';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Event,
@@ -16,6 +16,8 @@ import { RootState } from 'store/configureStore';
 import UserMenu from '../Navbar/UserMenu';
 import { NavHeader, MenuListDefault } from './NavHeader';
 import { UserRequiredLoginBox } from './UserBox';
+import Drawer from '@mui/material/Drawer';
+import DehazeIcon from '@mui/icons-material/Dehaze';
 
 const styles = {
   root: {
@@ -149,6 +151,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
   silent,
   metaPage,
 }) => {
+  const theme = useTheme();
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
@@ -207,23 +210,58 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     }
   });
 
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const drawerRef = useRef<any>(null);
+  const handleClose = event => {
+    if (drawerRef.current && drawerRef.current.contains(event.target)) {
+      // Click inside drawer, don't close
+      return;
+    }
+    setIsDrawerOpen(false);
+  };
+
   return (
     <div style={styles.root}>
       <Grid container style={{ zIndex: '1' }}>
         <Grid item xs={12} sm={2}>
-          <div
-            style={{
-              width: '100%',
-              padding: '0px 20px 0px 0px',
-              position: 'sticky',
-              top: '10px',
-              zIndex: '3',
-              display: silent != null && silent === true ? 'none' : 'block',
-            }}
-          >
-            <MenuListDefault />
-          </div>
+          <Hidden mdUp>
+            <DehazeIcon
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              style={{ cursor: 'pointer', position: 'fixed' }}
+            />
+            <Drawer
+              anchor="left"
+              variant="temporary"
+              open={isDrawerOpen}
+              onClose={handleClose}
+            >
+              <Box sx={{ width: 250 }}>
+                <DehazeIcon
+                  onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                  style={{ cursor: 'pointer', float: 'right' }}
+                />
+                <MenuListDefault />
+              </Box>
+            </Drawer>
+          </Hidden>
+          <Hidden smDown>
+            <div
+              style={{
+                width: '100%',
+                padding: '0px 20px 0px 0px',
+                position: 'sticky',
+                top: '10px',
+                zIndex: '3',
+                display: silent != null && silent === true ? 'none' : 'block',
+              }}
+            >
+              <Box sx={{ width: 250 }} ref={drawerRef}>
+                <MenuListDefault />
+              </Box>
+            </div>
+          </Hidden>
         </Grid>
+
         <Grid item xs={12} sm={10}>
           <Grid container>
             <Grid
@@ -232,17 +270,20 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
               sm={8}
               style={{ paddingLeft: '20px', paddingRight: '20px' }}
             >
-              <div
-                style={{
-                  position: 'sticky' as const,
-                  top: '0px',
-                  background: 'white',
-                  padding: '10px 3%',
-                  zIndex: '2',
-                }}
-              >
-                <NavHeader title={metaPage?.title} link={metaPage?.link} />
-              </div>
+              <Hidden smDown>
+                <div
+                  style={{
+                    position: 'sticky' as const,
+                    top: '0px',
+                    background: 'white',
+                    padding: '10px 3%',
+                    zIndex: '2',
+                  }}
+                >
+                  <NavHeader title={metaPage?.title} link={metaPage?.link} />
+                </div>
+              </Hidden>
+
               <div style={styles.left}>{left}</div>
             </Grid>
             <Grid
@@ -255,26 +296,57 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
                 width: '400px',
               }}
             >
-              <div
-                style={{
-                  position: 'sticky' as const,
-                  top: '0px',
-                  background: 'white',
-                  paddingTop: '10px',
-                  paddingBottom: '10px',
-                  zIndex: '2',
-                }}
-              >
-                {isLoggedIn && (
-                  <UserMenu
-                    pk={myPublicKey}
-                    userInfo={userMap.get(myPublicKey)}
-                  />
-                )}
-                {!isLoggedIn && <UserRequiredLoginBox />}
-              </div>
+              <Hidden smDown>
+                <div
+                  style={{
+                    position: 'sticky' as const,
+                    top: '0px',
+                    background: 'white',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
+                    zIndex: '2',
+                  }}
+                >
+                  {isLoggedIn && (
+                    <UserMenu
+                      pk={myPublicKey}
+                      userInfo={userMap.get(myPublicKey)}
+                    />
+                  )}
+                  {!isLoggedIn && <UserRequiredLoginBox />}
+                </div>
+              </Hidden>
 
               <div>{right}</div>
+
+              <Hidden mdUp>
+                <div
+                  style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%',
+                    background: 'white',
+                    zIndex: 10,
+                    borderTop: '1px solid ' + theme.palette.secondary.main,
+                  }}
+                >
+                  <Toolbar
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-around',
+                    }}
+                  >
+                    {isLoggedIn && (
+                      <UserMenu
+                        pk={myPublicKey}
+                        userInfo={userMap.get(myPublicKey)}
+                      />
+                    )}
+                    {!isLoggedIn && <UserRequiredLoginBox />}
+                  </Toolbar>
+                </div>
+              </Hidden>
             </Grid>
           </Grid>
         </Grid>
