@@ -18,11 +18,10 @@ export class SharedWorkerPolyfill
   constructor() {
     if (SharedWorkerSupported) {
       this.ActualWorker = new SharedWorker(
-        new URL('./worker.ts', import.meta.url),
+        new URL('./worker0.ts', import.meta.url),
       );
     } else {
-      //this.ActualWorker = new Worker(url, opts);
-      this.ActualWorker = new Worker(new URL('./worker.ts', import.meta.url));
+      this.ActualWorker = new Worker(new URL('./worker1.ts', import.meta.url));
     }
   }
 

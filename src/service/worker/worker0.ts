@@ -18,7 +18,6 @@ import {
 import { EventSubResponse, getPortIdFomSubId } from 'service/api';
 
 //let count = 0;
-const isSharedWorkerSupported = 'SharedWorker' in globalThis;
 
 /**
  * the worker and callWorker (1-to-many) are communicating through SharedWorker
@@ -27,9 +26,9 @@ const isSharedWorkerSupported = 'SharedWorker' in globalThis;
 
 const connectedPorts: (MessagePort | null)[] = [];
 
-const start = port => {
-  if (isSharedWorkerSupported) port.start();
-
+self.onconnect = (evt: MessageEvent) => {
+  const port = evt.ports[0];
+  port.start();
   port.onmessage = (event: MessageEvent) => {
     const res: ToPostMsg = event.data;
     const data = res.data;
@@ -69,48 +68,6 @@ const start = port => {
   };
   connectedPorts.push(port);
 
-  if (!isSharedWorkerSupported) {
-    listenFromPool(
-      (message: FromWorkerMessageData) => {
-        if (message.wsConnectStatus) {
-          connectedPorts.forEach(port => {
-            if (port != null)
-              port.postMessage({
-                data: message,
-                type: FromWorkerMessageType.WS_CONN_STATUS,
-              });
-          });
-        }
-      },
-      (message: FromWorkerMessageData) => {
-        if (message.nostrData) {
-          // currently we only relay the EventSubResponse
-          // todo: maybe all types?
-          const msg: EventSubResponse = JSON.parse(message.nostrData);
-          const subId = msg[1];
-          const portId = getPortIdFomSubId(subId);
-          if (portId) {
-            connectedPorts[portId]?.postMessage({
-              data: message,
-              type: FromWorkerMessageType.NOSTR_DATA,
-            });
-            return;
-          }
-
-          // send to all ports
-          connectedPorts.forEach(port => {
-            if (port != null) {
-              port.postMessage({
-                data: message,
-                type: FromWorkerMessageType.NOSTR_DATA,
-              });
-            }
-          });
-        }
-      },
-    );
-  }
-
   // post the portId to callWorker
   const msg: FromPostMsg = {
     type: FromWorkerMessageType.PORT_ID,
@@ -119,11 +76,6 @@ const start = port => {
     },
   };
   port.postMessage(msg);
-};
-
-self.onconnect = (evt: MessageEvent) => {
-  const port = evt.ports[0];
-  start(port);
 };
 
 listenFromPool(
@@ -180,8 +132,5 @@ setInterval(() => {
 }, 10 * 1000);
 
 pool.startMonitor();
-
-// This is the fallback for WebWorkers, in case the browser doesn't support SharedWorkers natively
-if (!('SharedWorkerGlobalScope' in self)) start(self);
 
 export {};
