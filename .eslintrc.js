@@ -11,6 +11,19 @@ module.exports = {
   rules: {
     'prettier/prettier': ['error', prettierOptions],
     'unused-imports/no-unused-imports-ts': ['error'],
+    // https://github.com/i18next/next-i18next/issues/1917
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-i18next",
+            "importNames": ["useTranslation"],
+            "message": "Import useTranslation from next-i18next instead."
+          }
+        ]
+      }
+    ]
   },
   overrides: [
     {

@@ -1,0 +1,53 @@
+.nav{
+  ul{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  
+    li{
+      font-size: 16px;
+      font-weight: 400;
+      background: none;
+      cursor: pointer;
+      border-radius: 5px;
+      color: gray;
+  
+      &:not(:last-child) {
+        margin-bottom: 15px;
+      }
+  
+      :hover {
+        background: rgb(141, 197, 63);
+        color: white;
+      }
+  
+      img{
+        max-width: 45px;
+      }
+  
+      a{
+        display: block;
+        color: gray;
+        text-decoration: none;
+        padding: 10px 5px;
+  
+        svg{
+          display: inline-block;
+          margin-right: 10px; 
+          vertical-align: bottom;
+        }
+  
+        span{
+          display: inline-block;
+          margin-left: 5px;
+          padding: 3px 5px;
+          border-radius: 50%;
+          color: red;
+          :hover {
+            color: gray;
+          }
+        }
+      }
+    }
+  }
+}

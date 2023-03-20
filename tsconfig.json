@@ -2,7 +2,12 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "webworker"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -15,10 +20,14 @@
     "isolatedModules": true,
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react",
-    "baseUrl": "./src"
+    "jsx": "preserve",
+    "baseUrl": "./src",
+    "incremental": true
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "public/locales"
+  ],
   "ts-node": {
     "compilerOptions": {
       "esModuleInterop": true,
@@ -27,5 +36,8 @@
       "noEmit": true,
       "allowSyntheticDefaultImports": true
     }
-  }
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

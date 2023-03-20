@@ -2,24 +2,25 @@
  * Create the store with dynamic reducers
  */
 
+import thunk from 'redux-thunk';
+import createSagaMiddleware from 'redux-saga';
+
+import { RawEvent } from 'service/api';
+import { relayReducer } from './relayReducer';
+import { createReducer } from './reducers';
+import { createWrapper } from "next-redux-wrapper";
+import { createInjectorsEnhancer } from 'redux-injectors';
 import {
   configureStore,
   getDefaultMiddleware,
   StoreEnhancer,
 } from '@reduxjs/toolkit';
-import { createInjectorsEnhancer } from 'redux-injectors';
-import createSagaMiddleware from 'redux-saga';
 import {
   LoginMode,
   loginReducer,
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
 } from './loginReducer';
-
-import { createReducer } from './reducers';
-import { relayReducer } from './relayReducer';
-import thunk from 'redux-thunk';
-import { RawEvent } from 'service/api';
 
 // Define the shape of your store state
 export interface RootState {
@@ -161,7 +162,11 @@ export function writeStore(data: RootState) {
 }
 
 export function readStore(): RootState | any {
-  const storedStateString = localStorage.getItem('store');
+  // next.js server not localStorage
+  // if (!localStorage) return {};
+
+  // TODO: ReferenceError: localStorage is not defined
+  const storedStateString = undefined; // localStorage.getItem('store');
   let storedState: SavableRootState | undefined;
   try {
     storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
@@ -226,3 +231,6 @@ export function configureAppStore() {
 
   return store;
 }
+
+export type AppStore = ReturnType<typeof configureAppStore>;
+export const wrapper = createWrapper<AppStore>(configureAppStore);
