@@ -1,7 +1,3 @@
-/**
- * Create the store with dynamic reducers
- */
-
 import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
 
@@ -162,23 +158,22 @@ export function writeStore(data: RootState) {
 }
 
 export function readStore(): RootState | any {
-  // next.js server not localStorage
-  // if (!localStorage) return {};
-
-  // TODO: ReferenceError: localStorage is not defined
-  const storedStateString = undefined; // localStorage.getItem('store');
-  let storedState: SavableRootState | undefined;
-  try {
-    storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
-    if (storedState) {
-      if (storedState.loginReducer.mode == null) {
-        // patch for v0.1.0 version
-        storedState.loginReducer.mode = LoginMode.local;
+  // next.js server window not
+  if (typeof window !== "undefined") {
+    const storedStateString = localStorage.getItem('store');
+    let storedState: SavableRootState | undefined;
+    try {
+      storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
+      if (storedState) {
+        if (storedState.loginReducer.mode == null) {
+          // patch for v0.1.0 version
+          storedState.loginReducer.mode = LoginMode.local;
+        }
+        return toRootState(storedState);
       }
-      return toRootState(storedState);
+    } catch (error) {
+      console.error('Error loading state from local storage:', error);
     }
-  } catch (error) {
-    console.error('Error loading state from local storage:', error);
   }
 
   return {};
@@ -189,6 +184,12 @@ const loadStore = () => {
   const store = readStore();
   return store;
 };
+
+const rootReducer = createReducer<RootState>({
+  loginReducer: loginReducer,
+  relayReducer: relayReducer,
+  // ... other reducers
+});
 
 export function configureAppStore() {
   const reduxSagaMonitorOptions = {};
@@ -204,12 +205,6 @@ export function configureAppStore() {
       runSaga,
     }),
   ] as StoreEnhancer[];
-
-  const rootReducer = createReducer<RootState>({
-    loginReducer: loginReducer,
-    relayReducer: relayReducer,
-    // ... other reducers
-  });
 
   const store = configureStore({
     reducer: rootReducer,

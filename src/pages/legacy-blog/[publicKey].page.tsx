@@ -464,3 +464,13 @@ export const BlogPage = () => {
   );
 };
 export default BlogPage;
+
+export const getStaticPaths = async () => ({ paths: [], fallback: true });
+export async function getStaticProps(context) {
+  const { params } = context;
+  const publicKey = params.publicKey;
+
+  return {
+    props: {},
+  }
+}

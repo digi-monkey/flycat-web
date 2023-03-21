@@ -1,6 +1,6 @@
 // import react, react-markdown-editor-lite, and a markdown parser you like
 import { Paths } from 'constants/path';
-import { Editor } from '../Editor';
+import { Editor } from '../../Editor';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { SignEvent } from 'store/loginReducer';
@@ -10,7 +10,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import router, { useRouter } from 'next/router';
 import { loginMapStateToProps } from 'pages/helper';
 import { Button, OutlinedInput } from '@mui/material';
-import { HashTags, TagObj } from '../hashTags/HashTags';
+import { HashTags, TagObj } from '../../hashTags/HashTags';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import React, { useEffect, useState } from 'react';
 import { Article, DirTags, Nip23, Nip23ArticleMetaTags } from 'service/nip/23';
@@ -29,7 +29,7 @@ export function Write({
 }) {
   const [article, setArticle] = useState<Article>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const { articleId, publicKey } = useRouter().query;
+  const { publicKey, articleId } = useRouter().query;
   const [title, setTitle] = useState<string>('');
   const [summary, setSummary] = useState<string>('');
   const [slug, setSlug] = useState<string>('');
@@ -104,7 +104,7 @@ export function Write({
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
     alert('published!');
-    router.push({ pathname: `${Paths.post}/${myPublicKey}/${slug}`});
+    router.push({ pathname: `${Paths.post + myPublicKey}/${slug}`});
   };
 
   useEffect(() => {
@@ -251,3 +251,14 @@ export function Write({
 }
 
 export default connect(loginMapStateToProps)(Write);
+
+export const getStaticPaths = async () => ({ paths: [], fallback: true });
+
+export async function getStaticProps(context) {
+  const { params } = context;
+  const publicKey = params.publicKey;
+
+  return {
+    props: {},
+  }
+}

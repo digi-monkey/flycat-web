@@ -3,6 +3,7 @@ import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';
 import { Content } from 'components/layout/msg/Content';
+import { useRouter } from 'next/router';
 import { maxStrings } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';
@@ -36,6 +37,7 @@ export interface ItemProps {
 export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
   const { t } = useTranslation();
   const [toEvent, setToEvent] = useState<Event>();
+  const router = useRouter();
 
   function handleEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {
@@ -55,8 +57,9 @@ export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
   }, [eventId]);
 
   const read = async () => {
-    const link = '/event/' + eventId;
-    window.open(link, '__blank');
+    router.push({
+      pathname: `${Paths.event}/${eventId}`
+    });
     const lastReadTime = get();
     if (msg.created_at > lastReadTime) {
       update(msg.created_at);
@@ -90,6 +93,7 @@ export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
 
 export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [toEvent, setToEvent] = useState<Event>();
 
   function handleEvent(event: Event, relayUrl?: string) {
@@ -109,8 +113,9 @@ export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
     worker.subMsgByEventIds([eventId])?.iterating({ cb: handleEvent });
   }, [eventId]);
   const read = async () => {
-    const link = '/event/' + eventId;
-    window.open(link, '__blank');
+    router.push({
+      pathname: `${Paths.event}/${eventId}`
+    });
     const lastReadTime = get();
     if (msg.created_at > lastReadTime) {
       update(msg.created_at);

@@ -5,7 +5,7 @@ import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
 import { formatDate } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
-import { LikedButton } from './LikedButton';
+import { LikedButton } from '../LikedButton';
 import { useSelector } from 'react-redux';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { CallRelayType } from 'service/worker/type';
@@ -39,9 +39,9 @@ type UserParams = {
 
 export default function NewArticle() {
   const theme = useTheme();
-
   const { t } = useTranslation();
-  const { articleId, publicKey } = useRouter().query as UserParams;
+  const { publicKey, articleId } = useRouter().query as UserParams;
+
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
@@ -476,6 +476,8 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
       ...(await serverSideTranslations(locale, ['common']))
   }
 })
+
+export const getStaticPaths = () => ({ paths: [], fallback: true });
 
 export interface CommentProps {
   comments: Event[];

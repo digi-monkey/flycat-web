@@ -379,3 +379,5 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
       ...(await serverSideTranslations(locale, ['common']))
   }
 })
+
+export const getStaticPaths = () => ({ paths: [], fallback: true });

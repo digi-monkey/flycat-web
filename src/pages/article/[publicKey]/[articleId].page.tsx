@@ -152,7 +152,7 @@ type ArticleParams = {
 
 export default function ArticleRead() {
   const { t } = useTranslation();
-  const { articleId, publicKey = '' } = useRouter().query as ArticleParams;
+  const { publicKey = '', articleId } = useRouter().query as ArticleParams;
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<ArticleDataSchema>();
@@ -502,4 +502,6 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
       ...(await serverSideTranslations(locale, ['common']))
   }
-})
+});
+
+export const getStaticPaths = () => ({ paths: [], fallback: true });

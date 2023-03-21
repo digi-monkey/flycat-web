@@ -177,7 +177,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
   const myPublicKey = useReadonlyMyPublicKey();
-
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactInfo>();
@@ -607,3 +606,5 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
       ...(await serverSideTranslations(locale, ['common']))
   }
 })
+
+export const getStaticPaths = () => ({ paths: [], fallback: true }); 

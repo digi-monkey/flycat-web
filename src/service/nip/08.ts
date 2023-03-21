@@ -1,7 +1,8 @@
-import { Event, EventTags, Nip19DataType, nip19Encode } from 'service/api';
-import { shortPublicKey } from 'service/helper';
+import { i18n } from 'next-i18next';
 import { UserMap } from 'service/type';
+import { shortPublicKey } from 'service/helper';
 import { isValidPublicKey } from 'service/validator';
+import { Event, EventTags, Nip19DataType, nip19Encode } from 'service/api';
 
 export enum RenderFlag {
   Markdown,
@@ -30,7 +31,7 @@ export class Nip08 {
       if (renderFlag === RenderFlag.Html) {
         content = content.replace(
           regex,
-          `<a href="/user/${replacement.pk}">@${
+          `<a href="/${i18n?.language}/user/${replacement.pk}">@${
             userMap.get(replacement.pk)?.name || shortPublicKey(replacement.pk)
           }</a>`,
         );
@@ -39,7 +40,7 @@ export class Nip08 {
           regex,
           `[@${
             userMap.get(replacement.pk)?.name || shortPublicKey(replacement.pk)
-          }](/user/${replacement.pk})`,
+          }](/${i18n?.language}/user/${replacement.pk})`,
         );
       }
     }
@@ -68,7 +69,7 @@ export class Nip08 {
       if (renderFlg === RenderFlag.Html) {
         content = content.replace(
           regex,
-          `<a href="/event/${replacement.eventId}">@${nip19Encode(
+          `<a href="/${i18n?.language}/event/${replacement.eventId}">@${nip19Encode(
             replacement.eventId,
             Nip19DataType.EventId,
           )}</a>`,
@@ -79,7 +80,7 @@ export class Nip08 {
           `[@${nip19Encode(
             replacement.eventId,
             Nip19DataType.EventId,
-          )}](/event/${replacement.eventId})`,
+          )}](/${i18n?.language}/event/${replacement.eventId})`,
         );
       }
     }
