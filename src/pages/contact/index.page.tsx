@@ -163,6 +163,66 @@ export type ContactList = Map<
 
 export type EventWithSeen = Event & { seen?: string[] };
 
+const HistoryFollowing = ({
+  event,
+  signEvent,
+  worker,
+  wsConnectStatus,
+}: {
+  event: EventWithSeen;
+  signEvent?: SignEvent;
+  worker?: CallWorker;
+  wsConnectStatus: WsConnectStatus;
+}) => {
+  const { t } = useTranslation();
+  const recovery = async () => {
+    const rawEvent = new RawEvent('', event.kind, event.tags, event.content);
+    if (signEvent == null) {
+      return alert('sign method is null!');
+    }
+    const newEvent = await signEvent(rawEvent);
+    console.log('old event:', event, 'new Event: ', newEvent);
+    if (worker == null) {
+      return alert('worker is null, please re-try');
+    }
+    worker?.pubEvent(newEvent);
+    alert(
+      `send to ${
+        Array.from(wsConnectStatus.keys()).length
+      } relays. please try refresh the page!`,
+    );
+  };
+
+  return (
+    <div style={{ padding: '10px 0px' }}>
+      <span style={{ display: 'block' }}>
+        {event.tags.length} -{' '}
+        <span style={{ fontSize: '12px', color: 'gray' }}>
+          {useTimeSince(event.created_at)}
+        </span>
+      </span>
+      <Seen
+        seen={event.seen!}
+        relays={Array.from(wsConnectStatus.keys())}
+        worker={worker!}
+        event={event}
+      />
+      <button
+        style={{
+          background: 'none',
+          border: 'none',
+          fontSize: '14px',
+          color: 'gray',
+        }}
+        onClick={recovery}
+      >
+        <RestoreIcon style={{ color: 'gray', fontSize: '14px' }} />{' '}
+        {t('contact.recoveryBtn')}
+      </button>
+    </div>
+  );
+};
+
 export const ContactPage = ({ isLoggedIn, signEvent }) => {
   const { t } = useTranslation();
   const { publicKey } = useRouter().query as {publicKey: string};
@@ -267,7 +327,7 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
         if (event.pubkey === myPublicKey) {
           setHistoryContacts(prev => {
             if (prev.map(p => p.id).includes(event.id)) {
-              let data = prev;
+              const data = prev;
               const index = data.findIndex(d => d.id === event.id);
               if (index === -1) return prev;
 
@@ -319,8 +379,9 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
             {isLoggedIn && (
               <div style={{ margin: '10px 0px' }}>
                 <h4>{t('contact.historyFollowingTitle')}</h4>
-                {historyContacts.map(c => (
+                {historyContacts.map((c, key) => (
                   <HistoryFollowing
+                    key={key}
                     event={c}
                     signEvent={signEvent}
                     worker={worker2}
@@ -373,63 +434,3 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
       ...(await serverSideTranslations(locale, ['common']))
   }
 })
-
-const HistoryFollowing = ({
-  event,
-  signEvent,
-  worker,
-  wsConnectStatus,
-}: {
-  event: EventWithSeen;
-  signEvent?: SignEvent;
-  worker?: CallWorker;
-  wsConnectStatus: WsConnectStatus;
-}) => {
-  const { t } = useTranslation();
-  const recovery = async () => {
-    let rawEvent = new RawEvent('', event.kind, event.tags, event.content);
-    if (signEvent == null) {
-      return alert('sign method is null!');
-    }
-    const newEvent = await signEvent(rawEvent);
-    console.log('old event:', event, 'new Event: ', newEvent);
-    if (worker == null) {
-      return alert('worker is null, please re-try');
-    }
-    worker?.pubEvent(newEvent);
-    alert(
-      `send to ${
-        Array.from(wsConnectStatus.keys()).length
-      } relays. please try refresh the page!`,
-    );
-  };
-
-  return (
-    <div style={{ padding: '10px 0px' }}>
-      <span style={{ display: 'block' }}>
-        {event.tags.length} -{' '}
-        <span style={{ fontSize: '12px', color: 'gray' }}>
-          {useTimeSince(event.created_at)}
-        </span>
-      </span>
-      <Seen
-        seen={event.seen!}
-        relays={Array.from(wsConnectStatus.keys())}
-        worker={worker!}
-        event={event}
-      />
-      <button
-        style={{
-          background: 'none',
-          border: 'none',
-          fontSize: '14px',
-          color: 'gray',
-        }}
-        onClick={recovery}
-      >
-        <RestoreIcon style={{ color: 'gray', fontSize: '14px' }} />{' '}
-        {t('contact.recoveryBtn')}
-      </button>
-    </div>
-  );
-};

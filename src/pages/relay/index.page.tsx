@@ -57,6 +57,14 @@ export interface RelayManagerProps {
   newConnCallback?: (conns: string[]) => any;
 }
 
+const Link = styled.a`
+  textdecoration: none;
+  color: gray;
+  :hover {
+    textdecoration: underline;
+  }
+`;
+
 export function RelayManager({
   isLoggedIn,
   myCustomRelay,
@@ -159,11 +167,3 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
       ...(await serverSideTranslations(locale, ['common']))
   }
 })
-
-const Link = styled.a`
-  textdecoration: none;
-  color: gray;
-  :hover {
-    textdecoration: underline;
-  }
-`;

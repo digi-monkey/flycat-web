@@ -15,7 +15,7 @@ export function LightingInvoice({ url }: { url: string }) {
       const data = decode(url);
       setDecodedData(data);
 
-      let amount = data.human_readable_part.amount;
+      const amount = data.human_readable_part.amount;
       //@ts-ignore
       if (isNaN(amount)) {
         return setAmount(undefined);
@@ -70,10 +70,6 @@ export function LnUrlInvoice({ url }: { url: string }) {
   const [maxSendable, setMaxSendable] = useState<number>();
   const [domain, setDomain] = useState<string>();
 
-  useEffect(() => {
-    decode(url);
-  }, [url]);
-
   const decode = async (url: string) => {
     try {
       const params = (await getParams(url)) as LNURLPayParams;
@@ -99,6 +95,10 @@ export function LnUrlInvoice({ url }: { url: string }) {
       console.log(error.message);
     }
   };
+
+  useEffect(() => {
+    decode(url);
+  }, [url]);
 
   const pay = async () => {
     if (!window.webln) {

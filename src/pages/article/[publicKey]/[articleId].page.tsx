@@ -265,12 +265,6 @@ export default function ArticleRead() {
       ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
-  useEffect(() => {
-    if (siteMetaData) {
-      subArticlePages(siteMetaData);
-    }
-  }, [wsConnectStatus, siteMetaData]);
-
   const subArticlePages = async (siteMetaData: SiteMetaDataContentSchema) => {
     const filter: Filter = {
       authors: [publicKey],
@@ -281,6 +275,13 @@ export default function ArticleRead() {
     };
     worker?.subFilter(filter)?.iterating({ cb: handleEvent });
   };
+  
+  useEffect(() => {
+    if (siteMetaData) {
+      subArticlePages(siteMetaData);
+    }
+  }, [wsConnectStatus, siteMetaData]);
+
   return (
     <BaseLayout>
       <Left>
@@ -364,7 +365,7 @@ export default function ArticleRead() {
                       {userMap.get(publicKey)?.name}
                     </span>
                   </Link>
-                  {useTimeSince(article?.created_at!) + ' '}
+                  {useTimeSince(article?.created_at || 0) + ' '}
                   {t('articleRead.post')}
                 </div>
               </div>

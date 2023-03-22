@@ -153,242 +153,6 @@ export interface TextMsgProps {
   lightingAddress?: string;
 }
 
-export const TextMsg = ({
-  replyTo,
-  userMap,
-  worker,
-  relays,
-  msgEvent,
-  lightingAddress,
-}: TextMsgProps) => {
-  const { t } = useTranslation();
-  const bg = { backgroundColor: 'white' };
-
-  const content = useMemo(() => {
-    let event = msgEvent;
-    event.content = Nip08.replaceMentionPublickey(event, userMap);
-    event.content = Nip08.replaceMentionEventId(event);
-    return event.content;
-  }, [msgEvent, userMap]);
-
-  return (
-    <li
-      style={{
-        display: 'block',
-        borderBottom: '1px dashed #ddd',
-        padding: '15px 0',
-        wordBreak: 'break-all',
-      }}
-      key={msgEvent.id}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '100%',
-          display: 'flex',
-          justifyContent: 'flex-start',
-        }}
-      >
-        <div style={{ width: '75px', minWidth: '75px' }}>
-          <ProfileAvatar
-            name={msgEvent.pubkey}
-            picture={userMap.get(msgEvent.pubkey)?.picture}
-          />
-        </div>
-        <div style={{ flex: '1', maxWidth: '100%' }}>
-          <span style={{ fontSize: '14px', display: 'block' }}>
-            <ProfileName
-              name={userMap.get(msgEvent.pubkey)?.name}
-              createdAt={msgEvent.created_at}
-              pk={msgEvent.pubkey}
-            />
-            <ReplyToUserList replyTo={replyTo} />
-            <Content text={content} />
-          </span>
-
-          <ReactionGroups
-            msgEvent={msgEvent}
-            worker={worker!}
-            pk={msgEvent.pubkey}
-            eventId={msgEvent.id}
-            seen={msgEvent.seen}
-            relays={relays}
-            lightingAddress={lightingAddress}
-          />
-        </div>
-      </div>
-    </li>
-  );
-};
-
-export const ProfileTextMsg = ({
-  replyTo,
-  worker,
-  lightingAddress,
-  msgEvent,
-  userMap,
-}: TextMsgProps) => {
-  const { t } = useTranslation();
-  const [hover, setHover] = useState(false);
-  //const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
-  const bg = { backgroundColor: 'white' };
-
-  const content = useMemo(() => {
-    let event = msgEvent;
-    event.content = Nip08.replaceMentionPublickey(event, userMap);
-    event.content = Nip08.replaceMentionEventId(event);
-    return event.content;
-  }, [msgEvent, userMap]);
-
-  return (
-    <li
-      style={{ ...styles.msgItem, ...bg }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Grid container>
-        <Grid item xs={12}>
-          <span style={styles.msgWord}>
-            <ReplyToUserList replyTo={replyTo} />
-            <Content text={content} />
-          </span>
-          <ProfileReactionGroups
-            eventId={msgEvent.id}
-            pk={msgEvent.pubkey}
-            createdAt={msgEvent.created_at}
-            worker={worker}
-            lightingAddress={lightingAddress}
-          />
-        </Grid>
-      </Grid>
-    </li>
-  );
-};
-
-export interface BlogMsgProps {
-  name?: string;
-  avatar?: string;
-  pk: string;
-  title: string;
-  blogName: string;
-  articleId: string;
-  createdAt: number;
-  onSubmitShare: (event: Event) => any;
-}
-
-export const BlogMsg = ({
-  avatar,
-  name,
-  pk,
-  title,
-  blogName,
-  articleId,
-  createdAt,
-  onSubmitShare,
-}: BlogMsgProps) => {
-  const { t } = useTranslation();
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [hover, setHover] = useState(false);
-  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
-
-  const shareUrl = () => {
-    return (
-      ' ' +
-      window.location.protocol +
-      '//' +
-      window.location.host +
-      '/article/' +
-      pk +
-      '/' +
-      articleId
-    );
-  };
-
-  return (
-    <li
-      style={{ ...styles.msgItem, ...bg }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Grid container>
-        <Grid item xs={12} sm={2} style={{ textAlign: 'left' as const }}>
-          <ProfileAvatar picture={avatar} name={pk} />
-        </Grid>
-        <Grid item xs={12} sm={10}>
-          <span style={styles.msgWord}>
-            <ProfileName name={name} pk={pk} createdAt={createdAt} />
-            <ArticleContentNoAvatar
-              text={''}
-              shareUrl={shareUrl()}
-              title={title}
-              blogName={blogName}
-            />
-          </span>
-          <span style={styles.time}>
-            <button
-              onClick={() => setIsShareModalOpen(true)}
-              style={styles.smallBtn}
-            >
-              {t('blog.rePostShare')}
-            </button>
-          </span>
-          <ShareArticle
-            suffix={' ' + shareUrl()}
-            url={shareUrl()}
-            title={title}
-            blogName={blogName}
-            blogAvatar={avatar}
-            isOpen={isShareModalOpen}
-            onClose={() => setIsShareModalOpen(false)}
-            pk={pk}
-            id={articleId}
-            onSubmit={onSubmitShare}
-          />
-        </Grid>
-      </Grid>
-    </li>
-  );
-};
-
-export const ProfileBanner = ({
-  picture,
-  name,
-  style,
-}: {
-  picture?: string;
-  name?: string;
-  style?: React.CSSProperties;
-}) => {
-  const [url, setUrl] = useState<string | undefined>();
-  const defaultUrl =
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-
-  useEffect(() => {
-    if (picture != null) {
-      setUrl(picture);
-    }
-  }, [picture]);
-
-  const handleError = () => {
-    setUrl(defaultUrl);
-  };
-
-  return (
-    <img
-      style={{
-        ...{
-          width: '100%',
-          maxHeight: '150px',
-          maxWidth: '100%',
-        },
-        ...style,
-      }}
-      src={url || defaultUrl}
-      alt=""
-      onError={handleError}
-    />
-  );
-};
 
 export const ProfileAvatar = ({
   picture,
@@ -630,6 +394,243 @@ export const ProfileReactionGroups = ({
         </span>
       </span>
     </div>
+  );
+};
+
+export const TextMsg = ({
+  replyTo,
+  userMap,
+  worker,
+  relays,
+  msgEvent,
+  lightingAddress,
+}: TextMsgProps) => {
+  const { t } = useTranslation();
+  const bg = { backgroundColor: 'white' };
+
+  const content = useMemo(() => {
+    const event = msgEvent;
+    event.content = Nip08.replaceMentionPublickey(event, userMap);
+    event.content = Nip08.replaceMentionEventId(event);
+    return event.content;
+  }, [msgEvent, userMap]);
+
+  return (
+    <li
+      style={{
+        display: 'block',
+        borderBottom: '1px dashed #ddd',
+        padding: '15px 0',
+        wordBreak: 'break-all',
+      }}
+      key={msgEvent.id}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '100%',
+          display: 'flex',
+          justifyContent: 'flex-start',
+        }}
+      >
+        <div style={{ width: '75px', minWidth: '75px' }}>
+          <ProfileAvatar
+            name={msgEvent.pubkey}
+            picture={userMap.get(msgEvent.pubkey)?.picture}
+          />
+        </div>
+        <div style={{ flex: '1', maxWidth: '100%' }}>
+          <span style={{ fontSize: '14px', display: 'block' }}>
+            <ProfileName
+              name={userMap.get(msgEvent.pubkey)?.name}
+              createdAt={msgEvent.created_at}
+              pk={msgEvent.pubkey}
+            />
+            <ReplyToUserList replyTo={replyTo} />
+            <Content text={content} />
+          </span>
+
+          <ReactionGroups
+            msgEvent={msgEvent}
+            worker={worker!}
+            pk={msgEvent.pubkey}
+            eventId={msgEvent.id}
+            seen={msgEvent.seen}
+            relays={relays}
+            lightingAddress={lightingAddress}
+          />
+        </div>
+      </div>
+    </li>
+  );
+};
+
+export const ProfileTextMsg = ({
+  replyTo,
+  worker,
+  lightingAddress,
+  msgEvent,
+  userMap,
+}: TextMsgProps) => {
+  const { t } = useTranslation();
+  const [hover, setHover] = useState(false);
+  //const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+  const bg = { backgroundColor: 'white' };
+
+  const content = useMemo(() => {
+    const event = msgEvent;
+    event.content = Nip08.replaceMentionPublickey(event, userMap);
+    event.content = Nip08.replaceMentionEventId(event);
+    return event.content;
+  }, [msgEvent, userMap]);
+
+  return (
+    <li
+      style={{ ...styles.msgItem, ...bg }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <Grid container>
+        <Grid item xs={12}>
+          <span style={styles.msgWord}>
+            <ReplyToUserList replyTo={replyTo} />
+            <Content text={content} />
+          </span>
+          <ProfileReactionGroups
+            eventId={msgEvent.id}
+            pk={msgEvent.pubkey}
+            createdAt={msgEvent.created_at}
+            worker={worker}
+            lightingAddress={lightingAddress}
+          />
+        </Grid>
+      </Grid>
+    </li>
+  );
+};
+
+export interface BlogMsgProps {
+  name?: string;
+  avatar?: string;
+  pk: string;
+  title: string;
+  blogName: string;
+  articleId: string;
+  createdAt: number;
+  onSubmitShare: (event: Event) => any;
+}
+
+export const BlogMsg = ({
+  avatar,
+  name,
+  pk,
+  title,
+  blogName,
+  articleId,
+  createdAt,
+  onSubmitShare,
+}: BlogMsgProps) => {
+  const { t } = useTranslation();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const bg = { backgroundColor: hover ? '#f5f5f5' : 'white' };
+
+  const shareUrl = () => {
+    return (
+      ' ' +
+      window.location.protocol +
+      '//' +
+      window.location.host +
+      '/article/' +
+      pk +
+      '/' +
+      articleId
+    );
+  };
+
+  return (
+    <li
+      style={{ ...styles.msgItem, ...bg }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <Grid container>
+        <Grid item xs={12} sm={2} style={{ textAlign: 'left' as const }}>
+          <ProfileAvatar picture={avatar} name={pk} />
+        </Grid>
+        <Grid item xs={12} sm={10}>
+          <span style={styles.msgWord}>
+            <ProfileName name={name} pk={pk} createdAt={createdAt} />
+            <ArticleContentNoAvatar
+              text={''}
+              shareUrl={shareUrl()}
+              title={title}
+              blogName={blogName}
+            />
+          </span>
+          <span style={styles.time}>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              style={styles.smallBtn}
+            >
+              {t('blog.rePostShare')}
+            </button>
+          </span>
+          <ShareArticle
+            suffix={' ' + shareUrl()}
+            url={shareUrl()}
+            title={title}
+            blogName={blogName}
+            blogAvatar={avatar}
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            pk={pk}
+            id={articleId}
+            onSubmit={onSubmitShare}
+          />
+        </Grid>
+      </Grid>
+    </li>
+  );
+};
+
+export const ProfileBanner = ({
+  picture,
+  name,
+  style,
+}: {
+  picture?: string;
+  name?: string;
+  style?: React.CSSProperties;
+}) => {
+  const [url, setUrl] = useState<string | undefined>();
+  const defaultUrl =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  useEffect(() => {
+    if (picture != null) {
+      setUrl(picture);
+    }
+  }, [picture]);
+
+  const handleError = () => {
+    setUrl(defaultUrl);
+  };
+
+  return (
+    <img
+      style={{
+        ...{
+          width: '100%',
+          maxHeight: '150px',
+          maxWidth: '100%',
+        },
+        ...style,
+      }}
+      src={url || defaultUrl}
+      alt=""
+      onError={handleError}
+    />
   );
 };
 

@@ -4,10 +4,10 @@ import Calendar from 'react-github-contribution-calendar';
 import { Event, WellKnownEventKind } from 'service/api';
 import { CallRelayType } from 'service/worker/type';
 
-var panelColors = ['#EEEEEE', '#D6E685', '#8CC665', '#44A340', '#1E6823'];
-var panelAttributes = { rx: 6, ry: 6 };
-var weekNames = ['s', 'm', 't', 'w', 't', 'f', 's'];
-var monthNames = [
+const panelColors = ['#EEEEEE', '#D6E685', '#8CC665', '#44A340', '#1E6823'];
+const panelAttributes = { rx: 6, ry: 6 };
+const weekNames = ['s', 'm', 't', 'w', 't', 'f', 's'];
+const monthNames = [
   '1',
   '2',
   '3',

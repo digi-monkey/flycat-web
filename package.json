@@ -155,7 +155,11 @@
     "@types/browser-image-compression": "1.0.9",
     "@types/react-tag-input": "6.6.1",
     "@types/sharedworker": "0.0.88",
+    "@typescript-eslint/eslint-plugin": "5.56.0",
+    "@typescript-eslint/parser": "5.56.0",
     "@webbtc/webln-types": "1.0.10",
+    "eslint": "8.36.0",
+    "eslint-config-next": "13.2.4",
     "eslint-plugin-unused-imports": "2.0.0"
   }
 }

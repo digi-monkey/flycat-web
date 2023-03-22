@@ -284,11 +284,11 @@ export const BlogFeed = ({ isLoggedIn }) => {
 
             // set new articles
             setGlobalArticles(oldArray => {
-              let updatedArray = [...oldArray];
+              const updatedArray = [...oldArray];
 
               // check if there is old article updated
               for (const newItem of ap.data) {
-                let index = updatedArray.findIndex(
+                const index = updatedArray.findIndex(
                   item => item.id === newItem.id,
                 );
                 if (index !== -1) {
@@ -452,13 +452,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
       })
       ?.iterating({ cb: handEvent });
   }, [newConn]);
-
-  useEffect(() => {
-    if (globalSiteMetaData.length > 0) {
-      subArticles();
-    }
-  }, [isLoggedIn, globalSiteMetaData.length]);
-
+  
   const subArticles = () => {
     const siteMetadata = globalSiteMetaData.filter(
       s =>
@@ -490,6 +484,12 @@ export const BlogFeed = ({ isLoggedIn }) => {
 
     worker?.subFilter(filter)?.iterating({ cb: handEvent });
   };
+
+  useEffect(() => {
+    if (globalSiteMetaData.length > 0) {
+      subArticles();
+    }
+  }, [isLoggedIn, globalSiteMetaData.length]);
 
   return (
     <BaseLayout>

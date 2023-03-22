@@ -165,6 +165,11 @@ export const EventPage = ({ isLoggedIn }) => {
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
+  const getEventIdsFromETags = (tags: any[]) => {
+    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
+    return eventIds;
+  };
+
   function handEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {
       case WellKnownEventKind.set_metadata:
@@ -291,11 +296,6 @@ export const EventPage = ({ isLoggedIn }) => {
       worker?.subMsgByETags(msgIds)?.iterating({ cb: handEvent });
     }
   }, [msgList.length]);
-
-  const getEventIdsFromETags = (tags: any[]) => {
-    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
-    return eventIds;
-  };
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 

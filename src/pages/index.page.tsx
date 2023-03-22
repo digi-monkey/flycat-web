@@ -1,5 +1,5 @@
 import { NextSeo } from 'next-seo';
-import { HomePage } from './home/Loadable';
+import { HomePage } from './home';
 import {serverSideTranslations} from "next-i18next/serverSideTranslations";
 
 export default function App() {

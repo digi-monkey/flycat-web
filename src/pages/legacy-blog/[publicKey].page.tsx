@@ -231,11 +231,11 @@ export const BlogPage = () => {
 
       // set new articles
       setArticles(oldArray => {
-        let updatedArray = [...oldArray];
+        const updatedArray = [...oldArray];
 
         // check if there is old article updated
         for (const newItem of ap.data) {
-          let index = updatedArray.findIndex(item => item.id === newItem.id);
+          const index = updatedArray.findIndex(item => item.id === newItem.id);
           if (index !== -1) {
             if (newItem.updated_at > updatedArray[index].updated_at) {
               updatedArray[index] = {
@@ -283,12 +283,6 @@ export const BlogPage = () => {
       ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
-  useEffect(() => {
-    if (siteMetaData) {
-      subArticlePages(siteMetaData, newConn);
-    }
-  }, [newConn, siteMetaData]);
-
   const subArticlePages = async (
     siteMetaData: SiteMetaDataContentSchema,
     relays: string[] = Array.from(wsConnectStatus.keys()),
@@ -309,6 +303,12 @@ export const BlogPage = () => {
       })
       ?.iterating({ cb: handleEvent });
   };
+
+  useEffect(() => {
+    if (siteMetaData) {
+      subArticlePages(siteMetaData, newConn);
+    }
+  }, [newConn, siteMetaData]);
 
   const submitSiteMetaData = async (name: string, description: string) => {
     if (signEvent == null) {

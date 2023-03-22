@@ -6,26 +6,16 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 
-interface Props<T> {
-  options: T[];
-  callBack: (option: string) => any;
-  defaultOption?: string;
-}
-
-const SimpleSelect = <T extends unknown>({
+const SimpleSelect = ({
   options,
   callBack,
-  defaultOption,
-}: Props<T>) => {
-  const [value, setValue] = useState<string>(defaultOption || '');
+  defaultOption = '',
+}) => {
+  const [value, setValue] = useState<string>(defaultOption);
 
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    setValue(event.target.value);
-  };
+  const handleChange = (event: SelectChangeEvent<string>) => setValue(event.target.value);
 
-  useEffect(() => {
-    callBack(value);
-  }, [value]);
+  useEffect(() => callBack(value), [value]);
 
   return (
     <FormControl>

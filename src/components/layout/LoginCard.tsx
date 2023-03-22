@@ -154,8 +154,7 @@ const LoginCard = ({
       return;
     }
 
-    let pubKey = getPublicKey(privKey);
-
+    const pubKey = getPublicKey(privKey);
     const loginRequest: LoginRequest = {
       mode: LoginMode.local,
       publicKey: pubKey,

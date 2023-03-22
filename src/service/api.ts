@@ -107,7 +107,7 @@ export class Api extends base {
   constructor(url?: string, httpRequest?: HttpRequest) {
     const newHttpRequest = async (
       subPath: string,
-      params: Object = {},
+      params: object = {},
       type: HttpProtocolMethod = HttpProtocolMethod.get,
     ) => {
       const response: ApiHttpResponse = await super.newHttpRequest()(
@@ -404,11 +404,11 @@ export class WsApi {
   public keepAlivePool: Map<SubscriptionId, Filter>;
 
   constructor(
-    url?: string,
-    wsHandler?: WsApiHandler,
-    maxSub: number = 10,
-    maxKeepAlive: number = 5,
-    reconnectIntervalSecs = 10,
+    url: string,
+    wsHandler: WsApiHandler,
+    maxSub = 10,
+    maxKeepAlive: 5,
+    reconnectIntervalSecs?: 10,
   ) {
     if (maxSub <= maxKeepAlive) {
       throw new Error('maxSub <= maxKeepAlive');
@@ -437,19 +437,18 @@ export class WsApi {
     wsHandler?: WsApiHandler,
     reconnectIntervalSecs = 3,
   ) {
-    const that = this;
-    if (!that.ws || that.ws.readyState === WebSocket.CLOSED) {
-      that.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
     }
 
     const reconnect = (e: CloseEvent) => {
-      that.handleClose(e, () => {
+      this.handleClose(e, () => {
         setTimeout(() => {
           if (wsHandler?.onCloseHandler) {
             wsHandler?.onCloseHandler(e);
           }
           console.log('try reconnect..');
-          that.updateListeners(url, wsHandler, reconnectIntervalSecs);
+          this.updateListeners(url, wsHandler, reconnectIntervalSecs);
         }, reconnectIntervalSecs * 1000);
       });
     };
@@ -731,9 +730,7 @@ export class WsApi {
   }
 }
 
-export function isFilterEqual(f1: Filter, f2: Filter): boolean {
-  return isDeepEqual(f1, f2);
-}
+const isObject = object => object != null && typeof object === 'object';
 
 export const isDeepEqual = (object1, object2) => {
   const objKeys1 = Object.keys(object1);
@@ -741,7 +738,7 @@ export const isDeepEqual = (object1, object2) => {
 
   if (objKeys1.length !== objKeys2.length) return false;
 
-  for (var key of objKeys1) {
+  for (const key of objKeys1) {
     const value1 = object1[key];
     const value2 = object2[key];
 
@@ -757,9 +754,9 @@ export const isDeepEqual = (object1, object2) => {
   return true;
 };
 
-const isObject = object => {
-  return object != null && typeof object === 'object';
-};
+export function isFilterEqual(f1: Filter, f2: Filter): boolean {
+  return isDeepEqual(f1, f2);
+}
 
 export function isEventSubResponse(data: any): data is EventSubResponse {
   return (
@@ -913,7 +910,7 @@ export function LEBufferToU32(buf: Buffer): number {
 
 export function utf8StrToBuffer(msg: Utf8Str): Buffer {
   const encoder = new TextEncoder();
-  var uint8array = encoder.encode(msg);
+  const uint8array = encoder.encode(msg);
   return Buffer.from(uint8array);
 }
 

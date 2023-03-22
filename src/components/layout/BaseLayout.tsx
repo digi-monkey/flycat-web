@@ -146,6 +146,20 @@ export interface BaseLayoutProps {
   };
 }
 
+export interface LeftProps {
+  children: React.ReactNode;
+}
+export const Left: React.FC<LeftProps> = ({ children }) => (
+  <div>{children}</div>
+);
+
+export interface RightProps {
+  children?: React.ReactNode;
+}
+export const Right: React.FC<RightProps> = ({ children }) => (
+  <div>{children}</div>
+);
+
 export const BaseLayout: React.FC<BaseLayoutProps> = ({
   children,
   silent,
@@ -199,14 +213,14 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     }
   }, [newConn]);
 
-  const left: React.ReactNode[] = [];
-  const right: React.ReactNode[] = [];
+  const leftNodes: React.ReactNode[] = [];
+  const rightNodes: React.ReactNode[] = [];
   React.Children.forEach(children, (child: React.ReactNode) => {
     if (React.isValidElement(child) && child.type === Left) {
-      left.push(child);
+      leftNodes.push(child);
     }
     if (React.isValidElement(child) && child.type === Right) {
-      right.push(child);
+      rightNodes.push(child);
     }
   });
 
@@ -284,7 +298,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
                 </div>
               </Hidden>
 
-              <div style={styles.left}>{left}</div>
+              <div style={styles.left}>{leftNodes}</div>
             </Grid>
             <Grid
               item
@@ -317,7 +331,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
                 </div>
               </Hidden>
 
-              <div>{right}</div>
+              <div>{rightNodes}</div>
 
               <Hidden mdUp>
                 <div
@@ -354,17 +368,3 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     </div>
   );
 };
-
-export interface LeftProps {
-  children: React.ReactNode;
-}
-export const Left: React.FC<LeftProps> = ({ children }) => (
-  <div>{children}</div>
-);
-
-export interface RightProps {
-  children?: React.ReactNode;
-}
-export const Right: React.FC<RightProps> = ({ children }) => (
-  <div>{children}</div>
-);

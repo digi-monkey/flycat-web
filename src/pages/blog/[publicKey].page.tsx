@@ -271,8 +271,8 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
             {directorys
               .map(dirs => dirs[0])
               .filter((value, index, array) => array.indexOf(value) === index)
-              .map(dir => (
-                <span style={{ paddingRight: '20px' }}>
+              .map((dir, key) => (
+                <span key={key} style={{ paddingRight: '20px' }}>
                   <Book
                     key={dir}
                     title={dir}
@@ -298,8 +298,9 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
             background: 'rgb(244, 245, 244)',
           }}
         >
-          {articles.map(article => (
+          {articles.map((article, key) => (
             <MiniArticleItem
+              key={key}
               article={article}
               isOwner={publicKey === myPublicKey}
               authorPk={publicKey}
@@ -313,8 +314,8 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
             .map(article => article.hashTags)
             .flat(Infinity)
             .filter(t => typeof t === 'string')
-            .map(t => (
-              <TagItem tag={t as string} />
+            .map((t, key) => (
+              <TagItem key={key} tag={t as string} />
             ))}
         </div>
       </Right>

@@ -51,23 +51,76 @@ interface Props {
   onSubmitText: (text: string) => Promise<any>;
 }
 
-export const PubNoteTextarea: React.FC<Props> = ({
-  disabled,
-  mode,
-  onSubmitText,
+export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
+  const { t } = useTranslation();
+  const [isHovered, setIsHovered] = React.useState(false);
+  return (
+    <button
+      style={{
+        background: isHovered ? 'white' : '#8DC53F',
+        color: isHovered ? 'black' : 'white',
+        border: '1px solid #8DC53F',
+        padding: '5px 10px',
+        borderRadius: '5px',
+      }}
+      type="submit"
+      disabled={disabled}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Send style={{ fontSize: 'medium' }} />
+    </button>
+  );
+};
+
+export const ImageUploader = ({
+  onImgUrls,
+}: {
+  onImgUrls: (imgs: string[]) => any;
 }) => {
   const { t } = useTranslation();
-  const [text, setText] = useState('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isOnFocus, setIsOnFocus] = useState<boolean>(false);
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (attachImgs.length === 0) return;
+
+    onImgUrls(attachImgs);
+  }, [attachImgs.length]);
 
   const selectAndUploadImg = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
+  };
+
+  const handleImgUpload = async (
+    blob: Blob,
+    fileName: string,
+    imgType: string,
+  ) => {
+    const imageFile = new File([blob], fileName, { type: imgType });
+    const formData = new FormData();
+    formData.append('fileToUpload', imageFile);
+    formData.append('submit', 'Upload Image');
+    const url = await api.uploadImage(formData);
+
+    if (!url.startsWith('https')) {
+      // error
+      return alert(url);
+    }
+
+    // record url
+    setAttachImgs(prev => {
+      const newList = prev;
+      if (!newList.includes(url)) {
+        newList.push(url);
+      }
+      return newList;
+    });
+    setIsUploading(false);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,6 +142,46 @@ export const PubNoteTextarea: React.FC<Props> = ({
     };
 
     fileReader.readAsArrayBuffer(file);
+  };
+
+  return (
+    <span>
+      <button
+        type="button"
+        onClick={selectAndUploadImg}
+        disabled={isUploading}
+        style={styles.iconBtn}
+      >
+        <InsertPhoto />+{isUploading ? '↺' : ''}
+      </button>
+      &nbsp;&nbsp;
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
+    </span>
+  );
+};
+
+export const PubNoteTextarea: React.FC<Props> = ({
+  disabled,
+  mode,
+  onSubmitText,
+}) => {
+  const { t } = useTranslation();
+  const [text, setText] = useState('');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isOnFocus, setIsOnFocus] = useState<boolean>(false);
+  const [attachImgs, setAttachImgs] = useState<string[]>([]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const selectAndUploadImg = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const handleImgUpload = async (
@@ -116,6 +209,27 @@ export const PubNoteTextarea: React.FC<Props> = ({
       return newList;
     });
     setIsUploading(false);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUploading(true);
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setIsUploading(false);
+      return;
+    }
+
+    const fileReader = new FileReader();
+
+    fileReader.onloadend = () => {
+      if (fileReader.result) {
+        const blob = new Blob([fileReader.result], { type: file.type });
+        handleImgUpload(blob, file.name, file.type);
+      }
+    };
+
+    fileReader.readAsArrayBuffer(file);
   };
 
   const handleSubmitText = async (formEvt: React.FormEvent) => {
@@ -175,8 +289,8 @@ export const PubNoteTextarea: React.FC<Props> = ({
           onChange={event => setText(event.target.value)}
         ></textarea>
         <div>
-          {attachImgs.map(url => (
-            <span style={{ float: 'left' }}>
+          {attachImgs.map((url, key) => (
+            <span style={{ float: 'left' }} key={key}>
               <img
                 src={url}
                 style={{
@@ -185,6 +299,7 @@ export const PubNoteTextarea: React.FC<Props> = ({
                   border: '1px solid gray',
                   padding: '1px',
                 }}
+                alt="img"
               />
               &nbsp;&nbsp;
             </span>
@@ -230,119 +345,5 @@ export const PubNoteTextarea: React.FC<Props> = ({
         </div>
       </form>
     </div>
-  );
-};
-
-export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
-  const { t } = useTranslation();
-  const [isHovered, setIsHovered] = React.useState(false);
-  return (
-    <button
-      style={{
-        background: isHovered ? 'white' : '#8DC53F',
-        color: isHovered ? 'black' : 'white',
-        border: '1px solid #8DC53F',
-        padding: '5px 10px',
-        borderRadius: '5px',
-      }}
-      type="submit"
-      disabled={disabled}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Send style={{ fontSize: 'medium' }} />
-    </button>
-  );
-};
-
-export const ImageUploader = ({
-  onImgUrls,
-}: {
-  onImgUrls: (imgs: string[]) => any;
-}) => {
-  const { t } = useTranslation();
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [attachImgs, setAttachImgs] = useState<string[]>([]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (attachImgs.length === 0) return;
-
-    onImgUrls(attachImgs);
-  }, [attachImgs.length]);
-
-  const selectAndUploadImg = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsUploading(true);
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      setIsUploading(false);
-      return;
-    }
-
-    const fileReader = new FileReader();
-
-    fileReader.onloadend = () => {
-      if (fileReader.result) {
-        const blob = new Blob([fileReader.result], { type: file.type });
-        handleImgUpload(blob, file.name, file.type);
-      }
-    };
-
-    fileReader.readAsArrayBuffer(file);
-  };
-
-  const handleImgUpload = async (
-    blob: Blob,
-    fileName: string,
-    imgType: string,
-  ) => {
-    const imageFile = new File([blob], fileName, { type: imgType });
-    const formData = new FormData();
-    formData.append('fileToUpload', imageFile);
-    formData.append('submit', 'Upload Image');
-    const url = await api.uploadImage(formData);
-
-    if (!url.startsWith('https')) {
-      // error
-      return alert(url);
-    }
-
-    // record url
-    setAttachImgs(prev => {
-      const newList = prev;
-      if (!newList.includes(url)) {
-        newList.push(url);
-      }
-      return newList;
-    });
-    setIsUploading(false);
-  };
-
-  return (
-    <span>
-      <button
-        type="button"
-        onClick={selectAndUploadImg}
-        disabled={isUploading}
-        style={styles.iconBtn}
-      >
-        <InsertPhoto />+{isUploading ? '↺' : ''}
-      </button>
-      &nbsp;&nbsp;
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileSelect}
-      />
-    </span>
   );
 };

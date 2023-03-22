@@ -69,8 +69,8 @@ export function PersonalBlogFeedItem({
       </div>
       <div style={{ color: 'gray', fontSize: '12px', marginTop: '5px' }}>
         <span>
-          {article.hashTags?.slice(0, 5).map(a => (
-            <TagItem tag={a} />
+          {article.hashTags?.slice(0, 5).map((a, key) => (
+            <TagItem tag={a} key={key} />
           ))}
           <Reactions
             article={article}
@@ -136,8 +136,8 @@ export function BlogFeedItem({ article, lightingAddress }: BlogFeedItemProps) {
         </div>
       </div>
       <div style={{ color: 'gray', fontSize: '12px', marginTop: '5px' }}>
-        {article.hashTags?.slice(0, 5).map(a => (
-          <TagItem tag={a} />
+        {article.hashTags?.slice(0, 5).map((a, key) => (
+          <TagItem tag={a} key={key} />
         ))}
         <Reactions
           article={article}

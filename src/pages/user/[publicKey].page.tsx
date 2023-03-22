@@ -502,8 +502,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             {"go to the user's blog page"}
           </Button>
         </div>
-        {articles.map(a => (
+        {articles.map((a, key) => (
           <PersonalBlogFeedItem
+            key={key}
             article={a}
             lightingAddress={
               userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
@@ -538,8 +539,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <div style={{ marginTop: '10px' }}>{'Collection'}</div>
         )}
         <div style={{ marginTop: '20px', fontSize: '14px' }}>
-          {dateBooks.map(book => (
+          {dateBooks.map((book, key) => (
             <div
+              key={key}
               style={{
                 color: 'gray',
                 padding: '5px 0px',
@@ -559,8 +561,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           {directorys
             .map(d => d[0])
             .filter((value, index, self) => self.indexOf(value) === index)
-            .map(dir => (
+            .map((dir, key) => (
               <div
+                key={key}
                 style={{
                   color: 'gray',
                   padding: '5px 0px',
@@ -589,8 +592,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               .map(article => article.hashTags)
               .flat(Infinity)
               .filter(t => typeof t === 'string')
-              .map(t => (
-                <TagItem tag={t as string} />
+              .map((t, key) => (
+                <TagItem key={key} tag={t as string} />
               ))}
           </div>
         </div>

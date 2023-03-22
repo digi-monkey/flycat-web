@@ -31,6 +31,38 @@ const styles = {
   },
 };
 
+export interface ReplyTextareaProps {
+  onSubmit: (text: string) => any;
+  disabled: boolean;
+}
+
+export const ReplyTextarea = ({ onSubmit, disabled }: ReplyTextareaProps) => {
+  const { t } = useTranslation();
+  const [textareaValue, setTextareaValue] = useState('');
+  const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
+
+    onSubmit(textareaValue);
+
+    // clear the textarea
+    setTextareaValue('');
+  };
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>
+        <textarea
+          style={styles.input}
+          value={textareaValue}
+          onChange={e => setTextareaValue(e.target.value)}
+        />
+      </label>
+      <button style={styles.smallBtn} type="submit" disabled={disabled}>
+        {t('replyBtn.submit')}
+      </button>
+    </form>
+  );
+};
+
 function ReplyButton({
   replyToEventId,
   replyToPublicKey,
@@ -90,37 +122,5 @@ function ReplyButton({
     </>
   );
 }
-
-export interface ReplyTextareaProps {
-  onSubmit: (text: string) => any;
-  disabled: boolean;
-}
-
-export const ReplyTextarea = ({ onSubmit, disabled }: ReplyTextareaProps) => {
-  const { t } = useTranslation();
-  const [textareaValue, setTextareaValue] = useState('');
-  const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
-    evt.preventDefault();
-
-    onSubmit(textareaValue);
-
-    // clear the textarea
-    setTextareaValue('');
-  };
-  return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        <textarea
-          style={styles.input}
-          value={textareaValue}
-          onChange={e => setTextareaValue(e.target.value)}
-        />
-      </label>
-      <button style={styles.smallBtn} type="submit" disabled={disabled}>
-        {t('replyBtn.submit')}
-      </button>
-    </form>
-  );
-};
 
 export default ReplyButton;

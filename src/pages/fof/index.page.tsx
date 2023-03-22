@@ -195,8 +195,9 @@ export function FriendOfFriend({ isLoggedIn }) {
             <h3 style={{ textTransform: 'capitalize' }}>{t('fof.title')}</h3>
             <ThinHr />
             <div style={{ margin: '10px' }}>
-              {pks.map(pk => (
+              {pks.map((pk, key) => (
                 <span
+                  key={key}
                   style={{
                     width: '120px',
                     height: '200px',

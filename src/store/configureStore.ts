@@ -61,16 +61,9 @@ export function toRootState(state: SavableRootState): RootState {
   function createGetPublicKey(mode: LoginMode) {
     switch (mode) {
       case LoginMode.local:
-        return async () => {
-          return state.loginReducer.publicKey!;
-        };
-
+        return async () => state.loginReducer.publicKey!;
       case LoginMode.nip07Wallet:
-        return async () => {
-          const pk = await window.nostr?.getPublicKey()!;
-          return pk;
-        };
-
+        return async () => await window.nostr?.getPublicKey();
       case LoginMode.dotbit:
         return async () => {
           if (state.loginReducer.didAlias == null) {

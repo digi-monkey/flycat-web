@@ -45,11 +45,11 @@ export type ContactList = Map<
 
 export interface HomePageProps {
   isLoggedIn: boolean;
-  mode: LoginMode;
+  mode?: LoginMode;
   signEvent?: SignEvent;
 }
 
-export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
+export const HomePage = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -57,7 +57,9 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const maxMsgLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [signEvent, setSignEvent] = useState<SignEvent>();
+  const [mode, setMode] = useState<LoginMode>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] =
     useState<{ keys: PublicKey[]; created_at: number }>();
@@ -222,12 +224,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
       newConn.length === 0
         ? { type: CallRelayType.all, data: [] }
         : { type: CallRelayType.batch, data: newConn };
-    const sub = worker?.subMetaDataAndContactList(
-      [myPublicKey],
-      false,
-      'userMetaAndContact',
-      callRelay,
-    )!;
+    const sub = worker?.subMetaDataAndContactList([myPublicKey], false, 'userMetaAndContact', callRelay);
     sub?.iterating({
       cb: handleEvent,
     });
@@ -304,7 +301,7 @@ export const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     note: (
       <>
         <PubNoteTextarea
-          mode={mode}
+          mode={mode || {} as LoginMode}
           disabled={isReadonlyMode || !isLoggedIn}
           onSubmitText={onSubmitText}
         />

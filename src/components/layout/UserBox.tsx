@@ -403,7 +403,6 @@ export const ProfileEditPanel = ({
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
-
   interface FormData {
     name?: string;
     username?: string;
@@ -423,6 +422,10 @@ export const ProfileEditPanel = ({
     bitcoinLightningAddressLud16: profile?.lud16,
     domainNameVerification: profile?.nip05,
   };
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [formData, setFormData] = useState(initialFormData);
+  const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
+  const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
   useEffect(() => {
     if (profile == null) return;
@@ -431,11 +434,6 @@ export const ProfileEditPanel = ({
     setAvatar(profile?.picture);
     setBanner(profile?.banner);
   }, [profile]);
-
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState(initialFormData);
-  const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
-  const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

@@ -58,6 +58,19 @@ export default function EventData({
   );
 }
 
+const Li = styled.li`
+  text-decoration: none;
+  list-style: none;
+`;
+
+const Link = styled.a`
+  color: black;
+  text-decoration: none;
+  :hover {
+    text-decoration: underline;
+  }
+`;
+
 export function Item({ id, kind, created_at, content }) {
   return (
     <Li>
@@ -96,16 +109,3 @@ export function Item({ id, kind, created_at, content }) {
     </Li>
   );
 }
-
-const Li = styled.li`
-  text-decoration: none;
-  list-style: none;
-`;
-
-const Link = styled.a`
-  color: black;
-  text-decoration: none;
-  :hover {
-    text-decoration: underline;
-  }
-`;

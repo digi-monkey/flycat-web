@@ -86,7 +86,7 @@ export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
       </span>
       {t('notification.likedYour')}
       <Link href={`${Paths.event}/${eventId}`}>{t('notification.note')}</Link>{' '}
-      <span style={{}}>"{maxStrings(toEvent?.content || '', 30)}"</span>
+      <span style={{}}>&quot;{maxStrings(toEvent?.content || '', 30)}&quot;</span>
     </span>
   );
 }
@@ -143,8 +143,8 @@ export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
           {eventId && (
             <span>
               {t('notification.replyToYour')}{' '}
-              <Link href={`${Paths.event}/${eventId}`}>{t('notification.note')}</Link> "
-              {maxStrings(toEvent?.content || '', 30)}"
+              <Link href={`${Paths.event}/${eventId}`}>{t('notification.note')}</Link> &quot;
+              {maxStrings(toEvent?.content || '', 30)}&quot;
             </span>
           )}
           {!eventId && <span>{t('notification.mentionYou')}</span>}
@@ -223,7 +223,7 @@ export function ArticleCommentItem({
               <Link href={`${Paths.post + toEvent?.pubkey}/${Nip23.toArticle(toEvent).id}`}>
                 {'article'}
               </Link>{' '}
-              "{Nip23.toArticle(toEvent).title || ''}"
+              &quot;{Nip23.toArticle(toEvent).title || ''}&quot;
             </span>
           )}
           {!eventId && <span>{'reply to your article'}</span>}

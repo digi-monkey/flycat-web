@@ -8,30 +8,6 @@ export interface SiteMetaProps {
   onSubmit?: (siteName, siteDescription) => any;
 }
 
-export function SiteMeta(props: SiteMetaProps) {
-  const { t } = useTranslation();
-  const { isOwner, siteMetaData, onSubmit } = props;
-
-  return (
-    <>
-      {siteMetaData && (
-        <>
-          <h3>{siteMetaData.site_name}</h3>
-          <span>{siteMetaData.site_description}</span>
-        </>
-      )}
-
-      {!siteMetaData && !isOwner && <span>{t('siteMeta.noBlog')}</span>}
-
-      {!siteMetaData && isOwner && <SiteCreateForm onSubmit={onSubmit} />}
-    </>
-  );
-}
-
-export interface SiteCreateFormProps {
-  onSubmit?: (siteName, siteDescription) => any;
-}
-
 const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
   const { t } = useTranslation();
   const [siteName, setSiteName] = useState('');
@@ -74,3 +50,27 @@ const SiteCreateForm: React.FC<SiteCreateFormProps> = ({ onSubmit }) => {
     </form>
   );
 };
+
+export function SiteMeta(props: SiteMetaProps) {
+  const { t } = useTranslation();
+  const { isOwner, siteMetaData, onSubmit } = props;
+
+  return (
+    <>
+      {siteMetaData && (
+        <>
+          <h3>{siteMetaData.site_name}</h3>
+          <span>{siteMetaData.site_description}</span>
+        </>
+      )}
+
+      {!siteMetaData && !isOwner && <span>{t('siteMeta.noBlog')}</span>}
+
+      {!siteMetaData && isOwner && <SiteCreateForm onSubmit={onSubmit} />}
+    </>
+  );
+}
+
+export interface SiteCreateFormProps {
+  onSubmit?: (siteName, siteDescription) => any;
+}

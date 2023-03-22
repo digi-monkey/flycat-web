@@ -47,6 +47,7 @@ export function Backup({ isLoggedIn }) {
   const [params, setParams] = useState<URLSearchParams>();
   const [isLocalRelayTips, setIsLocalRelayTips] = useState(false);
   const [localRelay, setLocalRelay] = useState<string | undefined>();
+  let relays = defaultRelays;
 
   useEffect(() => {
     const result = new URLSearchParams(location.search);
@@ -69,7 +70,6 @@ export function Backup({ isLoggedIn }) {
     setLocalRelay(_localRelay);
   }, []);
 
-  let relays = defaultRelays;
   if (isLoggedIn === true) {
     relays = relays
       .concat(...(myCustomRelay[myPublicKey] ?? []))
@@ -133,6 +133,16 @@ export function Backup({ isLoggedIn }) {
     }
   }
 
+  const fetchBackUp = async () => {
+    const filter = { authors: [myPublicKey], limit: 1000 };
+    worker
+      ?.subFilter(filter, undefined, undefined, {
+        type: CallRelayType.single,
+        data: [relayUrl!],
+      })
+      ?.iterating({ cb: handleEvent });
+  };
+
   useEffect(() => {
     if (!isValidRelay) return;
     if (!isLoggedIn) return;
@@ -164,16 +174,6 @@ export function Backup({ isLoggedIn }) {
     const isValid = relayUrl != null && isValidWssUrl(relayUrl);
     setIsValidRelay(isValid);
   }, [relayUrl]);
-
-  const fetchBackUp = async () => {
-    const filter = { authors: [myPublicKey], limit: 1000 };
-    worker
-      ?.subFilter(filter, undefined, undefined, {
-        type: CallRelayType.single,
-        data: [relayUrl!],
-      })
-      ?.iterating({ cb: handleEvent });
-  };
 
   const sync = async () => {
     const filter = { authors: [myPublicKey], limit: 1000 };

@@ -125,6 +125,18 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey }) => {
   const [profile, setProfile] = useState<
     EventSetMetadataContent & { created_at: number }
   >();
+  const initialFormData: FormData = {
+    name: profile?.display_name,
+    username: profile?.name,
+    about: profile?.about,
+    website: profile?.website,
+    bitcoinLightningAddress: profile?.lud06,
+    bitcoinLightningAddressLud16: profile?.lud16,
+    domainNameVerification: profile?.nip05,
+  };
+  const [formData, setFormData] = useState(initialFormData);
+  const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
+  const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
   const { worker, newConn } = useCallWorker();
 
@@ -167,20 +179,6 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey }) => {
     setAvatar(profile?.picture);
     setBanner(profile?.banner);
   }, [profile]);
-
-  const initialFormData: FormData = {
-    name: profile?.display_name,
-    username: profile?.name,
-    about: profile?.about,
-    website: profile?.website,
-    bitcoinLightningAddress: profile?.lud06,
-    bitcoinLightningAddressLud16: profile?.lud16,
-    domainNameVerification: profile?.nip05,
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
-  const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
-  const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

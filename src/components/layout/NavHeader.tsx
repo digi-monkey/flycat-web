@@ -48,33 +48,6 @@ export interface NavHeaderProps {
   link?: string;
 }
 
-export function NavHeader({ title, link }: NavHeaderProps) {
-  const { t } = useTranslation();
-
-  return (
-    <Grid container>
-      <Grid item xs={12} sm={6}>
-        <div>
-          <Grid container>
-            <div style={styles.title}>
-              <Link href={link || Paths.home}>
-                {title || t('nav.menu.home')}
-              </Link>
-            </div>
-          </Grid>
-        </div>
-      </Grid>
-      {
-        <Grid item xs={12} sm={6}>
-          <div style={{ textAlign: 'right' }}>
-            <SearchBox />
-          </div>
-        </Grid>
-      }
-    </Grid>
-  );
-}
-
 export const SearchBox = () => {
   return (
     <div
@@ -118,6 +91,33 @@ export const SearchBox = () => {
     </div>
   );
 };
+
+export function NavHeader({ title, link }: NavHeaderProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Grid container>
+      <Grid item xs={12} sm={6}>
+        <div>
+          <Grid container>
+            <div style={styles.title}>
+              <Link href={link || Paths.home}>
+                {title || t('nav.menu.home')}
+              </Link>
+            </div>
+          </Grid>
+        </div>
+      </Grid>
+      {
+        <Grid item xs={12} sm={6}>
+          <div style={{ textAlign: 'right' }}>
+            <SearchBox />
+          </div>
+        </Grid>
+      }
+    </Grid>
+  );
+}
 
 export const MenuListDefault = connect(loginMapStateToProps)(Nav);
 

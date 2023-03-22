@@ -13,6 +13,57 @@ import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
 import { BlogFeedItem } from './FeedItem';
 
+const ArticleListItem = ({
+  article: a,
+  userMap,
+}: {
+  article: Article;
+  userMap: UserMap;
+}) => {
+  return (
+    <div key={a.eventId} style={{ margin: '10px 0px' }}>
+      <li
+        style={{
+          display: 'block',
+          borderBottom: '1px dashed #ddd',
+          padding: '15px 0',
+        }}
+      >
+        <Grid
+          container
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'flex-start',
+          }}
+        >
+          <div style={{ width: '75px' }}>
+            <ProfileAvatar
+              name={a.pubKey}
+              picture={userMap.get(a.pubKey)?.picture}
+            />
+          </div>
+          <div style={{ flex: '1' }}>
+            <span style={{ fontSize: '14px', display: 'block' }}>
+              <ProfileName
+                name={userMap.get(a.pubKey)?.name}
+                createdAt={a.updated_at}
+                pk={a.pubKey}
+              />
+              <BlogFeedItem
+                article={a}
+                lightingAddress={
+                  userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
+                }
+              />
+            </span>
+          </div>
+        </Grid>
+      </li>
+    </div>
+  );
+};
+
 export function BlogFeeds() {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [articles, setArticles] = useState<Article[]>([]);
@@ -110,60 +161,9 @@ export function BlogFeeds() {
 
   return (
     <div>
-      {articles.map(a => (
-        <ArticleListItem article={a} userMap={userMap} />
+      {articles.map((a, key) => (
+        <ArticleListItem key={key} article={a} userMap={userMap} />
       ))}
     </div>
   );
 }
-
-const ArticleListItem = ({
-  article: a,
-  userMap,
-}: {
-  article: Article;
-  userMap: UserMap;
-}) => {
-  return (
-    <div key={a.eventId} style={{ margin: '10px 0px' }}>
-      <li
-        style={{
-          display: 'block',
-          borderBottom: '1px dashed #ddd',
-          padding: '15px 0',
-        }}
-      >
-        <Grid
-          container
-          style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'flex-start',
-          }}
-        >
-          <div style={{ width: '75px' }}>
-            <ProfileAvatar
-              name={a.pubKey}
-              picture={userMap.get(a.pubKey)?.picture}
-            />
-          </div>
-          <div style={{ flex: '1' }}>
-            <span style={{ fontSize: '14px', display: 'block' }}>
-              <ProfileName
-                name={userMap.get(a.pubKey)?.name}
-                createdAt={a.updated_at}
-                pk={a.pubKey}
-              />
-              <BlogFeedItem
-                article={a}
-                lightingAddress={
-                  userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
-                }
-              />
-            </span>
-          </div>
-        </Grid>
-      </li>
-    </div>
-  );
-};

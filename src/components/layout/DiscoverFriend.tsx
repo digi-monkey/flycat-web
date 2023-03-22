@@ -1,8 +1,18 @@
 import Link from 'next/link';
+import { Paths } from 'constants/path';
 import { UserMap } from 'service/type';
 import { ProfileAvatar } from './msg/TextMsg';
 import { useTranslation } from 'next-i18next';
-import { Paths } from 'constants/path';
+
+export const UserName = ({ name, pk }: { name?: string; pk: string }) => {
+  return (
+    <div>
+      <Link style={{ fontSize: '14px' }} href={`${Paths.user + pk}`}>
+        @{name || '__'}
+      </Link>
+    </div>
+  );
+};
 
 export const DiscoveryFriend = ({
   pks,
@@ -47,16 +57,6 @@ export const DiscoveryFriend = ({
           <UserName name={userMap.get(pk)?.name} pk={pk} />
         </span>
       ))}
-    </div>
-  );
-};
-
-export const UserName = ({ name, pk }: { name?: string; pk: string }) => {
-  return (
-    <div>
-      <Link style={{ fontSize: '14px' }} href={`${Paths.user + pk}`}>
-        @{name || '__'}
-      </Link>
     </div>
   );
 };

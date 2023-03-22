@@ -14,6 +14,52 @@ export interface ContentProps {
   classNames?: string;
 }
 
+const Texting = ({ modifiedText }: { modifiedText: string }) => {
+  const [html, setHtml] = useState<string | null>(null);
+  const [plainText, setPlainText] = useState('');
+
+  useEffect(() => {
+    /*
+    // Extract all the anchor tags from modifiedText
+    const anchorTagRegex = /<a.*?>(.*?)<\/a>/g;
+    const anchorTags = modifiedText.match(anchorTagRegex);
+
+    // Remove all the anchor tags from modifiedText and set the rest of the content as plain text
+    let plainText = modifiedText;
+    if (anchorTags != null) {
+      anchorTags.forEach(tag => {
+        plainText = plainText.replace(tag, '');
+      });
+    }
+
+    // Set the anchor tags in the state
+    if (anchorTags != null) {
+      const html = anchorTags.reduce((acc, tag) => {
+        const m = tag.match(/<a.*href="(.*?)".*?>(.*?)<\/a>/);
+        if (m != null) {
+          const [, link, text] = m;
+          return acc + `<a href="${link}" target="_blank">${text}</a>`;
+        } else {
+          return acc;
+        }
+      }, '');
+
+      setHtml(html);
+    }
+    
+    setPlainText(markdownIt.render(plainText));
+    */
+    setHtml(modifiedText);
+  }, [modifiedText]);
+
+  return (
+    <div style={{ whiteSpace: 'pre-wrap' }}>
+      {plainText}
+      {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
+    </div>
+  );
+};
+
 export function Content({ text, classNames }: ContentProps) {
   const {
     lnUrls,
@@ -231,7 +277,7 @@ export function ImagePlate({ url }: { url: string }) {
     <>
       <img
         src={url}
-        alt=""
+        alt="img"
         style={{
           maxWidth: '100%',
           maxHeight: '300px',
@@ -298,49 +344,3 @@ export function ImagePlate({ url }: { url: string }) {
     </>
   );
 }
-
-const Texting = ({ modifiedText }: { modifiedText: string }) => {
-  const [html, setHtml] = useState<string | null>(null);
-  const [plainText, setPlainText] = useState('');
-
-  useEffect(() => {
-    /*
-    // Extract all the anchor tags from modifiedText
-    const anchorTagRegex = /<a.*?>(.*?)<\/a>/g;
-    const anchorTags = modifiedText.match(anchorTagRegex);
-
-    // Remove all the anchor tags from modifiedText and set the rest of the content as plain text
-    let plainText = modifiedText;
-    if (anchorTags != null) {
-      anchorTags.forEach(tag => {
-        plainText = plainText.replace(tag, '');
-      });
-    }
-
-    // Set the anchor tags in the state
-    if (anchorTags != null) {
-      const html = anchorTags.reduce((acc, tag) => {
-        const m = tag.match(/<a.*href="(.*?)".*?>(.*?)<\/a>/);
-        if (m != null) {
-          const [, link, text] = m;
-          return acc + `<a href="${link}" target="_blank">${text}</a>`;
-        } else {
-          return acc;
-        }
-      }, '');
-
-      setHtml(html);
-    }
-    
-    setPlainText(markdownIt.render(plainText));
-    */
-    setHtml(modifiedText);
-  }, [modifiedText]);
-
-  return (
-    <div style={{ whiteSpace: 'pre-wrap' }}>
-      {plainText}
-      {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
-    </div>
-  );
-};

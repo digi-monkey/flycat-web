@@ -7,8 +7,8 @@ export function DateBook({ articles }: { articles: Article[] }) {
   const books = useDateBookData(articles);
   return (
     <span>
-      {books.map(book => (
-        <span style={{ paddingRight: '20px' }}>
+      {books.map((book, key) => (
+        <span key={key} style={{ paddingRight: '20px' }}>
           <Book title={book.title} count={book.count} time={book.time} />
         </span>
       ))}

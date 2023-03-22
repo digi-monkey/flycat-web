@@ -52,6 +52,7 @@ export default function NewArticle() {
   const [articleEvent, setArticleEvent] = useState<Event>();
   const [comments, setComments] = useState<Event[]>([]);
   const [inputComment, setInputComment] = useState('');
+  const { worker, newConn } = useCallWorker();
 
   const handleCommentSubmit = async () => {
     if (signEvent == null) {
@@ -72,8 +73,6 @@ export default function NewArticle() {
     setInputComment('');
     alert('published! please refresh the page, sorry will fix this soon!');
   };
-
-  const { worker, newConn } = useCallWorker();
 
   function handleEvent(event: Event, relayUrl?: string) {
     if (event.kind === WellKnownEventKind.set_metadata) {
@@ -160,7 +159,7 @@ export default function NewArticle() {
   const content = useMemo(() => {
     if (articleEvent == null) return;
 
-    let event = articleEvent;
+    const event = articleEvent;
     event.content = Nip08.replaceMentionPublickey(
       event,
       userMap,
@@ -239,8 +238,9 @@ export default function NewArticle() {
 
               <div>
                 <div style={{ margin: '10px 0px 30px 0px', fontSize: '14px' }}>
-                  {article?.hashTags?.flat(Infinity).map(t => (
+                  {article?.hashTags?.flat(Infinity).map((t, key) => (
                     <span
+                      key={key}
                       style={{
                         background: theme.palette.secondary.main,
                         margin: '5px',
@@ -407,8 +407,9 @@ export default function NewArticle() {
                       article?.published_at || article?.updated_at || 0,
                     )}
                   </span>
-                  {article?.dirs?.map(t => (
+                  {article?.dirs?.map((t, key) => (
                     <span
+                      key={key}
                       style={{
                         background: theme.palette.secondary.main,
                         margin: '5px',
