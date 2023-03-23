@@ -21,7 +21,7 @@ import {
   INPUT_FIELD_POSITIONS,
 } from './constants';
 
-
+// Note: The component code is from https://github.com/react-tags/react-tags
 // TODO: refactor react hooks component
 class ReactTags extends Component {
   static propTypes = {

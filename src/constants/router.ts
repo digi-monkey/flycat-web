@@ -44,8 +44,8 @@ const Pages = {
     path: '/article/'
   },
   post: {
-    name: 'article_create',
-    path: '/article/create/'
+    name: 'post',
+    path: '/post/'
   },
   legacy_blog: {
     name: 'legacy-blog',

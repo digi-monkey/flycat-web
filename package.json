@@ -91,9 +91,9 @@
     "web-vitals": "2.1.2"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next dev",
+    "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next build",
+    "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next start",
     "lint": "next lint",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

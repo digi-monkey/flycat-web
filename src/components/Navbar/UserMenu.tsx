@@ -37,7 +37,7 @@ export function UserMenu({ pk, userInfo }: UserMenuProps) {
     },
     {
       text: 'Private Backup',
-      onClick: () => router.push({ pathname: Paths.backup + '?local=true'}),
+      onClick: () => router.push({ pathname: Paths.backup, query: { local: true }}),
     },
     {
       text: 'Setting',

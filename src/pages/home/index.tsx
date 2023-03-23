@@ -1,4 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { Msgs } from 'components/layout/msg/Msg';
+import { Paths } from 'constants/path';
+import { UserMap } from 'service/type';
+import { connect } from 'react-redux';
+import { useRouter } from 'next/router';
+import { BlogFeeds } from '../blog/Feed';
+import { LoginFormTip } from 'components/layout/NavHeader';
+import { EventWithSeen } from 'pages/type';
+import { CallRelayType } from 'service/worker/type';
+import { useCallWorker } from 'hooks/useWorker';
+import { useMyPublicKey } from 'hooks/useMyPublicKey';
+import { useTranslation } from 'next-i18next';
+import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
+import { Button, useTheme } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { loginMapStateToProps } from 'pages/helper';
+import { LoginMode, SignEvent } from 'store/loginReducer';
+import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import {
   Event,
   EventSetMetadataContent,
@@ -13,27 +30,11 @@ import {
   Filter,
   deserializeMetadata,
 } from 'service/api';
-import { connect } from 'react-redux';
-import { CallRelayType } from 'service/worker/type';
-import { UserMap } from 'service/type';
-import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
-import { useTranslation } from 'next-i18next';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { LoginFormTip } from 'components/layout/NavHeader';
-import { Msgs } from 'components/layout/msg/Msg';
-import { EventWithSeen } from 'pages/type';
-import { loginMapStateToProps } from 'pages/helper';
-import { LoginMode, SignEvent } from 'store/loginReducer';
-import { useMyPublicKey } from 'hooks/useMyPublicKey';
-import { useCallWorker } from 'hooks/useWorker';
+
 import BasicTabs from 'components/layout/SimpleTabs';
-import { BlogFeeds } from '../blog/Feed';
+import CreateIcon from '@mui/icons-material/Create';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import { Button, useTheme } from '@mui/material';
-import CreateIcon from '@mui/icons-material/Create';
-import { useRouter } from 'next/router';
-import { Paths } from 'constants/path';
 
 export type ContactList = Map<
   PublicKey,
@@ -49,7 +50,7 @@ export interface HomePageProps {
   signEvent?: SignEvent;
 }
 
-export const HomePage = () => {
+const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -57,9 +58,6 @@ export const HomePage = () => {
   const maxMsgLength = 50;
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [signEvent, setSignEvent] = useState<SignEvent>();
-  const [mode, setMode] = useState<LoginMode>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] =
     useState<{ keys: PublicKey[]; created_at: number }>();

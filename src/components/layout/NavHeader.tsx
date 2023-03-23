@@ -52,23 +52,20 @@ export const SearchBox = () => {
   return (
     <div
       style={{
-        //boxShadow: 'inset 0 0 1px #aaa',
-        //border: '1px solid rgb(216 222 226)',
         borderRadius: '5px',
         background: '#F4F5F4',
         padding: '5px',
-        // margin: '5px 0px 0px 0px',
         display: 'flex',
+        justifyContent: 'space-between'
       }}
     >
       <input
         type="text"
-        //placeholder="unavailable"
+        placeholder="unavailable"
         style={{
           border: 'none',
           maxWidth: '85%',
           width: '400px',
-          // padding: '5px',
           outline: 'none',
           background: '#F4F5F4',
         }}
@@ -97,19 +94,8 @@ export function NavHeader({ title, link }: NavHeaderProps) {
 
   return (
     <Grid container>
-      <Grid item xs={12} sm={6}>
-        <div>
-          <Grid container>
-            <div style={styles.title}>
-              <Link href={link || Paths.home}>
-                {title || t('nav.menu.home')}
-              </Link>
-            </div>
-          </Grid>
-        </div>
-      </Grid>
       {
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={24} sm={12}>
           <div style={{ textAlign: 'right' }}>
             <SearchBox />
           </div>

@@ -9,10 +9,11 @@ import {
   Article,
   Create,
   AccountBox,
-  Key,
-  Contacts,
+  PersonAdd,
   Backup,
   Notifications,
+  LogoutRounded,
+  LoginRounded
 } from '@mui/icons-material';
 
 import Link from 'next/link';
@@ -30,7 +31,9 @@ const Nav = ({ isLoggedIn }) => {
     <nav className={styles.nav}>
       <ul>
         <li>
-          <img src="/logo512.png" alt="logo" />
+          <Link href={Paths.home}>
+            <img src="/logo512.png" alt="logo" />
+          </Link>
         </li>
 
         <li>
@@ -73,7 +76,7 @@ const Nav = ({ isLoggedIn }) => {
         {isLogin && (
           <li>
             <Link href={`${Paths.contact + myPublicKey}`}>
-              <Contacts />{t('nav.menu.contact')}
+              <PersonAdd />{t('nav.menu.contact')}
             </Link>
           </li>
         )}
@@ -100,7 +103,13 @@ const Nav = ({ isLoggedIn }) => {
 
         <li>
           <a onClick={() => setIsOpenLoginForm(true)}>
-            <Key />{isLoggedIn ? t('nav.menu.signOut') : t('nav.menu.signIn')}
+          {isLoggedIn ? <>
+            <LogoutRounded />
+            {t('nav.menu.signOut')}
+          </> : <>
+            <LoginRounded />
+            {t('nav.menu.signIn')}
+          </>}
           </a>
         </li>
       </ul>

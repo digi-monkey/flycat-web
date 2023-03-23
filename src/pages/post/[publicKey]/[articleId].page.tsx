@@ -5,7 +5,7 @@ import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
 import { formatDate } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
-import { LikedButton } from '../LikedButton';
+import { LikedButton } from './LikedButton';
 import { useSelector } from 'react-redux';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { CallRelayType } from 'service/worker/type';

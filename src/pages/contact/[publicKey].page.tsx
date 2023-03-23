@@ -354,7 +354,7 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
   useEffect(() => {
     const pks = userContactList?.keys || [];
     //todo: validate publicKey
-    if (publicKey.length > 0) {
+    if (publicKey && publicKey.length > 0) {
       pks.push(publicKey);
     }
     if (isLoggedIn && myPublicKey.length > 0) {
@@ -433,4 +433,6 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
       ...(await serverSideTranslations(locale, ['common']))
   }
-})
+});
+
+export const getStaticPaths = () => ({ paths: [], fallback: true });
