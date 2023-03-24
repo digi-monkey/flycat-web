@@ -264,7 +264,16 @@ export class Flycat {
   }
 
   static deserialize(data: string) {
-    const deserialized = JSON.parse(data);
+    if (data.length === 0) return;
+
+    let deserialized;
+    try {
+      deserialized = JSON.parse(data);
+    } catch (e) {
+      console.error('unknown type schema', data);
+      return;
+    }
+
     switch (true) {
       case isSiteMetaDataContentSchema(deserialized):
         return deserialized as SiteMetaDataContentSchema;

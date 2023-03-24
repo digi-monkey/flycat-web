@@ -184,12 +184,12 @@ export const shortPublicKey = (key: PublicKey | undefined) => {
 };
 
 export function equalMaps(map1: Map<string, any>, map2: Map<string, any>) {
-  var testVal;
+  let testVal;
   if (map1.size !== map2.size) {
     return false;
   }
   const map1Arr = Array.from(map1.entries());
-  for (var [key, val] of map1Arr) {
+  for (const [key, val] of map1Arr) {
     testVal = map2.get(key);
     // in cases of an undefined value, make sure the key
     // actually exists on the object so there are no false positives
@@ -200,7 +200,7 @@ export function equalMaps(map1: Map<string, any>, map2: Map<string, any>) {
   return true;
 }
 
-export function maxStrings(str: string, maxLen: number = 100) {
+export function maxStrings(str: string, maxLen = 100) {
   if (str == null) {
     return str;
   }
@@ -238,7 +238,7 @@ export function formatDate(secs: number): string {
 }
 
 export async function compressImage(file: File): Promise<File> {
-  var options = {
+  const options = {
     maxSizeMB: 0.9, // some png might not meets desire of 1mb
     maxWidthOrHeight: 1920,
     useWebWorker: true,

@@ -54,8 +54,7 @@ export function randomKeyPair(): { privKey: string; pubKey: string } {
 
 export function bech32Encode(data: HexStr, prefix: Utf8Str): string {
   try {
-    // let buffer = this.fromHexString(key)
-    let words = bech32.toWords(fromHexString(data));
+    const words = bech32.toWords(fromHexString(data));
     return bech32.encode(prefix, words);
   } catch (error: any) {
     throw new Error(`bech32Encode error ${error.message}`);
@@ -64,8 +63,8 @@ export function bech32Encode(data: HexStr, prefix: Utf8Str): string {
 
 export function bech32Decode(data: string) {
   try {
-    let { prefix, words } = bech32.decode(data);
-    let buffer = Buffer.from(bech32.fromWords(words));
+    const { prefix, words } = bech32.decode(data);
+    const buffer = Buffer.from(bech32.fromWords(words));
     return { decoded: toHexString(buffer), prefix };
   } catch (error: any) {
     throw new Error(`bech32Decode error ${error.message}`);
@@ -73,7 +72,7 @@ export function bech32Decode(data: string) {
 }
 
 export function toHexString(buffer: Uint8Array) {
-  let hexString = buffer.reduce((s, byte) => {
+  const hexString = buffer.reduce((s, byte) => {
     let hex = byte.toString(16);
     if (hex.length === 1) hex = '0' + hex;
     return s + hex;
@@ -86,7 +85,7 @@ export function fromHexString(str: string) {
   if (str.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(str)) {
     return null;
   }
-  let buffer = new Uint8Array(str.length / 2);
+  const buffer = new Uint8Array(str.length / 2);
   for (let i = 0; i < buffer.length; i++) {
     buffer[i] = parseInt(str.substr(2 * i, 2), 16);
   }

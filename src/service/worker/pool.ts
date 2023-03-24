@@ -18,7 +18,7 @@ export class Pool {
   public maxSub: number;
   private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
-  constructor(private relayUrls: string[], maxSub: number = 10) {
+  constructor(private relayUrls: string[], maxSub = 10) {
     console.log('init Pool..');
     this.setupWebSocketApis();
     this.listen();
@@ -27,10 +27,9 @@ export class Pool {
   }
 
   startMonitor() {
-    const that = this;
     setInterval(() => {
       console.debug(
-        `portSubs(only keep-alive): ${that.portSubs.size}`,
+        `portSubs(only keep-alive): ${this.portSubs.size}`,
         this.portSubs,
       );
       this.wsApiList
@@ -82,6 +81,7 @@ export class Pool {
             onErrHandler: onerror,
           },
           this.maxSub,
+          5
         );
         this.wsConnectStatus.set(relayUrl, false);
         this.wsApiList.push(ws);

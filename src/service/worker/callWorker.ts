@@ -68,7 +68,7 @@ export interface CallResultHandler {
 
 // this is main thread code that makes postMessage requests to a worker
 export class CallWorker {
-  public _workerId: string = 'defaultCallWorker';
+  public _workerId = 'defaultCallWorker';
   public _portId: number | undefined;
 
   receiveCount = 0;

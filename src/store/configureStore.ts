@@ -1,25 +1,22 @@
-/**
- * Create the store with dynamic reducers
- */
+import thunk from 'redux-thunk';
+import createSagaMiddleware from 'redux-saga';
 
+import { RawEvent } from 'service/api';
+import { relayReducer } from './relayReducer';
+import { createReducer } from './reducers';
+import { createWrapper } from "next-redux-wrapper";
+import { createInjectorsEnhancer } from 'redux-injectors';
 import {
   configureStore,
   getDefaultMiddleware,
   StoreEnhancer,
 } from '@reduxjs/toolkit';
-import { createInjectorsEnhancer } from 'redux-injectors';
-import createSagaMiddleware from 'redux-saga';
 import {
   LoginMode,
   loginReducer,
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
 } from './loginReducer';
-
-import { createReducer } from './reducers';
-import { relayReducer } from './relayReducer';
-import thunk from 'redux-thunk';
-import { RawEvent } from 'service/api';
 
 // Define the shape of your store state
 export interface RootState {
@@ -64,16 +61,9 @@ export function toRootState(state: SavableRootState): RootState {
   function createGetPublicKey(mode: LoginMode) {
     switch (mode) {
       case LoginMode.local:
-        return async () => {
-          return state.loginReducer.publicKey!;
-        };
-
+        return async () => state.loginReducer.publicKey!;
       case LoginMode.nip07Wallet:
-        return async () => {
-          const pk = await window.nostr?.getPublicKey()!;
-          return pk;
-        };
-
+        return async () => await window.nostr?.getPublicKey();
       case LoginMode.dotbit:
         return async () => {
           if (state.loginReducer.didAlias == null) {
@@ -161,19 +151,22 @@ export function writeStore(data: RootState) {
 }
 
 export function readStore(): RootState | any {
-  const storedStateString = localStorage.getItem('store');
-  let storedState: SavableRootState | undefined;
-  try {
-    storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
-    if (storedState) {
-      if (storedState.loginReducer.mode == null) {
-        // patch for v0.1.0 version
-        storedState.loginReducer.mode = LoginMode.local;
+  // next.js server window not
+  if (typeof window !== "undefined") {
+    const storedStateString = localStorage.getItem('store');
+    let storedState: SavableRootState | undefined;
+    try {
+      storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
+      if (storedState) {
+        if (storedState.loginReducer.mode == null) {
+          // patch for v0.1.0 version
+          storedState.loginReducer.mode = LoginMode.local;
+        }
+        return toRootState(storedState);
       }
-      return toRootState(storedState);
+    } catch (error) {
+      console.error('Error loading state from local storage:', error);
     }
-  } catch (error) {
-    console.error('Error loading state from local storage:', error);
   }
 
   return {};
@@ -184,6 +177,12 @@ const loadStore = () => {
   const store = readStore();
   return store;
 };
+
+const rootReducer = createReducer<RootState>({
+  loginReducer: loginReducer,
+  relayReducer: relayReducer,
+  // ... other reducers
+});
 
 export function configureAppStore() {
   const reduxSagaMonitorOptions = {};
@@ -199,12 +198,6 @@ export function configureAppStore() {
       runSaga,
     }),
   ] as StoreEnhancer[];
-
-  const rootReducer = createReducer<RootState>({
-    loginReducer: loginReducer,
-    relayReducer: relayReducer,
-    // ... other reducers
-  });
 
   const store = configureStore({
     reducer: rootReducer,
@@ -226,3 +219,6 @@ export function configureAppStore() {
 
   return store;
 }
+
+export type AppStore = ReturnType<typeof configureAppStore>;
+export const wrapper = createWrapper<AppStore>(configureAppStore);
