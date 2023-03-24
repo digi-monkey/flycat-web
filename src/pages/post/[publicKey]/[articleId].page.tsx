@@ -17,6 +17,7 @@ import { Article, Nip23 } from 'service/nip/23';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { getDateBookName } from 'hooks/useDateBookData';
 import { Nip08, RenderFlag } from 'service/nip/08';
+import { TextField, Button } from "@mui/material";
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
@@ -28,8 +29,10 @@ import {
 } from 'service/api';
 
 import Link from 'next/link';
+import styles from './index.module.scss';
 import EditIcon from '@mui/icons-material/Edit';
 import ReactMarkdown from 'react-markdown';
+import AddCommentIcon from '@mui/icons-material/AddComment';
 import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 
 type UserParams = {
@@ -67,7 +70,7 @@ export default function NewArticle() {
 
     const rawEvent = Nip23.commentToArticle(inputComment, article);
     const event = await signEvent(rawEvent);
-    console.log(event);
+
     worker?.pubEvent(event);
 
     setInputComment('');
@@ -172,47 +175,17 @@ export default function NewArticle() {
   return (
     <BaseLayout silent={true}>
       <Left>
-        <div
-          style={{
-            overflow: 'auto',
-            padding: '0px',
-            border: '0px',
-          }}
-        >
-          <div
-            style={{
-              padding: '0px',
-              margin: '0',
-              background: 'white',
-            }}
-          >
-            <div>
+        <div className={styles.post}>
+          <div className={styles.postContent}>
+            <div className={styles.postHeader}>
               {article?.image && (
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <img
-                    src={article.image}
-                    style={{ height: '250px', width: '100%' }}
-                  />
-                </div>
+                <img src={article.image} className={styles.banner} alt={article?.title} />
               )}
-              <div style={{ margin: '10px 0px 40px 0px' }}>
-                <div
-                  style={{
-                    fontSize: '25px',
-                    margin: '20px 0px',
-                    fontWeight: 'bold',
-                    textTransform: 'capitalize',
-                  }}
-                >
+              <div className={styles.postTitleInfo}>
+                <div className={styles.title}>
                   {article?.title}
                 </div>
-                <div
-                  style={{
-                    color: 'gray',
-                    fontSize: '14px',
-                    margin: '5px 0px 10px 0px',
-                  }}
-                >
+                <div className={styles.name}>
                   <Link href={Paths.user + publicKey}>
                     <span style={{ marginRight: '5px' }}>
                       {userMap.get(publicKey)?.name}
@@ -236,27 +209,18 @@ export default function NewArticle() {
                 </div>
               </div>
 
-              <div>
-                <div style={{ margin: '10px 0px 30px 0px', fontSize: '14px' }}>
-                  {article?.hashTags?.flat(Infinity).map((t, key) => (
-                    <span
-                      key={key}
-                      style={{
-                        background: theme.palette.secondary.main,
-                        margin: '5px',
-                        padding: '5px',
-                        borderRadius: '5px',
-                        color: 'gray',
-                      }}
-                    >
-                      #{t}
-                    </span>
-                  ))}
-                </div>
+              <div className={styles.postTags}>
+                {article?.hashTags?.flat(Infinity).map((t, key) => (
+                  <span
+                    key={key}
+                    style={{ background: theme.palette.secondary.main }}
+                  >
+                    {t}
+                  </span>
+                ))}
               </div>
 
               <ReactMarkdown
-                // className="heti heti--classic"
                 components={{
                   h1: ({ node, ...props }) => (
                     <div
@@ -321,46 +285,20 @@ export default function NewArticle() {
                 {content ?? ''}
               </ReactMarkdown>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                margin: '80px 0px 20px 0px',
-                width: '100%',
-              }}
-            >
-              <div
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  width: '100%',
-                }}
-              >
-                <div style={{ width: '80px', margin: '0 auto' }}>
+            <div className={styles.info}>
+              <div className={styles.author}>
+                <div className={styles.picture}>
                   <Link href={Paths.user + publicKey}>
-                    <img
-                      src={userMap.get(publicKey)?.picture}
-                      alt=""
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        display: 'block',
-                        borderRadius: '50%',
-                      }}
-                    />
+                    <img src={userMap.get(publicKey)?.picture} alt={userMap.get(publicKey)?.name} />
                   </Link>
                 </div>
-                <div style={{ margin: '10px 0px 20px 0px' }}>
-                  <Link
-                    style={{ fontSize: '16px', color: 'black' }}
-                    href={Paths.user + publicKey}
-                  >
+
+                <div className={styles.name}>
+                  <Link href={Paths.user + publicKey}>
                     {userMap.get(publicKey)?.name}
                   </Link>
                 </div>
+
                 <div>
                   <LikedButton
                     onClick={async () => {
@@ -368,9 +306,7 @@ export default function NewArticle() {
                         userMap.get(publicKey)?.lud06 ||
                         userMap.get(publicKey)?.lud16;
                       if (lnUrl == null) {
-                        return alert(
-                          'no ln url, please tell the author to set up one.',
-                        );
+                        return alert('no ln url, please tell the author to set up one.');
                       }
                       await payLnUrlInWebLn(lnUrl);
                     }}
@@ -382,41 +318,16 @@ export default function NewArticle() {
                   </LikedButton>
                 </div>
 
-                <div
-                  style={{
-                    background: theme.palette.secondary.main,
-                    margin: '60px 0px 20px 0px',
-                    borderRadius: '5px',
-                    padding: '10px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span style={{ textTransform: 'capitalize', color: 'gray' }}>
-                    {'collected in'}
-                  </span>
-                  <span
-                    style={{
-                      background: theme.palette.secondary.main,
-                      margin: '5px',
-                      padding: '5px',
-                      borderRadius: '5px',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    {getDateBookName(
-                      article?.published_at || article?.updated_at || 0,
-                    )}
+                <div className={styles.collected} style={{ background: theme.palette.secondary.main }}>
+                  <span className={styles.title}>{'collected in'}</span>
+                  <span className={styles.datetime} style={{ background: theme.palette.secondary.main }}>
+                    {getDateBookName( article?.published_at || article?.updated_at || 0 )}
                   </span>
                   {article?.dirs?.map((t, key) => (
                     <span
                       key={key}
-                      style={{
-                        background: theme.palette.secondary.main,
-                        margin: '5px',
-                        padding: '5px',
-                        borderRadius: '5px',
-                        textDecoration: 'underline',
-                      }}
+                      className={styles.dirs}
+                      style={{ background: theme.palette.secondary.main }}
                     >
                       {t}
                     </span>
@@ -425,39 +336,29 @@ export default function NewArticle() {
               </div>
             </div>
 
-            <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-              <span
-                style={{
-                  margin: '0px 5px',
-                  fontSize: '14px',
-                  color: 'gray',
-                  textTransform: 'capitalize',
-                }}
-              >
+            <div className={styles.updated_at}>
+              <span>
                 {t('articleRead.lastUpdatedAt') + ' '}
                 {useTimeSince(article?.updated_at ?? 10000)}
               </span>
             </div>
           </div>
           <div
-            style={{
-              width: '100%',
-              minHeight: '100px',
-              height: '100%',
-              background: theme.palette.secondary.main,
-              padding: '20px',
-              boxSizing: 'border-box'
-            }}
+            className={styles.comment}
+            style={{ background: theme.palette.secondary.main }}
           >
-            <div>
-              <textarea
-                style={{ width: '100%', height: '68px', padding: '5px' }}
+            <div className={styles.commentPanel}>
+              <TextField
+                className={styles.textarea}
+                multiline
+                minRows={4}
+                placeholder={'Please fill out your comment.'}
                 value={inputComment}
-                onChange={e => setInputComment(e.target.value)}
+                onChange={(e) => setInputComment(e.target.value)}
               />
-              <button type="button" onClick={handleCommentSubmit}>
+              <Button startIcon={<AddCommentIcon />} variant="contained" size='large' onClick={handleCommentSubmit}>
                 {t('articleRead.submit')}
-              </button>
+              </Button>
             </div>
 
             <ThinHr></ThinHr>
