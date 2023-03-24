@@ -61,7 +61,7 @@ export const SearchBox = () => {
     >
       <input
         type="text"
-        placeholder="unavailable"
+        // placeholder="unavailable"
         style={{
           border: 'none',
           maxWidth: '85%',
@@ -94,8 +94,19 @@ export function NavHeader({ title, link }: NavHeaderProps) {
 
   return (
     <Grid container>
+      <Grid item xs={12} sm={6}>
+        <div>
+          <Grid container>
+            <div style={styles.title}>
+              <Link href={link || Paths.home}>
+                {title || t('nav.menu.home')}
+              </Link>
+            </div>
+          </Grid>
+        </div>
+      </Grid>
       {
-        <Grid item xs={24} sm={12}>
+        <Grid item xs={12} sm={6}>
           <div style={{ textAlign: 'right' }}>
             <SearchBox />
           </div>

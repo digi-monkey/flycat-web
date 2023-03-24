@@ -181,8 +181,8 @@ export default function NewArticle() {
         >
           <div
             style={{
-              //padding: '20px',
-              margin: '0px 0 0 0',
+              padding: '0px',
+              margin: '0',
               background: 'white',
             }}
           >
@@ -446,6 +446,7 @@ export default function NewArticle() {
               height: '100%',
               background: theme.palette.secondary.main,
               padding: '20px',
+              boxSizing: 'border-box'
             }}
           >
             <div>

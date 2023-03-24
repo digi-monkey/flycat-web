@@ -15,7 +15,6 @@ import { RootState } from 'store/configureStore';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { useCallWorker } from 'hooks/useWorker';
 import { CallRelayType } from 'service/worker/type';
-import { useCommitId } from 'hooks/useCommitId';
 import { BaseLayout, Left } from 'components/layout/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -114,10 +113,9 @@ interface FormData {
   domainNameVerification?: string;
 }
 
-export const EditProfilePage = ({ isLoggedIn, myPrivateKey }) => {
+export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
   const { t } = useTranslation();
   const version = useVersion();
-  const commitId = useCommitId();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -367,8 +365,13 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey }) => {
 
 export default connect(loginMapStateToProps)(EditProfilePage);
 
-export const getStaticProps = async ({ locale }: { locale: string }) => ({
-  props: {
-      ...(await serverSideTranslations(locale, ['common']))
+export const getStaticProps = async ({ locale }: { locale: string }) => {
+  const commitId = process.env.REACT_APP_COMMIT_HASH;
+
+  return {
+    props: {
+      commitId, 
+        ...(await serverSideTranslations(locale, ['common']))
+    }
   }
-})
+}

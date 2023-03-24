@@ -1,0 +1,22 @@
+.menu {
+  display: block;
+  padding: 0;
+  margin: 40px auto 0;
+  list-style: none;
+  float: right;
+
+  li{
+    text-transform: capitalize;
+    cursor: pointer;
+    display: flex;
+    justify-content: flex-start;
+    min-height: 40px;
+    align-items: center;
+    border-bottom: 1px solid transparent;
+
+    &:hover{
+      border-color: #8dc53f;
+      color: #8dc53f;
+    }
+  }
+}

@@ -73,13 +73,14 @@ export function Write({
             style={{
               width: '100%',
               height: '100px',
-              border: '1px solid whitesmoke',
-              padding: '20px',
+              border: '1px solid #aaa',
+              padding: '20px 0',
               borderRadius: '5px',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
               color: 'gray',
+              display: 'flex'
             }}
           >
             {'Upload Cover Image'}{' '}

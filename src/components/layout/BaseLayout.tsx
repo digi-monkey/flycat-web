@@ -287,11 +287,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
               <Hidden smDown>
                 <div
                   style={{
-                    position: 'sticky' as const,
+                    position: 'sticky',
                     top: '0px',
                     background: 'white',
                     padding: '10px 3%',
                     zIndex: '2',
+                    width: '100%'
                   }}
                 >
                   <NavHeader title={metaPage?.title} link={metaPage?.link} />

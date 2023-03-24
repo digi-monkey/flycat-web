@@ -168,6 +168,7 @@ export function ArticleCommentItem({
   worker,
 }: ItemProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [toEvent, setToEvent] = useState<Event>();
 
   function handleEvent(event: Event, relayUrl?: string) {
@@ -190,12 +191,12 @@ export function ArticleCommentItem({
     if (toEvent == null) return;
 
     const article = Nip23.toArticle(toEvent);
-    const link = '/post/' + toEvent.pubkey + '/' + article.id;
-    window.open(link, '__blank');
     const lastReadTime = get();
-    if (msg.created_at > lastReadTime) {
-      update(msg.created_at);
-    }
+    if (msg.created_at > lastReadTime) update(msg.created_at);
+
+    router.push({
+      pathname: `${Paths.post + toEvent.pubkey}/${article.id}`
+    });
   };
 
   return (
@@ -241,11 +242,11 @@ export function ArticleCommentItem({
 }
 
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const myPublicKey = useReadonlyMyPublicKey();
+  const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<Event[]>([]);
-  const myPublicKey = useReadonlyMyPublicKey();
 
-  const { worker, newConn } = useCallWorker();
   function handleEvent(event: Event, relayUrl?: string) {
     console.log('handleEvent: ', event.kind);
     switch (event.kind) {

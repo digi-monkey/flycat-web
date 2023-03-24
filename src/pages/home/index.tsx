@@ -31,6 +31,7 @@ import {
   deserializeMetadata,
 } from 'service/api';
 
+import styles from './index.module.scss';
 import BasicTabs from 'components/layout/SimpleTabs';
 import CreateIcon from '@mui/icons-material/Create';
 import PublicIcon from '@mui/icons-material/Public';
@@ -362,43 +363,20 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         <BasicTabs items={tabItems} />
       </Left>
       <Right>
-        <div
-          style={{
-            width: '100%',
-            textAlign: 'right',
-            marginTop: '40px',
-          }}
-        >
-          <Button onClick={() => router.push({ pathname: Paths.universe })}>
-            <span
-              style={{
-                textTransform: 'capitalize',
-                cursor: 'pointer',
-                color: 'gray',
-              }}
-            >
-              <PublicIcon />
-              <span style={{ marginLeft: '5px' }}>
-                {'explore nostr universe'}
-              </span>
+        <ul className={styles.menu}>
+          <li onClick={() => router.push({ pathname: Paths.universe })}>
+            <PublicIcon />
+            <span style={{ marginLeft: '5px' }}>
+              {'explore nostr universe'}
             </span>
-          </Button>
-
-          <Button onClick={() => router.push({ pathname: Paths.fof })}>
-            <span
-              style={{
-                textTransform: 'capitalize',
-                cursor: 'pointer',
-                color: 'gray',
-              }}
-            >
-              <GroupAddIcon />
-              <span style={{ marginLeft: '5px' }}>
-                {'find friend of friends'}
-              </span>
+          </li>
+          <li onClick={() => router.push({ pathname: Paths.fof })}>
+            <GroupAddIcon />
+            <span style={{ marginLeft: '5px' }}>
+              {'find friend of friends'}
             </span>
-          </Button>
-        </div>
+          </li>
+        </ul>
       </Right>
     </BaseLayout>
   );
