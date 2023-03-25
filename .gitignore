@@ -24,3 +24,5 @@ template
 
 # nextjs
 .next
+
+tsconfig.tsbuildinfo
