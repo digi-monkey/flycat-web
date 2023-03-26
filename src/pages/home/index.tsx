@@ -3,7 +3,7 @@ import { Paths } from 'constants/path';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
-import { BlogFeeds } from '../blog/Feed';
+import { BlogFeeds } from '../blog/feed';
 import { LoginFormTip } from 'components/layout/NavHeader';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'service/worker/type';

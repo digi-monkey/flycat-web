@@ -1,4 +1,4 @@
-import { BlogFeeds } from './Feed';
+import { BlogFeeds } from './feed';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import {serverSideTranslations} from "next-i18next/serverSideTranslations";
 

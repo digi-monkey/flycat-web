@@ -15,12 +15,11 @@ const styles = {
 export interface RepostProp {
   eventId: EventId;
 }
-export const Repost = ({ eventId }: RepostProp) => {
-  const { t } = useTranslation();
+
+
+export const Repost = (Props) => {
   return (
-    <button
-      style={styles.smallBtn}
-    >
+    <button style={styles.smallBtn} {...Props}>
       <LoopOutlinedIcon style={{ color: 'gray', fontSize: '14px' }} />
     </button>
   );

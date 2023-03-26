@@ -13,7 +13,7 @@ import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
 import { useDateBookData } from 'hooks/useDateBookData';
 import { ProfileBlogMsgItem } from '../blog/MsgItem';
 import { useState, useEffect } from 'react';
-import { PersonalBlogFeedItem } from '../blog/FeedItem';
+import { PersonalBlogFeedItem } from '../blog/feed/FeedItem';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
