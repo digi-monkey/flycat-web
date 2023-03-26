@@ -17,7 +17,7 @@ import { CallRelayType } from 'service/worker/type';
 import { useTranslation } from 'next-i18next';
 import { ReplyToUserList } from './ReplyToUserList';
 import { useEffect, useMemo, useState } from 'react';
-import { ArticleContentNoAvatar, Content } from 'components/layout/msg/Content';
+import { ArticleContentNoAvatar, Content } from 'components/layout/msg/content';
 
 import Link from 'next/link';
 import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';

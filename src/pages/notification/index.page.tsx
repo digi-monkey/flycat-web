@@ -2,7 +2,7 @@ import { Nip23 } from 'service/nip/23';
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';
-import { Content } from 'components/layout/msg/Content';
+import { Content } from 'components/layout/msg/content';
 import { useRouter } from 'next/router';
 import { maxStrings } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';

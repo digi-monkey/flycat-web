@@ -3,7 +3,7 @@ import { Grid } from '@mui/material';
 import { Paths } from 'constants/path';
 import { ThinHr } from 'components/layout/ThinHr';
 import { connect } from 'react-redux';
-import { Content } from 'components/layout/msg/Content';
+import { Content } from 'components/layout/msg/content';
 import { UserMap } from 'service/type';
 import { useRouter } from 'next/router';
 import { SignEvent } from 'store/loginReducer';

@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import { Content } from 'components/layout/msg/Content';
+import { Content } from 'components/layout/msg/content';
 import { ReplyToUserList } from 'components/layout/msg/ReplyToUserList';
 import {
   ProfileAvatar,

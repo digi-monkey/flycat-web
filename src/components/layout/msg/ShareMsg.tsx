@@ -2,7 +2,7 @@
 // will remove after
 
 import { Grid } from '@mui/material';
-import { ArticleShareContent } from 'components/layout/msg/Content';
+import { ArticleShareContent } from 'components/layout/msg/content';
 import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';
 import React from 'react';
 import { getShareContentUrl } from 'service/helper';
