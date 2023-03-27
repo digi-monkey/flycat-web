@@ -4,10 +4,12 @@ import { useTimeSince } from 'hooks/useTimeSince';
 import React, { useEffect, useRef, useState } from 'react';
 import { normalizeContent } from 'service/helper';
 import styled from 'styled-components';
-import { AudioPreview } from './AudioPreview';
-import { Avatar } from './Avatar';
-import { LightingInvoice, LnUrlInvoice } from './LightingInvoice';
-import { VideoPreview } from './VideoPreview';
+import { AudioPreview } from '../AudioPreview';
+import { Avatar } from '../Avatar';
+import { LightingInvoice, LnUrlInvoice } from '../LightingInvoice';
+import { VideoPreview } from '../VideoPreview';
+import { Dialog, DialogContent } from '@mui/material';
+import styles from './index.module.scss';
 
 export interface ContentProps {
   text: string;
@@ -263,84 +265,34 @@ export function ArticleTrendsItem({
 }
 
 export function ImagePlate({ url }: { url: string }) {
-  // image click effect
   const [showPopup, setShowPopup] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
-
-  const handleClick = (event: React.MouseEvent) => {
-    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setShowPopup(false);
-    }
-  };
 
   return (
-    <>
+    <div className={styles.imagePlate}>
       <img
         src={url}
         alt="img"
-        style={{
-          maxWidth: '100%',
-          maxHeight: '300px',
-          cursor: 'pointer',
-        }}
+        className={styles.imagePlateImg}
         onClick={() => setShowPopup(true)}
       />
-      {showPopup && (
-        <div style={{}}>
-          <div
+      <Dialog
+        open={showPopup}
+        className={styles.dialog}
+        onClose={() => setShowPopup(false)}
+        disableAutoFocus
+      >
+        <DialogContent>
+          <img
+            src={url}
+            alt='img'
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'gray',
-              opacity: 0.6,
-              zIndex: '2',
-            }}
-            onClick={handleClick}
-          />
-          <div
-            ref={popupRef}
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              background: '#fff',
-              border: '1px solid white',
-              padding: '2px',
-              boxShadow: '0 0 5px white',
-              zIndex: '500',
-              height: '100%',
+              maxWidth: '100%',
               maxHeight: '700px',
-              overflow: 'hidden',
-              justifyContent: 'center',
-              alignItems: 'center',
+              verticalAlign: 'middle'
             }}
-          >
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <img
-                src={url}
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  width: 'auto',
-                  height: 'auto',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

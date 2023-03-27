@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'next-i18next';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
-import { ArticleTrendsItem } from './msg/Content';
+import { ArticleTrendsItem } from './msg/content';
 
 export const TopArticle = ({
   worker,

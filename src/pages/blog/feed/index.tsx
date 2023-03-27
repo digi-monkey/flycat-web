@@ -1,68 +1,38 @@
-import { Grid } from '@mui/material';
-import { ProfileAvatar, ProfileName } from 'components/layout/msg/TextMsg';
-import { useCallWorker } from 'hooks/useWorker';
-import React, { useEffect, useState } from 'react';
-import {
-  deserializeMetadata,
-  EventSetMetadataContent,
-  WellKnownEventKind,
-  Event,
-} from 'service/api';
-import { Article, Nip23 } from 'service/nip/23';
 import { UserMap } from 'service/type';
-import { CallRelayType } from 'service/worker/type';
 import { BlogFeedItem } from './FeedItem';
+import { useCallWorker } from 'hooks/useWorker';
+import { CallRelayType } from 'service/worker/type';
+import { Article, Nip23 } from 'service/nip/23';
+import { useEffect, useState, useRef } from 'react';
+import { ProfileAvatar, ProfileName } from 'components/layout/msg/TextMsg';
+import { deserializeMetadata, EventSetMetadataContent, WellKnownEventKind, Event } from 'service/api';
+import styles from './index.module.scss';
 
-const ArticleListItem = ({
-  article: a,
-  userMap,
-}: {
+type ArticleListItemProps = {
   article: Article;
   userMap: UserMap;
-}) => {
-  return (
-    <div key={a.eventId} style={{ margin: '10px 0px' }}>
-      <li
-        style={{
-          display: 'block',
-          borderBottom: '1px dashed #ddd',
-          padding: '15px 0',
-        }}
-      >
-        <Grid
-          container
-          style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'flex-start',
-          }}
-        >
-          <div style={{ width: '75px' }}>
-            <ProfileAvatar
-              name={a.pubKey}
-              picture={userMap.get(a.pubKey)?.picture}
-            />
-          </div>
-          <div style={{ flex: '1' }}>
-            <span style={{ fontSize: '14px', display: 'block' }}>
-              <ProfileName
-                name={userMap.get(a.pubKey)?.name}
-                createdAt={a.updated_at}
-                pk={a.pubKey}
-              />
-              <BlogFeedItem
-                article={a}
-                lightingAddress={
-                  userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
-                }
-              />
-            </span>
-          </div>
-        </Grid>
-      </li>
-    </div>
-  );
 };
+
+const ArticleListItem = ({ article: a, userMap }: ArticleListItemProps) => (
+  <div key={a.eventId} className={styles.aritcleItem}>
+    <div className={styles.itemContent}>
+      <ProfileAvatar name={a.pubKey} picture={userMap.get(a.pubKey)?.picture} />
+      <div className={styles.content}>
+        <ProfileName
+          name={userMap.get(a.pubKey)?.name}
+          createdAt={a.updated_at}
+          pk={a.pubKey}
+        />
+        <BlogFeedItem
+          article={a}
+          lightingAddress={
+            userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
+          }
+        />
+      </div>
+    </div>
+  </div>
+);
 
 export function BlogFeeds() {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -138,7 +108,7 @@ export function BlogFeeds() {
     sub?.iterating({ cb: handleEvent });
   }, [newConn, worker]);
 
-  const articlesRef = React.useRef<Article[]>([]);
+  const articlesRef = useRef<Article[]>([]);
 
   useEffect(() => {
     const prevArticles = articlesRef.current;

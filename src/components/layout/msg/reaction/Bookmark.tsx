@@ -15,12 +15,9 @@ const styles = {
 export interface BookmarkProps {
   eventId: EventId;
 }
-export const Bookmark = ({ eventId }: BookmarkProps) => {
-  const { t } = useTranslation();
+export const Bookmark = (Props) => {
   return (
-    <button
-      style={styles.smallBtn}
-    >
+    <button style={styles.smallBtn} {...Props}>
       <BookmarkAddOutlinedIcon style={{ color: 'gray', fontSize: '16px' }} />
     </button>
   );
