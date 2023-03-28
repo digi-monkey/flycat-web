@@ -1,0 +1,1 @@
+export const LOCAL_SAVE_KEY = '__article_draft';

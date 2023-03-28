@@ -1,0 +1,179 @@
+.write{
+  padding: 0;
+  margin: 0;
+
+  .writeHeaderBar{
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    @include for-mobile-all {
+      position: initial;
+      display: block;
+      height: 40px;
+    }
+
+    .title{
+      flex: 1 auto;
+
+      :global{
+        .MuiOutlinedInput-root,
+        .MuiOutlinedInput-notchedOutline,
+        input {
+          border: none;
+        }
+
+        input{
+          font-size: 26px;
+          font-weight: bold;
+
+          @include for-mobile-all {
+            font-size: 22px;
+            padding:3px 10px;
+          }
+        }
+      }
+    }
+
+    .btnGroup{
+      display: flex;
+      margin-left: 15px;
+
+      @include for-mobile-all {
+        position: fixed;
+        width: 100%;
+        left: 0;
+        bottom: 0px;
+        z-index: 1;
+        background-color: rgba(255, 255, 255, .8);
+        margin: 10px 0;
+        justify-content: space-around;
+      }
+
+      button{
+        margin:0 10px;
+        svg{
+          margin-right: 10px;
+        }
+
+        @include for-mobile-all {
+          margin: 0 5px !important;
+          font-size: 12px;
+          padding: 4px 6px;
+
+          svg{
+            margin-right: 5px;
+          }
+        }
+      }
+      
+      button:nth-child(2) {
+        margin:0 30px;
+        background-color: #1d7dfa;
+      }
+
+      button:nth-child(3) {
+        color: white;
+      }
+    }
+  }
+
+  .editor{
+    min-height: calc(100vh - 60px);
+    @include for-mobile-all {
+      width: 100%;
+      min-height: calc(100vh - 45px * 2);
+    }
+  }
+
+  :global{
+    .rc-md-editor{
+      .rc-md-navigation{
+        background-color: #fafbfc;
+
+        .button{
+          margin-right: 10px;
+        }
+
+        i{
+          color: #333;
+        }
+      }
+    }
+  }
+}
+
+.prePublish{
+  :global{
+    .MuiPopover-paper{
+      max-width: 500px;
+      padding: 20px;
+      left: auto;
+      top: 0;
+      right: 0;
+
+      @include for-mobile-all {
+        max-width: 90vw;
+        width: 90vw;
+        padding: 10px 10px 10px 0;
+      }
+
+      .MuiGrid-container {
+        align-items: center;
+        @include for-mobile-all {
+          max-width: 90vw;
+          margin: 0;
+        }
+      
+        > div{
+          &:nth-last-of-type(1),
+          &:nth-last-of-type(2){
+            text-align: center;
+          }
+  
+          &:nth-last-of-type(1) button{
+            color: white;
+          }
+        }
+      }
+    }
+  }
+
+  .image {
+    
+    img{
+      max-width: 100%;
+    }
+
+    >div{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  
+      button{
+        display: block;
+        width: 100%;
+      }
+    }
+  }
+
+  .tags{
+    :global{
+      .ReactTags__selected span{
+        margin-bottom: 5px;
+      }
+    }
+
+    input{
+      display: flex;
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+  }
+}

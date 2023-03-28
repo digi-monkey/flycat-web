@@ -145,7 +145,7 @@ export const ImageUploader = ({
   };
 
   return (
-    <span>
+    <div>
       <button
         type="button"
         onClick={selectAndUploadImg}
@@ -161,7 +161,7 @@ export const ImageUploader = ({
         style={{ display: 'none' }}
         onChange={handleFileSelect}
       />
-    </span>
+    </div>
   );
 };
 
