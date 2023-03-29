@@ -8,6 +8,7 @@ import { wrapper } from 'store/configureStore';
 import { ThemeProvider } from '@mui/material/styles';
 import { appWithTranslation } from 'next-i18next';
 import { ReactElement, ReactNode } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactNode) => ReactElement;
@@ -24,6 +25,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       </Head>
       <Component {...pageProps} />
+      <Analytics />
     </ThemeProvider>
   );
 };
