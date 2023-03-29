@@ -220,5 +220,32 @@
   },
   "fof": {
     "title": "朋友的朋友"
+  },
+  "blogWrite": {
+    "btn": {
+      "recovery": "恢复草稿",
+      "save": "保存草稿",
+      "publish": "发布",
+      "cancel": "取消"
+    },
+    "form": {
+      "coverImage": "封面图片",
+      "summary": "摘要",
+      "slug": "别名",
+      "slugPlaceholder": "(可选)别名，也称文章ID，保存后无法更改。如果您不理解，请留空。",
+      "dir": "目录",
+      "dirPlaceholder": "(可选)文章的虚拟路径，用'/'分割，例如：dir1/dir2/dir3",
+      "tag": "标签"
+    },
+    "main": {
+      "titlePlaceholder": "请输入您的文章标题"
+    },
+    "tipsy": {
+      "restore": "发现本地存在文章草稿，点击恢复按钮进行恢复记录",
+      "success": {
+        "save": "保存成功",
+        "publish": "发布成功"
+      }
+    }
   }
 }

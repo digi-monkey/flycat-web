@@ -7,43 +7,43 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 60px;
+    height: 59px;
     z-index: 1;
+    padding: 0 15px;
     display: flex;
-    justify-content: space-between;
+    box-sizing: border-box;
     align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e0e0e0;
 
     @include for-mobile-all {
       position: initial;
       display: block;
       height: 40px;
+      text-align: center;
     }
 
-    .title{
-      flex: 1 auto;
+    a{
+      img{
+        width: 45px;
+        height: 45px;
+        object-fit: contain;
+      }
 
-      :global{
-        .MuiOutlinedInput-root,
-        .MuiOutlinedInput-notchedOutline,
-        input {
-          border: none;
-        }
+      @include for-mobile-all {
+        display: block;
+        padding: 5px 0;
 
-        input{
-          font-size: 26px;
-          font-weight: bold;
-
-          @include for-mobile-all {
-            font-size: 22px;
-            padding:3px 10px;
-          }
+        img{
+          width: 30px;
+          height: 30px;
+          vertical-align: middle;
         }
       }
     }
 
     .btnGroup{
       display: flex;
-      margin-left: 15px;
 
       @include for-mobile-all {
         position: fixed;
@@ -51,13 +51,13 @@
         left: 0;
         bottom: 0px;
         z-index: 1;
+        padding: 10px 0;
+        border-top: 1px solid #e0e0e0;
         background-color: rgba(255, 255, 255, .8);
-        margin: 10px 0;
         justify-content: space-around;
       }
 
       button{
-        margin:0 10px;
         svg{
           margin-right: 10px;
         }
@@ -73,23 +73,76 @@
         }
       }
       
-      button:nth-child(2) {
+      button:nth-child(1) {
         margin:0 30px;
-        background-color: #1d7dfa;
       }
 
-      button:nth-child(3) {
+      button:last-child {
         color: white;
       }
     }
   }
 
-  .editor{
-    min-height: calc(100vh - 60px);
+  .main{
+    --height: calc(100vh - 60px - 40px);
+    max-width: 90vw;
+    margin: 20px auto;
+    min-height: var(--height);
+    border-radius: 8px;
+    box-shadow: 0px 0px 3px #ccc;
+
     @include for-mobile-all {
-      width: 100%;
-      min-height: calc(100vh - 45px * 2);
+      // height = Screen height - Header height - Footer height - Title height - Editor margin
+      --height: calc(100vh - 40px - 50px - 40px - 20px);
+      max-width: 95vw;
+      margin: 10px auto;
+      height: var(--height);
     }
+
+    .title{
+      flex: 1 auto;
+      background-color: #fafbfc;
+      border: 1px solid #e0e0e0;
+      border-bottom: 0;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      height: 60px;
+
+      @include for-mobile-all {
+        height: 39px;
+      }
+
+      :global{
+        .MuiOutlinedInput-root,
+        .MuiOutlinedInput-notchedOutline,
+        input {
+          border: none;
+        }
+
+        input{
+          font-size: 26px;
+          font-weight: bold;
+          padding: 10px;
+
+          @include for-mobile-all {
+            font-size: 20px;
+            padding:5px 10px;
+          }
+        }
+      }
+    }
+
+    .editor{
+      min-height: calc(var(--height) - 60px);
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      overflow: hidden;
+
+      @include for-mobile-all {
+        width: 100%;
+        height: var(--height);
+      }
+    } 
   }
 
   :global{
@@ -104,6 +157,10 @@
         i{
           color: #333;
         }
+      }
+
+      .editor-container>.section{
+        border-right: none;
       }
     }
   }

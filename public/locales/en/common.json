@@ -220,5 +220,32 @@
   },
   "fof": {
     "title": "Friends of friends"
+  },
+  "blogWrite": {
+    "btn": {
+      "recovery": "Recovery draft",
+      "save": "Save draft",
+      "publish": "Publish",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "coverImage": "Cover Image",
+      "summary": "Summary",
+      "slug": "Slug",
+      "slugPlaceholder": "(optionally) slug, aka article_id, can not be changed after. just leave it blank if you don't understand it.",
+      "dir": "Dir",
+      "dirPlaceholder": "(optionally) virtual path of the article, split with '/', eg: dir1/dir2/dir3",
+      "tag": "Tag"
+    },
+    "main": {
+      "titlePlaceholder": "Please enter the title of your article"
+    },
+    "tipsy": {
+      "restore": "Find a local article draft, click the blue button to restore",
+      "success": {
+        "save": "Save successfully",
+        "publish": "Published successfully"
+      }
+    }
   }
 }

@@ -8,14 +8,17 @@ import { useRouter } from 'next/router';
 import { SignEvent } from 'store/loginReducer';
 import { useCallWorker } from 'hooks/useWorker';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
+import { useMatchMobile } from 'hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 import { HashTags, TagObj } from '../hashTags/HashTags';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { Publish, ArrowBack, SaveAlt, History } from '@mui/icons-material';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { getPublishedUrl, publish, setLocalSave } from './utils';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
 import { Alert, Button, Grid, OutlinedInput, Popover, Snackbar } from '@mui/material';
 
+import Link from 'next/link';
 import styles from './index.module.scss';
 
 export function Write({
@@ -26,10 +29,12 @@ export function Write({
   signEvent?: SignEvent;
 }) {
   const router = useRouter();
+  const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
+  const { t } = useTranslation();
   const { worker } = useCallWorker();
   const { publicKey, articleId } = router.query;
-  
+
   const [dir, setDir] = useState<string>('');
   const [slug, setSlug] = useState<string>('');
   const [title, setTitle] = useState<string>('');
@@ -54,24 +59,13 @@ export function Write({
   return (
     <div className={styles.write}>
       <div className={styles.writeHeaderBar}>
-        <div className={styles.title}>
-          <OutlinedInput
-            fullWidth
-            placeholder="Please enter the title of your article"
-            value={title}
-            onChange={event => setTitle(event.target.value)}
-          ></OutlinedInput>
-        </div>
+        <Link href={Paths.home}>
+          <img src="/logo512.png" alt="LOGO" />
+        </Link>
         <div className={styles.btnGroup}>
-          <Button
-            onClick={() => router.push({ pathname: `${Paths.blog}/${myPublicKey}`})}
-            variant="contained"
-            color='secondary'
-            size='small'
-          ><ArrowBack />Cancel</Button>
           <Button 
             variant="contained"
-            color='error'
+            color='secondary'
             size='small'
             onClick={() => { 
               if (draft) setArticle(draft)
@@ -81,7 +75,7 @@ export function Write({
               }
             }}
           >
-            {draft ? <><History />Recovery</> : <><SaveAlt />Save draft</>}
+            {draft ? t('blogWrite.btn.recovery') : t('blogWrite.btn.save')}
           </Button>
           <Button 
             onClick={event => setAnchorEl(event.currentTarget)}
@@ -90,7 +84,7 @@ export function Write({
             size='small'
             aria-describedby={Boolean(anchorEl) ? 'simple-popover' : undefined}
           >
-            <Publish />Publish
+            {t('blogWrite.btn.publish')}
           </Button>
           <Popover 
             open={Boolean(anchorEl)}
@@ -101,7 +95,7 @@ export function Write({
           >
             <Grid container spacing={2}>
               <Grid item xs={3}>
-                Cover Image
+                {t('blogWrite.form.coverImage')}
               </Grid>
               <Grid item xs={9}>
                 <div className={styles.image}>
@@ -109,43 +103,43 @@ export function Write({
                 </div>
               </Grid>
               <Grid item xs={3}>
-                Summary
+                {t('blogWrite.form.summary')}
               </Grid>
               <Grid item xs={9}>
                 <OutlinedInput
                   size='small'
                   value={summary}
                   onChange={event => setSummary(event.target.value)}
-                  placeholder="summary"
+                  placeholder={`${t('blogWrite.form.summary')}`}
                   fullWidth
                 ></OutlinedInput>
               </Grid>
               <Grid item xs={3}>
-                Slug
+                {t('blogWrite.form.slug')}
               </Grid>
               <Grid item xs={9}>
                 <OutlinedInput
                   size='small'
                   value={slug}
                   onChange={event => setSlug(event.target.value)}
-                  placeholder="(optionally) slug, aka article_id, can not be changed after. just leave it blank if you don't understand it."
+                  placeholder={`${t('blogWrite.form.slugPlaceholder')}`}
                   fullWidth
                 ></OutlinedInput>
               </Grid>
               <Grid item xs={3}>
-                Dir
+                {t('blogWrite.form.dir')}
               </Grid>
               <Grid item xs={9}>
                 <OutlinedInput
                   size='small'
                   value={dir}
                   onChange={event => setDir(event.target.value)}
-                  placeholder="(optionally) virtual path of the article, split with '/', eg: dir1/dir2/dir3"
+                  placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
                   fullWidth
                 ></OutlinedInput>
               </Grid>
               <Grid item xs={3}>
-                Tag
+                {t('blogWrite.form.tag')}
               </Grid>
               <Grid item xs={9}>
                 <div className={styles.tags}>
@@ -162,7 +156,7 @@ export function Write({
                   size='small' 
                   onClick={() => setAnchorEl(null)}
                 >
-                  Cancel
+                  {t('blogWrite.btn.cancel')}
                 </Button>  
               </Grid>
               <Grid item xs={6} alignItems="center">
@@ -180,14 +174,35 @@ export function Write({
                   color="primary" 
                   size='small'
                 >
-                  <Publish />Publish
+                  {t('blogWrite.btn.publish')}
                 </Button>
               </Grid>
             </Grid>
           </Popover>
         </div>
       </div>
-      <Editor value={content} onText={setContent} className={styles.editor} style={{}} view={{}} />
+      <div className={styles.main}>
+        <div className={styles.title}>
+          <OutlinedInput
+            autoFocus
+            fullWidth
+            placeholder={`${t('blogWrite.main.titlePlaceholder')}`}
+            value={title}
+            onChange={event => setTitle(event.target.value)}
+          ></OutlinedInput>
+        </div>
+        {
+          isMobile !== undefined && (
+            <Editor 
+              style={{}} 
+              value={content} 
+              onText={setContent} 
+              className={styles.editor} 
+              view={ isMobile ? { menu: true, md: true, html: false } : {}} 
+            />  
+          )
+        }
+      </div>
       <Snackbar 
         open={toast} 
         anchorOrigin={{
@@ -198,7 +213,7 @@ export function Write({
         onClose={() => setToast(false)}
       >
         <Alert severity="success">
-          Find a local article draft, click the blue button to restore
+          {t('blogWrite.tipsy.restore')}
         </Alert>
       </Snackbar>
       <Snackbar
@@ -211,7 +226,7 @@ export function Write({
         onClose={() => setSaveToast(false)}
       >
         <Alert severity="success">
-          Save successfully
+          {t('blogWrite.tipsy.success.save')}
         </Alert>
       </Snackbar>
       <Snackbar
@@ -224,7 +239,7 @@ export function Write({
         onClose={() => setPublishedToast(false)}
       >
         <Alert severity="success">
-          Published successfully
+          {t('blogWrite.tipsy.success.publish')}
         </Alert>
       </Snackbar>
     </div>
@@ -232,3 +247,9 @@ export function Write({
 }
 
 export default connect(loginMapStateToProps)(Write);
+
+export const getStaticProps = async ({ locale }: { locale: string }) => ({
+  props: {
+      ...(await serverSideTranslations(locale, ['common']))
+  }
+});
