@@ -118,7 +118,9 @@
     "postOn": "发表",
     "lastUpdatedAt": "上次更新",
     "rePostShare": "转发到主页",
-    "submit": "发布"
+    "submit": "发布",
+    "articles": "文章",
+    "collection": "收藏夹"
   },
   "postArticle": {
     "newArticle": "写文章",

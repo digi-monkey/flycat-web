@@ -118,7 +118,9 @@
     "postOn": "submit",
     "lastUpdatedAt": "last updated at",
     "rePostShare": "share to feed",
-    "submit": "submit"
+    "submit": "submit",
+    "articles": "Articles",
+    "collection": "Collection"
   },
   "postArticle": {
     "newArticle": "New Blog Post",

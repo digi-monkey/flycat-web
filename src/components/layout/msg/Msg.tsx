@@ -4,7 +4,7 @@ import { UserMap } from 'service/type';
 import { TextMsg } from './TextMsg';
 import { EventTags } from 'service/api';
 import { CallWorker } from 'service/worker/callWorker';
-import { BlogMsgItem } from 'pages/blog/MsgItem';
+import { BlogMsgItem } from 'pages/blog/components/MsgItem/index';
 import { EventWithSeen } from 'pages/type';
 
 export const Msgs = (

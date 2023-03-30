@@ -1,5 +1,5 @@
 import { Paths } from 'constants/path';
-import { Editor } from '../Editor';
+import { Editor } from './Editor';
 import { Article } from 'service/nip/23';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';

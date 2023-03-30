@@ -1,0 +1,46 @@
+.articlesListTitle{
+  margin-top: 30px;
+  margin-bottom: 0;
+}
+
+.articleList{
+  // background: rgb(244, 245, 244);
+  
+  .articleItem{
+    padding: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &:not(:last-child) {
+      border-bottom: 1px dashed #ddd;
+    }
+  
+    a{
+      color: black;
+    }
+  
+    .article{
+      font-size: 14px;
+      a{
+        text-transform: capitalize;
+      }
+      
+      .updated{
+        color: gray;
+        font-size: 12px;
+        margin-top: 5px;
+        display: block;
+      }
+    }
+  
+    .icon{
+      padding:5px;
+  
+      svg{
+        width: 15px;
+        height: 15px;
+      }
+    }
+  }
+}
