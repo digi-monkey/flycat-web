@@ -1,4 +1,3 @@
-import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';
 import { TagItem } from './hashTags/TagItem';
@@ -7,14 +6,13 @@ import { useState } from 'react';
 import { PublicKey } from 'service/api';
 import { useRouter } from 'next/router';
 import { useWorker } from './hooks';
-import { ProfileAvatar } from 'components/layout/msg/TextMsg';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 
-import Link from 'next/link';
+import Avatar from './components/Avatar';
 import Collection from './components/Collection';
 import MiniArticleList from './components/MiniArticleList/index';
 
@@ -31,18 +29,7 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
   return (
     <BaseLayout>
       <Left>
-        <div style={{ marginBottom: '20px', height: '100%' }}>
-          <ProfileAvatar
-            picture={userMap.get(publicKey)?.picture}
-            name={publicKey}
-          />
-          <span style={{ marginLeft: '10px' }}>
-            <Link style={{ textDecoration: 'underline', marginRight: '5px' }} href={Paths.user+publicKey}>
-              @{userMap.get(publicKey)?.name || '__'}{' '}
-            </Link>
-          </span>
-        </div>
-
+        <Avatar userMap={userMap} publicKey={publicKey} />
         <Collection 
           title={t('blog.collection')} 
           articles={articles} 

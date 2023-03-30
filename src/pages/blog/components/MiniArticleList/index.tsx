@@ -6,7 +6,7 @@ import styles from './index.module.scss';
 import EditIcon from '@mui/icons-material/Edit';
 
 const MiniArticleList = ({ title, articles, authorPk, isOwner }) => {
-  const Updated = (article) => <span className={styles.updated}>{useTimeSince(article.updated_at)}</span>;
+  const Updated = ({ article }) => <span className={styles.updated}>{useTimeSince(article.updated_at)}</span>;
 
   return (
     <>
