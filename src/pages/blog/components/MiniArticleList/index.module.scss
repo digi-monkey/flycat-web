@@ -22,6 +22,15 @@
   
     .article{
       font-size: 14px;
+
+      .badge{
+        color: white;
+        background-color: rgb(141, 197, 53);
+        padding: 2px 5px;
+        margin-left: 5px;
+        border-radius: 5px;
+      }
+
       a{
         text-transform: capitalize;
       }

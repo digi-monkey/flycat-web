@@ -70,7 +70,7 @@ export function Write({
             onClick={() => { 
               if (draft) setArticle(draft)
               else {
-                setLocalSave({ title, slug, dir, image, summary, content, hashTags}); 
+                setLocalSave({ title, slug, dir, image, summary, content, hashTags, updated_at: Math.floor(Date.now() / 1000) });
                 setSaveToast(true);
               }
             }}

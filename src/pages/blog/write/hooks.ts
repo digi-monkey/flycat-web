@@ -83,11 +83,12 @@ export function useArticle(
 }
 
 export function useRestoreArticle(setDraft, setToast, isRestore) {
+  const { title } = useRouter().query;
   useEffect(() => {
-    const _article = getLocalSave();
+    const _article = getLocalSave(title);
     if (_article && isRestore) {
       setDraft(_article);
       setToast(true);
     }
-  }, [isRestore]);
+  }, [isRestore, title]);
 }

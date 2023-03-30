@@ -120,7 +120,8 @@
     "rePostShare": "share to feed",
     "submit": "submit",
     "articles": "Articles",
-    "collection": "Collection"
+    "collection": "Collection",
+    "draft": "Draft"
   },
   "postArticle": {
     "newArticle": "New Blog Post",

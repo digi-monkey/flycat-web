@@ -120,7 +120,8 @@
     "rePostShare": "转发到主页",
     "submit": "发布",
     "articles": "文章",
-    "collection": "收藏夹"
+    "collection": "收藏夹",
+    "draft": "草稿"
   },
   "postArticle": {
     "newArticle": "写文章",

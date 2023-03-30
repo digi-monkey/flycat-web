@@ -1,30 +1,7 @@
 import { Paths } from 'constants/path';
 import { LOCAL_SAVE_KEY } from 'constants/common';
-import { Nip23, Nip23ArticleMetaTags, DirTags, Article } from 'service/nip/23';
+import { Nip23, Nip23ArticleMetaTags, DirTags } from 'service/nip/23';
 import { Event, WellKnownEventKind, EventSetMetadataContent } from 'service/api';
-
-export const publish = async (articleParams, dir, signEvent, worker, router, setPublishedToast, pathname) => {
-  const dirTags: DirTags = ([Nip23ArticleMetaTags.dir] as any).concat(
-    dir.split('/').filter(d => d.length > 0),
-  );
-  const rawEvent = Nip23.create({
-    ...articleParams,
-    dirTags
-  });
-  
-  if (signEvent == null) {
-    return alert('sign method is null');
-  }
-  if (worker == null) {
-    return alert('worker  is null');
-  }
-
-  const event = await signEvent(rawEvent);
-  worker?.pubEvent(event);
-  setPublishedToast(true);
-  localStorage.removeItem(LOCAL_SAVE_KEY);
-  setTimeout(() => router.push({ pathname }), 1500);
-}
 
 export const handleEvent = (publicKey, setUserMap, setArticle) => {
   return function handleEvent(event: Event, relayUrl?: string) {
@@ -59,14 +36,64 @@ export const handleEvent = (publicKey, setUserMap, setArticle) => {
   }
 }
 
-export const setLocalSave = (article) => localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(article));
+export const setLocalSave = (article) => {
+  if (localStorage.getItem(article.title)) {
+    localStorage.setItem(article.title, JSON.stringify(article));
+  } else {
+    let newArticle = [article.title];
+    const localArticle = localStorage.getItem(LOCAL_SAVE_KEY);
 
-export const getLocalSave = () => {
-  const article = localStorage.getItem(LOCAL_SAVE_KEY);
+    if (localArticle) newArticle = newArticle.concat(JSON.parse(localArticle));
+    
+    localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(newArticle));
+    localStorage.setItem(article.title, JSON.stringify(article));
+  }
+}
+
+export const getLocalSave = (title) => {
+  const article = localStorage.getItem(title);
 
   if (article?.length) return JSON.parse(article);
 
   return null;
+}
+
+export const delLocalSave = (title) => {
+  localStorage.removeItem(title);
+  const target = localStorage.getItem(LOCAL_SAVE_KEY);
+
+  if(target?.length) {
+    const ids = JSON.parse(target) as string[];
+
+    if (ids.length > 1) {
+      localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(ids.filter(id => id !== title)));
+    } else {
+      localStorage.removeItem(LOCAL_SAVE_KEY);
+    }
+  }
+}
+
+export const publish = async (articleParams, dir, signEvent, worker, router, setPublishedToast, pathname) => {
+  const dirTags: DirTags = ([Nip23ArticleMetaTags.dir] as any).concat(
+    dir.split('/').filter(d => d.length > 0),
+  );
+  const rawEvent = Nip23.create({
+    ...articleParams,
+    dirTags
+  });
+  
+  if (signEvent == null) {
+    return alert('sign method is null');
+  }
+  if (worker == null) {
+    return alert('worker  is null');
+  }
+
+  const event = await signEvent(rawEvent);
+  worker?.pubEvent(event);
+  setPublishedToast(true);
+  delLocalSave(articleParams.title);
+  setTimeout(() => router.push({ pathname }), 1500);
 }
 
 export const getPublishedUrl = (publicKey, articleId, myPublicKey, slug) => publicKey && articleId ? `${Paths.post + myPublicKey}/${slug}` : `${Paths.blog}/${myPublicKey}`;
