@@ -40,7 +40,7 @@ export function useArticle(
   setContent,
   setImage,
   setSlug,
-  setDir,
+  setDirs,
   setHashTags,
   setPredefineHashTags
 ) {
@@ -64,7 +64,9 @@ export function useArticle(
     setSummary(summary);
     setContent(content);
   
-    if (dirs) setDir(dirs.join('/'));
+    if (dirs) {
+      setDirs((typeof dirs === "string" ? [dirs] : dirs).join('/'));
+    }
     if (hashTags) {
       setHashTags(hashTags);
       setPredefineHashTags( hashTags.map(t => ({ id: t, text: t })) );
@@ -76,19 +78,20 @@ export function useArticle(
     setContent,
     setImage,
     setSlug,
-    setDir,
+    setDirs,
     setHashTags,
     setPredefineHashTags
   ]);
 }
 
-export function useRestoreArticle(setDraft, setToast, isRestore) {
-  const { title } = useRouter().query;
+export function useRestoreArticle(setArticle, setToast, isRestore) {
+  const { did } = useRouter().query;
+
   useEffect(() => {
-    const _article = getLocalSave(title);
+    const _article = getLocalSave(did);
     if (_article && isRestore) {
-      setDraft(_article);
+      setArticle(_article);
       setToast(true);
     }
-  }, [isRestore, title]);
+  }, [isRestore, did]);
 }

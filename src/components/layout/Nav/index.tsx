@@ -1,5 +1,6 @@
 import { Paths } from 'constants/path';
 import { useState } from 'react';
+import { getDraftId } from 'utils/common';
 import { useTranslation } from 'react-i18next';
 import { useNotification } from 'hooks/useNotification';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -61,7 +62,7 @@ const Nav = ({ isLoggedIn }) => {
 
         {isLogin ? (
           <li>
-            <Link href={Paths.write}>
+            <Link href={`${Paths.write}?did=${getDraftId()}`}>
               <Create />{t('nav.menu.blogDashboard')}
             </Link>
           </li>

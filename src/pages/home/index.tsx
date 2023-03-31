@@ -4,6 +4,7 @@ import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { BlogFeeds } from '../blog/feed';
+import { getDraftId } from 'utils/common';
 import { LoginFormTip } from 'components/layout/NavHeader';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'service/worker/type';
@@ -346,7 +347,7 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               textTransform: 'capitalize',
               color: 'white',
             }}
-            onClick={() => router.push({ pathname: Paths.write })}
+            onClick={() => router.push({ pathname: Paths.write, query: { did: getDraftId() } })}
           >
             <CreateIcon />
             &nbsp;{t('nav.menu.blogDashboard')}

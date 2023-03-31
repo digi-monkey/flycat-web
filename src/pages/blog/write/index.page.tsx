@@ -33,16 +33,15 @@ export function Write({
   const myPublicKey = useReadonlyMyPublicKey();
   const { t } = useTranslation();
   const { worker } = useCallWorker();
-  const { publicKey, articleId } = router.query;
+  const { publicKey, articleId, did } = router.query;
 
-  const [dir, setDir] = useState<string>('');
+  const [dirs, setDirs] = useState<string>('');
   const [slug, setSlug] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [image, setImage] = useState<string>('');
   const [toast, setToast] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [article, setArticle] = useState<Article>();
-  const [draft, setDraft] = useState<Article>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [content, setContent] = useState<string>('');
   const [hashTags, setHashTags] = useState<string[]>([]);
@@ -53,8 +52,8 @@ export function Write({
   const [predefineHashTags, setPredefineHashTags] = useState<TagObj[]>([]);
 
   useWorker(setUserMap, setArticle, setIsRestore);
-  useRestoreArticle(setDraft, setToast, isRestore);
-  useArticle(article, setTitle, setSummary, setContent, setImage, setSlug, setDir, setHashTags, setPredefineHashTags);
+  useRestoreArticle(setArticle, setToast, isRestore);
+  useArticle(article, setTitle, setSummary, setContent, setImage, setSlug, setDirs, setHashTags, setPredefineHashTags);
 
   return (
     <div className={styles.write}>
@@ -63,21 +62,26 @@ export function Write({
           <img src="/logo512.png" alt="LOGO" />
         </Link>
         <div className={styles.btnGroup}>
-          <Button 
-            variant="contained"
-            color='secondary'
-            size='small'
-            onClick={() => { 
-              if (draft) setArticle(draft)
-              else {
-                setLocalSave({ title, slug, dir, image, summary, content, hashTags, updated_at: Math.floor(Date.now() / 1000) });
+          {
+            !articleId && <Button 
+              variant="contained"
+              color='secondary'
+              size='small'
+              disabled={ title === '' && content === '' }
+              onClick={() => { 
+                setLocalSave({ 
+                  title, slug, dirs, image, summary, content, hashTags, 
+                  did: articleId || did,
+                  updated_at: Math.floor(Date.now() / 1000)
+                });
                 setSaveToast(true);
-              }
-            }}
-          >
-            {draft ? t('blogWrite.btn.recovery') : t('blogWrite.btn.save')}
-          </Button>
+              }}
+            >
+              {t('blogWrite.btn.save')}
+            </Button>
+          }
           <Button 
+            disabled={ title === '' && content === '' }
             onClick={event => setAnchorEl(event.currentTarget)}
             variant="contained"
             color="primary" 
@@ -132,8 +136,8 @@ export function Write({
               <Grid item xs={9}>
                 <OutlinedInput
                   size='small'
-                  value={dir}
-                  onChange={event => setDir(event.target.value)}
+                  value={dirs}
+                  onChange={event => setDirs(event.target.value)}
                   placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
                   fullWidth
                 ></OutlinedInput>
@@ -162,13 +166,15 @@ export function Write({
               <Grid item xs={6} alignItems="center">
                 <Button
                   onClick={() => publish({
+                    // 这里需要传入一个删除的id
+                    did: articleId || did,
                     title, 
                     slug, 
                     image, 
                     summary, 
                     content, 
                     hashTags
-                  }, dir, signEvent, worker, router, setPublishedToast,
+                  }, dirs, signEvent, worker, router, setPublishedToast,
                   getPublishedUrl(publicKey, articleId, myPublicKey, slug) )} 
                   variant="contained" 
                   color="primary" 

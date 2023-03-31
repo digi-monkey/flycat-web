@@ -25,7 +25,7 @@ const MiniArticleList = ({ title, articles, authorPk, isOwner }) => {
           <div className={styles.articleItem} key={key}>
             <div className={styles.article}>
               <Link
-                href={`${Paths.write}?title=${article.title}`}
+                href={`${Paths.write}?did=${article.did}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -35,12 +35,12 @@ const MiniArticleList = ({ title, articles, authorPk, isOwner }) => {
               <Updated article={article} />
             </div>
 
-            <Link className={styles.icon} href={`${Paths.write}?title=${article.title}`}>
+            <Link className={styles.icon} href={`${Paths.write}?did=${article.did}`}>
               <History />
             </Link>
           </div>
         ))}
-        
+
         {articles.map((article, key) => (
           <div className={styles.articleItem} key={key}>
             <div className={styles.article}>

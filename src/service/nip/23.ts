@@ -41,6 +41,7 @@ export interface Article {
   hashTags?: string[];
   naddr?: string;
   otherTags?: string[][];
+  did?: string;
 }
 
 export class Nip23 {

@@ -37,36 +37,37 @@ export const handleEvent = (publicKey, setUserMap, setArticle) => {
 }
 
 export const setLocalSave = (article) => {
-  if (localStorage.getItem(article.title)) {
-    localStorage.setItem(article.title, JSON.stringify(article));
+  const { did } = article;
+  if (localStorage.getItem(did)) {
+    localStorage.setItem(did, JSON.stringify(article));
   } else {
-    let newArticle = [article.title];
+    let newArticle = [did];
     const localArticle = localStorage.getItem(LOCAL_SAVE_KEY);
 
     if (localArticle) newArticle = newArticle.concat(JSON.parse(localArticle));
     
     localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(newArticle));
-    localStorage.setItem(article.title, JSON.stringify(article));
+    localStorage.setItem(did, JSON.stringify(article));
   }
 }
 
-export const getLocalSave = (title) => {
-  const article = localStorage.getItem(title);
+export const getLocalSave = (did) => {
+  const article = localStorage.getItem(did);
 
   if (article?.length) return JSON.parse(article);
 
   return null;
 }
 
-export const delLocalSave = (title) => {
-  localStorage.removeItem(title);
+export const delLocalSave = (did) => {
+  localStorage.removeItem(did);
   const target = localStorage.getItem(LOCAL_SAVE_KEY);
 
   if(target?.length) {
     const ids = JSON.parse(target) as string[];
 
     if (ids.length > 1) {
-      localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(ids.filter(id => id !== title)));
+      localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(ids.filter(articleId => articleId !== did)));
     } else {
       localStorage.removeItem(LOCAL_SAVE_KEY);
     }
@@ -85,6 +86,7 @@ export const publish = async (articleParams, dir, signEvent, worker, router, set
   if (signEvent == null) {
     return alert('sign method is null');
   }
+
   if (worker == null) {
     return alert('worker  is null');
   }
@@ -92,7 +94,7 @@ export const publish = async (articleParams, dir, signEvent, worker, router, set
   const event = await signEvent(rawEvent);
   worker?.pubEvent(event);
   setPublishedToast(true);
-  delLocalSave(articleParams.title);
+  delLocalSave(articleParams.did);
   setTimeout(() => router.push({ pathname }), 1500);
 }
 

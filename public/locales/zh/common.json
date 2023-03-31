@@ -244,7 +244,7 @@
       "titlePlaceholder": "请输入您的文章标题"
     },
     "tipsy": {
-      "restore": "发现本地存在文章草稿，点击恢复按钮进行恢复记录",
+      "restore": "发现本地文章草稿，已自动恢复记录",
       "success": {
         "save": "保存成功",
         "publish": "发布成功"

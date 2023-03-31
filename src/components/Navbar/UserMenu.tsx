@@ -2,6 +2,7 @@ import { Paths } from 'constants/path';
 import { UserBox } from '../layout/UserBox';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { getDraftId } from 'utils/common';
 import { EventSetMetadataContent } from 'service/api';
 
 import Box from '@mui/material/Box';
@@ -29,7 +30,7 @@ export function UserMenu({ pk, userInfo }: UserMenuProps) {
     },
     {
       text: 'Write',
-      onClick: () => router.push({ pathname: Paths.write}),
+      onClick: () => router.push({ pathname: Paths.write, query: { did: getDraftId() }}),
     },
     {
       text: 'Contact',
