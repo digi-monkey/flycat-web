@@ -1,7 +1,7 @@
 import { Grid } from '@mui/material';
 import { Paths } from 'constants/path';
 import { UserMap } from 'service/type';
-import { CopyText } from 'components/layout/util/CopyText';
+import { CopyText } from 'components/CopyText/CopyText';
 import { useRouter } from 'next/router';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { ShareArticle } from 'components/layout/msg/Share';

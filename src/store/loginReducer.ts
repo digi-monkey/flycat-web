@@ -1,10 +1,23 @@
 import { RawEvent, Event } from 'service/api';
 import { getPublicKeyFromDotBit } from 'service/dotbit';
+import {
+  createMetamaskSignEvent,
+  createMetamaskGetPublicKey,
+  getPublicKeyFromMetamaskSignIn,
+} from 'service/evm/metamask';
+import {
+  createWalletConnectSignEvent,
+  createWalletConnectGetPublicKey,
+  getPublicKeyFromWalletConnectSignIn,
+} from 'service/evm/walletConnect';
+import { disconnectWagmi } from 'service/evm/wagmi/helper';
+
 
 export enum LoginMode {
   local = 'local', // default
   nip07Wallet = 'nip07', // https://github.com/nostr-protocol/nips/blob/master/07.md
   metamask = 'metamask',
+  walletConnect = 'wallet-connect',
   nexus = 'nexus',
   dotbit = 'dotbit',
   nip05Domain = 'nip05',
@@ -24,6 +37,8 @@ export interface LoginRequest {
   privateKey?: string;
   didAlias?: string;
   nip05DomainName?: string;
+  evmUsername?: string;
+  evmPassword?: string;
 }
 
 export interface LoginAction {
@@ -47,6 +62,8 @@ export interface Signer {
 
   didAlias?: string; // only for dotbit mode
   nip05DomainName?: string; // only for nip05 mode
+
+  evmUsername?: string; // only for evm chain sign-in mode like metamask
 }
 
 function loginPending() {
@@ -104,6 +121,9 @@ export const loginReducer = (
 
     case LoginActionType.logout:
       clearTempMyPublicKey();
+      if(state.mode === LoginMode.walletConnect){
+        disconnectWagmi();
+      }
       return defaultSigner;
 
     default:
@@ -201,8 +221,47 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       };
     }
 
-    case LoginMode.metamask:
-      throw new Error('not impl');
+    case LoginMode.metamask: {
+      if (!request.evmUsername) {
+        throw new Error('eth username not found!');
+      }
+      const getPublicKey = createMetamaskGetPublicKey(request.evmUsername);
+      const pk = await getPublicKeyFromMetamaskSignIn(
+        request.evmUsername,
+        request.evmPassword,
+      );
+      const isLoggedIn = pk != null && pk.length > 0;
+      saveTempMyPublicKey(pk);
+
+      return {
+        mode,
+        isLoggedIn: isLoggedIn,
+        getPublicKey: getPublicKey,
+        signEvent: createMetamaskSignEvent(request.evmUsername),
+        evmUsername: request.evmUsername,
+      };
+    }
+
+    case LoginMode.walletConnect: {
+      if (!request.evmUsername) {
+        throw new Error('eth username not found!');
+      }
+      const getPublicKey = createWalletConnectGetPublicKey(request.evmUsername);
+      const pk = await getPublicKeyFromWalletConnectSignIn(
+        request.evmUsername,
+        request.evmPassword,
+      );
+      const isLoggedIn = pk != null && pk.length > 0;
+      saveTempMyPublicKey(pk);
+
+      return {
+        mode,
+        isLoggedIn: isLoggedIn,
+        getPublicKey: getPublicKey,
+        signEvent: createWalletConnectSignEvent(request.evmUsername),
+        evmUsername: request.evmUsername,
+      };
+    }
 
     case LoginMode.nexus:
       throw new Error('not impl');
