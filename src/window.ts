@@ -5,6 +5,7 @@ declare global {
   interface Window {
     nostr?: Nip06;
     webln?: WebLNProvider;
+    ethereum?: any;
   }
 }
 

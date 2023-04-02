@@ -9,7 +9,7 @@ import { loginMapStateToProps } from 'pages/helper';
 import Nav from './Nav';
 import Link from 'next/link';
 import styled from 'styled-components';
-import LoginCard from './LoginCard';
+import LoginCard from '../../pages/login/index.page';
 
 const styles = {
   root: {
@@ -129,52 +129,15 @@ export const LoginFormTip = ({
   const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
   return (
     <>
-      <button
+      <a
         style={{
           ...{ border: 'none', background: 'lightsteelblue' },
           ...style,
         }}
-        type="button"
-        onClick={() => {
-          setIsOpenLoginForm(!isOpenLoginForm);
-        }}
+      href={Paths.login}
       >
         {text || t('nav.menu.signIn')}
-      </button>
-      {isOpenLoginForm && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            background: 'white',
-            padding: '20px',
-            zIndex: 999,
-            width: '400px',
-            height: 'auto',
-            boxShadow: '0px 0px 10px #ccc',
-            borderRadius: '5px',
-            textAlign: 'center',
-          }}
-        >
-          <LoginCard onCancel={() => setIsOpenLoginForm(false)} />
-        </div>
-      )}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 998,
-          background: 'black',
-          opacity: 0.5,
-          filter: 'blur(5px)',
-          display: isOpenLoginForm ? 'block' : 'none',
-        }}
-      ></div>
+      </a>
     </>
   );
 };

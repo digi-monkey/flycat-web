@@ -16,7 +16,11 @@ import {
   loginReducer,
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
+  Signer,
+  GetPublicKey
 } from './loginReducer';
+import { createWalletConnectGetPublicKey, createWalletConnectSignEvent} from 'service/evm/walletConnect';
+import { createMetamaskSignEvent, createMetamaskGetPublicKey } from 'service/evm/metamask';
 
 // Define the shape of your store state
 export interface RootState {
@@ -54,16 +58,26 @@ export function toSavableRootState(state: RootState): SavableRootState {
     savableState.loginReducer.nip05DomainName =
       state.loginReducer.nip05DomainName;
   }
+  if (state.loginReducer.evmUsername) {
+    savableState.loginReducer.evmUsername = state.loginReducer.evmUsername;
+  }
   return savableState;
 }
 
-export function toRootState(state: SavableRootState): RootState {
-  function createGetPublicKey(mode: LoginMode) {
+export function loadRootStateFromStore(state: SavableRootState): RootState {
+  function createGetPublicKey(mode: LoginMode): GetPublicKey {
     switch (mode) {
       case LoginMode.local:
         return async () => state.loginReducer.publicKey!;
       case LoginMode.nip07Wallet:
-        return async () => await window.nostr?.getPublicKey();
+        return async () => {
+          if(window.nostr){
+            alert("window.nostr is null");
+            throw new Error("window.nostr is null");
+          }
+          
+          return await window.nostr!.getPublicKey();
+        };
       case LoginMode.dotbit:
         return async () => {
           if (state.loginReducer.didAlias == null) {
@@ -85,6 +99,12 @@ export function toRootState(state: SavableRootState): RootState {
           );
           return pk;
         };
+
+      case LoginMode.metamask:
+        return createMetamaskGetPublicKey(state.loginReducer.evmUsername); 
+
+        case LoginMode.walletConnect:
+          return createWalletConnectGetPublicKey(state.loginReducer.evmUsername); 
 
       default:
         throw new Error('unsupported mode');
@@ -111,12 +131,19 @@ export function toRootState(state: SavableRootState): RootState {
 
       case LoginMode.nip05Domain:
         return undefined;
+
+      case LoginMode.metamask:
+        return createMetamaskSignEvent(state.loginReducer.evmUsername);
+
+        case LoginMode.walletConnect:
+        return createWalletConnectSignEvent(state.loginReducer.evmUsername);
+         
       default:
         throw new Error('unsupported mode');
     }
   }
 
-  const loginReducer: any = {
+  const loginReducer: Signer = {
     mode: state.loginReducer.mode,
     isLoggedIn: state.loginReducer.isLoggedIn,
     getPublicKey: createGetPublicKey.bind(global)(state.loginReducer.mode),
@@ -133,6 +160,9 @@ export function toRootState(state: SavableRootState): RootState {
   }
   if (state.loginReducer.nip05DomainName) {
     loginReducer.nip05DomainName = state.loginReducer.nip05DomainName;
+  }
+  if (state.loginReducer.evmUsername) {
+    loginReducer.evmUsername = state.loginReducer.evmUsername;
   }
 
   const rootState: RootState = {
@@ -162,7 +192,7 @@ export function readStore(): RootState | any {
           // patch for v0.1.0 version
           storedState.loginReducer.mode = LoginMode.local;
         }
-        return toRootState(storedState);
+        return loadRootStateFromStore(storedState);
       }
     } catch (error) {
       console.error('Error loading state from local storage:', error);

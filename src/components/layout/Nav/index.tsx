@@ -1,10 +1,8 @@
 import { Paths } from 'constants/path';
-import { useState } from 'react';
 import { getDraftId } from 'utils/common';
 import { useTranslation } from 'react-i18next';
 import { useNotification } from 'hooks/useNotification';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { Dialog, DialogContent } from '@mui/material';
 import {
   Home,
   Article,
@@ -18,14 +16,12 @@ import {
 } from '@mui/icons-material';
 
 import Link from 'next/link';
-import LoginCard from '../LoginCard';
 import styles from './index.module.scss';
 
 const Nav = ({ isLoggedIn }) => {
   const { t } = useTranslation();
   const newNotifyCount = useNotification();
   const myPublicKey = useReadonlyMyPublicKey();
-  const [isOpenLoginForm, setIsOpenLoginForm] = useState<boolean>(false);
   const isLogin = isLoggedIn && myPublicKey && myPublicKey.length > 0;
 
   return (
@@ -103,7 +99,7 @@ const Nav = ({ isLoggedIn }) => {
         </li>
 
         <li>
-          <a onClick={() => setIsOpenLoginForm(true)}>
+          <a href={`${Paths.login}`}>
           {isLoggedIn ? <>
             <LogoutRounded />
             {t('nav.menu.signOut')}
@@ -114,16 +110,6 @@ const Nav = ({ isLoggedIn }) => {
           </a>
         </li>
       </ul>
-
-      <Dialog
-        open={isOpenLoginForm}
-        onClose={() => setIsOpenLoginForm(false)}
-        disableAutoFocus
-      >
-        <DialogContent>
-          <LoginCard onCancel={() => setIsOpenLoginForm(false)} />
-        </DialogContent>
-      </Dialog>
     </nav>
   )
 };
