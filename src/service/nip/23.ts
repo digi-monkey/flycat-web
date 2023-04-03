@@ -321,6 +321,11 @@ export class Nip23 {
     return `/post/${list[1]}/${list[2]}`;
   }
 
+  static addrToPkAndId(addr: string){
+    const list = addr.split(':');
+    return {pubkey: list[1], articleId: list[2]};
+  }
+
   // check a tag for long form kind
   static isBlogMsg(event: Event): boolean {
     return (
