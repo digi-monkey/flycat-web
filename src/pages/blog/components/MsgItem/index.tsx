@@ -7,7 +7,7 @@ import {
   ProfileReactionGroups,
   ReactionGroups,
 } from 'components/layout/msg/TextMsg';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Event, EventTags } from 'service/api';
 import { maxStrings } from 'service/helper';
 import { Nip23, Nip23ArticleMetaTags } from 'service/nip/23';
@@ -33,15 +33,22 @@ export function BlogMsgItem({
   seen,
   relays,
 }: BlogMsgItemProps) {
-  const title: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.title)
-    .map(t => t[1])[0];
-  const summary: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.summary)
-    .map(t => t[1])[0];
-  const image: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.image)
-    .map(t => t[1])[0];
+  const [title, setTitle] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.title)
+      .map(t => t[1])[0],
+  );
+  const [summary, setSummary] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.summary)
+      .map(t => t[1])[0],
+  );
+  const [image, setImage] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.image)
+      .map(t => t[1])[0],
+  );
+
   const addr: string = event.tags
     .filter(t => t[0] === EventTags.A)
     .map(t => t[1])[0];
@@ -54,6 +61,30 @@ export function BlogMsgItem({
         pk: t[1],
       };
     });
+
+  useEffect(() => {
+    if (title == null && summary == null && image == null) {
+      const { pubkey, articleId } = Nip23.addrToPkAndId(addr);
+      const filter = Nip23.filter({
+        authors: [pubkey],
+        articleIds: [articleId],
+      });
+      worker?.subFilter(filter)?.iterating({
+        cb: (event, relayUrl) => {
+          const article = Nip23.toArticle(event);
+          if (title == null) {
+            setTitle(article.title);
+          }
+          if (summary == null) {
+            setSummary(article.summary);
+          }
+          if (image == null) {
+            setImage(article.image);
+          }
+        },
+      });
+    }
+  }, [addr]);
 
   return (
     <li
@@ -113,15 +144,21 @@ export function ProfileBlogMsgItem({
   userMap: UserMap;
   worker: CallWorker;
 }) {
-  const title: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.title)
-    .map(t => t[1])[0];
-  const summary: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.summary)
-    .map(t => t[1])[0];
-  const image: string | undefined = event.tags
-    .filter(t => t[0] === Nip23ArticleMetaTags.image)
-    .map(t => t[1])[0];
+  const [title, setTitle] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.title)
+      .map(t => t[1])[0],
+  );
+  const [summary, setSummary] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.summary)
+      .map(t => t[1])[0],
+  );
+  const [image, setImage] = useState<string | undefined>(
+    event.tags
+      .filter(t => t[0] === Nip23ArticleMetaTags.image)
+      .map(t => t[1])[0],
+  );
   const addr: string = event.tags
     .filter(t => t[0] === EventTags.A)
     .map(t => t[1])[0];
@@ -134,6 +171,30 @@ export function ProfileBlogMsgItem({
         pk: t[1],
       };
     });
+
+  useEffect(() => {
+    if (title == null && summary == null && image == null) {
+      const { pubkey, articleId } = Nip23.addrToPkAndId(addr);
+      const filter = Nip23.filter({
+        authors: [pubkey],
+        articleIds: [articleId],
+      });
+      worker?.subFilter(filter)?.iterating({
+        cb: (event, relayUrl) => {
+          const article = Nip23.toArticle(event);
+          if (title == null) {
+            setTitle(article.title);
+          }
+          if (summary == null) {
+            setSummary(article.summary);
+          }
+          if (image == null) {
+            setImage(article.image);
+          }
+        },
+      });
+    }
+  }, [addr]);
 
   return (
     <li
