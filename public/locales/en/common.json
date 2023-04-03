@@ -118,7 +118,10 @@
     "postOn": "submit",
     "lastUpdatedAt": "last updated at",
     "rePostShare": "share to feed",
-    "submit": "submit"
+    "submit": "submit",
+    "articles": "Articles",
+    "collection": "Collection",
+    "draft": "Draft"
   },
   "postArticle": {
     "newArticle": "New Blog Post",
@@ -220,5 +223,32 @@
   },
   "fof": {
     "title": "Friends of friends"
+  },
+  "blogWrite": {
+    "btn": {
+      "recovery": "Recovery draft",
+      "save": "Save draft",
+      "publish": "Publish",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "coverImage": "Cover Image",
+      "summary": "Summary",
+      "slug": "Slug",
+      "slugPlaceholder": "(optionally) slug, aka article_id, can not be changed after. just leave it blank if you don't understand it.",
+      "dir": "Dir",
+      "dirPlaceholder": "(optionally) virtual path of the article, split with '/', eg: dir1/dir2/dir3",
+      "tag": "Tag"
+    },
+    "main": {
+      "titlePlaceholder": "Please enter the title of your article"
+    },
+    "tipsy": {
+      "restore": "Local article draft found, automatic recovery of record",
+      "success": {
+        "save": "Save successfully",
+        "publish": "Published successfully"
+      }
+    }
   }
 }

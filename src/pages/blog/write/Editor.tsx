@@ -1,4 +1,3 @@
-import React from 'react';
 import MarkdownIt from 'markdown-it';
 import ReactMdEditor from 'react-markdown-editor-lite';
 // import style manually
@@ -10,16 +9,8 @@ import { compressImage } from 'service/helper';
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 const api = new Api();
 
-export function Editor({
-  value,
-  onText,
-}: {
-  onText: (text: string) => any;
-  value?: string;
-}) {
-  function handleEditorChange({ html, text }) {
-    onText(text);
-  }
+export function Editor(Props) {
+
   async function onImageUpload(file) {
     const imageFile = await compressImage(file);
     const formData = new FormData();
@@ -32,14 +23,15 @@ export function Editor({
       return url;
     }
   }
+
   return (
     <ReactMdEditor
-      value={value}
       style={{ minHeight: '700px', height: '100%' }}
       renderHTML={text => mdParser.render(text)}
-      onChange={handleEditorChange}
+      onChange={({ html, text }) => Props.onText(text)}
       onImageUpload={onImageUpload}
       view={{ menu: true, md: true, html: false }}
+      {...Props}
     />
   );
 }

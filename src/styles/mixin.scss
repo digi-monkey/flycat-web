@@ -1,0 +1,67 @@
+@import './variables.scss';
+
+@mixin for-mobile-min {
+  @media (max-width: $xs) {
+    @content;
+  }
+}
+
+@mixin for-mobile {
+  @media (max-width: $sm) {
+    @content;
+  }
+}
+
+@mixin for-mobile-all {
+  @media screen and (min-width: $xs) and (max-width: $sm) {
+    @content;
+  }
+}
+
+@mixin for-pad {
+  @media (max-width: $md) {
+    @content;
+  }
+}
+
+@mixin for-pad-max {
+  @media (max-width: $lg) {
+    @content;
+  }
+}
+
+@mixin for-pad-all {
+  @media screen and (min-width: calc($sm + 1px)) and (max-width: $lg) {
+    @content;
+  }
+}
+
+@mixin for-pad-desktop-all {
+  @media screen and (min-width: calc($sm + 1px)) {
+    @content;
+  }
+}
+
+@mixin for-mobile-pad {
+  @media screen and (min-width: $xs) and (max-width: $lg) {
+    @content;
+  }
+}
+
+@mixin for-desktop-all {
+  @media screen and (min-width: $xl) {
+    @content;
+  }
+}
+
+@mixin for-desktop {
+  @media (max-width: $xl) {
+    @content;
+  }
+}
+
+@mixin for-desktop-max {
+  @media (min-width: $xxl) {
+    @content;
+  }
+}

@@ -12,6 +12,11 @@ const theme = createTheme({
       main: 'rgb(219, 213, 213)',
     },
   },
+  typography: {
+    button: {
+      textTransform: 'none',
+    },
+  }
 });
 
 export default theme;

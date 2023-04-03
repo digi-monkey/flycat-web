@@ -11,7 +11,7 @@ import { Article, Nip23 } from 'service/nip/23';
 import { Button, useTheme } from '@mui/material';
 import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
 import { useDateBookData } from 'hooks/useDateBookData';
-import { ProfileBlogMsgItem } from '../blog/MsgItem';
+import { ProfileBlogMsgItem } from '../blog/components/MsgItem/index';
 import { useState, useEffect } from 'react';
 import { PersonalBlogFeedItem } from '../blog/feed/FeedItem';
 import { loginMapStateToProps } from 'pages/helper';
