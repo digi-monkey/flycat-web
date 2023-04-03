@@ -461,7 +461,7 @@ export const ProfileEditPanel = ({
       banner: banner || '',
       nip05: formData.domainNameVerification || '',
     };
-    console.log(data);
+    
     const rawEvent = await Nostr.newProfileRawEvent(data);
     const event = await signEvent(rawEvent);
     if (worker == null) {

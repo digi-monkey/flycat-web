@@ -31,7 +31,7 @@ export function PersonalBlogFeedItem({
           display: 'flex',
           cursor: 'pointer',
         }}
-        onClick={() => router.push({ pathname: `${Paths.post + article.pubKey}/${article.id}` })}
+        onClick={() => router.push({ pathname: `${Paths.post + article.pubKey}/${encodeURIComponent(article.id)}` })}
       >
         {article.image && (
           <span
@@ -92,7 +92,7 @@ export function BlogFeedItem({ article, lightingAddress }: BlogFeedItemProps) {
     <>
       <div
         className={styles.bolgFeedItem} 
-        onClick={() => router.push({ pathname: `${Paths.post + article.pubKey}/${article.id}` })}
+        onClick={() => router.push({ pathname: `${Paths.post + article.pubKey}/${encodeURIComponent(article.id)}` })}
       >
         {article.image && (<img src={article.image} alt={article.title} />)}
 

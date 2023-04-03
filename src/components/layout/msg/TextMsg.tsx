@@ -544,7 +544,7 @@ export const BlogMsg = ({
       '/article/' +
       pk +
       '/' +
-      articleId
+      encodeURIComponent(articleId)
     );
   };
 

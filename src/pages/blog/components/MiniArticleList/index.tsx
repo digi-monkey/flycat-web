@@ -45,7 +45,7 @@ const MiniArticleList = ({ title, articles, authorPk, isOwner }) => {
           <div className={styles.articleItem} key={key}>
             <div className={styles.article}>
               <Link
-                href={`${Paths.post + authorPk}/${article.id}`}
+                href={`${Paths.post + authorPk}/${encodeURIComponent(article.id)}`}
                 target="_blank"
                 rel="noreferrer"
               >

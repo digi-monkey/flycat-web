@@ -12,7 +12,9 @@ type Query = {
 
 export function useWorker(setUserMap, setArticle, setIsRestore) {
   const { worker, newConn } = useCallWorker();
-  const { publicKey, articleId } = useRouter().query as Query;
+  const query = useRouter().query as Query;
+  const { publicKey } = query;
+  const articleId = decodeURIComponent(query.articleId);
   
   useEffect(() => {
     if (newConn.length === 0 || !publicKey || !articleId) {

@@ -43,7 +43,9 @@ type UserParams = {
 export default function NewArticle() {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { publicKey, articleId } = useRouter().query as UserParams;
+  const query = useRouter().query as UserParams;
+  const { publicKey } = query;
+  const articleId = decodeURIComponent(query.articleId);
 
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,

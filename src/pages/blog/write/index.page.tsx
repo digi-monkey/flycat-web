@@ -31,9 +31,11 @@ export function Write({
   const router = useRouter();
   const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
+  const articleId = router?.query?.articleId && decodeURIComponent(router?.query?.articleId as string);
+  
   const { t } = useTranslation();
   const { worker } = useCallWorker();
-  const { publicKey, articleId, did } = router.query;
+  const { publicKey, did } = router.query;
 
   const [dirs, setDirs] = useState<string>('');
   const [slug, setSlug] = useState<string>('');
@@ -166,7 +168,6 @@ export function Write({
               <Grid item xs={6} alignItems="center">
                 <Button
                   onClick={() => publish({
-                    // 这里需要传入一个删除的id
                     did: articleId || did,
                     title, 
                     slug, 
