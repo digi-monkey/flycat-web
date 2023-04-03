@@ -195,7 +195,7 @@ export function ArticleCommentItem({
     if (msg.created_at > lastReadTime) update(msg.created_at);
 
     router.push({
-      pathname: `${Paths.post + toEvent.pubkey}/${article.id}`
+      pathname: `${Paths.post + toEvent.pubkey}/${encodeURIComponent(article.id)}`
     });
   };
 
@@ -221,7 +221,7 @@ export function ArticleCommentItem({
           {toEvent?.kind === Nip23.kind && (
             <span>
               {' replying to your '}
-              <Link href={`${Paths.post + toEvent?.pubkey}/${Nip23.toArticle(toEvent).id}`}>
+              <Link href={`${Paths.post + toEvent?.pubkey}/${encodeURIComponent(Nip23.toArticle(toEvent).id)}`}>
                 {'article'}
               </Link>{' '}
               &quot;{Nip23.toArticle(toEvent).title || ''}&quot;

@@ -98,4 +98,4 @@ export const publish = async (articleParams, dir, signEvent, worker, router, set
   setTimeout(() => router.push({ pathname }), 1500);
 }
 
-export const getPublishedUrl = (publicKey, articleId, myPublicKey, slug) => publicKey && articleId ? `${Paths.post + myPublicKey}/${slug}` : `${Paths.blog}/${myPublicKey}`;
+export const getPublishedUrl = (publicKey, articleId, myPublicKey, slug) => publicKey && articleId ? `${Paths.post + myPublicKey}/${encodeURIComponent(slug)}` : `${Paths.blog}/${myPublicKey}`;

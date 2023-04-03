@@ -152,7 +152,9 @@ type ArticleParams = {
 
 export default function ArticleRead() {
   const { t } = useTranslation();
-  const { publicKey = '', articleId } = useRouter().query as ArticleParams;
+  const query = useRouter().query  as ArticleParams;
+  const { publicKey = '' } = query;
+  const articleId = decodeURIComponent(query.articleId);
 
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<ArticleDataSchema>();
@@ -219,7 +221,6 @@ export default function ArticleRead() {
             event.created_at > articlePageEvent.created_at)
         ) {
           articlePageEvent = event;
-          console.log(article);
           setArticle(article);
         }
       }

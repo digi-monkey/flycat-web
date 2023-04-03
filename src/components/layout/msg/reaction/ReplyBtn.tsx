@@ -102,7 +102,6 @@ function ReplyButton({
     );
 
     const event = await signEvent(rawEvent);
-    console.log(text, event);
 
     // publish to all connected relays
     worker?.pubEvent(event);
