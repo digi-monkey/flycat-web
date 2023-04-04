@@ -33,6 +33,7 @@ import {
   deserializeMetadata,
 } from 'service/api';
 
+import Swal from 'sweetalert2/dist/sweetalert2.js';
 import BasicTabs from 'components/layout/SimpleTabs';
 
 export const styles = {
@@ -172,8 +173,6 @@ type UserParams = {
 }
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
   const myPublicKey = useReadonlyMyPublicKey();
@@ -368,20 +367,23 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   const followUser = async () => {
     if (signEvent == null) {
-      return alert('no sign method!');
+      Swal.fire({
+        icon: 'error',
+        text: 'no sign method!',
+      });
+      return;
     }
-    if (!myContactList) return;
 
-    const pks = myContactList.keys;
+    const pks = myContactList?.keys || [];
     if (pks.length === 0) {
       const isConfirmed = window.confirm(
         'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
-      if (!isConfirmed) {
-        return;
-      }
+
+      if (!isConfirmed) return;
     }
-    const tags = pks.map(
+
+    const tags = myContactList ? pks.map(
       pk =>
         [
           EventTags.P,
@@ -389,10 +391,15 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           myContactList.list.get(pk)?.relayer ?? '',
           myContactList.list.get(pk)?.name ?? '',
         ] as EventContactListPTag,
-    );
+    ) : [];
     tags.push([EventTags.P, publicKey , '', '']);
+
     if (tags.length != pks.length + 1) {
-      return alert('something went wrong with contact list');
+      Swal.fire({
+        icon: 'error',
+        text: 'something went wrong with contact list',
+      });
+      return;
     }
 
     const rawEvent = new RawEvent(
@@ -402,12 +409,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     );
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
-
-    alert('done, refresh page please!');
+    Swal.fire({
+      icon: 'success',
+      text: 'done, refresh page please!',
+    });
   };
   const unfollowUser = async () => {
     if (signEvent == null) {
-      return alert('no sign method!');
+      Swal.fire({
+        icon: 'error',
+        text: 'no sign method!',
+      });
+      return;
     }
     if (!myContactList) return;
 
@@ -416,9 +429,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       const isConfirmed = window.confirm(
         'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
-      if (!isConfirmed) {
-        return;
-      }
+      if (!isConfirmed) return;
     }
     const tags = pks
       .filter(pk => pk !== publicKey)
@@ -432,7 +443,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           ] as EventContactListPTag,
       );
     if (tags.length != pks.length - 1) {
-      return alert('something went wrong with contact list');
+      Swal.fire({
+        icon: 'error',
+        text: 'something went wrong with contact list',
+      });
+      return;
     }
 
     const rawEvent = new RawEvent(
@@ -443,7 +458,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
-    alert('done, refresh page please!');
+    Swal.fire({
+      icon: 'success',
+      text: 'done, refresh page please!',
+    });
   };
   const isFollowed =
     isLoggedIn && myContactList && myContactList?.keys.includes(publicKey );

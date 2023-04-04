@@ -1,7 +1,6 @@
 import '../window';
 import "styles/global.scss";
-import Head from 'next/head';
-import theme from 'constants/theme';
+import 'sweetalert2/src/sweetalert2.scss';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { wrapper } from 'store/configureStore';
@@ -9,6 +8,10 @@ import { ThemeProvider } from '@mui/material/styles';
 import { appWithTranslation } from 'next-i18next';
 import { ReactElement, ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+
+import Head from 'next/head';
+import theme from 'constants/theme';
+
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactNode) => ReactElement;
