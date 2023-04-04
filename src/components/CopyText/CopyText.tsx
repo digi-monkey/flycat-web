@@ -1,13 +1,12 @@
 import { Alert, Snackbar } from '@mui/material';
-import { throws } from 'assert';
 import React, { useState } from 'react';
-import { generateRandomBytes } from 'service/crypto';
 
 export interface CopyTextProps {
   name: string;
   textToCopy?: string;
   getTextToCopy?: () => Promise<string>;
   successMsg?: string;
+  failedMsg?: string;
   alertLastMilsecs?: number;
 }
 
@@ -16,9 +15,11 @@ export const CopyText = ({
   textToCopy,
   getTextToCopy,
   successMsg,
+  failedMsg,
   alertLastMilsecs,
 }: CopyTextProps) => {
   const [copySuccessToast, setCopySuccessToast] = useState<boolean>(false);
+  const [copyFailedToast, setCopyFailedToast] = useState<boolean>(false);
 
   const copy = async (text: string) => {
     const inputElement = document.createElement('input');
@@ -26,16 +27,12 @@ export const CopyText = ({
     document.body.appendChild(inputElement);
     inputElement.focus();
     inputElement.select();
-    await navigator.clipboard.writeText(text);
-    inputElement.remove();
-  };
-
-  const copyFallBack = (text: string) => {
-    const inputElement = document.createElement('input');
-    inputElement.value = text;
-    document.body.appendChild(inputElement);
-    inputElement.select();
-    document.execCommand('copy');
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (error: any) {
+      await document.execCommand('copy');
+    }
+   
     inputElement.remove();
   };
 
@@ -59,10 +56,15 @@ export const CopyText = ({
           try {
             await copy(text);
           } catch (error: any) {
-            await copyFallBack(text);
+            console.error("copy failed: ", error.message);
+            setCopyFailedToast(true);
+            setTimeout(() => {
+              setCopyFailedToast(false);
+            }, alertLastMilsecs || 5000);
+            return;
           }
-          setCopySuccessToast(true);
 
+          setCopySuccessToast(true);
           setTimeout(() => {
             setCopySuccessToast(false);
           }, alertLastMilsecs || 5000);
@@ -81,6 +83,19 @@ export const CopyText = ({
       >
         <Alert severity="success">
           {successMsg || 'Text copied to clipboard!'}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={copyFailedToast}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        autoHideDuration={4000}
+        onClose={() => setCopyFailedToast(false)}
+      >
+        <Alert severity="error">
+          {failedMsg || 'Failed to copied to clipboard!'}
         </Alert>
       </Snackbar>
     </>
