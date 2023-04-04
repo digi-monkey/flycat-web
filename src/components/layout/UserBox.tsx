@@ -259,7 +259,6 @@ export const UserHeader = ({
   followOrUnfollowOnClick,
   isFollowed,
 }: UserHeaderProps) => {
-  const { t } = useTranslation();
   const router = useRouter();
   return (
     <div style={styles.userProfile}>
