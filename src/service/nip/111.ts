@@ -9,8 +9,7 @@ export function getCaip10(chainId: number, address: string) {
 }
 
 export function getMessage(username: string, caip10: string) {
-  const info = `${caip10}:${username}`;
-  return `Log into Nostr client as '${username}'\n\nIMPORTANT: Please verify the integrity and authenticity of connected Nostr client before signing this message\n\nSIGNED BY: ${info}`;
+  return `Log into Nostr client as '${username}'\n\nIMPORTANT: Please verify the integrity and authenticity of connected Nostr client before signing this message\n\nSIGNED BY: ${caip10}`;
 }
 
 export async function getSignature(

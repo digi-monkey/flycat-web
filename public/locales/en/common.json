@@ -113,7 +113,7 @@
   },
   "evmSignIn": {
     "title": "Sign-In with EVM blockchain (experimental)",
-    "introduce": "the nostr account is a sub account generated from deterministic eth account's signature and is also entirely segregated from the eth account, please read the following post about how it works and use it at your own risk.",
+    "introduce": "the nostr account is a sub account generated from deterministic eth account's signature and is also entirely segregated from the eth account. Since it is a highly experimental feature and the specs might be changed again please read the following post about how it works and use it at your own risk.",
     "chainName": "chain name",
     "chainId": "chain id",
     "address": "ETH address",

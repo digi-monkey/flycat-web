@@ -19,9 +19,10 @@ import {
 import { getPrivateKeyFromMetamaskSignIn } from '../../service/evm/metamask';
 import { getPrivateKeyFromWalletConnectSignIn } from '../../service/evm/walletConnect';
 
-import styles from './index.module.scss';
 import { CopyText } from 'components/CopyText/CopyText';
-import { disconnectWagmi, isWalletConnected } from 'service/evm/wagmi/helper';
+import { isWalletConnected } from 'service/evm/wagmi/helper';
+
+import styles from './index.module.scss';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -261,7 +262,7 @@ const LoginCard = ({
         <div className={styles.title}>{t('loginForm.title')}</div>
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.alby} ${styles.button}`}
+            className={`${styles.button} ${styles.alby}`}
             variant="contained"
             onClick={signWithNip07Wallet}
           >
@@ -275,7 +276,7 @@ const LoginCard = ({
 
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.metamask} ${styles.button}`}
+            className={`${styles.button} ${styles.metamask}`}
             variant="contained"
             onClick={signWithEthWallet}
           >
@@ -294,7 +295,7 @@ const LoginCard = ({
 
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.walletConnect} ${styles.button}`}
+            className={`${styles.button} ${styles.walletConnect}`}
             variant="contained"
             onClick={signWithWalletConnect}
           >

@@ -2,7 +2,7 @@ import { HexStr } from 'types';
 import { chainList } from '../../constants/chainList';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent } from '@mui/material';
+import { Button, Dialog, DialogContent } from '@mui/material';
 import { getAccount, getNetwork } from '@wagmi/core';
 
 import styles from './index.module.scss';
@@ -138,9 +138,9 @@ export const EvmSignInPopup = ({ isOpen, onClose, onSubmit, mode }: Props) => {
             onChange={handlePasswordChange}
           />
         </div>
-        <button className={styles.popupButton} onClick={handleSubmit}>
+        <Button className={styles.popupButton} onClick={handleSubmit} disabled={username.length === 0}>
           {t('evmSignIn.submit')}
-        </button>
+        </Button>
       </DialogContent>
     </Dialog>
   );
