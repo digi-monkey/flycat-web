@@ -1,6 +1,6 @@
 import { Grid } from '@mui/material';
 import { Paths } from 'constants/path';
-import { CopyText } from './util/CopyText';
+import { CopyText } from '../CopyText/CopyText';
 import { useRouter } from 'next/router';
 import { RootState } from 'store/configureStore';
 import { CallWorker } from 'service/worker/callWorker';

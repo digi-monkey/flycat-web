@@ -62,6 +62,10 @@ const Pages = {
   fof: {
     name: 'fof',
     path: '/fof'
+  },
+  login: {
+    name: 'login',
+    path: '/login'
   }
 }
 

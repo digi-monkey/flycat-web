@@ -1,0 +1,163 @@
+$main-color: rgb(141, 197, 63);
+$main-hover-color: rgb(122, 188, 29);
+
+.closeIcon {
+  width: 100%;
+  height: 60px;
+  text-align: right;
+}
+.line {
+  margin-bottom: 10px;
+  text-transform: capitalize;
+  text-align: center;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  display: block;
+  margin: 10px 0px 40px 0px;
+  text-align: center;
+}
+.input {
+  width: 300px;
+  max-width: 80%;
+  padding: 5px;
+  margin-right: 10px;
+}
+.loginArea {
+  margin-bottom: 30px;
+}
+.buttonBox {
+  margin: 10px 0px;
+  text-align: center;
+}
+.button {
+  color: white;
+  font-size: large;
+  text-transform: capitalize;
+  background-color:$main-color;
+  width: 250px;
+  max-width: 100%;
+
+  &:hover {
+    background-color: $main-hover-color;
+  }
+}
+.icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+}
+.walletConnect {
+  color: black;
+  background-color: white;
+  &:hover {
+    background-color: whitesmoke;
+  }
+}
+.metamask {
+  color: black;
+  background-color: white;
+  &:hover {
+    background-color: whitesmoke;
+  }
+}
+.alby {
+  color: black;
+  background-color: #ffdf6c;
+  &:hover {
+    background-color: #f4ce47;
+  }
+}
+.submitButton {
+  color: white;
+  text-transform: capitalize;
+  background-color: $main-color;
+  border: none;
+  padding: 5px;
+
+  &:hover {
+    background-color: $main-hover-color;
+  }
+}
+.noframe {
+  width: 100%;
+  border: none;
+  outline: none;
+
+  &:focus {
+    border: none;
+    outline: none;
+  }
+}
+.inputWithSubmitButton {
+  width: 400px;
+  margin: 0 auto;
+  border: 1px solid rgb(218, 215, 215);
+  padding: 5px;
+  border-radius: 5px;
+}
+.readonlyModeTitle {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  text-transform: lowercase;
+  color: black;
+  font-size: 14px;
+}
+.popupDialog {
+  width: 500px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 10px;
+}
+.popupIntroduce {
+  font-size: 14px;
+  color: black;
+  margin-bottom: 5px;
+}
+.popupTip {
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 5px;
+}
+.chainInfo {
+  text-transform: capitalize;
+}
+.chainInfoLabel {
+  font-weight: bold;
+}
+.chainInfoValue {
+  text-transform: capitalize;
+}
+.popupLabel {
+  margin-top: 10px;
+  font-size: 14px;
+  text-transform: capitalize;
+  color: gray;
+}
+.popupInput {
+  width: -webkit-fill-available;
+  padding: 5px;
+  margin-top: 10px;
+  &:focus {
+    outline: black;
+  }
+}
+.popupButton {
+  margin-top: 10px;
+  width: -webkit-fill-available;
+  padding: 5px;
+  background-color: $main-color;
+  border: none;
+  outline: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  text-transform: capitalize;
+
+  &:hover {
+    background-color: $main-hover-color;
+    border: none;
+    outline: none;
+  }
+}
