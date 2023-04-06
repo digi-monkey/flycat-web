@@ -102,7 +102,7 @@ export function BlogMsgItem({
         </div>
 
         <div style={{ flex: '1', maxWidth: '100%' }}>
-          <span style={{ fontSize: '14px', display: 'block' }}>
+          <div style={{ fontSize: '14px', display: 'block' }}>
             <ProfileName
               name={userName}
               pk={event.pubkey}
@@ -116,7 +116,7 @@ export function BlogMsgItem({
               image={image}
               addr={addr}
             />
-          </span>
+          </div>
           <ReactionGroups
             seen={seen}
             relays={relays}
@@ -243,9 +243,9 @@ export function ArticleMsgContent({
   addr,
 }: ArticleMsgContentProps) {
   return (
-    <span>
+    <div>
       <div style={{ fontSize: '14px' }}>
-        <Content text={text} />
+        <Content text={text} /> 
       </div>
       <div
         style={{
@@ -253,15 +253,12 @@ export function ArticleMsgContent({
           background: 'rgb(247, 245, 235)',
           borderRadius: '5px',
         }}
-        onClick={() => {
-          const url = Nip23.addrToUrl(addr);
-          window.open(url, '_blank');
-        }}
+        onClick={() => window.open(Nip23.addrToUrl(addr), '_blank')}
       >
         <div style={{ margin: '5px 0px', padding: '10px' }}>
           <div style={{ display: 'flex', cursor: 'pointer' }}>
             {image && (
-              <span
+              <div
                 style={{
                   width: '100px',
                   height: '100px',
@@ -269,10 +266,10 @@ export function ArticleMsgContent({
                 }}
               >
                 <img src={image} alt="" style={{ width: '100%' }} />
-              </span>
+              </div>
             )}
 
-            <div style={{}}>
+            <div>
               <span
                 style={{
                   fontSize: '16px',
@@ -290,6 +287,6 @@ export function ArticleMsgContent({
           </div>
         </div>
       </div>
-    </span>
+    </div>
   );
 }

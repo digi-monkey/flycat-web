@@ -48,21 +48,21 @@ $main-hover-color: rgb(122, 188, 29);
   height: 30px;
   margin-right: 10px;
 }
-.walletConnect {
+.walletConnect.walletConnect {
   color: black;
   background-color: white;
   &:hover {
     background-color: whitesmoke;
   }
 }
-.metamask {
+.metamask.metamask {
   color: black;
   background-color: white;
   &:hover {
     background-color: whitesmoke;
   }
 }
-.alby {
+.alby.alby {
   color: black;
   background-color: #ffdf6c;
   &:hover {

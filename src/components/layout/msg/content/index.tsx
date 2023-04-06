@@ -73,7 +73,7 @@ export function Content({ text, classNames }: ContentProps) {
     audioUrls,
   } = normalizeContent(text);
   return (
-    <span className={classNames}>
+    <div className={classNames}>
       <Texting modifiedText={modifiedText} />
       <p style={{ textAlign: 'center' }}>
         {imageUrls.length > 0 &&
@@ -123,7 +123,7 @@ export function Content({ text, classNames }: ContentProps) {
             </span>
           ))}
       </p>
-    </span>
+    </div>
   );
 }
 
