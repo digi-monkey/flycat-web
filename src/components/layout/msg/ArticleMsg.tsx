@@ -151,7 +151,7 @@ export const ArticleMsg = ({
     <li style={styles.msgItem}>
       <Grid container>
         <Grid item xs={12}>
-          <span style={styles.msgWord}>
+          <div style={styles.msgWord}>
             <Article
               isOwner={isOwner}
               publicKey={publicKey}
@@ -163,7 +163,7 @@ export const ArticleMsg = ({
                 subArticlePages(siteMetaData!);
               }}
             />
-          </span>
+          </div>
           <span style={styles.time}>{useTimeSince(article.created_at)}</span>
         </Grid>
       </Grid>

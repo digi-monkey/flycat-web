@@ -449,6 +449,7 @@ export function Comment({ comments, userMap, worker }: CommentProps) {
                   style={{
                     display: 'block',
                     padding: '10px 0px',
+                    wordBreak: 'break-all'
                   }}
                 >
                   {comment.content}

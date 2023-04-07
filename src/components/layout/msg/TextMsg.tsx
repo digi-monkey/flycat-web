@@ -100,9 +100,9 @@ const styles = {
   msgWord: {
     fontSize: '14px',
     display: 'block',
+    wordBreak: "break-all" as const
   },
   userName: {
-    //textDecoration: 'underline',
     color: 'black',
     fontSize: '15px',
     fontWeight: '500',
@@ -440,7 +440,7 @@ export const TextMsg = ({
           />
         </div>
         <div style={{ flex: '1', maxWidth: '100%' }}>
-          <span style={{ fontSize: '14px', display: 'block' }}>
+          <div style={{ fontSize: '14px', display: 'block' }}>
             <ProfileName
               name={userMap.get(msgEvent.pubkey)?.name}
               createdAt={msgEvent.created_at}
@@ -448,7 +448,7 @@ export const TextMsg = ({
             />
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
-          </span>
+          </div>
 
           <ReactionGroups
             msgEvent={msgEvent}
@@ -492,10 +492,10 @@ export const ProfileTextMsg = ({
     >
       <Grid container>
         <Grid item xs={12}>
-          <span style={styles.msgWord}>
+          <div style={styles.msgWord}>
             <ReplyToUserList replyTo={replyTo} />
             <Content text={content} />
-          </span>
+          </div>
           <ProfileReactionGroups
             eventId={msgEvent.id}
             pk={msgEvent.pubkey}
@@ -559,7 +559,7 @@ export const BlogMsg = ({
           <ProfileAvatar picture={avatar} name={pk} />
         </Grid>
         <Grid item xs={12} sm={10}>
-          <span style={styles.msgWord}>
+          <div style={styles.msgWord}>
             <ProfileName name={name} pk={pk} createdAt={createdAt} />
             <ArticleContentNoAvatar
               text={''}
@@ -567,7 +567,7 @@ export const BlogMsg = ({
               title={title}
               blogName={blogName}
             />
-          </span>
+          </div>
           <span style={styles.time}>
             <button
               onClick={() => setIsShareModalOpen(true)}

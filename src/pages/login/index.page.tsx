@@ -6,7 +6,7 @@ export function Login() {
   return (
     <BaseLayout silent={true}>
       <Left>
-	<LoginCard />
+	      <LoginCard />
       </Left>
     </BaseLayout>
   );

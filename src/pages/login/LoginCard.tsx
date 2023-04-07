@@ -2,27 +2,27 @@ import { ThinHr } from '../../components/layout/ThinHr';
 import { Button } from '@mui/material';
 import { connect } from 'react-redux';
 import { useState } from 'react';
+import { CopyText } from 'components/CopyText/CopyText';
 import { useTranslation } from 'next-i18next';
 import { walletConnector } from 'service/evm/wagmi/connectors';
+import { isWalletConnected } from 'service/evm/wagmi/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { connect as wagmiConnect } from '@wagmi/core';
 import { getPublicKey, randomKeyPair } from 'service/crypto';
 import { EvmSignInMode, EvmSignInPopup } from './Popup';
 import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { isDotBitName, isNip05DomainName } from 'service/helper';
-import { connect as wagmiConnect } from '@wagmi/core';
+import { getPrivateKeyFromMetamaskSignIn } from 'service/evm/metamask';
+import { getPrivateKeyFromWalletConnectSignIn } from 'service/evm/walletConnect';
 import {
   Nip19DataPrefix,
   Nip19DataType,
   nip19Decode,
   nip19Encode,
 } from 'service/api';
-import { getPrivateKeyFromMetamaskSignIn } from '../../service/evm/metamask';
-import { getPrivateKeyFromWalletConnectSignIn } from '../../service/evm/walletConnect';
-
-import { CopyText } from 'components/CopyText/CopyText';
-import { isWalletConnected } from 'service/evm/wagmi/helper';
 
 import styles from './index.module.scss';
+import Swal from 'sweetalert2/dist/sweetalert2.js';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -60,9 +60,11 @@ const LoginCard = ({
     }
 
     if (!window.nostr) {
-      return alert(
-        'window.nostr not found! did you install the Nip07 wallet extension?',
-      );
+      Swal.fire({
+        icon: 'error',
+        text: 'window.nostr not found! did you install the Nip07 wallet extension?',
+      });
+      return;
     }
 
     const loginRequest: LoginRequest = {
@@ -71,9 +73,7 @@ const LoginCard = ({
     doLogin(loginRequest);
   };
 
-  const signWithEthWallet = async () => {
-    setShowMetamaskSignInPopup(true);
-  };
+  const signWithEthWallet = async () => setShowMetamaskSignInPopup(true);
 
   const signWithWalletConnect = async () => {
     if(!isWalletConnected()){
@@ -103,20 +103,30 @@ const LoginCard = ({
 
   const signWithPublicKey = async (pubKey: string) => {
     if (typeof pubKey !== 'string') {
-      alert('typeof pubKey !== "string"');
+      Swal.fire({
+        icon: 'error',
+        text: 'typeof pubKey !== "string"',
+      });
       return;
     }
 
     if (pubKey.startsWith(Nip19DataPrefix.Pubkey)) {
       const res = nip19Decode(pubKey);
       if (res.type !== Nip19DataType.Pubkey) {
-        return alert('bech32 encoded publickey decoded err');
+        Swal.fire({
+          icon: 'error',
+          text: 'bech32 encoded publickey decoded err',
+        });
+        return;
       }
       pubKey = res.data;
     }
 
     if (pubKey.length !== 64) {
-      alert('only support 32 bytes hex publicKey now, wrong length');
+      Swal.fire({
+        icon: 'error',
+        text: 'only support 32 bytes hex publicKey now, wrong length',
+      });
       return;
     }
 
@@ -148,13 +158,20 @@ const LoginCard = ({
     if (privKey.startsWith(Nip19DataPrefix.Privkey)) {
       const res = nip19Decode(privKey);
       if (res.type !== Nip19DataType.Privkey) {
-        return alert('bech32 encoded privkey decoded err');
+        Swal.fire({
+          icon: 'error',
+          text: 'bech32 encoded privkey decoded err',
+        });
+        return;
       }
       privKey = res.data;
     }
 
     if (privKey.length !== 64) {
-      alert('only support 32 bytes hex private key now, wrong length');
+      Swal.fire({
+        icon: 'error',
+        text: 'only support 32 bytes hex private key now, wrong length',
+      });
       return;
     }
 
@@ -169,7 +186,11 @@ const LoginCard = ({
 
   const onMetamaskSignInSubmit = (username, password) => {
     if (typeof window.ethereum === 'undefined') {
-      return alert('window.ethereum not found! did you install the metamask?');
+      Swal.fire({
+        icon: 'error',
+        text: 'window.ethereum not found! did you install the metamask?',
+      });
+      return;
     }
 
     const loginRequest: LoginRequest = {
@@ -246,9 +267,10 @@ const LoginCard = ({
       </div>
       <div className={styles.buttonBox}>
         <Button
-          variant="contained"
+          // color="success"
+          // variant="contained"
           onClick={doLogout}
-          className={`${styles.button}`}
+          className={styles.button}
         >
           {t('loginForm.signOut')}
         </Button>
@@ -262,22 +284,19 @@ const LoginCard = ({
         <div className={styles.title}>{t('loginForm.title')}</div>
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.button} ${styles.alby}`}
             variant="contained"
+            className={`${styles.button} ${styles.alby}`}
             onClick={signWithNip07Wallet}
           >
-            <img
-              className={styles.icon}
-              src="./icon/Alby-logo-figure-400.svg"
-            />
+            <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
             {t('loginForm.signWithNip07')}
           </Button>
         </div>
 
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.button} ${styles.metamask}`}
             variant="contained"
+            className={`${styles.button} ${styles.metamask}`}
             onClick={signWithEthWallet}
           >
             <img className={styles.icon} src="./icon/metamask-fox.svg" />
@@ -295,8 +314,8 @@ const LoginCard = ({
 
         <div className={styles.buttonBox}>
           <Button
-            className={`${styles.button} ${styles.walletConnect}`}
             variant="contained"
+            className={`${styles.button} ${styles.walletConnect}`}
             onClick={signWithWalletConnect}
           >
             <img className={styles.icon} src="./icon/wallet-connect-logo.svg" />

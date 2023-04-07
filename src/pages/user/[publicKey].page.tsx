@@ -109,10 +109,6 @@ export const styles = {
     width: '60px',
     height: '60px',
   },
-  msgWord: {
-    fontSize: '14px',
-    display: 'block',
-  },
   userName: {
     textDecoration: 'underline',
     marginRight: '5px',
