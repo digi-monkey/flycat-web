@@ -164,14 +164,11 @@ export class CallWorker {
         });
       }
     }
-    //this.messageEvents = messageStream();
     this.groupedEvents = new GroupedAsyncGenerator<
       FromWorkerMessageData,
       string
     >(messageStream);
 
-    // get ws status
-    //this.pullWsConnectStatus();
     window.addEventListener('beforeunload', function () {
       that.closePort();
     });

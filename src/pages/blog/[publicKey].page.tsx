@@ -14,6 +14,7 @@ import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 
 import Avatar from './components/Avatar';
 import Collection from './components/Collection';
+import SubscribeFeed from './components/SubscribeFeed';
 import MiniArticleList from './components/MiniArticleList/index';
 
 export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
@@ -30,6 +31,7 @@ export const PersonalBlog = ({ isLoggedIn, signEvent }) => {
     <BaseLayout>
       <Left>
         <Avatar userMap={userMap} publicKey={publicKey} />
+         <SubscribeFeed publicKey={publicKey} /> 
         <Collection 
           title={t('blog.collection')} 
           articles={articles} 

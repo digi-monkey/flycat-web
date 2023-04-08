@@ -265,5 +265,10 @@
         "publish": "发布成功"
       }
     }
+  },
+  "subscribeFeed": {
+    "rssTitle": "Select an RSS Provider",
+    "jsonTitle": "Select an JSON Feed Provider",
+    "atomTitle": "Select an Atom Feed Provider"
   }
 }

@@ -41,6 +41,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-react-hooks": "4.3.0",
+    "feed": "4.2.2",
     "fontfaceobserver": "2.1.0",
     "husky": "7.0.4",
     "i18next": "22.4.11",
@@ -52,6 +53,7 @@
     "js-lnurl": "0.5.1",
     "lint-staged": "12.1.7",
     "markdown-it": "13.0.1",
+    "marked": "4.3.0",
     "next": "13.2.4",
     "next-i18next": "13.2.2",
     "next-redux-wrapper": "8.1.0",
@@ -157,6 +159,7 @@
   },
   "devDependencies": {
     "@types/browser-image-compression": "1.0.9",
+    "@types/marked": "4.0.8",
     "@types/react-tag-input": "6.6.1",
     "@types/sharedworker": "0.0.88",
     "@typescript-eslint/eslint-plugin": "5.56.0",
