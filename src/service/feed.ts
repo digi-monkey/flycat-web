@@ -20,13 +20,13 @@ export function eventToFeed(events: Event[], authorPk?: string) {
     updated: new Date(2013, 6, 14), // optional, default = today
     generator: 'flycat', // optional, default = 'Feed for Node.js'
     feedLinks: {
-      rss: `https://flycat.club/api/rss/${pk}`,
+      rss:  `https://flycat.club/api/rss/${pk}`,
       atom: `https://flycat.club/api/atom/${pk}`,
       json: `https://flycat.club/api/json/${pk}`,
     },
     author: {
       name: pk,
-      link: `/user/${pk}`,
+      link: `https://flycat.club/user/${pk}`,
     },
   });
 
@@ -41,7 +41,7 @@ export function articleToFeedItem(article: Article): Item {
   return {
     title: article.title || '',
     id: article.id,
-    link: `/post/${article.pubKey}/${article.id}`, // todo: maybe use addr, but it is not compatible with web2
+    link: `https://flycat.club/post/${article.pubKey}/${article.id}`, // todo: maybe use addr, but it is not compatible with web2
     date: new Date(article.updated_at * 1000),
     description: article.summary,
     content: marked.parse(article.content), // some reader not support markdown so convert to html first
@@ -54,7 +54,7 @@ export function articleToFeedItem(article: Article): Item {
     author: [
       {
         name: article.pubKey,
-        link: `/user/${article.pubKey}`, // todo: maybe use addr, but it is not compatible with web2
+        link: `https://flycat.club/user/${article.pubKey}`, // todo: maybe use addr, but it is not compatible with web2
       },
     ],
     // contributor?: Author[];
