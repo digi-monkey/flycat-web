@@ -1,7 +1,7 @@
 import { eventToFeed } from 'service/feed';
-import { callSubFilter } from '../util';
-import { NextApiResponse, NextApiRequest } from 'next';
+import { callSubFilter } from 'service/backend/sub';
 import { Filter, WellKnownEventKind } from 'service/api';
+import { NextApiResponse, NextApiRequest } from 'next';
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,7 +16,7 @@ export default async function handler(
     kinds: [WellKnownEventKind.long_form],
     limit: 50,
   };
-  const events = await callSubFilter(filter);
+  const events = await callSubFilter({filter});
   const feed = eventToFeed(events, publicKey).rss2();
   res.setHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
   return res.status(200).send(feed);

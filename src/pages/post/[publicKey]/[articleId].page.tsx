@@ -17,7 +17,7 @@ import { Article, Nip23 } from 'service/nip/23';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { getDateBookName } from 'hooks/useDateBookData';
 import { Nip08, RenderFlag } from 'service/nip/08';
-import { TextField, Button } from "@mui/material";
+import { TextField, Button } from '@mui/material';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
@@ -28,19 +28,22 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 
+import Head from 'next/head';
+
 import Link from 'next/link';
 import styles from './index.module.scss';
 import EditIcon from '@mui/icons-material/Edit';
 import ReactMarkdown from 'react-markdown';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
+import { callSubFilter } from 'service/backend/sub';
 
 type UserParams = {
   publicKey: string;
   articleId: string;
-}
+};
 
-export default function NewArticle() {
+export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
@@ -118,9 +121,6 @@ export default function NewArticle() {
     }
 
     if (event.kind === WellKnownEventKind.text_note) {
-      // if (article == null) return;
-      // if (!Nip23.isCommentEvent(event, article)) return;
-
       setComments(prev => {
         if (!prev.map(p => p.id).includes(event.id)) {
           return [...prev, event].sort((a, b) =>
@@ -175,214 +175,297 @@ export default function NewArticle() {
   }, [articleEvent, userMap]);
 
   return (
-    <BaseLayout silent={true}>
-      <Left>
-        <div className={styles.post}>
-          <div className={styles.postContent}>
-            <div className={styles.postHeader}>
-              {article?.image && (
-                <img src={article.image} className={styles.banner} alt={article?.title} />
-              )}
-              <div className={styles.postTitleInfo}>
-                <div className={styles.title}>
-                  {article?.title}
-                </div>
-                <div className={styles.name}>
-                  <Link href={Paths.user + publicKey}>
-                    <span style={{ marginRight: '5px' }}>
-                      {userMap.get(publicKey)?.name}
-                    </span>
-                  </Link>
-                  {article?.published_at && (
-                    <span style={{ margin: '0px 10px' }}>
-                      {formatDate(article?.published_at)}
-                    </span>
-                  )}
+    <>
+      <Head>
+        <title>{preArticle?.title || 'nostr blog post'}</title>
+        <meta
+          name="description"
+          content={preArticle?.summary || 'nostr nip23 long-form post'}
+        />
+        <meta
+          property="og:title"
+          content={preArticle?.title || 'nostr blog post'}
+        />
+        <meta
+          property="og:description"
+          content={preArticle?.summary || 'nostr nip23 long-form post'}
+        />
+        <meta property="og:image" content={preArticle?.image} />
+        <meta property="og:type" content="article" />
+        <meta
+          name="keywords"
+          content={preArticle?.hashTags?.join(',').toString()}
+        />
+        <meta name="author" content={preArticle?.pubKey || publicKey} />
+        <meta
+          name="published_date"
+          content={toTimeString(preArticle?.published_at)}
+        />
+        <meta
+          name="last_updated_date"
+          content={toTimeString(preArticle?.updated_at)}
+        />
+        <meta name="category" content={'flycat nostr blog post'} />
+      </Head>
 
-                  {publicKey === myPublicKey && (
-                    <Link
-                      href={`${Paths.edit + publicKey}/${articleId}`}
-                      style={{ color: 'gray' }}
-                    >
-                      {' '}
-                      ~ <EditIcon style={{ height: '14px', color: 'gray' }} />
+      <BaseLayout silent={true}>
+        <Left>
+          <div className={styles.post}>
+            <div className={styles.postContent}>
+              <div className={styles.postHeader}>
+                {article?.image && (
+                  <img
+                    src={article.image}
+                    className={styles.banner}
+                    alt={article?.title}
+                  />
+                )}
+                <div className={styles.postTitleInfo}>
+                  <div className={styles.title}>{article?.title}</div>
+                  <div className={styles.name}>
+                    <Link href={Paths.user + publicKey}>
+                      <span style={{ marginRight: '5px' }}>
+                        {userMap.get(publicKey)?.name}
+                      </span>
                     </Link>
-                  )}
-                </div>
-              </div>
+                    {article?.published_at && (
+                      <span style={{ margin: '0px 10px' }}>
+                        {formatDate(article?.published_at)}
+                      </span>
+                    )}
 
-              <div className={styles.postTags}>
-                {article?.hashTags?.flat(Infinity).map((t, key) => (
-                  <span
-                    key={key}
-                    style={{ background: theme.palette.secondary.main }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <ReactMarkdown
-                components={{
-                  h1: ({ node, ...props }) => (
-                    <div
-                      style={{ fontSize: '20px', fontWeight: 'bold' }}
-                      {...props}
-                    />
-                  ),
-                  h2: ({ node, ...props }) => (
-                    <div
-                      style={{ fontSize: '18px', fontWeight: 'bold' }}
-                      {...props}
-                    />
-                  ),
-                  h3: ({ node, ...props }) => (
-                    <div
-                      style={{ fontSize: '16px', fontWeight: 'bold' }}
-                      {...props}
-                    />
-                  ),
-                  h4: ({ node, ...props }) => (
-                    <div
-                      style={{ fontSize: '14px', fontWeight: 'bold' }}
-                      {...props}
-                    />
-                  ),
-                  img: ({ node, ...props }) => (
-                    <img style={{ width: '100%' }} {...props} />
-                  ),
-                  blockquote: ({ node, ...props }) => (
-                    <blockquote
-                      style={{
-                        borderLeft: `5px solid ${theme.palette.primary.main}`,
-                        padding: '0.5rem',
-                        margin: '0 0 1rem',
-                        fontStyle: 'italic',
-                      }}
-                      {...props}
-                    />
-                  ),
-                  code: ({ node, inline, ...props }) => {
-                    return inline ? (
-                      <span
-                        style={{
-                          background: theme.palette.secondary.main,
-                          padding: '5px',
-                        }}
-                        {...props}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          background: theme.palette.secondary.main,
-                          padding: '20px',
-                          borderRadius: '5px',
-                        }}
-                        {...props}
-                      />
-                    );
-                  },
-                }}
-              >
-                {content ?? ''}
-              </ReactMarkdown>
-            </div>
-            <div className={styles.info}>
-              <div className={styles.author}>
-                <div className={styles.picture}>
-                  <Link href={Paths.user + publicKey}>
-                    <img src={userMap.get(publicKey)?.picture} alt={userMap.get(publicKey)?.name} />
-                  </Link>
+                    {publicKey === myPublicKey && (
+                      <Link
+                        href={`${Paths.edit + publicKey}/${articleId}`}
+                        style={{ color: 'gray' }}
+                      >
+                        {' '}
+                        ~ <EditIcon style={{ height: '14px', color: 'gray' }} />
+                      </Link>
+                    )}
+                  </div>
                 </div>
 
-                <div className={styles.name}>
-                  <Link href={Paths.user + publicKey}>
-                    {userMap.get(publicKey)?.name}
-                  </Link>
-                </div>
-
-                <div>
-                  <LikedButton
-                    onClick={async () => {
-                      const lnUrl =
-                        userMap.get(publicKey)?.lud06 ||
-                        userMap.get(publicKey)?.lud16;
-                      if (lnUrl == null) {
-                        return alert('no ln url, please tell the author to set up one.');
-                      }
-                      await payLnUrlInWebLn(lnUrl);
-                    }}
-                  >
-                    <ElectricBoltOutlinedIcon />
-                    <span style={{ marginLeft: '5px' }}>
-                      {'like the author'}
-                    </span>
-                  </LikedButton>
-                </div>
-
-                <div className={styles.collected} style={{ background: theme.palette.secondary.main }}>
-                  <span className={styles.title}>{'collected in'}</span>
-                  <span className={styles.datetime} style={{ background: theme.palette.secondary.main }}>
-                    {getDateBookName( article?.published_at || article?.updated_at || 0 )}
-                  </span>
-                  {article?.dirs?.map((t, key) => (
+                <div className={styles.postTags}>
+                  {article?.hashTags?.flat(Infinity).map((t, key) => (
                     <span
                       key={key}
-                      className={styles.dirs}
                       style={{ background: theme.palette.secondary.main }}
                     >
                       {t}
                     </span>
                   ))}
                 </div>
+
+                <ReactMarkdown
+                  components={{
+                    h1: ({ node, ...props }) => (
+                      <div
+                        style={{ fontSize: '20px', fontWeight: 'bold' }}
+                        {...props}
+                      />
+                    ),
+                    h2: ({ node, ...props }) => (
+                      <div
+                        style={{ fontSize: '18px', fontWeight: 'bold' }}
+                        {...props}
+                      />
+                    ),
+                    h3: ({ node, ...props }) => (
+                      <div
+                        style={{ fontSize: '16px', fontWeight: 'bold' }}
+                        {...props}
+                      />
+                    ),
+                    h4: ({ node, ...props }) => (
+                      <div
+                        style={{ fontSize: '14px', fontWeight: 'bold' }}
+                        {...props}
+                      />
+                    ),
+                    img: ({ node, ...props }) => (
+                      <img style={{ width: '100%' }} {...props} />
+                    ),
+                    blockquote: ({ node, ...props }) => (
+                      <blockquote
+                        style={{
+                          borderLeft: `5px solid ${theme.palette.primary.main}`,
+                          padding: '0.5rem',
+                          margin: '0 0 1rem',
+                          fontStyle: 'italic',
+                        }}
+                        {...props}
+                      />
+                    ),
+                    code: ({ node, inline, ...props }) => {
+                      return inline ? (
+                        <span
+                          style={{
+                            background: theme.palette.secondary.main,
+                            padding: '5px',
+                          }}
+                          {...props}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            background: theme.palette.secondary.main,
+                            padding: '20px',
+                            borderRadius: '5px',
+                          }}
+                          {...props}
+                        />
+                      );
+                    },
+                  }}
+                >
+                  {content ?? ''}
+                </ReactMarkdown>
+              </div>
+              <div className={styles.info}>
+                <div className={styles.author}>
+                  <div className={styles.picture}>
+                    <Link href={Paths.user + publicKey}>
+                      <img
+                        src={userMap.get(publicKey)?.picture}
+                        alt={userMap.get(publicKey)?.name}
+                      />
+                    </Link>
+                  </div>
+
+                  <div className={styles.name}>
+                    <Link href={Paths.user + publicKey}>
+                      {userMap.get(publicKey)?.name}
+                    </Link>
+                  </div>
+
+                  <div>
+                    <LikedButton
+                      onClick={async () => {
+                        const lnUrl =
+                          userMap.get(publicKey)?.lud06 ||
+                          userMap.get(publicKey)?.lud16;
+                        if (lnUrl == null) {
+                          return alert(
+                            'no ln url, please tell the author to set up one.',
+                          );
+                        }
+                        await payLnUrlInWebLn(lnUrl);
+                      }}
+                    >
+                      <ElectricBoltOutlinedIcon />
+                      <span style={{ marginLeft: '5px' }}>
+                        {'like the author'}
+                      </span>
+                    </LikedButton>
+                  </div>
+
+                  <div
+                    className={styles.collected}
+                    style={{ background: theme.palette.secondary.main }}
+                  >
+                    <span className={styles.title}>{'collected in'}</span>
+                    <span
+                      className={styles.datetime}
+                      style={{ background: theme.palette.secondary.main }}
+                    >
+                      {getDateBookName(
+                        article?.published_at || article?.updated_at || 0,
+                      )}
+                    </span>
+                    {article?.dirs?.map((t, key) => (
+                      <span
+                        key={key}
+                        className={styles.dirs}
+                        style={{ background: theme.palette.secondary.main }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.updated_at}>
+                <span>
+                  {t('articleRead.lastUpdatedAt') + ' '}
+                  {useTimeSince(article?.updated_at ?? 10000)}
+                </span>
               </div>
             </div>
+            <div
+              className={styles.comment}
+              style={{ background: theme.palette.secondary.main }}
+            >
+              <div className={styles.commentPanel}>
+                <TextField
+                  className={styles.textarea}
+                  multiline
+                  minRows={4}
+                  placeholder={'Please fill out your comment.'}
+                  value={inputComment}
+                  onChange={e => setInputComment(e.target.value)}
+                />
+                <Button
+                  startIcon={<AddCommentIcon />}
+                  variant="contained"
+                  size="large"
+                  onClick={handleCommentSubmit}
+                >
+                  {t('articleRead.submit')}
+                </Button>
+              </div>
 
-            <div className={styles.updated_at}>
-              <span>
-                {t('articleRead.lastUpdatedAt') + ' '}
-                {useTimeSince(article?.updated_at ?? 10000)}
-              </span>
+              <ThinHr></ThinHr>
+
+              <div style={{ marginTop: '40px' }}>
+                <Comment
+                  comments={comments}
+                  worker={worker}
+                  userMap={userMap}
+                />
+              </div>
             </div>
           </div>
-          <div
-            className={styles.comment}
-            style={{ background: theme.palette.secondary.main }}
-          >
-            <div className={styles.commentPanel}>
-              <TextField
-                className={styles.textarea}
-                multiline
-                minRows={4}
-                placeholder={'Please fill out your comment.'}
-                value={inputComment}
-                onChange={(e) => setInputComment(e.target.value)}
-              />
-              <Button startIcon={<AddCommentIcon />} variant="contained" size='large' onClick={handleCommentSubmit}>
-                {t('articleRead.submit')}
-              </Button>
-            </div>
-
-            <ThinHr></ThinHr>
-
-            <div style={{ marginTop: '40px' }}>
-              <Comment comments={comments} worker={worker} userMap={userMap} />
-            </div>
-          </div>
-        </div>
-      </Left>
-      <Right></Right>
-    </BaseLayout>
+        </Left>
+        <Right></Right>
+      </BaseLayout>
+    </>
   );
 }
 
-export const getStaticProps = async ({ locale }: { locale: string }) => ({
-  props: {
-      ...(await serverSideTranslations(locale, ['common']))
-  }
-})
+export const getStaticProps = async ({
+  params,
+  locale,
+}: {
+  params: { publicKey: string; articleId: string };
+  locale: string;
+}) => {
+  const { publicKey, articleId } = params;
 
-export const getStaticPaths = () => ({ paths: [], fallback: true });
+  const filter = Nip23.filter({
+    authors: [publicKey as string],
+    articleIds: [articleId as string],
+    overrides: { limit: 1 },
+  });
+  const events = await callSubFilter({ filter, eventLimit: 1 });
+  let article: Article | null = null;
+  if (events.length > 0) {
+    article = Nip23.toArticle(events[0]);
+    article = Object.fromEntries(
+      Object.entries(article).filter(([key, value]) => value !== undefined), // undefined value key must be omit in order to serialize
+    ) as Article;
+  }
+
+  return {
+    props: {
+      preArticle: article,
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
+};
+
+export const getStaticPaths = () => ({ paths: [], fallback: 'blocking' });
 
 export interface CommentProps {
   comments: Event[];
@@ -449,7 +532,7 @@ export function Comment({ comments, userMap, worker }: CommentProps) {
                   style={{
                     display: 'block',
                     padding: '10px 0px',
-                    wordBreak: 'break-all'
+                    wordBreak: 'break-all',
                   }}
                 >
                   {comment.content}
@@ -461,4 +544,8 @@ export function Comment({ comments, userMap, worker }: CommentProps) {
       ))}
     </div>
   );
+}
+
+function toTimeString(ts?: number) {
+  return new Date(ts ? ts * 1000 : 0).toLocaleDateString();
 }
