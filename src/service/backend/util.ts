@@ -28,3 +28,20 @@ export function waitUntilAtLeastOneConnected(pool: Pool) {
     checkConnectionStatus();
   });
 }
+
+export function waitUntilNip23RelayConnected(pool: Pool) {
+  const limit = 50;
+  return new Promise((resolve, reject) => {
+    let count = 0;
+    const checkConnectionStatus = () => {
+      count++;
+      if (count > limit) reject(new Error('time out'));
+      if (pool.wsConnectStatus.get("wss://relay.nostr.band/") || pool.wsConnectStatus.get("wss://universe.nostrich.land/")) {
+        resolve(true);
+      } else {
+        setTimeout(checkConnectionStatus, 50); // wait 100 mil second before checking again
+      }
+    };
+    checkConnectionStatus();
+  });
+}

@@ -448,7 +448,7 @@ export const getStaticProps = async ({
     articleIds: [articleId as string],
     overrides: { limit: 1 },
   });
-  const events = await callSubFilter({ filter });
+  const events = await callSubFilter({ filter, eventLimit: 1 });
   let article: Article | null = null;
   if (events.length > 0) {
     article = Nip23.toArticle(events[0]);

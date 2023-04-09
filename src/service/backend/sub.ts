@@ -5,7 +5,7 @@ import {
   EventSubResponse,
 } from 'service/api';
 import { Pool } from 'service/backend/pool';
-import { waitUntilAtLeastOneConnected, timeout } from 'service/backend/util';
+import { waitUntilNip23RelayConnected, timeout } from 'service/backend/util';
 import { defaultRelays } from 'service/relay';
 
 export const callSubFilter = async ({
@@ -21,7 +21,7 @@ export const callSubFilter = async ({
   // so no need to reuse pool instance
   const pool = new Pool(defaultRelays);
   try {
-    await waitUntilAtLeastOneConnected(pool);
+    await waitUntilNip23RelayConnected(pool);
   } catch (error) {
     console.debug('wait for at least one connect but time out');
   }
