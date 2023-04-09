@@ -13,7 +13,7 @@ export function delay(ms: number): Promise<string> {
 }
 
 export function waitUntilAtLeastOneConnected(pool: Pool) {
-  const limit = 20;
+  const limit = 50;
   return new Promise((resolve, reject) => {
     let count = 0;
     const checkConnectionStatus = () => {

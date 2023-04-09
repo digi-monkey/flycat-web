@@ -73,6 +73,10 @@ export class Pool {
     );
   }
 
+	close(){
+		this.wsApiList.filter(ws => ws.isConnected()).forEach(ws => ws.close());
+	}
+
   private setupWebSocketApis() {
     this.relayUrls.forEach(relayUrl => {
       const onmessage = (event: MessageEvent) => {
@@ -120,7 +124,7 @@ export class Pool {
     const subscriptionId = customSubId || randomSubId();
     this.wsApiList
       .filter(ws => ws.isConnected())
-      .map(ws => {
+      .forEach(ws => {
         ws.subFilter(filter, undefined, subscriptionId);
       });
     return {

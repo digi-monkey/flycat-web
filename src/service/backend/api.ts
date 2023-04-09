@@ -46,14 +46,13 @@ export class NodeWsApi {
     wsHandler: NodeWsApiHandler,
     maxSub = 10,
     maxKeepAlive: 5,
-    reconnectIntervalSecs?: 10,
   ) {
     if (maxSub <= maxKeepAlive) {
       throw new Error('maxSub <= maxKeepAlive');
     }
 
     this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
-		this.updateListeners(url, wsHandler, reconnectIntervalSecs);
+		this.updateListeners(url, wsHandler);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
     this.maxInstant = maxSub - maxKeepAlive;
@@ -64,30 +63,17 @@ export class NodeWsApi {
   private updateListeners(
     url?: string,
     wsHandler?: NodeWsApiHandler,
-    reconnectIntervalSecs = 3,
   ) {
     if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
       this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
     }
-
-    const reconnect = (e: CloseEvent) => {
-      this.handleClose(e, () => {
-        setTimeout(() => {
-          if (wsHandler?.onCloseHandler) {
-            wsHandler?.onCloseHandler(e);
-          }
-          console.log('try reconnect..');
-          this.updateListeners(url, wsHandler, reconnectIntervalSecs);
-        }, reconnectIntervalSecs * 1000);
-      });
-    };
 
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
     this.ws.onmessage = evt => {
       this.handleResponse(evt, wsHandler?.onMsgHandler);
     };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = reconnect;
+    this.ws.onclose = () => {console.log(this.ws.url, "closed")};
   }
 
   isDuplicatedFilter(
@@ -130,6 +116,7 @@ export class NodeWsApi {
   async _send(data: string | ArrayBuffer) {
     if (this.isConnected()) {
       await this.ws.send(data);
+      console.debug(this.ws.url, " sent data: ", data);
     } else {
       console.log(
         `${this.url} not open, abort send msg.., ws.readState: ${this.ws.readyState}`,
