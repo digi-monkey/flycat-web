@@ -44,43 +44,38 @@ export function Backup({ isLoggedIn }) {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
-  const [params, setParams] = useState<URLSearchParams>();
   const [isLocalRelayTips, setIsLocalRelayTips] = useState(false);
-  const [localRelay, setLocalRelay] = useState<string | undefined>();
-  let relays = defaultRelays;
+  const [relayUrl, setRelayUrl] = useState<string | null>();
 
   useEffect(() => {
-    const result = new URLSearchParams(location.search);
-    setParams(result);
+    if(myPublicKey.length===0)return;
+
+    const params = new URLSearchParams(location.search);
+
+    let relays = defaultRelays;
+    if (isLoggedIn === true) {
+      relays = relays
+      .concat(...(myCustomRelay[myPublicKey] ?? []))
+      .filter((item, index, self) => self.indexOf(item) === index)
+    }
 
     const _isLocalRelayTips =
-    result.get('local') === 'true' &&
+    params.get('local') === 'true' &&
     relays.filter(
       r => r.startsWith('ws://localhost:') || r.startsWith('wss://localhost:'),
     ).length === 0;
     setIsLocalRelayTips(_isLocalRelayTips);
 
-    const _localRelay =
-    result.get('local') === 'true'
+    const localRelay =
+    params.get('local') === 'true'
       ? relays.filter(
           r =>
             r.startsWith('ws://localhost:') || r.startsWith('wss://localhost:'),
         )[0]
       : undefined;
-    setLocalRelay(_localRelay);
-  }, []);
-
-  if (isLoggedIn === true) {
-    relays = relays
-      .concat(...(myCustomRelay[myPublicKey] ?? []))
-      .filter((item, index, self) => self.indexOf(item) === index);
-  }
-
-  const [relayUrl, setRelayUrl] = useState<string | null>();
-  useEffect(() => {
     const relayUrl = localRelay || params && params.get('relay');
     setRelayUrl(relayUrl);
-  }, [relays]);
+  }, [myPublicKey]);
 
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
