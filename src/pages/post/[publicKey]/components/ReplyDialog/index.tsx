@@ -46,22 +46,23 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
   const parseData = (val) => {
     if(!val) return;
     const state = val.replys && Object.keys(val.replys).length > 0 ? true : false;
+    setNewComments(val); 
+    setCheckReplys(state);
 
     if (state) {
-      for (const id of Object.keys(val.replys)) {
-        if (!val.replys[id].replys) {
-          worker?.subMsgByETags([id])?.iterating({ 
-            cb: replyComments(val.replys[id], () => {
-              setNewComments(val);
-              setCheckReplys(state);
-            })
-          });
-        } else setNewComments(val);
-      }
-      setCheckReplys(state);
-    } else {
-      setNewComments(val);
-      setCheckReplys(state);
+      const ids = Object.keys(val.replys);
+      worker?.subMsgByETags(ids)?.iterating({ 
+        cb: (event) => {
+          const tagIds = event.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as string);
+          for(const id of ids){
+            if(tagIds.includes(id)){
+              if (val.replys[id].replys) val.replys[id].replys[event.id] = event;
+              else val.replys[id].replys = {[event.id]: event};
+            }
+          }
+          setNewComments({...newComments, ...val});
+        }
+      });
     }
   }
 
