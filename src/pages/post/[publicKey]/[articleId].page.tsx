@@ -1,85 +1,98 @@
-import { Paths } from 'constants/path';
 import { ThinHr } from 'components/layout/ThinHr';
 import { UserMap } from 'service/type';
+import { useTheme } from '@mui/material';
 import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
-import { formatDate } from 'service/helper';
-import { CallWorker } from 'service/worker/callWorker';
-import { LikedButton } from './LikedButton';
 import { useSelector } from 'react-redux';
-import { useTimeSince } from 'hooks/useTimeSince';
 import { CallRelayType } from 'service/worker/type';
-import { ProfileAvatar } from 'components/layout/msg/TextMsg';
 import { useCallWorker } from 'hooks/useWorker';
-import { useTranslation } from 'next-i18next';
-import { Grid, useTheme } from '@mui/material';
-import { Article, Nip23 } from 'service/nip/23';
-import { payLnUrlInWebLn } from 'service/lighting/lighting';
-import { getDateBookName } from 'hooks/useDateBookData';
-import { Nip08, RenderFlag } from 'service/nip/08';
-import { TextField, Button } from '@mui/material';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Event,
-  EventSetMetadataContent,
-  WellKnownEventKind,
-} from 'service/api';
-
-import Head from 'next/head';
-
-import Link from 'next/link';
-import styles from './index.module.scss';
-import EditIcon from '@mui/icons-material/Edit';
-import ReactMarkdown from 'react-markdown';
-import AddCommentIcon from '@mui/icons-material/AddComment';
-import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
+import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { callSubFilter } from 'service/backend/sub';
+import { useTranslation } from 'next-i18next';
+import { Article, Nip23 } from 'service/nip/23';
+import { Nip08, RenderFlag } from 'service/nip/08';
+import { TextField, Button } from "@mui/material";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { useEffect, useMemo, useState } from 'react';
+import { Event, EventSetMetadataContent, EventTags, WellKnownEventKind } from 'service/api';
+import { dontLikeComment, findNodeById, parseLikeData, replyComments, toTimeString } from './util';
+
+import styles from './index.module.scss';
+import Head from 'next/head';
+import Swal from 'sweetalert2/dist/sweetalert2.js';
+import Comment from './components/Comment';
+import PostContent from './components/PostContent';
+import ReplyDialog from './components/ReplyDialog';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 type UserParams = {
   publicKey: string;
   articleId: string;
-};
+}
+export interface newComments extends Event {
+  replys: object;
+  likes: object;
+  isLike: boolean;
+}
 
 export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
+  const myPublicKey = useReadonlyMyPublicKey();
   const { publicKey } = query;
   const articleId = decodeURIComponent(query.articleId);
+  const { worker, newConn } = useCallWorker();
 
-  const signEvent = useSelector(
-    (state: RootState) => state.loginReducer.signEvent,
-  );
-
-  const myPublicKey = useReadonlyMyPublicKey();
+  const signEvent = useSelector((state: RootState) => state.loginReducer.signEvent);
+  
+  const [image, setImage] = useState('');
+  const [replyId, setReplyId] = useState('');
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<Article>();
-  const [articleEvent, setArticleEvent] = useState<Event>();
-  const [comments, setComments] = useState<Event[]>([]);
+  const [comments, setComments] = useState<newComments[]>([]);
+  const [replyComment, setReplyComment] = useState<newComments>();
+  const [replyDialog, setReplyDialog] = useState(false);
   const [inputComment, setInputComment] = useState('');
-  const { worker, newConn } = useCallWorker();
+  const [articleEvent, setArticleEvent] = useState<Event>();
 
   const handleCommentSubmit = async () => {
     if (signEvent == null) {
-      return alert('sign method not found');
+      Swal.fire({
+        icon: 'error',
+        text: 'sign method not found'
+      });
+      return;
     }
     if (article == null) {
-      return alert('article is not loaded');
+      Swal.fire({
+        icon: 'error',
+        text: 'article is not loaded'
+      });
+      return;
     }
     if (worker == null) {
-      return alert('worker is null');
+      Swal.fire({
+        icon: 'error',
+        text: 'worker is null'
+      });
+      return;
     }
 
-    const rawEvent = Nip23.commentToArticle(inputComment, article);
+    let content = inputComment;
+    if (image) content = (content + "\n" + image).trim();
+
+    const rawEvent = Nip23.commentToArticle(content, article);
     const event = await signEvent(rawEvent);
-
     worker?.pubEvent(event);
-
     setInputComment('');
-    alert('published! please refresh the page, sorry will fix this soon!');
+    setImage('');
+    Swal.fire({
+      icon: 'success',
+      text: t("comment.success"),
+    });
   };
 
   function handleEvent(event: Event, relayUrl?: string) {
@@ -88,10 +101,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       setUserMap(prev => {
         const newMap = new Map(prev);
         const oldData = newMap.get(event.pubkey);
-        if (oldData && oldData.created_at > event.created_at) {
-          // the new data is outdated
-          return newMap;
-        }
+        if (oldData && oldData.created_at > event.created_at) return newMap;
 
         newMap.set(event.pubkey, {
           ...metadata,
@@ -123,12 +133,14 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     if (event.kind === WellKnownEventKind.text_note) {
       setComments(prev => {
         if (!prev.map(p => p.id).includes(event.id)) {
-          return [...prev, event].sort((a, b) =>
-            a.created_at >= b.created_at ? 1 : -1,
-          );
+          worker?.subMsgByETags([event.id])?.iterating({ cb: replyComments(event) });
+
+          return [...prev, event].sort((a, b) => a.created_at >= b.created_at ? 1 : -1) as newComments[];
         }
+
         return prev;
       });
+
       return;
     }
   }
@@ -161,6 +173,32 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       ?.iterating({ cb: handleEvent });
   }, [article]);
 
+  useEffect(() => {
+    if (!replyId.length || !Object.keys(replyComment || {}).length) return;
+    
+    const target = findNodeById(replyComment, replyId);
+    if (!target) return;
+
+    setReplyDialog(true);
+    setReplyComment(target);
+    
+    if (target.replys) {
+      const ids = Object.keys(target.replys);
+      worker?.subMsgByETags(ids)?.iterating({ 
+        cb: (event)=>{
+          const tagIds = event.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as string);
+          for(const id of ids){
+            if(tagIds.includes(id)){
+              if (target.replys[id].replys) target.replys[id].replys[event.id] = event;
+              else target.replys[id].replys = {[event.id]: event};
+            }
+          }
+          setReplyComment({...replyComment, ...target});
+        }
+      });
+    }
+  }, [replyId]);
+
   const content = useMemo(() => {
     if (articleEvent == null) return;
 
@@ -175,262 +213,100 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   }, [articleEvent, userMap]);
 
   return (
-    <>
-      <Head>
-        <title>{preArticle?.title || 'nostr blog post'}</title>
-        <meta
-          name="description"
-          content={preArticle?.summary || 'nostr nip23 long-form post'}
-        />
-        <meta
-          property="og:title"
-          content={preArticle?.title || 'nostr blog post'}
-        />
-        <meta
-          property="og:description"
-          content={preArticle?.summary || 'nostr nip23 long-form post'}
-        />
-        <meta property="og:image" content={preArticle?.image} />
-        <meta property="og:type" content="article" />
-        <meta
-          name="keywords"
-          content={preArticle?.hashTags?.join(',').toString()}
-        />
-        <meta name="author" content={preArticle?.pubKey || publicKey} />
-        <meta
-          name="published_date"
-          content={toTimeString(preArticle?.published_at)}
-        />
-        <meta
-          name="last_updated_date"
-          content={toTimeString(preArticle?.updated_at)}
-        />
-        <meta name="category" content={'flycat nostr blog post'} />
-      </Head>
-
-      <BaseLayout silent={true}>
-        <Left>
-          <div className={styles.post}>
-            <div className={styles.postContent}>
-              <div className={styles.postHeader}>
-                {article?.image && (
-                  <img
-                    src={article.image}
-                    className={styles.banner}
-                    alt={article?.title}
-                  />
-                )}
-                <div className={styles.postTitleInfo}>
-                  <div className={styles.title}>{article?.title}</div>
-                  <div className={styles.name}>
-                    <Link href={Paths.user + publicKey}>
-                      <span style={{ marginRight: '5px' }}>
-                        {userMap.get(publicKey)?.name}
-                      </span>
-                    </Link>
-                    {article?.published_at && (
-                      <span style={{ margin: '0px 10px' }}>
-                        {formatDate(article?.published_at)}
-                      </span>
-                    )}
-
-                    {publicKey === myPublicKey && (
-                      <Link
-                        href={`${Paths.edit + publicKey}/${articleId}`}
-                        style={{ color: 'gray' }}
-                      >
-                        {' '}
-                        ~ <EditIcon style={{ height: '14px', color: 'gray' }} />
-                      </Link>
-                    )}
-                  </div>
+   <>
+    <Head>
+      <title>{preArticle?.title || 'nostr blog post'}</title>
+      <meta
+        name="description"
+        content={preArticle?.summary || 'nostr nip23 long-form post'}
+      />
+      <meta
+        property="og:title"
+        content={preArticle?.title || 'nostr blog post'}
+      />
+      <meta
+        property="og:description"
+        content={preArticle?.summary || 'nostr nip23 long-form post'}
+      />
+      <meta property="og:image" content={preArticle?.image} />
+      <meta property="og:type" content="article" />
+      <meta
+        name="keywords"
+        content={preArticle?.hashTags?.join(',').toString()}
+      />
+      <meta name="author" content={preArticle?.pubKey || publicKey} />
+      <meta
+        name="published_date"
+        content={toTimeString(preArticle?.published_at)}
+      />
+      <meta
+        name="last_updated_date"
+        content={toTimeString(preArticle?.updated_at)}
+      />
+      <meta name="category" content={'flycat nostr blog post'} />
+    </Head>
+    <BaseLayout silent={true}>
+      <Left>
+        <div className={styles.post}>
+          <PostContent 
+            article={article}
+            publicKey={publicKey}
+            userMap={userMap}
+            articleId={articleId}
+            content={content}
+            t={t}
+          />
+          <div className={styles.comment} style={{ background: theme.palette.secondary.main }}>
+            <div className={styles.commentPanel}>
+              <TextField
+                className={styles.textarea}
+                multiline
+                minRows={4}
+                placeholder={t('comment.placeholder') as string}
+                value={inputComment}
+                onChange={(e) => setInputComment(e.target.value)}
+              />
+              { image && <div className={styles.image}>
+                  <img src={image} alt="replyImage" />
+                  <HighlightOffIcon onClick={() => setImage('')} />
                 </div>
-
-                <div className={styles.postTags}>
-                  {article?.hashTags?.flat(Infinity).map((t, key) => (
-                    <span
-                      key={key}
-                      style={{ background: theme.palette.secondary.main }}
-                    >
-                      {t}
-                    </span>
-                  ))}
+              }
+              <div className={styles.footer}>
+                <div className={styles.icons}>
+                  <ImageUploader onImgUrls={url => setImage(url[0])} />
                 </div>
-
-                <ReactMarkdown
-                  components={{
-                    h1: ({ node, ...props }) => (
-                      <div
-                        style={{ fontSize: '20px', fontWeight: 'bold' }}
-                        {...props}
-                      />
-                    ),
-                    h2: ({ node, ...props }) => (
-                      <div
-                        style={{ fontSize: '18px', fontWeight: 'bold' }}
-                        {...props}
-                      />
-                    ),
-                    h3: ({ node, ...props }) => (
-                      <div
-                        style={{ fontSize: '16px', fontWeight: 'bold' }}
-                        {...props}
-                      />
-                    ),
-                    h4: ({ node, ...props }) => (
-                      <div
-                        style={{ fontSize: '14px', fontWeight: 'bold' }}
-                        {...props}
-                      />
-                    ),
-                    img: ({ node, ...props }) => (
-                      <img style={{ width: '100%' }} {...props} />
-                    ),
-                    blockquote: ({ node, ...props }) => (
-                      <blockquote
-                        style={{
-                          borderLeft: `5px solid ${theme.palette.primary.main}`,
-                          padding: '0.5rem',
-                          margin: '0 0 1rem',
-                          fontStyle: 'italic',
-                        }}
-                        {...props}
-                      />
-                    ),
-                    code: ({ node, inline, ...props }) => {
-                      return inline ? (
-                        <span
-                          style={{
-                            background: theme.palette.secondary.main,
-                            padding: '5px',
-                          }}
-                          {...props}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            background: theme.palette.secondary.main,
-                            padding: '20px',
-                            borderRadius: '5px',
-                          }}
-                          {...props}
-                        />
-                      );
-                    },
-                  }}
-                >
-                  {content ?? ''}
-                </ReactMarkdown>
-              </div>
-              <div className={styles.info}>
-                <div className={styles.author}>
-                  <div className={styles.picture}>
-                    <Link href={Paths.user + publicKey}>
-                      <img
-                        src={userMap.get(publicKey)?.picture}
-                        alt={userMap.get(publicKey)?.name}
-                      />
-                    </Link>
-                  </div>
-
-                  <div className={styles.name}>
-                    <Link href={Paths.user + publicKey}>
-                      {userMap.get(publicKey)?.name}
-                    </Link>
-                  </div>
-
-                  <div>
-                    <LikedButton
-                      onClick={async () => {
-                        const lnUrl =
-                          userMap.get(publicKey)?.lud06 ||
-                          userMap.get(publicKey)?.lud16;
-                        if (lnUrl == null) {
-                          return alert(
-                            'no ln url, please tell the author to set up one.',
-                          );
-                        }
-                        await payLnUrlInWebLn(lnUrl);
-                      }}
-                    >
-                      <ElectricBoltOutlinedIcon />
-                      <span style={{ marginLeft: '5px' }}>
-                        {'like the author'}
-                      </span>
-                    </LikedButton>
-                  </div>
-
-                  <div
-                    className={styles.collected}
-                    style={{ background: theme.palette.secondary.main }}
-                  >
-                    <span className={styles.title}>{'collected in'}</span>
-                    <span
-                      className={styles.datetime}
-                      style={{ background: theme.palette.secondary.main }}
-                    >
-                      {getDateBookName(
-                        article?.published_at || article?.updated_at || 0,
-                      )}
-                    </span>
-                    {article?.dirs?.map((t, key) => (
-                      <span
-                        key={key}
-                        className={styles.dirs}
-                        style={{ background: theme.palette.secondary.main }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.updated_at}>
-                <span>
-                  {t('articleRead.lastUpdatedAt') + ' '}
-                  {useTimeSince(article?.updated_at ?? 10000)}
-                </span>
-              </div>
-            </div>
-            <div
-              className={styles.comment}
-              style={{ background: theme.palette.secondary.main }}
-            >
-              <div className={styles.commentPanel}>
-                <TextField
-                  className={styles.textarea}
-                  multiline
-                  minRows={4}
-                  placeholder={'Please fill out your comment.'}
-                  value={inputComment}
-                  onChange={e => setInputComment(e.target.value)}
-                />
-                <Button
-                  startIcon={<AddCommentIcon />}
-                  variant="contained"
-                  size="large"
-                  onClick={handleCommentSubmit}
-                >
+                <Button disabled={!inputComment.length} variant="contained" size='large' onClick={handleCommentSubmit}>
                   {t('articleRead.submit')}
                 </Button>
               </div>
-
-              <ThinHr></ThinHr>
-
-              <div style={{ marginTop: '40px' }}>
-                <Comment
-                  comments={comments}
-                  worker={worker}
-                  userMap={userMap}
-                />
-              </div>
             </div>
+            <ThinHr></ThinHr>
+            <Comment 
+              comments={comments}
+              worker={worker}
+              userMap={userMap}
+              setReplyId={setReplyId}
+              setReplyComment={setReplyComment}
+              notLike={(eventId) => dontLikeComment(worker, signEvent, eventId, myPublicKey)}
+              like={(comment) => parseLikeData(comment, worker, signEvent, myPublicKey)}
+            />
+            <ReplyDialog
+              open={replyDialog}
+              onClose={() => {
+                setReplyId('');
+                setReplyDialog(false);
+              }}
+              comment={replyComment}
+              userMap={userMap}
+              worker={worker}
+              t={t}
+            />
           </div>
-        </Left>
-        <Right></Right>
-      </BaseLayout>
-    </>
+        </div>
+      </Left>
+      <Right></Right>
+    </BaseLayout>
+   </> 
   );
 }
 
@@ -466,86 +342,3 @@ export const getStaticProps = async ({
 };
 
 export const getStaticPaths = () => ({ paths: [], fallback: 'blocking' });
-
-export interface CommentProps {
-  comments: Event[];
-  userMap: UserMap;
-  worker?: CallWorker;
-}
-
-export function Comment({ comments, userMap, worker }: CommentProps) {
-  const commentsRef = useRef<Event[]>([]);
-  useEffect(() => {
-    const prevComments = commentsRef.current;
-    const newComments = comments.filter(
-      comment => !prevComments.map(p => p.id).includes(comment.id),
-    );
-    console.log('New comment added:', newComments.length);
-    commentsRef.current = comments;
-
-    const pks = newComments.map(a => a.pubkey);
-    if (pks.length === 0) return;
-    worker?.subMetadata(pks, undefined, 'article-data');
-  }, [comments]);
-
-  return (
-    <div>
-      {comments.map(comment => (
-        <li
-          key={comment.id}
-          style={{
-            margin: '10px 0px',
-            borderBottom: '1px dotted gray',
-            listStyleType: 'none',
-          }}
-        >
-          <Grid container>
-            <Grid
-              item
-              xs={2}
-              style={{ textAlign: 'right', paddingRight: '20px' }}
-            >
-              <ProfileAvatar
-                picture={userMap.get(comment.pubkey)?.picture}
-                name={comment.pubkey}
-              />
-            </Grid>
-            <Grid item xs={10}>
-              <span>
-                <Link
-                  style={{ fontSize: '14px' }}
-                  href={Paths.user + comment.pubkey}
-                >
-                  @{userMap.get(comment.pubkey)?.name || '__'}
-                </Link>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    color: 'gray',
-                    marginLeft: '10px',
-                  }}
-                >
-                  {new Date(comment.created_at).toLocaleTimeString()}
-                </span>
-
-                <span
-                  style={{
-                    display: 'block',
-                    padding: '10px 0px',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {comment.content}
-                </span>
-              </span>
-            </Grid>
-          </Grid>
-        </li>
-      ))}
-    </div>
-  );
-}
-
-function toTimeString(ts?: number) {
-  return new Date(ts ? ts * 1000 : 0).toLocaleDateString();
-}

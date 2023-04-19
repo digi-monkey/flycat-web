@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { EventWithSeen } from 'pages/type';
 import { useTranslation } from 'next-i18next';
+import { getEventIdsFromETags } from 'utils/nostr';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -164,11 +165,6 @@ export const EventPage = ({ isLoggedIn }) => {
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-
-  const getEventIdsFromETags = (tags: any[]) => {
-    const eventIds = tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
-    return eventIds;
-  };
 
   function handEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {

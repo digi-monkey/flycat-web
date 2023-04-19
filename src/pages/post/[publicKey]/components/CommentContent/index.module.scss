@@ -1,0 +1,36 @@
+.avatarAndContent{
+  display: flex;
+
+  .content{
+    margin:0 10px 10px 10px;
+
+    .time{
+      font-size: 12px;
+      color: gray;
+      margin-left: 10px;
+    }
+
+    img{
+      max-width: 100%;
+      border-radius: 10px;
+    }
+    video{
+      max-width: 100%;
+    }
+    a{
+      max-width: 100%;
+      overflow: hidden;
+    }
+  }
+
+  p{
+    padding: 0;
+    margin: 0;
+    word-break: break-all;
+    font-size: 14px;
+  } 
+}
+
+.cursor{
+  cursor: pointer;
+}

@@ -270,5 +270,11 @@
     "rssTitle": "Select an RSS Provider",
     "jsonTitle": "Select an JSON Feed Provider",
     "atomTitle": "Select an Atom Feed Provider"
+  },
+  "comment": {
+    "login": "Please log in",
+    "me": "Me",
+    "success": "published! please refresh the page, sorry will fix this soon!",
+    "placeholder": "Please fill out your comment."
   }
 }

@@ -1,123 +1,4 @@
 .post{
-  .postContent{
-    padding: 0;
-    margin: 0;
-    background-color: #fff;
-
-    .postHeader{
-      word-break: break-all;
-      
-      .banner {
-        max-width: 100%;
-        margin: 0 auto;
-        display: block;
-      }
-
-      .postTitleInfo{
-        margin: 10px 0px 40px 0px;
-
-        .title{
-          font-size: 25px;
-          margin: 20px 0px;
-          font-weight: bold;
-          text-transform: capitalize;
-        }
-
-        .name{
-          color: gray;
-          font-size: 14px;
-          margin: 5px 0px 10px 0px;
-        }
-      }
-
-      .postTags {
-        margin: 10px 0px 30px 0px;
-        font-size: 14px;
-
-        span{
-          margin-right: 10px;
-          padding: 5px;
-          border-radius: 5px;
-          color: gray;
-        }
-      }
-    }
-
-    .info{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      margin: 80px 0px 20px 0px;
-      width: 100%;
-
-      .author{
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        width: 100%;
-
-        .picture{
-          width: 80px;
-          margin: 0 auto;
-          
-          img{
-            width: 80px;
-            height: 80px;
-            display: block;
-            border-radius: 50%;
-          }
-        }
-
-        .name{
-          margin: 10px 0px 20px 0px;
-
-          a{
-            font-size: 16px;
-            color: black;
-          }
-        }
-
-        .collected{
-          margin: 60px 0px 20px 0px;
-          border-radius: 5px;
-          padding: 10px;
-          text-align: left;
-
-          .title{
-            text-transform: capitalize;
-            color: gray;
-          }
-
-          .datetime{
-            margin: 5px;
-            padding: 5px;
-            border-radius: 5px;
-            text-decoration: underline;
-          }
-
-          .dirs{
-            margin: 5px;
-            padding: 5px;
-            border-radius: 5px;
-            text-decoration: underline;
-          }
-        }
-      }
-    }
-
-    .updated_at{
-      margin: 20px 0;
-
-      span{
-        margin: 0px 5px;
-        font-size: 14px;
-        color: gray;
-        text-transform: capitalize;
-      }
-    }
-  }
-
   .comment{
     width: 100%;
     min-height: 100px;
@@ -127,6 +8,54 @@
     border-radius: 5px;
 
     .commentPanel{
+      .image{
+        position: relative;
+        margin: 10px 0;
+
+        img{
+          max-width: 100%;
+          border-radius: 10px;
+        }
+
+        svg{
+          position: absolute;
+          right: 10px;
+          top: 10px;
+          z-index: 1;
+          cursor: pointer;
+
+          &:hover{
+            path{
+              fill: gray;
+            }
+          }
+        }
+      }
+
+      .footer{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 10px;
+        margin-bottom: 20px;
+    
+        .icons{
+          svg:hover{
+            cursor: pointer;
+            path {
+              fill: rgb(141, 197, 63);
+            }
+          }
+        }
+    
+        :global{
+          .MuiButtonBase-root{
+            border-radius: 50px;
+            color: white; 
+          }
+        }
+      }
+
       :global{
         .MuiTextField-root{
           width: 100%;

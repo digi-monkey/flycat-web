@@ -160,10 +160,19 @@ export enum WellKnownEventKind {
   text_note = 1,
   recommend_server = 2,
   contact_list = 3,
+  event_del = 5,
+  reposts = 6,
   like = 7,
   flycat_site_metadata = 10000,
   long_form = 30023, // see nip23
 }
+
+export enum EventETagMarker {
+  reply = "reply",
+  root = "root",
+  mention = "mention",
+}
+
 export enum EventTags {
   E = 'e',
   P = 'p',
