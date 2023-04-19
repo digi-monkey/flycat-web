@@ -13,12 +13,10 @@
 
   .tools{
     display: flex;
-    justify-content: space-evenly;
-    padding: 5px 0;
+    justify-content: flex-end;
 
     .reply,
     .like{
-      padding: 0 30px;
       cursor: pointer;
 
       &:hover{

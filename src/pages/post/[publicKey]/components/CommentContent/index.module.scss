@@ -1,10 +1,6 @@
 .avatarAndContent{
   display: flex;
 
-  &:not(:last-child) {
-    margin: 15px 0;
-  }
-  
   .content{
     margin:0 10px 10px 10px;
 
