@@ -1,0 +1,133 @@
+.popupDialog{
+  .commentBox{
+    display: flex;
+    margin-top: 20px;
+    padding: 20px 0 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+
+    .picture{
+       width: 60px;
+       height: 60px;
+       background-color: gray;
+       color: white; 
+       border-radius: 50%;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       font-size: 20px;
+    }
+
+    .group{
+      flex: 1;
+
+      .image{
+        position: relative;
+        margin: 10px 0;
+
+        img{
+          max-width: 100%;
+          border-radius: 20px;
+        }
+
+        svg{
+          position: absolute;
+          right: 10px;
+          top: 10px;
+          z-index: 1;
+          cursor: pointer;
+
+          &:hover{
+            path{
+              fill: gray;
+            }
+          }
+        }
+      }
+    }
+
+    :global{
+      .MuiTextField-root{
+        flex: 1;
+        width: 100%;
+
+        .MuiOutlinedInput-root{
+          padding: 0 10px;
+        }
+      }
+
+      .MuiOutlinedInput-notchedOutline{
+        border: none;
+      }
+    }
+  }
+
+  .replys{
+    >div{
+      &:hover {
+        background-color: rgba(200, 200, 200, .1);
+      }
+      &:not(:last-child){
+        border-bottom: 1px solid #eee;
+      }
+
+      &:only-child {
+        padding: 10px 0;
+      }
+
+      >div:first-child{
+        margin-bottom: 0;
+      }
+    }
+
+    .tools{
+      display: flex;
+      justify-content: space-evenly;
+      padding: 5px 0;
+  
+      .reply,
+      .like{
+        padding: 0 30px;
+        cursor: pointer;
+  
+        &:hover{
+          svg path{
+            fill: #8dc53f;
+          }
+  
+          span{
+            color: #8dc53f;
+            font-weight: bold;
+          }
+        }
+      }
+  
+      svg{
+        vertical-align: middle;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .commentFooter{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 10px;
+    margin-bottom: 20px;
+
+    .icons{
+      svg:hover{
+        cursor: pointer;
+        path {
+          fill: rgb(141, 197, 63);
+        }
+      }
+    }
+
+    button{
+      border-radius: 50px;
+      color: white;
+    }
+  }
+}

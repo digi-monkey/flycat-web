@@ -1,0 +1,41 @@
+.comments{
+  padding: 0;
+  margin: 0;
+
+  .commentItem{
+    margin: 10px 0px;
+    list-style: none;
+
+    &:not(:last-child) {
+      border-bottom: 1px dotted #f1eded;
+    }
+  }
+
+  .tools{
+    display: flex;
+    justify-content: space-evenly;
+    padding: 5px 0;
+
+    .reply,
+    .like{
+      padding: 0 30px;
+      cursor: pointer;
+
+      &:hover{
+        svg path{
+          fill: #8dc53f;
+        }
+
+        span{
+          color: #8dc53f;
+          font-weight: bold;
+        }
+      }
+    }
+
+    svg{
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  }
+}

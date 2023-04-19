@@ -1704,10 +1704,19 @@
   dependencies:
     cross-fetch "^3.1.5"
 
-"@scure/base@~1.1.0":
+"@scure/base@1.1.1", "@scure/base@~1.1.0":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
   integrity sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==
+
+"@scure/bip32@1.1.4":
+  version "1.1.4"
+  resolved "https://registry.npmjs.org/@scure/bip32/-/bip32-1.1.4.tgz#2c91a7be0156b15f26dd0c843a06a1917f129efd"
+  integrity sha512-m925ACYK0wPELsF7Z/VdLGmKj1StIeHraPMYB9xiAFiq/PnvqWd/99I0TQ2OZhjjlMDsDJeZlyXMWi0beaA7NA==
+  dependencies:
+    "@noble/hashes" "~1.2.0"
+    "@noble/secp256k1" "~1.7.0"
+    "@scure/base" "~1.1.0"
 
 "@scure/bip32@1.1.5":
   version "1.1.5"
@@ -4003,9 +4012,9 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@^2.2.6, classnames@~2.3.1:
+classnames@2.3.2, classnames@^2.2.6, classnames@~2.3.1:
   version "2.3.2"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  resolved "https://registry.npmjs.org/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
   integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 clean-stack@^2.0.0:
@@ -8316,6 +8325,17 @@ normalize-selector@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/normalize-selector/-/normalize-selector-0.2.0.tgz#d0b145eb691189c63a78d201dc4fdb1293ef0c03"
   integrity sha512-dxvWdI8gw6eAvk9BlPffgEoGfM7AdijoCwOEJge3e3ulT2XLgmU7KvvxprOaCu05Q1uGRHmOhHe1r6emZoKyFw==
+
+nostr-tools@1.8.4:
+  version "1.8.4"
+  resolved "https://registry.npmjs.org/nostr-tools/-/nostr-tools-1.8.4.tgz#197e4a56e71dee1fc050bb92676a8fd3c9a9227f"
+  integrity sha512-oaRgZ8jpLmkMgtvhH9jbUI0k6XeXAUXSDv7qYBNwnIonfWYYZ0C19snJv1YRS+GWGf2gJ8ePJkXMJWlcsNR2yA==
+  dependencies:
+    "@noble/hashes" "1.2.0"
+    "@noble/secp256k1" "1.7.0"
+    "@scure/base" "1.1.1"
+    "@scure/bip32" "1.1.4"
+    "@scure/bip39" "1.1.1"
 
 now-and-later@^2.0.0:
   version "2.0.1"
