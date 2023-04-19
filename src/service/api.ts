@@ -167,7 +167,7 @@ export enum WellKnownEventKind {
   long_form = 30023, // see nip23
 }
 
-export enum TagsMarker {
+export enum EventETagMarker {
   reply = "reply",
   root = "root",
   mention = "mention",

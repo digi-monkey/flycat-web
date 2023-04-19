@@ -1,4 +1,4 @@
-import { EventTags, isEventETag, RawEvent, WellKnownEventKind, Event } from "service/api";
+import { EventTags, isEventETag, RawEvent, WellKnownEventKind, Event, EventETagMarker } from "service/api";
 import Alert from 'sweetalert2/dist/sweetalert2.js';
 
 export async function submitReply(worker, signEvent, content, pubkey, tags, onClose) {
@@ -67,8 +67,8 @@ export async function dontLikeComment(worker, signEvent, eventId, pubkey) {
 export const parseLikeData = (comment, worker, signEvent, myPublicKey) => {
   likeComment(worker, signEvent, "+", myPublicKey, [
     [EventTags.P, comment.pubkey],
-    [EventTags.E, comment.id, '', 'reply'],
-    [EventTags.E, comment.id, '', 'root'],
+    [EventTags.E, comment.id, '', EventETagMarker.reply],
+    [EventTags.E, comment.id, '', EventETagMarker.root],
   ]);
 }
 

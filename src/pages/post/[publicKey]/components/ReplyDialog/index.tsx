@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { newComments } from '../../[articleId].page';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { useEffect, useState } from 'react';
-import { EventTags, TagsMarker } from 'service/api';
+import { EventTags, EventETagMarker } from 'service/api';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { findNodeById, nonzero, submitReply } from '../../util';
 import { Dialog, DialogContent, TextField, Button } from '@mui/material';
@@ -37,8 +37,8 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
     if (image) content = (content + "\n" + image).trim();
 
     submitReply(worker, signEvent, content, myPublicKey, [
-      [EventTags.P, newComments?.pubkey, '', TagsMarker.root],
-      [EventTags.E, newComments?.id, '', TagsMarker.reply]
+      [EventTags.P, newComments?.pubkey, '', EventETagMarker.root],
+      [EventTags.E, newComments?.id, '', EventETagMarker.reply]
     ], onClose);
   }
 

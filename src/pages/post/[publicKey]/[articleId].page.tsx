@@ -179,9 +179,10 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     const target = findNodeById(replyComment, replyId);
     if (!target) return;
 
+    setReplyDialog(true);
+    setReplyComment(target);
+    
     if (target.replys) {
-      setReplyDialog(true);
-      setReplyComment(target);
       const ids = Object.keys(target.replys);
       worker?.subMsgByETags(ids)?.iterating({ 
         cb: (event)=>{
