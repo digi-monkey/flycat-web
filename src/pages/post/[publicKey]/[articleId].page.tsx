@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { CallRelayType } from 'service/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
+import { callSubFilter } from 'service/backend/sub';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'service/nip/23';
 import { Nip08, RenderFlag } from 'service/nip/08';
@@ -16,9 +17,10 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import { useEffect, useMemo, useState } from 'react';
 import { Event, EventSetMetadataContent, EventTags, WellKnownEventKind } from 'service/api';
-import { dontLikeComment, findNodeById, parseLikeData, replyComments } from './util';
+import { dontLikeComment, findNodeById, parseLikeData, replyComments, toTimeString } from './util';
 
 import styles from './index.module.scss';
+import Head from 'next/head';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import Comment from './components/Comment';
 import PostContent from './components/PostContent';
@@ -35,7 +37,7 @@ export interface newComments extends Event {
   isLike: boolean;
 }
 
-export default function NewArticle() {
+export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
@@ -210,6 +212,38 @@ export default function NewArticle() {
   }, [articleEvent, userMap]);
 
   return (
+   <>
+    <Head>
+      <title>{preArticle?.title || 'nostr blog post'}</title>
+      <meta
+        name="description"
+        content={preArticle?.summary || 'nostr nip23 long-form post'}
+      />
+      <meta
+        property="og:title"
+        content={preArticle?.title || 'nostr blog post'}
+      />
+      <meta
+        property="og:description"
+        content={preArticle?.summary || 'nostr nip23 long-form post'}
+      />
+      <meta property="og:image" content={preArticle?.image} />
+      <meta property="og:type" content="article" />
+      <meta
+        name="keywords"
+        content={preArticle?.hashTags?.join(',').toString()}
+      />
+      <meta name="author" content={preArticle?.pubKey || publicKey} />
+      <meta
+        name="published_date"
+        content={toTimeString(preArticle?.published_at)}
+      />
+      <meta
+        name="last_updated_date"
+        content={toTimeString(preArticle?.updated_at)}
+      />
+      <meta name="category" content={'flycat nostr blog post'} />
+    </Head>
     <BaseLayout silent={true}>
       <Left>
         <div className={styles.post}>
@@ -271,11 +305,39 @@ export default function NewArticle() {
       </Left>
       <Right></Right>
     </BaseLayout>
+   </> 
   );
 }
 
-export const getStaticProps = async ({ locale }: { locale: string }) => ({
-  props: { ...(await serverSideTranslations(locale, ['common'])) }
-});
+export const getStaticProps = async ({
+  params,
+  locale,
+}: {
+  params: { publicKey: string; articleId: string };
+  locale: string;
+}) => {
+  const { publicKey, articleId } = params;
 
-export const getStaticPaths = () => ({ paths: [], fallback: true });
+  const filter = Nip23.filter({
+    authors: [publicKey as string],
+    articleIds: [articleId as string],
+    overrides: { limit: 1 },
+  });
+  const events = await callSubFilter({ filter, eventLimit: 1 });
+  let article: Article | null = null;
+  if (events.length > 0) {
+    article = Nip23.toArticle(events[0]);
+    article = Object.fromEntries(
+      Object.entries(article).filter(([key, value]) => value !== undefined), // undefined value key must be omit in order to serialize
+    ) as Article;
+  }
+
+  return {
+    props: {
+      preArticle: article,
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
+};
+
+export const getStaticPaths = () => ({ paths: [], fallback: 'blocking' });

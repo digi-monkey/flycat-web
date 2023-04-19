@@ -5,7 +5,7 @@ import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { useEffect, useState } from 'react';
 import { EventTags, TagsMarker } from 'service/api';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { findNodeById, nonzero, replyComments, submitReply } from '../../util';
+import { findNodeById, nonzero, submitReply } from '../../util';
 import { Dialog, DialogContent, TextField, Button } from '@mui/material';
 
 import styles from './index.module.scss';
@@ -17,7 +17,6 @@ import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
   const [reply, setReply] = useState('');
   const [image, setImage] = useState('');
-  const [childEventId, setChildEventId] = useState('');
   const [newComments, setNewComments] = useState<newComments>();
   const [checkReplys, setCheckReplys] = useState(false);
 
