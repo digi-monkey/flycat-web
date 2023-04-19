@@ -251,6 +251,7 @@ export default function NewArticle() {
               worker={worker}
               userMap={userMap}
               setReplyId={setReplyId}
+              setReplyComment={setReplyComment}
               notLike={(eventId) => dontLikeComment(worker, signEvent, eventId, myPublicKey)}
               like={(comment) => parseLikeData(comment, worker, signEvent, myPublicKey)}
             />

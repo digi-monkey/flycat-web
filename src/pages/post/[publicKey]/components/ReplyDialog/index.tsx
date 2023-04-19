@@ -1,9 +1,9 @@
 import { RootState } from 'store/configureStore';
-import { dontLikeComment, nonzero, parseLikeData, submitReply } from '../../util';
 import { useSelector } from 'react-redux';
 import { newComments } from '../../[articleId].page';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { useEffect, useState } from 'react';
+import { nonzero, submitReply } from '../../util';
 import { EventTags, TagsMarker } from 'service/api';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Dialog, DialogContent, TextField, Button } from '@mui/material';
@@ -12,7 +12,6 @@ import styles from './index.module.scss';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import CommentContent from '../CommentContent';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 
 const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
@@ -45,20 +44,23 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
   }
 
   const parseData = (val) => {
+    if(!val) return;
     const state = val.replys && Object.keys(val.replys).length > 0 ? true : false;
 
     setNewComments(val);
     setCheckReplys(state);
   }
 
-  useEffect(() => { open && parseData(comment); }, [open]);
+  useEffect(() => { 
+    if(open) parseData(comment);
+  }, [open, comment]);
 
   useEffect(() => {
     if (!newComments?.replys) return;
-    
+
     const target = newComments?.replys[childEventId];
     if (target) parseData(target);
-  }, [childEventId]);
+  }, [childEventId, newComments]);
 
   return (
     <Dialog className={styles.popupDialog} open={open} onClose={onClose}>
@@ -78,7 +80,7 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
             { image && <div className={styles.image}>
                 <img src={image} alt="replyImage" />
                 <HighlightOffIcon onClick={() => setImage('')} />
-              </div> 
+              </div>
             }
             <div className={styles.commentFooter}>
               <div className={styles.icons}>
@@ -94,18 +96,19 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
           <div className={styles.replys}>
             { Object.keys(newComments?.replys).map((item, key) => (
                 <div key={key}>
-                  <CommentContent onClick={() => setChildEventId(newComments?.replys[item].id)} comment={newComments?.replys[item]} userMap={userMap} />
-                  { isLoggedIn && <div className={styles.tools}>
+                  <CommentContent 
+                    onClick={() => setChildEventId(newComments?.replys[item].id)} 
+                    comment={newComments?.replys[item]} 
+                    userMap={userMap}
+                  />
+                  { isLoggedIn && (
+                    <div className={styles.tools}>
                       <div className={styles.reply} onClick={() => setChildEventId(newComments?.replys[item].id)}>
                         <ModeCommentOutlinedIcon />
-                        { nonzero(newComments.replys[item].replyss) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
-                      </div>
-                      <div className={styles.like} onClick={ () => newComments.isLike ? dontLikeComment(worker, signEvent, newComments.id, myPublicKey) : parseLikeData(newComments, worker, signEvent, myPublicKey) }>
-                        <FavoriteBorderIcon className={newComments.isLike ? styles.like : ''} />
-                        { newComments.likes && nonzero(newComments.likes[item].likes) && <span>{ Object.keys(newComments.likes[item].likes).length }</span> }
+                        { nonzero(newComments.replys[item].replys) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
                       </div>
                     </div>
-                  }
+                  )}
                 </div>
               )
             )}

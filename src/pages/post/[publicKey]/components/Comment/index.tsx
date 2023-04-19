@@ -9,7 +9,6 @@ import { useEffect, useRef } from 'react';
 
 import styles from './index.module.scss';
 import CommentContent from '../CommentContent';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 
 export interface CommentProps {
@@ -19,9 +18,10 @@ export interface CommentProps {
   setReplyId: (id: string) => void;
   notLike: (id: string) => void;
   like: (comment: newComments) => void;
+  setReplyComment: (comment: newComments) => void;
 }
 
-const Comment = ({ comments, userMap, worker, setReplyId, like, notLike }: CommentProps) => {
+const Comment = ({ comments, userMap, worker, setReplyId, setReplyComment, like, notLike }: CommentProps) => {
   const commentsRef = useRef<Event[]>([]);
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
 
@@ -39,21 +39,30 @@ const Comment = ({ comments, userMap, worker, setReplyId, like, notLike }: Comme
 
   return (
     <ul className={styles.comments}>
-      {comments.map(comment => (
-        <li key={comment.id} className={styles.commentItem}>
-          <CommentContent userMap={userMap} comment={comment} onClick={() => setReplyId(comment.id)} />
-          {
-            isLoggedIn && <div className={styles.tools}>
-              <div className={styles.reply} onClick={() => setReplyId(comment.id)}>
+      {comments && comments.map(comment => (
+        <li 
+          key={comment.id} 
+          className={styles.commentItem} 
+          onClick={() => { 
+            setReplyComment(comment);
+            setReplyId(comment.id);
+          }}>
+          <CommentContent 
+            userMap={userMap} 
+            comment={comment} 
+            onClick={() => {
+              setReplyComment(comment);
+              setReplyId(comment.id)
+            }}
+          />
+          { isLoggedIn && (
+            <div className={styles.tools}>
+              <div className={styles.reply}>
                 <ModeCommentOutlinedIcon />
-                <span>{ Object.keys(comment.replys || {}).length }</span>
-              </div>
-              <div className={styles.like} onClick={ () => comment.isLike ? notLike(comment.id) : like(comment) }>
-                <FavoriteBorderIcon className={comment.isLike ? styles.like : ''} />
-                { nonzero(comment.likes) && <span>{ Object.keys(comment.likes).length }</span> }
+                { nonzero(comment.replys) && <span>{ Object.keys(comment.replys).length }</span> }
               </div>
             </div>
-          }
+          )}
         </li>
       ))}
     </ul>
