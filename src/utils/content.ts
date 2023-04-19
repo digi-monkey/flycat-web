@@ -82,7 +82,7 @@ export const parseContent = content => {
     );
 
     // Skip url if it's just the end of a filepath
-    if (urlMatch && !last(result)?.value.endsWith("/")) {
+    if (urlMatch && result.length && !last(result)?.value.endsWith("/")) {
       let url = urlMatch[0];
 
       // Skip ellipses and very short non-urls
