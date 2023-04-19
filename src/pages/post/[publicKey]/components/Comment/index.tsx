@@ -55,14 +55,12 @@ const Comment = ({ comments, userMap, worker, setReplyId, setReplyComment, like,
               setReplyId(comment.id)
             }}
           />
-          { isLoggedIn && (
-            <div className={styles.tools}>
-              <div className={styles.reply}>
-                <ModeCommentOutlinedIcon />
-                { nonzero(comment.replys) && <span>{ Object.keys(comment.replys).length }</span> }
-              </div>
+          <div className={styles.tools}>
+            <div className={styles.reply}>
+              <ModeCommentOutlinedIcon />
+              { nonzero(comment.replys) && <span>{ Object.keys(comment.replys).length }</span> }
             </div>
-          )}
+          </div>
         </li>
       ))}
     </ul>

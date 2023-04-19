@@ -100,7 +100,7 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
               <div className={styles.icons}>
                 <ImageUploader onImgUrls={url => setImage(url[0])} />
               </div>
-              <Button variant="contained" size='large' onClick={handleSubmit}>
+              <Button disabled={!reply.length} variant="contained" size='large' onClick={handleSubmit}>
                 {t('articleRead.submit')}
               </Button>
             </div>
@@ -115,14 +115,12 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
                     comment={newComments?.replys[item]} 
                     userMap={userMap}
                   />
-                  { isLoggedIn && (
-                    <div className={styles.tools}>
-                      <div className={styles.reply} onClick={() => updateComment(newComments?.replys[item].id)}>
-                        <ModeCommentOutlinedIcon />
-                        { nonzero(newComments.replys[item].replys) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
-                      </div>
+                  <div className={styles.tools}>
+                    <div className={styles.reply} onClick={() => updateComment(newComments?.replys[item].id)}>
+                      <ModeCommentOutlinedIcon />
+                      { nonzero(newComments.replys[item].replys) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
                     </div>
-                  )}
+                  </div>
                 </div>
               )
             )}
