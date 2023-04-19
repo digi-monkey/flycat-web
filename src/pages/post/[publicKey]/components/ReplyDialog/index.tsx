@@ -3,9 +3,9 @@ import { useSelector } from 'react-redux';
 import { newComments } from '../../[articleId].page';
 import { ImageUploader } from 'components/layout/PubNoteTextarea';
 import { useEffect, useState } from 'react';
-import { nonzero, submitReply } from '../../util';
 import { EventTags, TagsMarker } from 'service/api';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { findNodeById, nonzero, replyComments, submitReply } from '../../util';
 import { Dialog, DialogContent, TextField, Button } from '@mui/material';
 
 import styles from './index.module.scss';
@@ -47,20 +47,34 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
     if(!val) return;
     const state = val.replys && Object.keys(val.replys).length > 0 ? true : false;
 
-    setNewComments(val);
-    setCheckReplys(state);
+    if (state) {
+      for (const id of Object.keys(val.replys)) {
+        if (!val.replys[id].replys) {
+          worker?.subMsgByETags([id])?.iterating({ 
+            cb: replyComments(val.replys[id], () => {
+              setNewComments(val);
+              setCheckReplys(state);
+            })
+          });
+        } else setNewComments(val);
+      }
+      setCheckReplys(state);
+    } else {
+      setNewComments(val);
+      setCheckReplys(state);
+    }
   }
 
   useEffect(() => { 
     if(open) parseData(comment);
   }, [open, comment]);
 
-  useEffect(() => {
-    if (!newComments?.replys) return;
+  const updateComment = (id) => {
+    if (!newComments) return;
 
-    const target = newComments?.replys[childEventId];
+    const target = findNodeById(newComments, id);
     if (target) parseData(target);
-  }, [childEventId, newComments]);
+  }
 
   return (
     <Dialog className={styles.popupDialog} open={open} onClose={onClose}>
@@ -97,13 +111,13 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
             { Object.keys(newComments?.replys).map((item, key) => (
                 <div key={key}>
                   <CommentContent 
-                    onClick={() => setChildEventId(newComments?.replys[item].id)} 
+                    onClick={() => updateComment(newComments?.replys[item].id)} 
                     comment={newComments?.replys[item]} 
                     userMap={userMap}
                   />
                   { isLoggedIn && (
                     <div className={styles.tools}>
-                      <div className={styles.reply} onClick={() => setChildEventId(newComments?.replys[item].id)}>
+                      <div className={styles.reply} onClick={() => updateComment(newComments?.replys[item].id)}>
                         <ModeCommentOutlinedIcon />
                         { nonzero(newComments.replys[item].replys) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
                       </div>
