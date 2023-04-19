@@ -46,7 +46,7 @@ const Comment = ({ comments, userMap, worker, setReplyId, like, notLike }: Comme
             isLoggedIn && <div className={styles.tools}>
               <div className={styles.reply} onClick={() => setReplyId(comment.id)}>
                 <ModeCommentOutlinedIcon />
-                { nonzero(comment.replys) && <span>{ Object.keys(comment.replys).length }</span> }
+                <span>{ Object.keys(comment.replys || {}).length }</span>
               </div>
               <div className={styles.like} onClick={ () => comment.isLike ? notLike(comment.id) : like(comment) }>
                 <FavoriteBorderIcon className={comment.isLike ? styles.like : ''} />
