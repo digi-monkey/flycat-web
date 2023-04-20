@@ -44,7 +44,10 @@
   },
   "textMsg": {
     "replyTo": "回复",
-    "postArticle": "发表文章"
+    "highlight": "分享了文章划线，作者",
+    "quote": "转发",
+    "mention": "提到了",
+    "postArticle": "发表了文章"
   },
   "seen": {
     "title": "已发布：",

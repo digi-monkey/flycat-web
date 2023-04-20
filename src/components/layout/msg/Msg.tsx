@@ -4,8 +4,9 @@ import { UserMap } from 'service/type';
 import { TextMsg } from './TextMsg';
 import { EventTags } from 'service/api';
 import { CallWorker } from 'service/worker/callWorker';
-import { BlogMsgItem } from 'pages/blog/components/MsgItem/index';
+import { BlogHighlightMsgItem, BlogCommentMsgItem, PublishBlogMsgItem } from 'pages/blog/components/MsgItem/index';
 import { EventWithSeen } from 'pages/type';
+import { Nip9802 } from 'service/nip/9802';
 
 export const Msgs = (
   msgList: EventWithSeen[],
@@ -14,9 +15,9 @@ export const Msgs = (
   relays: string[],
 ) => {
   return msgList.map((msg, index) => {
-    if (Nip23.isBlogMsg(msg)) {
+    if (Nip23.isBlogPost(msg)){
       return (
-        <BlogMsgItem
+        <PublishBlogMsgItem
           event={msg}
           seen={msg.seen}
           relays={relays}
@@ -27,7 +28,33 @@ export const Msgs = (
           userName={userMap.get(msg.pubkey)?.name}
         />
       );
-    } else {
+    }else if (Nip23.isBlogCommentMsg(msg)) {
+      return (
+        <BlogCommentMsgItem
+          event={msg}
+          seen={msg.seen}
+          relays={relays}
+          worker={worker!}
+          userMap={userMap}
+          key={msg.id}
+          userAvatar={userMap.get(msg.pubkey)?.picture}
+          userName={userMap.get(msg.pubkey)?.name}
+        />
+      );
+    } else if(Nip9802.isBlogHighlightMsg(msg)){
+      return (
+        <BlogHighlightMsgItem 
+        event={msg}
+          seen={msg.seen}
+          relays={relays}
+          worker={worker!}
+          userMap={userMap}
+          key={msg.id}
+          userAvatar={userMap.get(msg.pubkey)?.picture}
+          userName={userMap.get(msg.pubkey)?.name}
+        />
+      )
+    } else{
       return (
         <TextMsg
           msgEvent={msg}

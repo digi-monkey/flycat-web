@@ -163,6 +163,7 @@ export enum WellKnownEventKind {
   event_del = 5,
   reposts = 6,
   like = 7,
+  article_highlight = 9802,
   flycat_site_metadata = 10000,
   long_form = 30023, // see nip23
 }

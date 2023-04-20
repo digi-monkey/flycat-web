@@ -303,7 +303,7 @@ export class CallWorker {
       ...{
         authors: pks,
         limit: 50,
-        kinds: [WellKnownEventKind.text_note],
+        kinds: [WellKnownEventKind.text_note, WellKnownEventKind.article_highlight, WellKnownEventKind.long_form],
       },
       ...overrides,
     };

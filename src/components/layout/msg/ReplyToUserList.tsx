@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { useTranslation } from 'next-i18next';
 import { shortPublicKey } from 'service/helper';
+import { useEffect, useState } from 'react';
 
 const styles = {
   userName: {
@@ -9,23 +10,56 @@ const styles = {
     marginRight: '5px',
   },
 };
-export interface ReplyToUser {
+export interface ReactToUser {
   name?: string;
   pk: string;
 }
 
-export interface ReplyToUserListProps {
-  replyTo: ReplyToUser[];
+export enum ReactToUserType {
+  reply = "reply",
+  highlight = "highlight",
+  mention = "mention",
+  quote = "quote",
 }
 
-export const ReplyToUserList = ({ replyTo }: ReplyToUserListProps) => {
+export interface ReactToUserListProps {
+  reactTo: ReactToUser[];
+  reactType?: ReactToUserType;
+}
+
+export const ReactToUserList = ({ reactTo, reactType = ReactToUserType.reply }: ReactToUserListProps) => {
   const { t } = useTranslation();
+  const [reactText, setReactText] = useState("");
+
+  useEffect(()=>{
+    switch (reactType) {
+      case ReactToUserType.reply:
+        setReactText(t('textMsg.replyTo')!);
+        break;
+
+      case ReactToUserType.highlight:
+        setReactText(t('textMsg.highlight')!);
+        break;
+
+        case ReactToUserType.quote:
+        setReactText(t('textMsg.quote')!);
+        break;
+
+        case ReactToUserType.mention:
+        setReactText(t('textMsg.mention')!);
+        break;
+    
+      default:
+        setReactText("unknown reaction ");
+        break;
+    }
+  }, [reactType]);
   return (
     <div style={{ marginBottom: '2px' }}>
-      {replyTo.length > 0 && (
+      {reactTo.length > 0 && (
         <span style={{ color: 'gray', fontSize: '12px' }}>
-          {t('textMsg.replyTo')}{' '}
-          {replyTo.map((r, i) => (
+          {reactText}{' '}
+          {reactTo.map((r, i) => (
             <Link
               key={i}
               style={{

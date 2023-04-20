@@ -11,7 +11,11 @@ import { Article, Nip23 } from 'service/nip/23';
 import { Button, useTheme } from '@mui/material';
 import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
 import { useDateBookData } from 'hooks/useDateBookData';
-import { ProfileBlogMsgItem } from '../blog/components/MsgItem/index';
+import {
+  ProfileBlogCommentMsgItem,
+  ProfileBlogHighlightMsgItem,
+  ProfilePublishBlogMsgItem,
+} from '../blog/components/MsgItem/index';
 import { useState, useEffect } from 'react';
 import { PersonalBlogFeedItem } from '../blog/feed/FeedItem';
 import { loginMapStateToProps } from 'pages/helper';
@@ -35,6 +39,7 @@ import {
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import BasicTabs from 'components/layout/SimpleTabs';
+import { Nip9802 } from 'service/nip/9802';
 
 export const styles = {
   root: {
@@ -166,7 +171,7 @@ export interface ContactInfo {
 
 type UserParams = {
   publicKey: PublicKey;
-}
+};
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const router = useRouter();
@@ -203,6 +208,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         break;
 
       case WellKnownEventKind.text_note:
+      case WellKnownEventKind.article_highlight:
+      case WellKnownEventKind.long_form:
         if (event.pubkey === publicKey) {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -336,7 +343,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     if (publicKey && publicKey.length === 0) return;
     if (newConn.length === 0) return;
 
-    const pks = [publicKey ];
+    const pks = [publicKey];
     if (isLoggedIn && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
@@ -352,10 +359,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       ?.subMetadata(pks, undefined, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subMsg([publicKey ], undefined, undefined, callRelay)
+      ?.subMsg([publicKey], undefined, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subNip23Posts({ pks: [publicKey ], callRelay })
+      ?.subNip23Posts({ pks: [publicKey], callRelay })
       ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
@@ -379,16 +386,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       if (!isConfirmed) return;
     }
 
-    const tags = myContactList ? pks.map(
-      pk =>
-        [
-          EventTags.P,
-          pk,
-          myContactList.list.get(pk)?.relayer ?? '',
-          myContactList.list.get(pk)?.name ?? '',
-        ] as EventContactListPTag,
-    ) : [];
-    tags.push([EventTags.P, publicKey , '', '']);
+    const tags = myContactList
+      ? pks.map(
+          pk =>
+            [
+              EventTags.P,
+              pk,
+              myContactList.list.get(pk)?.relayer ?? '',
+              myContactList.list.get(pk)?.name ?? '',
+            ] as EventContactListPTag,
+        )
+      : [];
+    tags.push([EventTags.P, publicKey, '', '']);
 
     if (tags.length != pks.length + 1) {
       Swal.fire({
@@ -460,7 +469,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     });
   };
   const isFollowed =
-    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey );
+    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
   const followOrUnfollowOnClick = isFollowed ? unfollowUser : followUser;
 
   const directorys: string[][] = articles
@@ -471,9 +480,27 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     note: (
       <ul style={styles.msgsUl}>
         {msgList.map((msg, index) => {
-          if (Nip23.isBlogMsg(msg)) {
+          if (Nip23.isBlogPost(msg)) {
             return (
-              <ProfileBlogMsgItem
+              <ProfilePublishBlogMsgItem
+                event={msg}
+                userMap={userMap}
+                worker={worker!}
+                key={msg.id}
+              />
+            );
+          } else if (Nip23.isBlogCommentMsg(msg)) {
+            return (
+              <ProfileBlogCommentMsgItem
+                event={msg}
+                userMap={userMap}
+                worker={worker!}
+                key={msg.id}
+              />
+            );
+          } else if (Nip9802.isBlogHighlightMsg(msg)) {
+            return (
+              <ProfileBlogHighlightMsgItem
                 event={msg}
                 userMap={userMap}
                 worker={worker!}
@@ -511,7 +538,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <Button
             fullWidth
             variant="text"
-            onClick={() => router.push({ pathname: `${Paths.blog}/${publicKey}`})}
+            onClick={() =>
+              router.push({ pathname: `${Paths.blog}/${publicKey}` })
+            }
           >
             {"go to the user's blog page"}
           </Button>
@@ -536,12 +565,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             pk={publicKey}
             isFollowed={isFollowed}
             followOrUnfollowOnClick={followOrUnfollowOnClick}
-            metadata={userMap.get(publicKey )}
+            metadata={userMap.get(publicKey)}
           />
         </div>
 
         <div style={{ marginTop: '20px' }}>
-          <CommitCalendar pk={publicKey } />
+          <CommitCalendar pk={publicKey} />
         </div>
 
         <div style={styles.message}>
@@ -620,8 +649,8 @@ export default connect(loginMapStateToProps)(ProfilePage);
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
-      ...(await serverSideTranslations(locale, ['common']))
-  }
-})
+    ...(await serverSideTranslations(locale, ['common'])),
+  },
+});
 
-export const getStaticPaths = () => ({ paths: [], fallback: true }); 
+export const getStaticPaths = () => ({ paths: [], fallback: true });
