@@ -176,7 +176,7 @@ export function Seen({ seen, relays, event, worker }: SeenProps) {
           horizontal: 'left',
         }}
       >
-        <div style={{ padding: '10px', fontSize: '14px', width: '100%' }}>
+        <div style={{ padding: '10px', fontSize: '14px', width: '180px' }}>
           <div style={{ display: 'block' }}>{t('seen.title')}</div>
           <div>
             {seen &&
@@ -202,7 +202,7 @@ export function Seen({ seen, relays, event, worker }: SeenProps) {
               }
             }}
           >
-            <BroadcastOnPersonalIcon /> {t('seen.broadcast')}
+            <BroadcastOnPersonalIcon style={{ verticalAlign: 'middle' }} /> {t('seen.broadcast')}
           </button>
         </div>
       </Popover>

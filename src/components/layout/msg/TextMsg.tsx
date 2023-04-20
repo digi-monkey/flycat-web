@@ -271,7 +271,7 @@ export const ReactionGroups = ({
             horizontal: 'left',
           }}
         >
-          <div style={{ padding: '10px', fontSize: '14px', width: '100%' }}>
+          <div style={{ padding: '10px', fontSize: '14px', width: '180px' }}>
             <div style={{ display: 'block' }}>{t('seen.title')}</div>
             <div>
               {seen &&
@@ -298,7 +298,7 @@ export const ReactionGroups = ({
                 }
               }}
             >
-              <BroadcastOnPersonalIcon /> {t('seen.broadcast')}
+              <BroadcastOnPersonalIcon style={{ verticalAlign: 'middle' }} /> {t('seen.broadcast')}
             </button>
           </div>
         </Popover>
