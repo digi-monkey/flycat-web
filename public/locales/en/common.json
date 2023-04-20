@@ -44,6 +44,9 @@
   },
   "textMsg": {
     "replyTo": "replying to",
+    "highlight": "highlight the post from",
+    "quote": "quote the note",
+    "mention": "mention",
     "postArticle": "post article"
   },
   "seen": {

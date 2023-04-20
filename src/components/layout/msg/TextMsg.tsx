@@ -15,7 +15,7 @@ import { Grid, Popover } from '@mui/material';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'service/worker/type';
 import { useTranslation } from 'next-i18next';
-import { ReplyToUserList } from './ReplyToUserList';
+import { ReactToUserList } from './ReplyToUserList';
 import { useEffect, useMemo, useState } from 'react';
 import { ArticleContentNoAvatar, Content } from 'components/layout/msg/content';
 
@@ -446,7 +446,7 @@ export const TextMsg = ({
               createdAt={msgEvent.created_at}
               pk={msgEvent.pubkey}
             />
-            <ReplyToUserList replyTo={replyTo} />
+            <ReactToUserList reactTo={replyTo} />
             <Content text={content} />
           </div>
 
@@ -493,7 +493,7 @@ export const ProfileTextMsg = ({
       <Grid container>
         <Grid item xs={12}>
           <div style={styles.msgWord}>
-            <ReplyToUserList replyTo={replyTo} />
+            <ReactToUserList reactTo={replyTo} />
             <Content text={content} />
           </div>
           <ProfileReactionGroups

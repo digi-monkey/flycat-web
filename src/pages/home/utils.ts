@@ -38,6 +38,8 @@ export function handleEvent(worker, isLoggedIn, userMap, myPublicKey, setUserMap
         break;
 
       case WellKnownEventKind.text_note:
+      case WellKnownEventKind.article_highlight:
+      case WellKnownEventKind.long_form:
         if (!isLoggedIn) {
           setGlobalMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {

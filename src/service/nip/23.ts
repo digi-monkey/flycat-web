@@ -326,8 +326,11 @@ export class Nip23 {
     return {pubkey: list[1], articleId: list[2]};
   }
 
-  // check a tag for long form kind
-  static isBlogMsg(event: Event): boolean {
+  static getAddr(authorPk: string, articleId: string){
+    return `${this.kind}:${authorPk}:${articleId}`;
+  }
+
+  static isBlogCommentMsg(event: Event): boolean {
     return (
       event.kind === WellKnownEventKind.text_note &&
       event.tags.filter(
@@ -335,5 +338,9 @@ export class Nip23 {
           t[0] === EventTags.A && t[1].split(':')[0] === this.kind.toString(),
       ).length > 0
     );
+  }
+
+  static isBlogPost(event: Event): boolean {
+    return event.kind === this.kind;
   }
 }

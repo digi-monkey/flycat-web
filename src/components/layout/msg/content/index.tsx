@@ -62,6 +62,12 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
   );
 };
 
+export function HighlightContent({text}: {text: string}){
+  return <div className={styles.quoteTexts}>
+    {text}
+  </div>
+}
+
 export function Content({ text, classNames }: ContentProps) {
   const {
     lnUrls,
