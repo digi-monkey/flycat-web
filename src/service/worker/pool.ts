@@ -16,14 +16,16 @@ export class Pool {
   private wsConnectStatus: WsConnectStatus = new Map();
   private wsApiList: WsApi[] = [];
   public maxSub: number;
+  public maxKeepAliveSub: number;
   private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
-  constructor(private relayUrls: string[], maxSub = 10) {
+  constructor(private relayUrls: string[], maxSub = 10, maxKeepAliveSub = 2) {
     console.log('init Pool..');
     this.setupWebSocketApis();
     this.listen();
 
     this.maxSub = maxSub;
+    this.maxKeepAliveSub = maxKeepAliveSub;
   }
 
   startMonitor() {
@@ -81,7 +83,7 @@ export class Pool {
             onErrHandler: onerror,
           },
           this.maxSub,
-          5
+          this.maxKeepAliveSub
         );
         this.wsConnectStatus.set(relayUrl, false);
         this.wsApiList.push(ws);

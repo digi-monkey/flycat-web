@@ -26,6 +26,10 @@
       "backup": "Private Backup"
     }
   },
+  "home": {
+    "loadMoreBtn": "Load More",
+    "refreshBtn": "Refresh Notes"
+  },
   "noticeBox": {
     "blog": "blog message",
     "mention": "@mentioned By",
