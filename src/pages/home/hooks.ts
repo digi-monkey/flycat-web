@@ -127,6 +127,8 @@ export function useLoadMoreMsg({
   loadMoreCount: number;
 }) {
   useEffect(() => {
+    if(loadMoreCount === 1)return; // initial value is 1
+
     const pks = myContactList?.keys || [];
     // subscribe myself msg too
     if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0)
