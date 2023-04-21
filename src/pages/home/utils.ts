@@ -1,29 +1,38 @@
+import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';
 import {
   Event,
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
-  RelayUrl,
-  PetName,
   EventTags,
   EventContactListPTag,
   RawEvent,
   isEventPTag,
-  Filter,
   deserializeMetadata,
 } from 'service/api';
 
-export function handleEvent(worker, isLoggedIn, userMap, myPublicKey, setUserMap, setGlobalMsgList, setMsgList, setMyContactList) {
+export function handleEvent(
+  worker,
+  isLoggedIn,
+  userMap,
+  myPublicKey,
+  setUserMap,
+  setGlobalMsgList,
+  setMsgList,
+  setMyContactList,
+  maxMsgLength = 50,
+) {
   return function handleEvent(event: Event, relayUrl?: string) {
-    const maxMsgLength = 50;
     console.debug(`[${worker?._workerId}]receive event`, relayUrl, event.kind);
     switch (event.kind) {
       case WellKnownEventKind.set_metadata:
-        const metadata: EventSetMetadataContent = deserializeMetadata(event.content);
+        const metadata: EventSetMetadataContent = deserializeMetadata(
+          event.content,
+        );
         setUserMap(prev => {
           const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey) as {created_at: number};
+          const oldData = newMap.get(event.pubkey) as { created_at: number };
           if (oldData && oldData.created_at > event.created_at) {
             // the new data is outdated
             return newMap;
@@ -155,10 +164,15 @@ export function handleEvent(worker, isLoggedIn, userMap, myPublicKey, setUserMap
       default:
         break;
     }
-  }
+  };
 }
 
-export async function onSubmitText(text: string, signEvent, myPublicKey, worker) {
+export async function onSubmitText(
+  text: string,
+  signEvent,
+  myPublicKey,
+  worker,
+) {
   if (signEvent == null) {
     return alert('no sign method!');
   }
@@ -171,4 +185,33 @@ export async function onSubmitText(text: string, signEvent, myPublicKey, worker)
   );
   const event = await signEvent(rawEvent);
   worker?.pubEvent(event);
+}
+
+export function refreshMsg({
+  myContactList,
+  myPublicKey,
+  worker,
+  handleEvent,
+}: {
+  myContactList?: { keys: PublicKey[]; created_at: number };
+  myPublicKey: string;
+  worker?: CallWorker;
+  handleEvent: (event: Event, relayUrl?: string | undefined) => void;
+}) {
+  const pks = myContactList?.keys || [];
+  // subscribe myself msg too
+  if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0)
+    pks.push(myPublicKey);
+
+  if (pks.length > 0) {
+    const callRelay = {
+      type: CallRelayType.connected,
+      data: [],
+    };
+
+    const subMsg = worker?.subMsg(pks, false, 'homeRefreshMsg', callRelay);
+    subMsg?.iterating({
+      cb: handleEvent,
+    });
+  }
 }

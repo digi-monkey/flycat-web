@@ -16,15 +16,21 @@ import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { handleEvent, onSubmitText } from './utils';
+import { handleEvent, onSubmitText, refreshMsg } from './utils';
 import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
-import { useSubFilter, useSubMetadata, useSubMetaDataAndContactList } from './hooks';
+import {
+  useSubGlobalMsg,
+  useSubMsg,
+  useSubMetaDataAndContactList,
+  useLoadMoreMsg,
+} from './hooks';
 
 import styles from './index.module.scss';
 import BasicTabs from 'components/layout/SimpleTabs';
 import CreateIcon from '@mui/icons-material/Create';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import { CallRelayType } from 'service/worker/type';
 
 export type ContactList = Map<
   PublicKey,
@@ -48,28 +54,76 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
 
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
+  const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
+
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<{ keys: PublicKey[]; created_at: number }>();
+  const [myContactList, setMyContactList] =
+    useState<{ keys: PublicKey[]; created_at: number }>();
 
   const relayUrls = Array.from(wsConnectStatus.keys());
   const isReadonlyMode = isLoggedIn && signEvent == null;
 
-  const _handleEvent = handleEvent(worker, isLoggedIn, userMap, myPublicKey, setUserMap, setGlobalMsgList, setMsgList, setMyContactList);
-  
-  useSubMetaDataAndContactList(myPublicKey, newConn, isLoggedIn, worker, _handleEvent);
-  useSubMetadata(myContactList, myPublicKey, newConn, worker, _handleEvent);
-  useSubFilter(isLoggedIn, newConn, worker, _handleEvent);
+  const _handleEvent = handleEvent(
+    worker,
+    isLoggedIn,
+    userMap,
+    myPublicKey,
+    setUserMap,
+    setGlobalMsgList,
+    setMsgList,
+    setMyContactList,
+  );
+
+  useSubMetaDataAndContactList(
+    myPublicKey,
+    newConn,
+    isLoggedIn,
+    worker,
+    _handleEvent,
+  );
+  useSubMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
+  useSubGlobalMsg(isLoggedIn, newConn, worker, _handleEvent);
+  useLoadMoreMsg({
+    isLoggedIn,
+    myContactList,
+    myPublicKey,
+    msgList,
+    worker,
+    userMap,
+    setUserMap,
+    setMsgList,
+    setGlobalMsgList,
+    setMyContactList,
+    loadMoreCount,
+  });
 
   const tabItems = {
     note: (
       <>
         <PubNoteTextarea
-          mode={mode || {} as LoginMode}
+          mode={mode || ({} as LoginMode)}
           disabled={isReadonlyMode || !isLoggedIn}
-          onSubmitText={text => onSubmitText(text, signEvent, myPublicKey, worker)}
+          onSubmitText={text =>
+            onSubmitText(text, signEvent, myPublicKey, worker)
+          }
         />
 
         <div style={{ marginTop: '5px' }}>
+          <div>
+            <Button
+              fullWidth
+              onClick={() =>
+                refreshMsg({
+                  myContactList,
+                  myPublicKey,
+                  worker,
+                  handleEvent: _handleEvent,
+                })
+              }
+            >
+              {t('home.refreshBtn')}
+            </Button>
+          </div>
           <ul style={{ padding: '5px' }}>
             {msgList.length === 0 && !isLoggedIn && (
               <div>
@@ -94,6 +148,11 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               Msgs(msgList, worker!, userMap, relayUrls)}
           </ul>
         </div>
+        <div>
+          <Button fullWidth onClick={() => setLoadMoreCount(prev => prev + 1)}>
+            {t('home.loadMoreBtn')}
+          </Button>
+        </div>
       </>
     ),
     post: (
@@ -110,7 +169,12 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
               textTransform: 'capitalize',
               color: 'white',
             }}
-            onClick={() => router.push({ pathname: Paths.write, query: { did: getDraftId() } })}
+            onClick={() =>
+              router.push({
+                pathname: Paths.write,
+                query: { did: getDraftId() },
+              })
+            }
           >
             <CreateIcon />
             &nbsp;{t('nav.menu.blogDashboard')}

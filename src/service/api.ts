@@ -417,7 +417,7 @@ export class WsApi {
     url: string,
     wsHandler: WsApiHandler,
     maxSub = 10,
-    maxKeepAlive: 5,
+    maxKeepAlive = 2,
     reconnectIntervalSecs?: 10,
   ) {
     if (maxSub <= maxKeepAlive) {

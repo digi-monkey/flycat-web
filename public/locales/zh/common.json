@@ -26,6 +26,10 @@
       "backup": "私人备份"
     }
   },
+  "home": {
+    "loadMoreBtn": "加载更多",
+    "refreshBtn": "刷新"
+  },
   "noticeBox": {
     "blog": "订阅号消息",
     "mention": "@提到我的",
