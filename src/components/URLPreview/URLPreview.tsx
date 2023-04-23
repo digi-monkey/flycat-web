@@ -1,13 +1,15 @@
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getUrlMetadata, UrlMetadata } from 'service/ogp';
 
+import Link from 'next/link';
+import styles from './index.module.scss';
+import { matchSocialMedia } from 'utils/common';
 interface PreviewProps {
   url: string;
 }
 
-// todo: this is often blocked by CORS
 export function UrlPreview({ url }: PreviewProps) {
+  const mediaType = matchSocialMedia(url);
   const [data, setData] = useState<UrlMetadata>();
 
   useEffect(() => {
@@ -27,39 +29,38 @@ export function UrlPreview({ url }: PreviewProps) {
     return <div style={{ textAlign: 'center' }}>Loading...</div>;
   }
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        border: '1px solid #dbd5d5',
-        padding: '10px',
-        margin: '5px 0px',
-        borderRadius: '5px',
-        wordBreak: 'break-all',
-      }}
-    >
-      {data.image && (
-        <span style={{ width: '100px', height: '100px', marginRight: '10px' }}>
-          <img
-            src={data.image}
-            alt={data.title}
-            style={{ maxWidth: '100px', maxHeight: '100%' }}
-          />
-        </span>
-      )}
-      <div style={{}}>
-        {data.title && (
-          <span
-            style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}
-          >
-            {data.title}
-          </span>
-        )}
-        <Link href={data.url || url}>{data.url || url}</Link>
-        {data.description && (
-          <p style={{ fontSize: '12px', color: 'gray' }}>{data.description}</p>
-        )}
-      </div>
+  return <div className={styles.urlPreview}>
+      { mediaType ?
+          (
+            <div className={styles.iframe} title={mediaType}>
+              <iframe src={url} allowFullScreen frameBorder={0} sandbox="allow-same-origin"></iframe>
+            </div>
+          ) : (
+          <div className={styles.preview}>
+            {data.image && (
+              <span style={{ width: '100px', height: '100px', marginRight: '10px' }}>
+                <img
+                  src={data.image}
+                  alt={data.title}
+                  style={{ maxWidth: '100px', maxHeight: '100%' }}
+                />
+              </span>
+            )}
+            <div style={{}}>
+              {data.title && (
+                <span
+                  style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}
+                >
+                  {data.title}
+                </span>
+              )}
+              <Link href={data.url || url}>{data.url || url}</Link>
+              {data.description && (
+                <p style={{ fontSize: '12px', color: 'gray' }}>{data.description}</p>
+              )}
+            </div>
+          </div>
+        )
+      }
     </div>
-  );
 }

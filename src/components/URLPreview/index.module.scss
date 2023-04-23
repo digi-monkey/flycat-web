@@ -1,0 +1,34 @@
+.urlPreview{
+  .preview{
+    display: flex;
+    border: 1px solid #dbd5d5;
+    padding: 10px;
+    margin: 5px 0px;
+    border-radius: 5px;
+    word-break: break-all;
+  }
+  
+  .iframe {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.5%;
+
+    &[title=Youtube]{
+      padding-bottom: 56.5%;
+    }
+
+    &[title=Tiktok]{
+      padding-bottom: 100%;
+    }
+
+    iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  }
+}
+
