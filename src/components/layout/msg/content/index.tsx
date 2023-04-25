@@ -1,6 +1,6 @@
 import { Grid } from '@mui/material';
 import { Avatar } from '../Avatar';
-import { UrlPreview } from 'components/URLPreview/URLPreview';
+import { UrlPreview } from 'components/URLPreview';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { AudioPreview } from '../AudioPreview';
 import { VideoPreview } from '../VideoPreview';
@@ -83,28 +83,20 @@ export function Content({ text, classNames }: ContentProps) {
   return (
     <div className={classNames}>
       <Texting modifiedText={modifiedText} />
-      <ul className={classname(styles.gallery, {
-        [styles.w100]: imageUrls.length === 1,
-        [styles.w50]: [2, 4, 8].includes(imageUrls.length),
-        [styles.w33]: ![1, 2, 4, 8].includes(imageUrls.length),
-      })}>
-        {imageUrls.length > 0 && imageUrls.map(url => <ImagePlate url={url} key={url} />)}
-      </ul>
-      <div>
-        {videoUrls.length > 0 && videoUrls.map(url => <VideoPreview url={url} key={url} />)}
-      </div>
-      <div>
-        {audioUrls.length > 0 && audioUrls.map(url => <AudioPreview src={url} key={url} />)}
-      </div>
-      <div>
-        {previewUrls.length > 0 && previewUrls.map(url => <UrlPreview url={url} key={url} />)}
-      </div>
-      <div>
-        {bolt11Invoices.length > 0 && bolt11Invoices.map(url => <LightingInvoice url={url} key={url} />)}
-      </div>
-      <div>
-        {lnUrls.length > 0 && lnUrls.map(url => <LnUrlInvoice url={url} key={url} />)}
-      </div>
+      {imageUrls.length > 0 && (
+        <ul className={classname(styles.gallery, {
+          [styles.w100]: imageUrls.length === 1,
+          [styles.w50]: [2, 4, 8].includes(imageUrls.length),
+          [styles.w33]: ![1, 2, 4, 8].includes(imageUrls.length),
+        })}>
+          { imageUrls.map(url => <ImagePlate url={url} key={url} />) }
+        </ul>
+      )}
+      { videoUrls.length > 0 && <div>{ videoUrls.map(url => <VideoPreview url={url} key={url} />)}</div> }
+      { audioUrls.length > 0 && <div>{ audioUrls.map(url => <AudioPreview src={url} key={url} />)}</div> }
+      { previewUrls.length > 0 && <div>{ previewUrls.map(url => <UrlPreview url={url} key={url} />)}</div> }
+      { bolt11Invoices.length > 0 && <div>{ bolt11Invoices.map(url => <LightingInvoice url={url} key={url} />)}</div> }
+      { lnUrls.length > 0 && <div>{ lnUrls.map(url => <LnUrlInvoice url={url} key={url} />)}</div> }
     </div>
   );
 }

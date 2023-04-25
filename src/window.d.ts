@@ -6,7 +6,6 @@ declare global {
     nostr?: Nip06;
     webln?: WebLNProvider;
     ethereum?: any;
+    twttr?: any;
   }
 }
-
-export {};

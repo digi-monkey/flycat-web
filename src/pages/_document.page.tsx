@@ -5,7 +5,10 @@ export default class FlyCatDocument extends Document {
   render() {
     return (
       <Html>
-        <Head></Head>
+        <Head>
+          <script async src="https://platform.twitter.com/widgets.js"></script>
+          <script async src="https://www.tiktok.com/embed.js"></script>
+        </Head>
         <body>
           <Main />
           <NextScript />
