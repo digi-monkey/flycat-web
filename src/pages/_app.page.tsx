@@ -13,7 +13,6 @@ import { Analytics } from '@vercel/analytics/react';
 import Head from 'next/head';
 import theme from 'constants/theme';
 
-
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactNode) => ReactElement;
 };

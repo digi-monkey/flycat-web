@@ -1,16 +1,17 @@
 import { Grid } from '@mui/material';
-import { UrlPreview } from 'components/URLPreview/URLPreview';
-import { useTimeSince } from 'hooks/useTimeSince';
-import React, { useEffect, useRef, useState } from 'react';
-import { normalizeContent } from 'service/helper';
-import styled from 'styled-components';
-import { AudioPreview } from '../AudioPreview';
 import { Avatar } from '../Avatar';
-import { LightingInvoice, LnUrlInvoice } from '../LightingInvoice';
+import { UrlPreview } from 'components/URLPreview';
+import { useTimeSince } from 'hooks/useTimeSince';
+import { AudioPreview } from '../AudioPreview';
 import { VideoPreview } from '../VideoPreview';
+import { normalizeContent } from 'service/helper';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@mui/material';
-import styles from './index.module.scss';
+import { LightingInvoice, LnUrlInvoice } from '../LightingInvoice';
 
+import classname from 'classnames';
+import styled from 'styled-components';
+import styles from './index.module.scss';
 export interface ContentProps {
   text: string;
   classNames?: string;
@@ -55,7 +56,7 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
   }, [modifiedText]);
 
   return (
-    <div style={{ whiteSpace: 'pre-wrap' }}>
+    <div>
       {plainText}
       {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
     </div>
@@ -78,57 +79,24 @@ export function Content({ text, classNames }: ContentProps) {
     videoUrls,
     audioUrls,
   } = normalizeContent(text);
+  
   return (
     <div className={classNames}>
       <Texting modifiedText={modifiedText} />
-      <p style={{ textAlign: 'center' }}>
-        {imageUrls.length > 0 &&
-          imageUrls.map((url, index) => (
-            <span key={url}>
-              <ImagePlate url={url} />
-            </span>
-          ))}
-      </p>
-      <p>
-        {videoUrls.length > 0 &&
-          videoUrls.map((url, index) => (
-            <span key={url}>
-              <VideoPreview url={url} />
-            </span>
-          ))}
-      </p>
-      <p>
-        {audioUrls.length > 0 &&
-          audioUrls.map((url, index) => (
-            <span key={url}>
-              <AudioPreview src={url} />
-            </span>
-          ))}
-      </p>
-      <p>
-        {previewUrls.length > 0 &&
-          previewUrls.map(url => (
-            <span key={url}>
-              <UrlPreview url={url} />
-            </span>
-          ))}
-      </p>
-      <p>
-        {bolt11Invoices.length > 0 &&
-          bolt11Invoices.map(url => (
-            <span key={url}>
-              <LightingInvoice url={url} />
-            </span>
-          ))}
-      </p>
-      <p>
-        {lnUrls.length > 0 &&
-          lnUrls.map(url => (
-            <span key={url}>
-              <LnUrlInvoice url={url} />
-            </span>
-          ))}
-      </p>
+      {imageUrls.length > 0 && (
+        <ul className={classname(styles.gallery, {
+          [styles.w100]: imageUrls.length === 1,
+          [styles.w50]: [2, 4, 8].includes(imageUrls.length),
+          [styles.w33]: ![1, 2, 4, 8].includes(imageUrls.length),
+        })}>
+          { imageUrls.map(url => <ImagePlate url={url} key={url} />) }
+        </ul>
+      )}
+      { videoUrls.length > 0 && <div>{ videoUrls.map(url => <VideoPreview url={url} key={url} />)}</div> }
+      { audioUrls.length > 0 && <div>{ audioUrls.map(url => <AudioPreview src={url} key={url} />)}</div> }
+      { previewUrls.length > 0 && <div>{ previewUrls.map(url => <UrlPreview url={url} key={url} />)}</div> }
+      { bolt11Invoices.length > 0 && <div>{ bolt11Invoices.map(url => <LightingInvoice url={url} key={url} />)}</div> }
+      { lnUrls.length > 0 && <div>{ lnUrls.map(url => <LnUrlInvoice url={url} key={url} />)}</div> }
     </div>
   );
 }
@@ -244,25 +212,11 @@ export function ArticleTrendsItem({
 }) {
   return (
     <span>
-      <Div
-        onClick={() => {
-          window.open(shareUrl, '_blank');
-        }}
-      >
+      <Div onClick={() => window.open(shareUrl, '_blank')}>
         <Grid container>
           <Grid item xs={12}>
             <div style={{ fontSize: '14px', color: 'black' }}>{title}</div>
-            <div style={{ fontSize: '12px', color: 'gray' }}>
-              {/**
-               *  
-              {author}
-              {' on '}
-              {blogName}
-              {' · '}
-              {useTimeSince(createdAt)}
-              */}
-              {useTimeSince(createdAt)}
-            </div>
+            <div style={{ fontSize: '12px', color: 'gray' }}>{useTimeSince(createdAt)}</div>
           </Grid>
         </Grid>
       </Div>
@@ -274,31 +228,28 @@ export function ImagePlate({ url }: { url: string }) {
   const [showPopup, setShowPopup] = useState(false);
 
   return (
-    <div className={styles.imagePlate}>
-      <img
-        src={url}
-        alt="img"
-        className={styles.imagePlateImg}
-        onClick={() => setShowPopup(true)}
-      />
-      <Dialog
-        open={showPopup}
-        className={styles.dialog}
-        onClose={() => setShowPopup(false)}
-        disableAutoFocus
-      >
-        <DialogContent>
-          <img
-            src={url}
-            alt='img'
-            style={{
-              maxWidth: '100%',
-              maxHeight: '700px',
-              verticalAlign: 'middle'
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
+    <li>
+      <div>
+        <img src={url} alt="img" onClick={() => setShowPopup(true)} />
+        <Dialog
+          disableAutoFocus
+          open={showPopup}
+          className={styles.dialog}
+          onClose={() => setShowPopup(false)}
+        >
+          <DialogContent>
+            <img
+              src={url}
+              alt='img'
+              style={{
+                maxWidth: '100%',
+                maxHeight: '700px',
+                verticalAlign: 'middle'
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </li>
   );
 }

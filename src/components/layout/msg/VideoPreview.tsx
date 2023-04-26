@@ -10,13 +10,5 @@ export const VideoPreview = ({ url, autoPreview }: VideoPreviewProps) => {
     autoPreview === undefined ? false : autoPreview,
   );
 
-  return (
-    <div>
-      <video
-        style={{ maxWidth: '100%', maxHeight: '300px' }}
-        controls
-        src={url}
-      />
-    </div>
-  );
+  return <video style={{ maxWidth: '100%', maxHeight: '300px' }} controls src={url} />;
 };

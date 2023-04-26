@@ -1,4 +1,4 @@
-import { nip19Decode } from "service/api";
+import { Event, nip19Decode } from "service/api";
 
 export enum ContentType {
   text = "text",
@@ -134,6 +134,85 @@ export const parseMedia = url => {
   }
 
   return result as Media;
+}
+
+export function getYouTubeVideoId(url) {
+  const parse = new URL(url);
+  if (!parse.pathname) return;
+
+  const parts = parse.pathname.split("/");
+  if (parts[1] == "shorts") return parts[2];
+  else {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
+}
+
+export function getTwitchId(url) {
+  const parse = new URL(url.replace("www.", ""));
+
+  if (parse.host == "twitch.tv") {
+    const paths = parse.pathname.split("/");
+
+    if(paths[1] == "videos") return {type: "video", id: paths[2]};
+    else if(paths[1]) return {type: "channel", id: paths[1]};
+  }
+}
+
+export function getTiktokId(url) {
+  const parse = new URL(url.replace("www.", ""));
+
+  if (parse.host == "tiktok.com") {
+    const paths = parse.pathname.split("/");
+    if(paths[2] == "video") return paths[3];
+  }
+}
+
+export function getSpotifyId(surl) {
+  const url = new URL(surl);
+
+  if (url.origin == "https://open.spotify.com") {
+    const paths = url.pathname.split("/");
+    if(["track", "playlist", "artist", "album", "episode"].indexOf(paths[paths.length - 2]) > -1) 
+      return paths[paths.length - 2] + "/" + paths[paths.length - 1]
+    
+    return false;
+  }
+
+  return false;
+}
+
+export function getTidalId(surl) {
+  const url = new URL(surl);
+
+  if (url.origin == "https://tidal.com") {
+    const paths = url.pathname.split("/");
+
+    if (paths[1] == "browse" && ["track", "playlist"].indexOf(paths[2]) > -1) {
+      const p2 = (paths[2] == "track") ? "tracks" : "playlists";
+      return p2 + "/" + paths[3];
+    } else if(["track", "playlist"].indexOf(paths[1]) > -1){
+      const p1 = (paths[1] == "track") ? "tracks":"playlists";
+      return p1 + "/" + paths[2];
+    }
+
+    return false;
+  }
+
+  return false;
+}
+
+export function getTweetId(url) {
+  const parse = new URL(url);
+
+  if(parse.host == "twitter.com"){
+    const paths = parse.pathname.split("/");
+    if(paths[2] == "status") return paths[3];
+  }
+
+  return false;
 }
 
 function last(list) {
