@@ -24,9 +24,9 @@ export function UrlPreview({ url }: PreviewProps) {
     async function parseURL() {
       const result = await urlToHTML({ url });
 
-      if (result.length > 0) {
+      if (result && result.length > 0) {
         setHtml(result);
-        buildNote();
+        setTimeout(() => buildNote(url), 1000);
       } else fetchData();
     }
 

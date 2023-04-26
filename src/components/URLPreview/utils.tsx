@@ -34,15 +34,13 @@ export async function urlToHTML({ url }: {url: string}) {
   
   // YouTube
   if (getYouTubeVideoId(_url)) {
-    return `<iframe src="https://www.youtube.com/embed/${getYouTubeVideoId(_url)}" allowfullscreen></iframe>`
+    return `<iframe style="aspect-ratio: 16 / 9;width:100%" src="https://www.youtube.com/embed/${getYouTubeVideoId(_url)}" allowfullscreen></iframe>`
   }
 
   // TikTok
   if (_url.indexOf("tiktok.com") > -1) {
-    const result = await fetch(`https://www.tiktok.com/oembed?url=${encodeURI(_url)}`);
-    const data = await result.json();
-
-    return data.html;
+    const vid = _url.split('video/');
+    return `<iframe style="aspect-ratio: 9 / 13;width:100%" src="https://www.tiktok.com/embed/v2/${vid[1]}?embedFrom=oembed&autoplay=false" allowfullscreen sandbox="allow-popups allow-popups-to-escape-sandbox allow-scripts allow-top-navigation allow-same-origin"></iframe>`;
   }
 
   // Nostrplebs
@@ -55,9 +53,9 @@ export async function urlToHTML({ url }: {url: string}) {
     const { type, id } = getTwitchId(_url) as { type: string, id: string };
 
     const turl = type === "video" ? 
-      `https://player.twitch.tv/?video=${id}&parent=flycat.com&autoplay=false` : 
-      `https://player.twitch.tv/?channel=${id}&parent=flycat.com&muted=true`;
-    
+      `https://player.twitch.tv/?video=${id}&parent=flycat.club&autoplay=false` : 
+      `https://player.twitch.tv/?channel=${id}&parent=flycat.club&muted=true`;
+
     return `<iframe src="${turl}" allowfullscreen height="378" width="620"></iframe>`
   }
   
@@ -83,13 +81,13 @@ export async function urlToHTML({ url }: {url: string}) {
     const atIdx = _url.indexOf("@");
 
     if (atIdx > -1) {
-      return `<iframe src="${_url.substring(0, atIdx - 1)}/$/embed/${_url.substring(atIdx)}" allowfullscreen></iframe>`
+      return `<iframe style="aspect-ratio: 16 / 9;width:100%" src="${_url.substring(0, atIdx - 1)}/$/embed/${_url.substring(atIdx)}" allowfullscreen></iframe>`
     }
   }
   
   // Apple
   if (_url.indexOf("music.apple.com") > -1) {
-    return `<iframe height="175" src='${_url.replace("music.apple.com", "embed.music.apple.com")}' allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"></iframe>`
+    return `<iframe height="180" src='${_url.replace("music.apple.com", "embed.music.apple.com")}' allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"></iframe>`
   }
 
   // Soundcloud
@@ -101,16 +99,26 @@ export async function urlToHTML({ url }: {url: string}) {
   if (getTweetId(_url)) {
     const id = getTweetId(_url);
 
-    return `<div class="tweet" status="${id}"></div>`;
+    return `<div class="tweet" style="width:100%" status="${id}"></div>`;
   }
 
   return "";
 }
 
-export function buildNote() {
+export function buildNote(url: string) {
+  const parse = new URL(url);
+  if (parse.host !== "twitter.com") return;
+
   document.querySelectorAll(".tweet").forEach(item => {
+    item.innerHTML = '';
+
     const isDarkTheme = window.matchMedia("(prefers-color-scheme: dark)");
-    if (item.childNodes.length > 0) return;
-    window.twttr.widgets.createTweet(item.getAttribute('status'), item, isDarkTheme.matches && { theme: 'dark' });
+    window.twttr.widgets.createTweet(item.getAttribute('status'), item, isDarkTheme.matches && { theme: 'dark' }).then(() => {
+      const len = item.childNodes.length;
+      if (len === 1) return;
+      for (let i = 1; i < len; i++) {
+        item.removeChild(item.childNodes[i]);
+      }
+    });
   });
 }
