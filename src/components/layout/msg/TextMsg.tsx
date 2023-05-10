@@ -22,6 +22,8 @@ import { ArticleContentNoAvatar, Content } from 'components/layout/msg/content';
 import Link from 'next/link';
 import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
+import { Nip19 } from 'service/nip/19';
+import { Nip21 } from 'service/nip/21';
 
 const styles = {
   root: {
@@ -410,8 +412,10 @@ export const TextMsg = ({
 
   const content = useMemo(() => {
     const event = msgEvent;
+    event.content = Nip21.replaceNprofile(event, userMap);
     event.content = Nip08.replaceMentionPublickey(event, userMap);
     event.content = Nip08.replaceMentionEventId(event);
+
     return event.content;
   }, [msgEvent, userMap]);
 

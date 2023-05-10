@@ -1,5 +1,5 @@
 import { createInstance } from 'dotbit';
-import { nip19Decode, Nip19DataType } from './api';
+import { Nip19DataType, Nip19 } from 'service/nip/19';
 
 export async function getPublicKeyFromDotBit(
   didAlias: string,
@@ -14,10 +14,10 @@ export async function getPublicKeyFromDotBit(
   }
 
   const npubPk = record.value;
-  const decoded = nip19Decode(npubPk);
+  const decoded = Nip19.decode(npubPk);
   if (decoded.type !== Nip19DataType.Pubkey) {
     throw new Error(
-      'nip19Decode error: invalid nostr key value in dotbit ' +
+      'Nip19 Decode error: invalid nostr key value in dotbit ' +
         didAlias +
         ' ' +
         npubPk,

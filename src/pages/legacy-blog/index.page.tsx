@@ -8,6 +8,7 @@ import { shortPublicKey } from 'service/helper';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
+import { Nip19DataType, Nip19 } from 'service/nip/19';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BlogMsg, ProfileAvatar } from 'components/layout/msg/TextMsg';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -20,8 +21,6 @@ import {
   WellKnownEventKind,
   Filter,
   PublicKey,
-  nip19Encode,
-  Nip19DataType,
 } from 'service/api';
 import {
   SiteMetaDataContentSchema,
@@ -523,7 +522,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
                 <span style={{ fontSize: '12px', color: 'gray' }}>
                   {' by '}
                   {userMap.get(s.pk)?.name ||
-                    shortPublicKey(nip19Encode(s.pk, Nip19DataType.Pubkey))}
+                    shortPublicKey(Nip19.encode(s.pk, Nip19DataType.Pubkey))}
                 </span>
                 <span
                   style={{

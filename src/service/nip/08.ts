@@ -2,7 +2,8 @@ import { i18n } from 'next-i18next';
 import { UserMap } from 'service/type';
 import { shortPublicKey } from 'service/helper';
 import { isValidPublicKey } from 'service/validator';
-import { Event, EventTags, Nip19DataType, nip19Encode } from 'service/api';
+import { Event, EventTags } from 'service/api';
+import { Nip19DataType, Nip19 } from 'service/nip/19';
 
 export enum RenderFlag {
   Markdown,
@@ -69,7 +70,7 @@ export class Nip08 {
       if (renderFlg === RenderFlag.Html) {
         content = content.replace(
           regex,
-          `<a href="/${i18n?.language}/event/${replacement.eventId}">@${nip19Encode(
+          `<a href="/${i18n?.language}/event/${replacement.eventId}">@${Nip19.encode(
             replacement.eventId,
             Nip19DataType.EventId,
           )}</a>`,
@@ -77,7 +78,7 @@ export class Nip08 {
       } else if (renderFlg === RenderFlag.Markdown) {
         content = content.replace(
           regex,
-          `[@${nip19Encode(
+          `[@${Nip19.encode(
             replacement.eventId,
             Nip19DataType.EventId,
           )}](/${i18n?.language}/event/${replacement.eventId})`,

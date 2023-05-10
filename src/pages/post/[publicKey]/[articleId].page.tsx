@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import { CallRelayType } from 'service/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
-import { ImageUploader } from 'components/layout/PubNoteTextarea';
+import { ImageUploader } from 'components/ImageUploader';
 import { callSubFilter } from 'service/backend/sub';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'service/nip/23';

@@ -1,7 +1,7 @@
 import { Paths } from 'constants/path';
 import { useTimeSince } from 'hooks/useTimeSince';
 import React from 'react';
-import { Nip19DataType, nip19Encode } from 'service/api';
+import { Nip19DataType, Nip19 } from 'service/nip/19';
 import { maxStrings } from 'service/helper';
 import styled from 'styled-components';
 import { BPEvent } from './type';
@@ -85,7 +85,7 @@ export function Item({ id, kind, created_at, content }) {
         <div style={{ color: 'gray' }}>
           <Link href={`${Paths.event}/${id}`}>
             <span>
-              @{maxStrings(nip19Encode(id, Nip19DataType.EventId), 14)}
+              @{maxStrings(Nip19.encode(id, Nip19DataType.EventId), 14)}
             </span>
           </Link>
 

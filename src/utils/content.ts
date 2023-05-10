@@ -1,4 +1,5 @@
-import { Event, nip19Decode } from "service/api";
+import { Event } from "service/api";
+import { Nip19 } from 'service/nip/19';
 
 export enum ContentType {
   text = "text",
@@ -68,7 +69,7 @@ export const parseContent = content => {
     if (bech32Match) {
       try {
         const entity = bech32Match[0].replace("nostr:", "");
-        const {type, data} = nip19Decode(entity);
+        const {type, data} = Nip19.decode(entity);
 
         push(`nostr:${type}`, bech32Match[0], {data, entity} as any);
         continue;

@@ -256,7 +256,6 @@ export const ContactPage = ({ isLoggedIn, signEvent }) => {
   }, [newConn2]);
 
   function handleEvent1(event: Event, relayUrl?: string) {
-    console.log(event.kind);
     switch (event.kind) {
       case WellKnownEventKind.set_metadata:
         const metadata: EventSetMetadataContent = deserializeMetadata(

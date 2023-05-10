@@ -41,7 +41,7 @@ export const Msgs = (
           userName={userMap.get(msg.pubkey)?.name}
         />
       );
-    } else if(Nip9802.isBlogHighlightMsg(msg)){
+    } else if(Nip9802.isBlogHighlightMsg(msg)) {
       return (
         <BlogHighlightMsgItem 
         event={msg}
@@ -54,7 +54,7 @@ export const Msgs = (
           userName={userMap.get(msg.pubkey)?.name}
         />
       )
-    } else{
+    } else {
       return (
         <TextMsg
           msgEvent={msg}
