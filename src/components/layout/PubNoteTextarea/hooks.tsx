@@ -1,5 +1,5 @@
 import { UserMap } from "service/type";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RootState } from 'store/configureStore';
 import { useSelector } from "react-redux";
 import { useCallWorker } from "hooks/useWorker";
@@ -15,15 +15,14 @@ export interface IMentions {
   label: React.ReactNode
 }
 
-export function useLoadContacts(
-  setUserMap: React.Dispatch<React.SetStateAction<UserMap>>,
-  userContactList: { keys: PublicKey[]; created_at: number },
-  setUserContactList: React.Dispatch<React.SetStateAction<{ keys: PublicKey[]; created_at: number }>>
-) {
+export function useLoadContacts() {
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
   
+  const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [userContactList, setUserContactList] = useState<{ keys: PublicKey[]; created_at: number }>({ keys:[], created_at: 0 });
+
   function handleEvent(event: Event, relayUrl?: string) {
     if (event.kind === WellKnownEventKind.set_metadata) {
       const metadata: EventSetMetadataContent = deserializeMetadata(event.content);
@@ -63,7 +62,6 @@ export function useLoadContacts(
 
   useEffect(() => {
     const pks = userContactList?.keys || [];
-
     if (isLoggedIn && myPublicKey.length > 0) pks.push(myPublicKey);
     if (pks.length === 0) return;
 
@@ -73,7 +71,9 @@ export function useLoadContacts(
         data: newConn || Array.from(wsConnectStatus.keys()),
       })
       ?.iterating({ cb: handleEvent });
-  }, [newConn, myPublicKey, userContactList?.keys.length]);
+  }, [newConn, myPublicKey]);
+
+  return {userMap, userContactList};
 }
 
 export function useSetMentions(

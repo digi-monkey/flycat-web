@@ -106,6 +106,8 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
           onSubmitText={text =>
             onSubmitText(text, signEvent, myPublicKey, worker)
           }
+          userContactList={myContactList!}
+          userMap={userMap}
         />
 
         <div style={{ marginTop: '5px' }}>
