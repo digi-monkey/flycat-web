@@ -6,7 +6,7 @@ import { PublicKey } from 'service/api';
 import { useTranslation } from 'next-i18next';
 import { useRef, useState } from 'react';
 import { Mentions, Popover } from 'antd';
-import { IMentions, useLoadContacts, useSetMentions, useSetRelays } from './hooks';
+import { IMentions, useSetMentions, useSetRelays } from './hooks';
 import { handleFileSelect, handleSubmitText, makeInvoice } from './util';
 import { SmileOutlined, SendOutlined, FileImageOutlined, ThunderboltOutlined } from '@ant-design/icons';
 
@@ -20,6 +20,8 @@ interface Props {
   disabled: boolean;
   mode: LoginMode;
   onSubmitText: (text: string) => Promise<any>;
+  userContactList?: { keys: PublicKey[]; created_at: number };
+  userMap: UserMap;
 }
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
@@ -44,7 +46,7 @@ export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
   );
 }
 
-export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText }) => {
+export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText, userMap, userContactList }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isSendLightingInvoiceEnabled = mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
@@ -52,15 +54,12 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText 
   const { t } = useTranslation();
   const [text, setText] = useState('');
   const [relays, setRelays] = useState<string[]>([]);
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [mentionValue, setMentionsValue] = useState<IMentions[]>([]);
   const [selectMention, setSelectMention] = useState({});
   const [mentionsFocus, setMentionsFocus] = useState(false);
-  const [userContactList, setUserContactList] = useState<{ keys: PublicKey[]; created_at: number }>({ keys:[], created_at: 0 });
 
-  useLoadContacts(setUserMap, userContactList, setUserContactList);
   useSetMentions(setMentionsValue, userMap);
   useSetRelays(setRelays);
 
