@@ -12,7 +12,7 @@ import { ThinHr } from 'components/layout/ThinHr';
 import { useVersion } from 'hooks/useVersion';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { ImageUploader } from 'components/layout/PubNoteTextarea';
+import { ImageUploader } from 'components/ImageUploader';
 import { useCallWorker } from 'hooks/useWorker';
 import { CallRelayType } from 'service/worker/type';
 import { BaseLayout, Left } from 'components/layout/BaseLayout';

@@ -6,19 +6,19 @@ import { RootState } from 'store/configureStore';
 import { CallWorker } from 'service/worker/callWorker';
 import { useSelector } from 'react-redux';
 import { LoginFormTip } from './NavHeader';
-import { ImageUploader } from './PubNoteTextarea';
+import { ImageUploader } from 'components/ImageUploader';
 import { useTranslation } from 'next-i18next';
 import { WsConnectStatus } from 'service/worker/type';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { useEffect, useState } from 'react';
+import { Nip19DataType, Nip19 } from 'service/nip/19';
 import { ProfileAvatar, ProfileBanner } from './msg/TextMsg';
 import {
-  nip19Encode,
-  Nip19DataType,
   PublicKey,
   EventSetMetadataContent,
   Nostr,
 } from 'service/api';
+
 
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -212,7 +212,7 @@ export const UserProfileBox = ({ pk, about, followCount }: UserBoxPros) => {
         <span style={styles.about}>
           <CopyText
             name={'🔑'}
-            textToCopy={nip19Encode(pk, Nip19DataType.Pubkey)}
+            textToCopy={Nip19.encode(pk, Nip19DataType.Pubkey)}
             successMsg={'PublicKey copied to clipboard!'}
           />
           {about}

@@ -14,12 +14,7 @@ import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { isDotBitName, isNip05DomainName } from 'service/helper';
 import { getPrivateKeyFromMetamaskSignIn } from 'service/evm/metamask';
 import { getPrivateKeyFromWalletConnectSignIn } from 'service/evm/walletConnect';
-import {
-  Nip19DataPrefix,
-  Nip19DataType,
-  nip19Decode,
-  nip19Encode,
-} from 'service/api';
+import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'service/nip/19';
 
 import styles from './index.module.scss';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -111,7 +106,7 @@ const LoginCard = ({
     }
 
     if (pubKey.startsWith(Nip19DataPrefix.Pubkey)) {
-      const res = nip19Decode(pubKey);
+      const res = Nip19.decode(pubKey);
       if (res.type !== Nip19DataType.Pubkey) {
         Swal.fire({
           icon: 'error',
@@ -156,7 +151,7 @@ const LoginCard = ({
     }
 
     if (privKey.startsWith(Nip19DataPrefix.Privkey)) {
-      const res = nip19Decode(privKey);
+      const res = Nip19.decode(privKey);
       if (res.type !== Nip19DataType.Privkey) {
         Swal.fire({
           icon: 'error',
@@ -226,7 +221,7 @@ const LoginCard = ({
         {myPublicKey && (
           <CopyText
             name={t('loginForm.copyPubKey')}
-            textToCopy={nip19Encode(myPublicKey, Nip19DataType.Pubkey)}
+            textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Pubkey)}
           />
         )}
       </div>
@@ -253,13 +248,13 @@ const LoginCard = ({
                   evmUsername,
                 );
                 if (privKey == null) throw new Error('unable to get privKey');
-                return nip19Encode(privKey, Nip19DataType.Privkey);
+                return Nip19.encode(privKey, Nip19DataType.Privkey);
               } else {
                 const privKey = await getPrivateKeyFromWalletConnectSignIn(
                   evmUsername,
                 );
                 if (privKey == null) throw new Error('unable to get privKey');
-                return nip19Encode(privKey, Nip19DataType.Privkey);
+                return Nip19.encode(privKey, Nip19DataType.Privkey);
               }
             }}
           />

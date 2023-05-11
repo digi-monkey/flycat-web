@@ -1,0 +1,96 @@
+.pubNoteTextarea {
+  box-shadow: inset 0 0 1px #aaa;
+  border: 1px solid rgb(216 222 226);
+  padding: 10px;
+  border-radius: 5px;
+
+  &.focus{
+    box-shadow: inset 0 0 1px lightgreen;
+    border: 1px solid #8DC53F;
+  }
+
+  .postBox {
+    box-shadow: inset 0 0 1px #aaa;
+    border: 1px solid rgb(216 222 226);
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  .postHintText {
+    color: #acdae5;
+    margin-bottom: 5px;
+  }
+
+  .postTextArea {
+    border: none;
+    resize: none;
+    width: 100%;
+    font-size: 14px;
+    padding: 0;
+    overflow: auto;
+    margin-bottom: 10px;
+    box-shadow: none;
+
+    textarea{
+      padding: 0;
+    }
+  }
+
+  .btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .icons {
+      .imgs {
+        display: inline-block;
+        margin-right: 10px;
+        vertical-align: bottom;
+        line-height: 0;
+
+        img {
+          font-size: 0;
+          width: 30px;
+          height: 30px;
+          border: 1px solid gray;
+          padding: 1px;
+        }
+      }
+
+      button {
+        margin-right: 10px;
+      }
+
+      input{
+        display: none;
+      }
+    }
+  }
+
+  .iconBtn {
+    border: none;
+    color: lightsteelblue;
+    background: white;
+    padding: 0;
+    font-size: small;
+
+    svg{
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.mentions{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  img{
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+  }
+}

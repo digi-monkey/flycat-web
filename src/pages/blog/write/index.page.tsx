@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { SignEvent } from 'store/loginReducer';
 import { useCallWorker } from 'hooks/useWorker';
-import { ImageUploader } from 'components/layout/PubNoteTextarea';
+import { ImageUploader } from 'components/ImageUploader';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { HashTags, TagObj } from '../hashTags/HashTags';
