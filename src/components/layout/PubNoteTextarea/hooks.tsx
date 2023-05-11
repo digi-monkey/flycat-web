@@ -62,18 +62,19 @@ export function useLoadContacts(
   }
 
   useEffect(() => {
+    if(newConn.length === 0)return;
+    
     const pks = userContactList?.keys || [];
-
     if (isLoggedIn && myPublicKey.length > 0) pks.push(myPublicKey);
     if (pks.length === 0) return;
 
     worker
       ?.subMetaDataAndContactList(pks, undefined, undefined, {
         type: CallRelayType.batch,
-        data: newConn || Array.from(wsConnectStatus.keys()),
+        data: newConn,
       })
       ?.iterating({ cb: handleEvent });
-  }, [newConn, myPublicKey, userContactList?.keys.length]);
+  }, [newConn, myPublicKey]);
 }
 
 export function useSetMentions(
