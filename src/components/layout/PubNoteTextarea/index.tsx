@@ -47,7 +47,7 @@ export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
 export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isSendLightingInvoiceEnabled = true;// mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
+  const isSendLightingInvoiceEnabled = mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
 
   const { t } = useTranslation();
   const [text, setText] = useState('');
