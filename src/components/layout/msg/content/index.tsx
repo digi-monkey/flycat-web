@@ -56,7 +56,7 @@ const Texting = ({ modifiedText }: { modifiedText: string }) => {
   }, [modifiedText]);
 
   return (
-    <div>
+    <div className={styles.contentText}>
       {plainText}
       {html && <span dangerouslySetInnerHTML={{ __html: html }} />}
     </div>
