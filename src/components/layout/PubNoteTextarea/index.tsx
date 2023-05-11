@@ -8,13 +8,13 @@ import { useRef, useState } from 'react';
 import { Mentions, Popover } from 'antd';
 import { IMentions, useLoadContacts, useSetMentions, useSetRelays } from './hooks';
 import { handleFileSelect, handleSubmitText, makeInvoice } from './util';
-import { SmileOutlined, SendOutlined, FileImageOutlined } from '@ant-design/icons';
+import { SmileOutlined, SendOutlined, FileImageOutlined, ThunderboltOutlined } from '@ant-design/icons';
 
 import React from 'react';
 import styles from './index.module.scss';
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
-import OfflineBoltOutlinedIcon from '@mui/icons-material/OfflineBoltOutlined';
+import classNames from 'classnames';
 
 interface Props {
   disabled: boolean;
@@ -47,7 +47,7 @@ export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
 export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isSendLightingInvoiceEnabled = mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
+  const isSendLightingInvoiceEnabled = true;// mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
 
   const { t } = useTranslation();
   const [text, setText] = useState('');
@@ -57,14 +57,17 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText 
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [mentionValue, setMentionsValue] = useState<IMentions[]>([]);
   const [selectMention, setSelectMention] = useState({});
+  const [mentionsFocus, setMentionsFocus] = useState(false);
   const [userContactList, setUserContactList] = useState<{ keys: PublicKey[]; created_at: number }>({ keys:[], created_at: 0 });
-  
+
   useLoadContacts(setUserMap, userContactList, setUserContactList);
   useSetMentions(setMentionsValue, userMap);
   useSetRelays(setRelays);
 
   return (
-    <div className={styles.pubNoteTextarea}>
+    <div className={classNames(styles.pubNoteTextarea, {
+      [styles.focus]: mentionsFocus
+    })}>
       <form onSubmit={event => handleSubmitText(event, text, attachImgs, setText, setAttachImgs, onSubmitText, selectMention)}>
         <Mentions
           rows={3}
@@ -75,6 +78,8 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText 
           onChange={value => setText(value)}
           onSelect={({key, value}) => setSelectMention({ [value || '']: Nip19.nprofileEncode(key || '', relays), ...selectMention })}
           options={mentionValue}
+          onFocus={() => setMentionsFocus(true)}
+          onBlur={() => setMentionsFocus(false)}
         />
         <div className={styles.btn}>
           <div className={styles.icons}>
@@ -95,7 +100,7 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText 
                 disabled={!isSendLightingInvoiceEnabled}
                 className={styles.iconBtn}
               >
-                <OfflineBoltOutlinedIcon />
+                <ThunderboltOutlined />
               </button>
             )}
             <Popover placement="bottom" title={text} content={
