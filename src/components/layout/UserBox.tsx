@@ -113,27 +113,10 @@ export interface UserBoxPros {
 export const UserBox = ({ pk, avatar, relayConnectedCount }: UserBoxPros) => {
   const { t } = useTranslation();
   const size = '30px';
-  const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
-    new Map(),
-  );
 
   return (
     <>
       <div style={styles.userInfo}>
-        {/* todo: move to public comp */}
-        <Link href={Paths.relay}>
-          <span style={{ marginRight: '30px', color: '#8DC535' }}>
-            <ElectricalServicesIcon />
-            <span>
-              {relayConnectedCount ||
-                Array.from(wsConnectStatus).filter(s => s[1] === true).length}
-            </span>
-            <span hidden>
-              <RelayManager wsStatusCallback={setWsConnectStatus} />
-            </span>
-          </span>
-        </Link>
-
         <ProfileAvatar
           style={{ width: size, height: size }}
           picture={avatar}

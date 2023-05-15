@@ -1,4 +1,4 @@
-export const defaultRelays = [
+export const seedRelays = [
   //'wss://nostr.v0l.io/',
   'wss://relay.nostr.band/',
   'wss://relay.nostr.bg/',

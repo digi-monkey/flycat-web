@@ -499,6 +499,7 @@ export class WsApi {
   }
 
   close() {
+    this.ws.onclose = null;
     this.ws.close();
   }
 

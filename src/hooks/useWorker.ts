@@ -16,6 +16,7 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
+  const [relayGroupId, setRelayGroupId] = useState<string>();
   const [worker, setWorker] = useState<CallWorker>();
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
     }, workerAliasName || 'unnamedCallWorker');
     setWorker(worker);
     worker.pullWsConnectStatus();
+    worker.pullRelayGroupId();
   }, []);
 
   useEffect(() => {

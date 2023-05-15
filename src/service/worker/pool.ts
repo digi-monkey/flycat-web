@@ -1,10 +1,11 @@
 import { newSubId, randomSubId, SubscriptionId, WsApi } from 'service/api';
-import { defaultRelays } from 'service/relay';
+import { seedRelays } from 'service/relay/seed';
 import { WorkerEventEmitter } from './bus';
 import {
   CallRelayType,
   FromWorkerMessageData,
   FromWorkerMessageType,
+  SwitchRelays,
   ToWorkerMessageData,
   ToWorkerMessageType,
   WsConnectStatus,
@@ -15,17 +16,21 @@ export const workerEventEmitter = new WorkerEventEmitter();
 export class Pool {
   private wsConnectStatus: WsConnectStatus = new Map();
   private wsApiList: WsApi[] = [];
-  public maxSub: number;
-  public maxKeepAliveSub: number;
   private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
-  constructor(private relayUrls: string[], maxSub = 10, maxKeepAliveSub = 2) {
+  public maxSub: number;
+  public maxKeepAliveSub: number;
+  public switchRelays: SwitchRelays;
+
+  constructor(relays: SwitchRelays, maxSub = 10, maxKeepAliveSub = 2) {
     console.log('init Pool..');
-    this.setupWebSocketApis();
-    this.listen();
 
     this.maxSub = maxSub;
     this.maxKeepAliveSub = maxKeepAliveSub;
+    this.switchRelays = relays;
+
+    this.listen();
+    this.setupWebSocketApis();
   }
 
   startMonitor() {
@@ -46,8 +51,17 @@ export class Pool {
     }, 10 * 1000);
   }
 
+  private closeAll(){
+    for(const ws of this.wsApiList){
+      ws.close();
+    }
+    this.wsApiList = [];
+    this.wsConnectStatus.clear();
+    this.sendWsConnectStatusUpdate();
+  }
+
   private setupWebSocketApis() {
-    this.relayUrls.forEach(relayUrl => {
+    this.switchRelays.relays.map(r => r.url).forEach(relayUrl => {
       const onmessage = (event: MessageEvent) => {
         const msg: FromWorkerMessageData = {
           nostrData: event.data,
@@ -93,12 +107,27 @@ export class Pool {
 
   private listen() {
     workerEventEmitter.on(
+      ToWorkerMessageType.SWITCH_RELAYS,
+      (message: ToWorkerMessageData) => {
+        if (message.switchRelays) {
+          this.closeAll();
+          this.switchRelays = message.switchRelays;
+          this.setupWebSocketApis();
+        }
+      },
+    );
+
+    workerEventEmitter.on(
       ToWorkerMessageType.ADD_RELAY_URL,
       (message: ToWorkerMessageData) => {
         if (message.urls) {
           message.urls.forEach(url => {
             if (!this.wsConnectStatus.has(url)) {
-              this.relayUrls.push(url);
+              this.switchRelays.relays.push({
+                url,
+                read: true,
+                write: true
+              });
               this.setupWebSocketApis();
             }
           });
@@ -110,6 +139,13 @@ export class Pool {
       ToWorkerMessageType.PULL_RELAY_STATUS,
       (_message: ToWorkerMessageData) => {
         this.sendWsConnectStatusUpdate();
+      },
+    );
+
+    workerEventEmitter.on(
+      ToWorkerMessageType.GET_RELAY_GROUP_ID,
+      (_message: ToWorkerMessageData) => {
+        this.sendRelayGroupId();
       },
     );
 
@@ -214,11 +250,27 @@ export class Pool {
     };
     workerEventEmitter.emit(FromWorkerMessageType.WS_CONN_STATUS, msg);
   }
+
+  private sendRelayGroupId() {
+    const msg: FromWorkerMessageData = {
+      relayGroupId: this.switchRelays.id
+    };
+    console.log("send relay group id: ", msg);
+    workerEventEmitter.emit(FromWorkerMessageType.RELAY_GROUP_ID, msg);
+  }
 }
 
-export const pool = new Pool(defaultRelays);
+export const pool = new Pool({id: "default", relays: seedRelays.map(url => {return {url, read: true, write: true}})});
 
 /*** helper functions */
+export const switchRelays = (relays: SwitchRelays, portId: number) => {
+  const msg: ToWorkerMessageData = {
+    switchRelays: relays,
+    portId,
+  };
+  workerEventEmitter.emit(ToWorkerMessageType.SWITCH_RELAYS, msg);
+};
+
 export const addRelays = (relays: string[], portId: number) => {
   const msg: ToWorkerMessageData = {
     urls: relays,
@@ -230,6 +282,11 @@ export const addRelays = (relays: string[], portId: number) => {
 export const pullRelayStatus = (portId: number) => {
   const msg: ToWorkerMessageData = { portId };
   workerEventEmitter.emit(ToWorkerMessageType.PULL_RELAY_STATUS, msg);
+};
+
+export const pullRelayGroupId = (portId: number) => {
+  const msg: ToWorkerMessageData = { portId };
+  workerEventEmitter.emit(ToWorkerMessageType.GET_RELAY_GROUP_ID, msg);
 };
 
 export const callApi = (
@@ -266,11 +323,15 @@ export const closePort = (portId: number) => {
 export const listenFromPool = async (
   onWsConnStatus?: (message: FromWorkerMessageData) => any,
   onNostrData?: (message: FromWorkerMessageData) => any,
+  onRelayGroupId?: (message: FromWorkerMessageData)=>any,
 ) => {
   if (!!onWsConnStatus) {
     workerEventEmitter.on(FromWorkerMessageType.WS_CONN_STATUS, onWsConnStatus);
   }
   if (!!onNostrData) {
     workerEventEmitter.on(FromWorkerMessageType.NOSTR_DATA, onNostrData);
+  }
+  if (!!onRelayGroupId) {
+    workerEventEmitter.on(FromWorkerMessageType.RELAY_GROUP_ID, onRelayGroupId);
   }
 };

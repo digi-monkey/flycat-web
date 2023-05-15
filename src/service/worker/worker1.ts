@@ -12,7 +12,9 @@ import {
   closePort,
   disconnect,
   listenFromPool,
+  pullRelayGroupId,
   pullRelayStatus,
+  switchRelays,
 } from './pool';
 import { EventSubResponse, getPortIdFomSubId } from 'service/api';
 
@@ -29,6 +31,11 @@ const start = port => {
     const data = res.data;
 
     switch (res.type) {
+      case ToWorkerMessageType.SWITCH_RELAYS:
+        console.log('SWITCH_RELAYS');
+        switchRelays(data.switchRelays!, data.portId);
+        break;
+        
       case ToWorkerMessageType.ADD_RELAY_URL:
         console.log('ADD_RELAY_URL');
         addRelays(data.urls!, data.portId);
@@ -38,6 +45,11 @@ const start = port => {
         console.log('PULL_RELAY_STATUS');
         pullRelayStatus(data.portId);
         break;
+      
+        case ToWorkerMessageType.GET_RELAY_GROUP_ID:
+          console.log('GET_RELAY_GROUP_ID');
+          pullRelayGroupId(data.portId);
+          break;
 
       case ToWorkerMessageType.CALL_API:
         //console.log('CALL_API', data.callMethod!, data.callData!);
@@ -98,6 +110,17 @@ const start = port => {
               type: FromWorkerMessageType.NOSTR_DATA,
             });
           }
+        });
+      }
+    },
+    (message: FromWorkerMessageData) => {
+      if (message.relayGroupId) {
+        connectedPorts.forEach(port => {
+          if (port != null)
+            port.postMessage({
+              data: message,
+              type: FromWorkerMessageType.RELAY_GROUP_ID,
+            });
         });
       }
     },

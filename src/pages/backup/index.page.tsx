@@ -8,7 +8,7 @@ import { useTranslation } from 'next-i18next';
 import { connect, useSelector } from 'react-redux';
 import { WellKnownEventKind, Event } from 'service/api';
 import { isValidWssUrl } from 'service/helper';
-import { defaultRelays } from 'service/relay';
+import { seedRelays } from 'service/relay/seed';
 import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
 import styled from 'styled-components';
@@ -52,7 +52,7 @@ export function Backup({ isLoggedIn }) {
 
     const params = new URLSearchParams(location.search);
 
-    let relays = defaultRelays;
+    let relays = seedRelays;
     if (isLoggedIn === true) {
       relays = relays
       .concat(...(myCustomRelay[myPublicKey] ?? []))

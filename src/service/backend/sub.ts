@@ -6,7 +6,7 @@ import {
 } from 'service/api';
 import { Pool } from 'service/backend/pool';
 import { waitUntilNip23RelayConnected, timeout } from 'service/backend/util';
-import { defaultRelays } from 'service/relay';
+import { seedRelays } from 'service/relay/seed';
 
 export const callSubFilter = async ({
   filter,
@@ -19,7 +19,7 @@ export const callSubFilter = async ({
 }) => {
   // vercel will make each api handler as a serverless function,
   // so no need to reuse pool instance
-  const pool = new Pool(defaultRelays);
+  const pool = new Pool(seedRelays);
   try {
     await waitUntilNip23RelayConnected(pool);
   } catch (error) {

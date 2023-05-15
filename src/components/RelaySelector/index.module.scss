@@ -1,0 +1,29 @@
+.rightMenuLi {
+    padding: 5px 0px;
+    width: 100%;
+    display: block;
+  }
+
+.simpleUl {
+    padding: 0px;
+    margin: 20px 0px;
+    list-style: none;
+  }
+
+  .connected {
+    font-size: 18px;
+    font-weight: 500;
+    color: green;
+  }
+
+  .disconnected {
+    font-size: 18px;
+    font-weight: 500;
+    color: red;
+  }
+
+  .relayStatus{
+    background: whitesmoke;
+    padding: 5px;
+    text-align: left;
+  }
