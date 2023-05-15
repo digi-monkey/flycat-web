@@ -1,67 +1,145 @@
-@import './variables.scss';
-
-@mixin for-mobile-min {
-  @media (max-width: $xs) {
+// media
+// <= 320
+@mixin for-mobile-s {
+  @media screen and (max-width: var(--bp-xs)) {
     @content;
   }
 }
-
+// <= 375
+@mixin for-mobile-m {
+  @media screen and (max-width: var(--bp-sm)) {
+    @content;
+  }
+}
+// 376 ~ 768
+@mixin for-mobile-l {
+  @media screen and (min-width: calc(var(--bp-sm) + 1px)) and (max-width: var(--bp-md)) {
+    @content;
+  }
+}
+// <= 768
 @mixin for-mobile {
-  @media (max-width: $sm) {
+  @media (max-width: var(--bp-md)) {
     @content;
   }
 }
-
-@mixin for-mobile-all {
-  @media screen and (min-width: $xs) and (max-width: $sm) {
-    @content;
-  }
-}
-
-@mixin for-pad {
-  @media (max-width: $md) {
-    @content;
-  }
-}
-
-@mixin for-pad-max {
-  @media (max-width: $lg) {
-    @content;
-  }
-}
-
-@mixin for-pad-all {
-  @media screen and (min-width: calc($sm + 1px)) and (max-width: $lg) {
-    @content;
-  }
-}
-
-@mixin for-pad-desktop-all {
-  @media screen and (min-width: calc($sm + 1px)) {
-    @content;
-  }
-}
-
+// <= 1080
 @mixin for-mobile-pad {
-  @media screen and (min-width: $xs) and (max-width: $lg) {
+  @media screen and (max-width: var(--bp-lg)) {
     @content;
   }
 }
-
-@mixin for-desktop-all {
-  @media screen and (min-width: $xl) {
+// 769 ~ 1080
+@mixin for-pad {
+  @media screen and (min-width: calc(var(--bp-md) + 1px)) and (max-width: var(--bp-lg)) {
     @content;
   }
 }
-
+// >= 769
+@mixin for-pad-desktop {
+  @media screen and (min-width: calc(var(--bp-md) + 1px)) {
+    @content;
+  }
+}
+// 1081 ~ 1280
+@mixin for-desktop-s {
+  @media screen and (min-width: calc(var(--bp-lg) + 1px)) and (max-width: var(--bp-xl)) {
+    @content;
+  }
+}
+// 1281 ~ 1440
+@mixin for-desktop-m {
+  @media screen and (min-width: calc(var(--bp-xl) + 1px)) and (max-width: var(--bp-xxl)) {
+    @content;
+  }
+}
+// >= 1440
+@mixin for-desktop-l {
+  @media (min-width: var(--bp-xxl)) {
+    @content;
+  }
+}
+// >= 1080
 @mixin for-desktop {
-  @media (max-width: $xl) {
+  @media (min-width: var(--bp-lg)) {
     @content;
   }
 }
 
-@mixin for-desktop-max {
-  @media (min-width: $xxl) {
-    @content;
-  }
+// font
+@mixin font-header1 {
+  font-family: 'Poppins';
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 700;
+}
+
+@mixin font-header2 {
+  font-family: 'Poppins';
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+@mixin font-header3 {
+  font-family: 'Poppins';
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+@mixin font-subheader1 {
+  font-family: 'Poppins';
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+@mixin font-subheader1-bold {
+  font-family: 'Poppins';
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+@mixin font-subheader2 {
+  font-family: 'Noto Sans';
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+@mixin font-body {
+  font-family: 'Noto Sans';
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+@mixin font-body-bold {
+  font-family: 'Noto Sans';
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+@mixin font-label {
+  font-family: 'Noto Sans';
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+@mixin font-label-bold {
+  font-family: 'Noto Sans';
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+@mixin font-footnote {
+  font-family: 'Noto Sans';
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
 }

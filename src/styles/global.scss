@@ -2,3 +2,95 @@
 @import "./react-tags-input.scss";
 @import "./mui.scss";
 @import "./mixin.scss";
+
+:root{
+  // breakpoint
+  --bp-xs: 320px;
+  --bp-sm: 375px;
+  --bp-md: 768px;
+  --bp-lg: 1080px;
+  --bp-xl: 1280px;
+  --bp-xxl: 1440px;
+
+  // color
+  --primary-09: #183F00;
+  --primary-08: #2E5203;
+  --primary-07: #44661B;
+  --primary-06: #598022;
+  --primary-05: #739F36;
+  --primary-04: #98C354;
+  --primary-03: #C0E085;
+  --primary-02: #DDEEBA;
+  --primary-01: #FBFFF0;
+
+  --neutral-09: #1E1E1E;
+  --neutral-08: #4B4B4B;
+  --neutral-07: #626262;
+  --neutral-06: #787878;
+  --neutral-05: #8E8E8E;
+  --neutral-04: #BCBCBC;
+  --neutral-03: #D2D2D2;
+  --neutral-02: #EDEDED;
+  --neutral-01: #F9F9F9;
+  --neutral-white: #FFFFFF;
+
+  --red-09: #400002;
+  --red-08: #530707;
+  --red-07: #661417;
+  --red-06: #802226;
+  --red-05: #9E3F3F;
+  --red-04: #C25B5B;
+  --red-03: #DB8784;
+  --red-02: #FFD7D6;
+  --red-01: #FFF6F5;
+
+  --blue-09: #001840;
+  --blue-08: #0A2653;
+  --blue-07: #1B3866;
+  --blue-06: #224680;
+  --blue-05: #365E9F;
+  --blue-04: #547FC3;
+  --blue-03: #86A8E0;
+  --blue-02: #BACEEE;
+  --blue-01: #F4F8FF;
+
+  --yellow-09: #4E2C00;
+  --yellow-08: #593505;
+  --yellow-07: #7A5008;
+  --yellow-06: #8F6511;
+  --yellow-05: #BD8C1A;
+  --yellow-04: #EBBC3E;
+  --yellow-03: #FFE58F;
+  --yellow-02: #FCF3C4;
+  --yellow-01: #FFFCED;
+
+  --hover-color: rgba(30, 30, 30, 0.04);
+  --overlay-color: rgba(30, 30, 30, 0.6);
+  --popup-bg: #F7FAF5;
+
+  --gapWidth: 20px;
+
+  // flycat
+  @include for-desktop {
+    --container: var(--bp-xl);
+  }
+
+  @include for-desktop-s {
+    --container: calc(100vw - 80px * 2);
+  }
+
+  @include for-pad {
+    --container: 100vw;
+  }
+}
+
+.f-container {
+  max-width: var(--container);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+
+
+
+

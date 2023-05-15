@@ -1,0 +1,114 @@
+.root{
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.title{
+  display: block;
+  width: 100%;
+  margin: 5px;
+}
+ul{
+  padding: 10px;
+  background: white;
+  border-radius: 5px;
+}
+li{
+  display: inline;
+  padding: 10px;
+}
+.content{
+  min-height: 700px;
+  border-radius: 5px;
+  width: 100%;
+}
+.left{
+  width: 100%;
+  height: 100%;
+  min-height: 700px;
+  padding: 3%;
+  background: white;
+}
+.right{
+  min-height: 700px;
+  padding: 3%;
+  background: white;
+  margin: 0px 0px 0px 20px;
+  border-radius: 5px;
+}
+
+.postHintText{
+  color: #acdae5;
+  margin-bottom: 5px;
+}
+
+.postTextArea{
+  resize: none;
+  box-shadow: inset 0 0 1px #aaa;
+  border: 1px solid #b9bcbe;
+  width: 100%;
+  height: 80px;
+  padding: 5px;
+  overflow: auto;
+}
+
+.btn{
+  display: box;
+  text-align: right;
+}
+
+.message{
+  margin-top: 5px;
+}
+
+.msgsUl{
+  padding: 5px;
+}
+
+.msgItem{
+  display: block;
+  border-bottom: 1px dashed #ddd;
+  padding: 15px 0;
+}
+
+.avatar{
+  display: block;
+  width: 60px;
+  height: 60px;
+}
+
+.msgWord{
+  display: block;
+}
+
+.userName{
+  text-decoration: underline;
+  margin-right: 5px;
+}
+
+.time{
+  color: gray;
+}
+
+.smallBtn{
+  margin-left: 5px;
+  border: none;
+}
+
+.connected{
+  color: green;
+}
+
+.disconnected{
+    color: red;
+}
+
+.userProfileAvatar{
+  width: 60px;
+  height: 60px;
+}
+
+.userProfileName{
+  font-size: 20px;
+  font-weight: 500;
+}

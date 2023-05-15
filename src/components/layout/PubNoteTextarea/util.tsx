@@ -2,9 +2,6 @@ import { Api } from 'service/api';
 import { compressImage } from 'service/helper';
 import { Nip19MetaDataPerfix } from "service/nip/19";
 
-// Nip19MetaDataPerfix
-const api = new Api();
-
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {
     return alert('No WebLN available.');
@@ -36,6 +33,7 @@ export const handleImgUpload = async (
   const formData = new FormData();
   formData.append('fileToUpload', imageFile, imageFile.name);
   formData.append('submit', 'Upload Image');
+  const api = new Api();
   const url = await api.uploadImage(formData);
   if (!url.startsWith('http')) {
     setIsUploading(false);
