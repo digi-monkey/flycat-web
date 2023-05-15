@@ -163,7 +163,7 @@ export function RelaySelector({
         icon={<MenuOutlined />}
       />
 
-      <div className={styles.pool} hidden={!showRelayStatus}>
+      <div className={styles.relayStatus} hidden={!showRelayStatus}>
         {relayerStatusUI}
       </div>
     </div>
