@@ -2,7 +2,7 @@ import { Grid } from '@mui/material';
 import { connect } from 'react-redux';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
-import { defaultRelays } from 'service/relay';
+import { seedRelays } from 'service/relay/seed';
 import { WsConnectStatus } from 'service/worker/type';
 import { RelayStoreType } from 'store/relayReducer';
 import { useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import styled from 'styled-components';
 import RelayAdder from './RelayAdder';
 import RelayRemover from './RelayRemover';
+import { RelayPool } from './pool';
 
 export interface State {
   loginReducer: {
@@ -87,28 +88,10 @@ export function RelayManager({
     if (wsStatusCallback) {
       wsStatusCallback(wsConnectStatus);
     }
+    const relays = Array.from(wsConnectStatus.keys());
+    setRelays(relays);
   }, [wsConnectStatus]);
 
-  useEffect(() => {
-    // remove duplicated relay
-    let relays = defaultRelays;
-    if (isLoggedIn === true) {
-      relays = relays
-        .concat(...(myCustomRelay[myPublicKey] ?? []))
-        .filter((item, index, self) => self.indexOf(item) === index);
-    }
-
-    setRelays(relays);
-  }, [myPublicKey, myCustomRelay]);
-
-  {
-    useEffect(() => {
-      if (relays.length === 0) return;
-      if (worker == null) return;
-
-      worker?.addRelays(relays);
-    }, [relays]);
-  }
   // show relay status
   const relayerStatusUI: any[] = [];
   const relayerStatusIds: string[] = [];
@@ -132,7 +115,7 @@ export function RelayManager({
             </span>
           </Grid>
           <Grid item xs={12} sm={4}>
-            {myPublicKey && !defaultRelays.includes(url) && (
+            {myPublicKey && !seedRelays.includes(url) && (
               <RelayRemover publicKey={myPublicKey} url={url} />
             )}
           </Grid>
@@ -151,11 +134,15 @@ export function RelayManager({
 
   return (
     <div>
+      
       <h3>
         {t('relayManager.title')}({relays.length})
       </h3>
       <ul style={styles.simpleUl}>{relayerStatusUI}</ul>
       <RelayAdder publicKey={myPublicKey} />
+
+      <hr />
+      <RelayPool />
     </div>
   );
 }

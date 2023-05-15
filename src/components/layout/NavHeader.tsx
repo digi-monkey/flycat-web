@@ -10,6 +10,7 @@ import Nav from './Nav';
 import Link from 'next/link';
 import styled from 'styled-components';
 import LoginCard from '../../pages/login/index.page';
+import { RelaySelector } from 'components/RelaySelector';
 
 const styles = {
   root: {
@@ -94,7 +95,7 @@ export function NavHeader({ title, link }: NavHeaderProps) {
 
   return (
     <Grid container>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={12} sm={4}>
         <div>
           <Grid container>
             <div style={styles.title}>
@@ -106,9 +107,9 @@ export function NavHeader({ title, link }: NavHeaderProps) {
         </div>
       </Grid>
       {
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={8}>
           <div style={{ textAlign: 'right' }}>
-            <SearchBox />
+            <RelaySelector />
           </div>
         </Grid>
       }

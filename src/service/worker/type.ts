@@ -1,3 +1,5 @@
+import { Relay } from "service/relay/type";
+
 export type WsConnectStatus = Map<string, boolean>;
 
 export interface CallRelay {
@@ -14,15 +16,23 @@ export enum CallRelayType {
 }
 
 export enum ToWorkerMessageType {
+  SWITCH_RELAYS = 'switchRelays',
   ADD_RELAY_URL = 'addRelayUrl',
+  GET_RELAY_GROUP_ID = 'getRelayGroupId',
   PULL_RELAY_STATUS = 'pullRelayStatus',
   DISCONNECT = 'disconnect',
   CALL_API = 'execApiMethod',
   CLOSE_PORT = 'closePort',
 }
 
+export interface SwitchRelays {
+  id: string,
+  relays: Relay[];
+}
+
 export interface ToWorkerMessageData {
-  urls?: string[];
+  switchRelays?: SwitchRelays;
+  urls?: string[]; // addRelay calldata
 
   // call api
   callMethod?: string;
@@ -36,12 +46,13 @@ export interface ToWorkerMessageData {
 export enum FromWorkerMessageType {
   PORT_ID = 'portId',
   WS_CONN_STATUS = 'wsConnectStatus',
+  RELAY_GROUP_ID = 'relayGroupId',
   NOSTR_DATA = 'nostrData',
 }
 
 export interface FromWorkerMessageData {
+  relayGroupId?: string;
   wsConnectStatus?: WsConnectStatus;
-
   nostrData?: any;
   relayUrl?: string; // hint which relay the nostrData is coming from
 

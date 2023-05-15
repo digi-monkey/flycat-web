@@ -4,7 +4,7 @@ import { RootState } from 'store/configureStore';
 import { useSelector } from "react-redux";
 import { useCallWorker } from "hooks/useWorker";
 import { CallRelayType } from "service/worker/type";
-import { defaultRelays } from "service/relay";
+import { seedRelays } from "service/relay/seed";
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
 import { deserializeMetadata, Event, EventContactListPTag, EventSetMetadataContent, EventTags, PublicKey, WellKnownEventKind } from 'service/api';
 import styles from './index.module.scss';
@@ -105,7 +105,7 @@ export function useSetRelays(setRelays: React.Dispatch<React.SetStateAction<stri
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
 
   useEffect(() => {
-    let relays = defaultRelays;
+    let relays = seedRelays;
     if (isLoggedIn === true) {
       relays = relays
         .concat(...(myCustomRelay[myPublicKey] ?? []))

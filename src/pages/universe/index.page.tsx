@@ -7,7 +7,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { connect, useSelector } from 'react-redux';
-import { defaultRelays } from 'service/relay';
+import { seedRelays } from 'service/relay/seed';
 import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
@@ -44,7 +44,7 @@ export function Backup({ isLoggedIn }) {
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
   const myPublicKey = useReadonlyMyPublicKey();
 
-  let relays = defaultRelays;
+  let relays = seedRelays;
   if (isLoggedIn === true) {
     relays = relays
       .concat(...(myCustomRelay[myPublicKey] ?? []))
@@ -59,7 +59,7 @@ export function Backup({ isLoggedIn }) {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   useEffect(() => {
-    setSelectedRelayUrl(defaultRelays[0]);
+    setSelectedRelayUrl(seedRelays[0]);
   }, []);
 
   function handleEvent(event: Event, relayUrl?: string) {
@@ -179,7 +179,7 @@ export function Backup({ isLoggedIn }) {
                 }}
               />
               <SimpleSelect
-                defaultOption={defaultRelays[0]}
+                defaultOption={seedRelays[0]}
                 options={relays}
                 callBack={setSelectedRelayUrl}
               />

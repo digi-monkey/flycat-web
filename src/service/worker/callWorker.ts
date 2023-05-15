@@ -17,10 +17,12 @@ import {
   FromPostMsg,
   FromWorkerMessageData,
   FromWorkerMessageType,
+  SwitchRelays,
   ToPostMsg,
   ToWorkerMessageData,
   ToWorkerMessageType,
 } from './type';
+import { Relay } from 'service/relay/type';
 
 class GroupedAsyncGenerator<T, K> {
   private resolveFunctions = new Map<
@@ -70,6 +72,7 @@ export interface CallResultHandler {
 export class CallWorker {
   public _workerId = 'defaultCallWorker';
   public _portId: number | undefined;
+  public relayGroupId: string | undefined;
 
   receiveCount = 0;
   iteratorCount = 0;
@@ -99,6 +102,12 @@ export class CallWorker {
             if (onWsConnStatus) {
               onWsConnStatus(data);
             }
+          }
+          break;
+
+        case FromWorkerMessageType.RELAY_GROUP_ID:
+          {
+            this.relayGroupId = data.relayGroupId;
           }
           break;
 
@@ -249,6 +258,17 @@ export class CallWorker {
     return this.call(msg);
   }
 
+  pullRelayGroupId() {
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+    };
+    const msg: ToPostMsg = {
+      type: ToWorkerMessageType.GET_RELAY_GROUP_ID,
+      data,
+    };
+    return this.call(msg);
+  }
+
   addRelays(relays: string[]) {
     const data: ToWorkerMessageData = {
       portId: this.portId,
@@ -258,6 +278,19 @@ export class CallWorker {
       type: ToWorkerMessageType.ADD_RELAY_URL,
       data,
     };
+    return this.call(msg);
+  }
+
+  switchRelays(relays: SwitchRelays) {
+    const data: ToWorkerMessageData = {
+      portId: this.portId,
+      switchRelays: relays,
+    };
+    const msg: ToPostMsg = {
+      type: ToWorkerMessageType.SWITCH_RELAYS,
+      data,
+    };
+    console.log('send ', msg);
     return this.call(msg);
   }
 
@@ -303,7 +336,11 @@ export class CallWorker {
       ...{
         authors: pks,
         limit: 50,
-        kinds: [WellKnownEventKind.text_note, WellKnownEventKind.article_highlight, WellKnownEventKind.long_form],
+        kinds: [
+          WellKnownEventKind.text_note,
+          WellKnownEventKind.article_highlight,
+          WellKnownEventKind.long_form,
+        ],
       },
       ...overrides,
     };
