@@ -68,7 +68,16 @@
   --overlay-color: rgba(30, 30, 30, 0.6);
   --popup-bg: #F7FAF5;
 
+  --container: 100vw;
   --gapWidth: 20px;
+  --mobileHeaderHeight: 32px; // calc(44px + 32px);
+  --mobileFooterHeight: 60px;
+  --basePadding: 16px;
+
+  --baseBorderRadiusS: 2px;
+  --baseBorderRadiusM: 4px;
+  --baseBorderRadiusL: 8px;
+  --baseBorderRadiusXL: 12px;
 
   // flycat
   @include for-desktop {
@@ -78,19 +87,35 @@
   @include for-desktop-s {
     --container: calc(100vw - 80px * 2);
   }
-
-  @include for-pad {
-    --container: 100vw;
-  }
 }
 
 .f-container {
   max-width: var(--container);
   margin-right: auto;
   margin-left: auto;
+
+  >nav{
+    grid-column: span 3;  
+  }
+
+  >main{
+    grid-column: span 9;
+  }
 }
 
+.f-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--gapWidth);
 
+  @include for-pad {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  @include for-mobile {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 
 
 

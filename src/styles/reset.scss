@@ -1,57 +1,14 @@
 html,
-  body {
-    height: 100%;
-    width: 100%;
-    background: white;
-  }
+body {
+  min-width: 320px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--neutral-white);
+  touch-action: pan-y;
+  scroll-behavior: smooth;
+}
 
-  body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  }
-
-  #root {
-    min-height: 100%;
-    min-width: 100%;
-  }
-
-  p,
-  label {
-    font-family: Georgia, Times, 'Times New Roman', serif;
-    line-height: 1.5em;
-  }
-
-  input, select {
-    font-family: inherit;
-    font-size: inherit;
-  }
-
-  .menu a {
-    text-decoration: none;
-  }
-  .menu a:hover{
-    background-color:#06c;
-	  color:#fff;
-	  text-decoration:none
-  }
-
-  textarea:focus {
-    outline: none;
-  }
-
-  button:hover {
-    cursor:pointer;
-  }
-
-  a{
-    text-decoration: none;
-  }
-  a:hover{
-    text-decoration: underline;
-  }
-
-  pre{
-    overflow: auto;
-  }
 
 .swal2-container{
   z-index: 10000 !important;

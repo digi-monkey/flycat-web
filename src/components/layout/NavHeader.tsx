@@ -4,13 +4,11 @@ import { Search } from '@mui/icons-material';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useTranslation } from 'next-i18next';
+import { RelaySelector } from 'components/RelaySelector';
 import { loginMapStateToProps } from 'pages/helper';
 
 import Nav from './Nav';
 import Link from 'next/link';
-import styled from 'styled-components';
-import LoginCard from '../../pages/login/index.page';
-import { RelaySelector } from 'components/RelaySelector';
 
 const styles = {
   root: {

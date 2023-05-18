@@ -1,114 +1,288 @@
-.root{
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.title{
-  display: block;
-  width: 100%;
-  margin: 5px;
-}
-ul{
-  padding: 10px;
-  background: white;
-  border-radius: 5px;
-}
-li{
-  display: inline;
-  padding: 10px;
-}
-.content{
-  min-height: 700px;
-  border-radius: 5px;
-  width: 100%;
-}
-.left{
-  width: 100%;
-  height: 100%;
-  min-height: 700px;
-  padding: 3%;
-  background: white;
-}
-.right{
-  min-height: 700px;
-  padding: 3%;
-  background: white;
-  margin: 0px 0px 0px 20px;
-  border-radius: 5px;
+.pcPadMain{
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  column-gap: var(--gapWidth);
+  grid-template-areas: "left left left left left left left left left";
+  @include for-pad {
+    padding: {
+      left: var(--basePadding);
+      right: var(--basePadding);
+    }
+  }
+
+  &.rightExists{
+    grid-template-areas: "left left left left left left right right right";
+
+    @include for-pad {
+      grid-template-areas: "left left left left left left left left left";
+    }
+  }
+
+  .left{
+    grid-area: left;
+  }
+
+  .right{
+    grid-area: right;
+
+    @include for-pad {
+      display: none;
+    }
+  }
 }
 
-.postHintText{
-  color: #acdae5;
-  margin-bottom: 5px;
+.mobile{
+  grid-column: span 4;
+
+  header{
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--basePadding);
+    height: var(--mobileHeaderHeight);
+    background-color: var(--neutral-white);
+
+    :global {
+      .ant-avatar{
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    img {
+      width: 32px;
+      height: 32px;
+    }
+    
+    svg{
+      width: 24px;
+      height: 24px;
+    }
+  }
+  main{
+    padding: {
+      left: var(--basePadding);
+      right: var(--basePadding);
+    }
+  }
+  footer{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--mobileFooterHeight);
+    background-color: var(--neutral-white);
+    padding: {
+      left: var(--basePadding);
+      right: var(--basePadding);
+    }
+
+    
+    ul{
+      display: flex;
+      list-style: none;
+      padding: 0;
+      justify-content: space-between;
+      align-items: flex-end;
+
+      li{
+        &.active {
+          svg{
+            fill: var(--neutral-09);
+          }
+        }
+
+        &.add{
+          span{
+            display: inline-block;
+            background-color: var(--primary-06);
+            border-radius: var(--baseBorderRadiusL);
+            padding: 7px 11px;
+            line-height: 0;
+
+            svg {
+              width: 14px;
+              height: 14px;
+              fill: var(--neutral-white);
+            }
+          }
+        }
+
+        svg{
+          width: 20px;
+          height: 20px;
+          fill: var(--neutral-06);
+        }
+      }
+    }
+  }
 }
 
-.postTextArea{
-  resize: none;
-  box-shadow: inset 0 0 1px #aaa;
-  border: 1px solid #b9bcbe;
-  width: 100%;
-  height: 80px;
-  padding: 5px;
-  overflow: auto;
+.mobileDrawer{
+  padding: var(--basePadding);
+
+  .close {
+    width: 24px;
+    height: 24px;
+    float: right;
+  }
+
+  .userTitle {
+    h1{
+      @include font-header3;
+    }
+  }
+
+  ul{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li {
+      padding: {
+        top: var(--basePadding);
+        bottom: var(--basePadding);
+      }
+      svg{
+        width: 24px;
+        height: 24px;
+        vertical-align: middle;
+      }
+
+      &:last-child{
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-top: 1px solid var(--neutral-02);
+      }
+    }
+  }
+
+  :global {
+    .ant-drawer-body{
+      padding: 0;
+      position: relative;
+    }
+  }
 }
 
-.btn{
-  display: box;
-  text-align: right;
-}
+// .root{
+//   width: 100%;
+//   max-width: 1200px;
+//   margin: 0 auto;
+// }
+// .title{
+//   display: block;
+//   width: 100%;
+//   margin: 5px;
+// }
+// ul{
+//   padding: 10px;
+//   background: white;
+//   border-radius: 5px;
+// }
+// li{
+//   display: inline;
+//   padding: 10px;
+// }
+// .content{
+//   min-height: 700px;
+//   border-radius: 5px;
+//   width: 100%;
+// }
+// .left{
+//   width: 100%;
+//   height: 100%;
+//   min-height: 700px;
+//   padding: 3%;
+//   background: white;
+// }
+// .right{
+//   min-height: 700px;
+//   padding: 3%;
+//   background: white;
+//   margin: 0px 0px 0px 20px;
+//   border-radius: 5px;
+// }
 
-.message{
-  margin-top: 5px;
-}
+// .postHintText{
+//   color: #acdae5;
+//   margin-bottom: 5px;
+// }
 
-.msgsUl{
-  padding: 5px;
-}
+// .postTextArea{
+//   resize: none;
+//   box-shadow: inset 0 0 1px #aaa;
+//   border: 1px solid #b9bcbe;
+//   width: 100%;
+//   height: 80px;
+//   padding: 5px;
+//   overflow: auto;
+// }
 
-.msgItem{
-  display: block;
-  border-bottom: 1px dashed #ddd;
-  padding: 15px 0;
-}
+// .btn{
+//   display: box;
+//   text-align: right;
+// }
 
-.avatar{
-  display: block;
-  width: 60px;
-  height: 60px;
-}
+// .message{
+//   margin-top: 5px;
+// }
 
-.msgWord{
-  display: block;
-}
+// .msgsUl{
+//   padding: 5px;
+// }
 
-.userName{
-  text-decoration: underline;
-  margin-right: 5px;
-}
+// .msgItem{
+//   display: block;
+//   border-bottom: 1px dashed #ddd;
+//   padding: 15px 0;
+// }
 
-.time{
-  color: gray;
-}
+// .avatar{
+//   display: block;
+//   width: 60px;
+//   height: 60px;
+// }
 
-.smallBtn{
-  margin-left: 5px;
-  border: none;
-}
+// .msgWord{
+//   display: block;
+// }
 
-.connected{
-  color: green;
-}
+// .userName{
+//   text-decoration: underline;
+//   margin-right: 5px;
+// }
 
-.disconnected{
-    color: red;
-}
+// .time{
+//   color: gray;
+// }
 
-.userProfileAvatar{
-  width: 60px;
-  height: 60px;
-}
+// .smallBtn{
+//   margin-left: 5px;
+//   border: none;
+// }
 
-.userProfileName{
-  font-size: 20px;
-  font-weight: 500;
-}
+// .connected{
+//   color: green;
+// }
+
+// .disconnected{
+//     color: red;
+// }
+
+// .userProfileAvatar{
+//   width: 60px;
+//   height: 60px;
+// }
+
+// .userProfileName{
+//   font-size: 20px;
+//   font-weight: 500;
+// }

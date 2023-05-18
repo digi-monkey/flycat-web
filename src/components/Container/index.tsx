@@ -6,8 +6,8 @@ interface ContainerProps {
 }
 
 const Container: React.FC<ContainerProps> = ({ children }) => {
-  return <main className={classNames('f-container', styles.container)}>
+  return <div className={classNames('f-container', 'f-grid', styles.container)}>
     {children}
-  </main>
+  </div>
 }
 export default Container;

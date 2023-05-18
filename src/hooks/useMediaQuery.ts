@@ -6,3 +6,21 @@ export function useMatchMobile() {
 
   return mobile;
 }
+
+export function useMatchPad() {
+  const [isPad, setIsPad] = useState<undefined | boolean>();
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+
+    const padRegex = /(iPad|Android|Tablet)/i;
+    const excludeRegex = /Mobile/i;
+
+    // 进行匹配判断
+    const isPadDevice = padRegex.test(userAgent) && !excludeRegex.test(userAgent);
+
+    setIsPad(isPadDevice);
+  }, []);
+
+  return isPad;
+}

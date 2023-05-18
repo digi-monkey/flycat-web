@@ -7,6 +7,10 @@ const Pages = {
     name: 'notification',
     path: '/notification'
   },
+  bookmarks: {
+    name: 'bookmarks',
+    path: '/bookmarks'
+  },
   blog: {
     name: 'blog',
     path: '/blog'

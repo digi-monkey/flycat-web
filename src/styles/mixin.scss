@@ -1,67 +1,74 @@
-// media
+// breakpoint
+// sass can't access css variables in :root
+$bp-xs: 320px;
+$bp-sm: 375px;
+$bp-md: 768px;
+$bp-lg: 1080px;
+$bp-xl: 1280px;
+$bp-xxl: 1440px;
 // <= 320
 @mixin for-mobile-s {
-  @media screen and (max-width: var(--bp-xs)) {
+  @media screen and (max-width: $bp-xs) {
     @content;
   }
 }
 // <= 375
 @mixin for-mobile-m {
-  @media screen and (max-width: var(--bp-sm)) {
+  @media screen and (max-width: $bp-sm) {
     @content;
   }
 }
 // 376 ~ 768
 @mixin for-mobile-l {
-  @media screen and (min-width: calc(var(--bp-sm) + 1px)) and (max-width: var(--bp-md)) {
+  @media screen and (min-width: calc($bp-sm + 1px)) and (max-width: $bp-md) {
     @content;
   }
 }
 // <= 768
 @mixin for-mobile {
-  @media (max-width: var(--bp-md)) {
+  @media (max-width: $bp-md) {
     @content;
   }
 }
 // <= 1080
 @mixin for-mobile-pad {
-  @media screen and (max-width: var(--bp-lg)) {
+  @media screen and (max-width: $bp-lg) {
     @content;
   }
 }
 // 769 ~ 1080
 @mixin for-pad {
-  @media screen and (min-width: calc(var(--bp-md) + 1px)) and (max-width: var(--bp-lg)) {
+  @media screen and (min-width: calc($bp-md + 1px)) and (max-width: $bp-lg) {
     @content;
   }
 }
 // >= 769
 @mixin for-pad-desktop {
-  @media screen and (min-width: calc(var(--bp-md) + 1px)) {
+  @media screen and (min-width: calc($bp-md + 1px)) {
     @content;
   }
 }
 // 1081 ~ 1280
 @mixin for-desktop-s {
-  @media screen and (min-width: calc(var(--bp-lg) + 1px)) and (max-width: var(--bp-xl)) {
+  @media screen and (min-width: calc($bp-lg + 1px)) and (max-width: $bp-xl) {
     @content;
   }
 }
 // 1281 ~ 1440
 @mixin for-desktop-m {
-  @media screen and (min-width: calc(var(--bp-xl) + 1px)) and (max-width: var(--bp-xxl)) {
+  @media screen and (min-width: calc($bp-xl + 1px)) and (max-width: $bp-xxl) {
     @content;
   }
 }
 // >= 1440
 @mixin for-desktop-l {
-  @media (min-width: var(--bp-xxl)) {
+  @media screen and (min-width: $bp-xxl) {
     @content;
   }
 }
 // >= 1080
 @mixin for-desktop {
-  @media (min-width: var(--bp-lg)) {
+  @media screen and (min-width: $bp-lg) {
     @content;
   }
 }
