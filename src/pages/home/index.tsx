@@ -30,7 +30,6 @@ import BasicTabs from 'components/layout/SimpleTabs';
 import CreateIcon from '@mui/icons-material/Create';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import { CallRelayType } from 'service/worker/type';
 
 export type ContactList = Map<
   PublicKey,
@@ -139,7 +138,7 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
                 {Msgs(globalMsgList, worker!, userMap, relayUrls)}
               </div>
             )}
-            {msgList.length === 0 && isLoggedIn && (
+            {msgList.length === 0 && isLoggedIn && ( 
               <div>
                 <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
                 <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>

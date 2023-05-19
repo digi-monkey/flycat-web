@@ -12,18 +12,23 @@
   },
   "nav": {
     "menu": {
-      "home": "Home",
-      "notification": "Notification",
-      "profile": "Profile",
       "blog": "Blog",
       "blogDashboard": "Write",
       "github": "Github",
       "globalFeed": "Global",
-      "setting": "Setting",
-      "signOut": "SignOut",
-      "signIn": "SignIn",
       "contact": "Contact",
-      "backup": "Private Backup"
+
+      "profile": "Profile",
+      "setting": "Settings",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "backup": "Backup",
+      "drafts": "Drafts",
+      "home": "Home",
+      "explore": "Explore",
+      "relays": "Relays",
+      "bookmarks": "Bookmarks",
+      "notifications": "Notifications"
     }
   },
   "home": {

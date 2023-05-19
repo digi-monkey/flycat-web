@@ -146,7 +146,7 @@ export function RelaySelector({
   };
 
   return (
-    <div>
+    <div className={styles.relaySelector}>
       <Select
         defaultValue={'default'}
         value={selectedGroup}
