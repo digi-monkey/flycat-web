@@ -18,45 +18,45 @@ $bp-xxl: 1440px;
     @content;
   }
 }
-// 376 ~ 768
+// 375 ~ 768
 @mixin for-mobile-l {
-  @media screen and (min-width: calc($bp-sm + 1px)) and (max-width: $bp-md) {
+  @media screen and (min-width: $bp-sm) and (max-width: calc($bp-md - 1px)) {
     @content;
   }
 }
 // <= 768
 @mixin for-mobile {
-  @media (max-width: $bp-md) {
+  @media (max-width: calc($bp-md - 1px)) {
     @content;
   }
 }
 // <= 1080
 @mixin for-mobile-pad {
-  @media screen and (max-width: $bp-lg) {
+  @media screen and (max-width: calc($bp-lg - 1px)) {
     @content;
   }
 }
-// 769 ~ 1080
+// 768 ~ 1080
 @mixin for-pad {
-  @media screen and (min-width: calc($bp-md + 1px)) and (max-width: $bp-lg) {
+  @media screen and (min-width: $bp-md) and (max-width: calc($bp-lg - 1px)) {
     @content;
   }
 }
-// >= 769
+// >= 768
 @mixin for-pad-desktop {
-  @media screen and (min-width: calc($bp-md + 1px)) {
+  @media screen and (min-width: $bp-md) {
     @content;
   }
 }
-// 1081 ~ 1280
+// 1080 ~ 1280
 @mixin for-desktop-s {
-  @media screen and (min-width: calc($bp-lg + 1px)) and (max-width: $bp-xl) {
+  @media screen and (min-width: $bp-lg) and (max-width: $bp-xl) {
     @content;
   }
 }
-// 1281 ~ 1440
+// 1280 ~ 1440
 @mixin for-desktop-m {
-  @media screen and (min-width: calc($bp-xl + 1px)) and (max-width: $bp-xxl) {
+  @media screen and (min-width: $bp-xl) and (max-width: $bp-xxl) {
     @content;
   }
 }

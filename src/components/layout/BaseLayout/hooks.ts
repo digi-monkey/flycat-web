@@ -17,7 +17,6 @@ export function useUserInfo () {
   const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
-
   useEffect(() => {
     if (newConn.length === 0) return;
 
@@ -28,7 +27,6 @@ export function useUserInfo () {
           data: newConn,
         })
         ?.iterating({ cb: (event: Event, relayUrl?: string) => {
-          console.log('cb success');
           switch (event.kind) {
             case WellKnownEventKind.set_metadata:
               const metadata: EventSetMetadataContent = deserializeMetadata(

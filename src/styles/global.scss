@@ -72,12 +72,22 @@
   --gapWidth: 20px;
   --mobileHeaderHeight: 32px; // calc(44px + 32px);
   --mobileFooterHeight: 60px;
-  --basePadding: 16px;
+  
+  --padding: 4px;
+  --basePadding2: calc(var(--padding) * 2);
+  --basePadding3: calc(var(--padding) * 3);
+  --basePadding4: calc(var(--padding) * 4);
+  --basePadding5: calc(var(--padding) * 5);
+  --basePadding6: calc(var(--padding) * 6);
+  --basePadding7: calc(var(--padding) * 7);
+  --basePadding8: calc(var(--padding) * 8);
+  --basePadding9: calc(var(--padding) * 9);
+  --basePadding10: calc(var(--padding) * 10);
 
-  --baseBorderRadiusS: 2px;
-  --baseBorderRadiusM: 4px;
-  --baseBorderRadiusL: 8px;
-  --baseBorderRadiusXL: 12px;
+  --baseBorderRadius2: 2px;
+  --baseBorderRadius4: 4px;
+  --baseBorderRadius8: 8px;
+  --baseBorderRadius12: 12px;
 
   // flycat
   @include for-desktop {
@@ -95,11 +105,19 @@
   margin-left: auto;
 
   >nav{
-    grid-column: span 3;  
+    grid-column: span 3;
+
+    @include for-pad {
+      grid-column: span 1;
+    }
   }
 
   >main{
     grid-column: span 9;
+
+    @include for-pad {
+      grid-column: span 7;
+    }
   }
 }
 

@@ -1,13 +1,146 @@
+.pcPadNav{
+  padding-right: var(--basePadding5);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 0;
+
+  @include for-pad {
+    padding-right: initial;
+  }
+
+  .logo{
+    padding: var(--basePadding4) var(--basePadding5);
+
+    a{
+      display: inline-block;
+    }
+
+    img{
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+  }
+
+  ul{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li{
+      display: flex;
+      align-items: center;
+      height: 56px;
+      border-radius: 50px;
+      cursor: pointer;
+      padding: {
+        left: var(--basePadding5);
+        right: var(--basePadding5);
+      }
+
+      @include for-pad {
+        justify-content: center;
+      }
+
+
+      &:hover{
+        background-color: var(--hover-color);
+      }
+
+      &.active{
+        svg{
+          fill: var(--neutral-09);
+        }
+        span{
+          @include font-subheader1-bold;
+          color: var(--neutral-09);
+        }
+      }
+
+      :global {
+        .ant-dropdown-trigger{
+          @include for-desktop {
+            display: flex;
+            width: 100%;
+          }
+
+          h1 {
+            margin: 0 0 0 var(--basePadding4);
+            @include font-header3;
+
+            @include for-pad {
+              display: none;
+            }
+          }
+        }
+      }
+      
+      svg{
+        width: 24px;
+        height: 24px;
+        fill: var(--neutral-06);
+      }
+
+      >span{
+        margin-left: var(--basePadding3);
+        color: var(--neutral-06);
+
+        @include for-pad {
+          display: none;
+        }
+      }
+    }
+  }
+
+  button{
+    height: 44px;
+    margin-top: var(--basePadding6);
+
+    @include for-pad {
+      width: 40px !important;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: var(--basePadding5);
+
+      svg{
+        width: 24px;
+        height: 24px;
+        fill: var(--neutral-white);
+      }
+    }
+  }
+}
+
+.pcPadNavUserMenu{
+  :global {
+    .ant-dropdown-menu{
+      border-radius: var(--baseBorderRadius8);
+    }
+
+    .ant-dropdown-menu-item{
+      height: 40px;
+      line-height: 40px;
+
+      svg{
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+}
+
 .pcPadMain{
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   column-gap: var(--gapWidth);
   grid-template-areas: "left left left left left left left left left";
   @include for-pad {
-    padding: {
-      left: var(--basePadding);
-      right: var(--basePadding);
-    }
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-areas: none;
   }
 
   &.rightExists{
@@ -15,11 +148,16 @@
 
     @include for-pad {
       grid-template-areas: "left left left left left left left left left";
+      grid-template-areas: none;
     }
   }
 
   .left{
     grid-area: left;
+    @include for-pad {
+      grid-area: initial;
+      grid-column: span 6;
+    }
   }
 
   .right{
@@ -42,7 +180,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--basePadding);
+    padding: var(--basePadding4);
     height: var(--mobileHeaderHeight);
     background-color: var(--neutral-white);
 
@@ -65,8 +203,8 @@
   }
   main{
     padding: {
-      left: var(--basePadding);
-      right: var(--basePadding);
+      left: var(--basePadding4);
+      right: var(--basePadding4);
     }
   }
   footer{
@@ -79,8 +217,8 @@
     height: var(--mobileFooterHeight);
     background-color: var(--neutral-white);
     padding: {
-      left: var(--basePadding);
-      right: var(--basePadding);
+      left: var(--basePadding4);
+      right: var(--basePadding4);
     }
 
     
@@ -102,7 +240,7 @@
           span{
             display: inline-block;
             background-color: var(--primary-06);
-            border-radius: var(--baseBorderRadiusL);
+            border-radius: var(--baseBorderRadius8);
             padding: 7px 11px;
             line-height: 0;
 
@@ -125,7 +263,7 @@
 }
 
 .mobileDrawer{
-  padding: var(--basePadding);
+  padding: var(--basePadding4);
 
   .close {
     width: 24px;
@@ -146,8 +284,8 @@
 
     li {
       padding: {
-        top: var(--basePadding);
-        bottom: var(--basePadding);
+        top: var(--basePadding4);
+        bottom: var(--basePadding4);
       }
       svg{
         width: 24px;
@@ -171,118 +309,3 @@
     }
   }
 }
-
-// .root{
-//   width: 100%;
-//   max-width: 1200px;
-//   margin: 0 auto;
-// }
-// .title{
-//   display: block;
-//   width: 100%;
-//   margin: 5px;
-// }
-// ul{
-//   padding: 10px;
-//   background: white;
-//   border-radius: 5px;
-// }
-// li{
-//   display: inline;
-//   padding: 10px;
-// }
-// .content{
-//   min-height: 700px;
-//   border-radius: 5px;
-//   width: 100%;
-// }
-// .left{
-//   width: 100%;
-//   height: 100%;
-//   min-height: 700px;
-//   padding: 3%;
-//   background: white;
-// }
-// .right{
-//   min-height: 700px;
-//   padding: 3%;
-//   background: white;
-//   margin: 0px 0px 0px 20px;
-//   border-radius: 5px;
-// }
-
-// .postHintText{
-//   color: #acdae5;
-//   margin-bottom: 5px;
-// }
-
-// .postTextArea{
-//   resize: none;
-//   box-shadow: inset 0 0 1px #aaa;
-//   border: 1px solid #b9bcbe;
-//   width: 100%;
-//   height: 80px;
-//   padding: 5px;
-//   overflow: auto;
-// }
-
-// .btn{
-//   display: box;
-//   text-align: right;
-// }
-
-// .message{
-//   margin-top: 5px;
-// }
-
-// .msgsUl{
-//   padding: 5px;
-// }
-
-// .msgItem{
-//   display: block;
-//   border-bottom: 1px dashed #ddd;
-//   padding: 15px 0;
-// }
-
-// .avatar{
-//   display: block;
-//   width: 60px;
-//   height: 60px;
-// }
-
-// .msgWord{
-//   display: block;
-// }
-
-// .userName{
-//   text-decoration: underline;
-//   margin-right: 5px;
-// }
-
-// .time{
-//   color: gray;
-// }
-
-// .smallBtn{
-//   margin-left: 5px;
-//   border: none;
-// }
-
-// .connected{
-//   color: green;
-// }
-
-// .disconnected{
-//     color: red;
-// }
-
-// .userProfileAvatar{
-//   width: 60px;
-//   height: 60px;
-// }
-
-// .userProfileName{
-//   font-size: 20px;
-//   font-weight: 500;
-// }

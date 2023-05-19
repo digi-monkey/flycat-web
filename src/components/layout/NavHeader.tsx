@@ -1,13 +1,10 @@
 import { Grid } from '@mui/material';
 import { Paths } from 'constants/path';
 import { Search } from '@mui/icons-material';
-import { connect } from 'react-redux';
 import { useState } from 'react';
-import { useTranslation } from 'next-i18next';
 import { RelaySelector } from 'components/RelaySelector';
-import { loginMapStateToProps } from 'pages/helper';
+import { useTranslation } from 'next-i18next';
 
-import Nav from './Nav';
 import Link from 'next/link';
 
 const styles = {
@@ -114,8 +111,6 @@ export function NavHeader({ title, link }: NavHeaderProps) {
     </Grid>
   );
 }
-
-export const MenuListDefault = connect(loginMapStateToProps)(Nav);
 
 export const LoginFormTip = ({
   style = {},

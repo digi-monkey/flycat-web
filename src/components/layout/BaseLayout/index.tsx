@@ -1,12 +1,15 @@
+import { NavHeader } from '../NavHeader';
+import { useUserInfo } from './hooks';
+import { RelaySelector } from 'components/RelaySelector';
 import { useMatchMobile } from 'hooks/useMediaQuery';
-import { NavHeader, MenuListDefault } from '../NavHeader';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 import React from 'react';
 import styles from './index.module.scss';
 import Mobile from './mobile';
+import PcPadNav from './pc';
 import Container from 'components/Container';
 import classNames from 'classnames';
-import { useUserInfo } from './hooks';
 export interface BaseLayoutProps {
   children: React.ReactNode;
   silent?: boolean;
@@ -36,27 +39,28 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
   silent,
   metaPage,
 }) => {
+  const { userMap } = useUserInfo();
+  const myPublicKey = useReadonlyMyPublicKey();
+  const user = userMap.get(myPublicKey);
   const isMobile = useMatchMobile();
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
+  
   React.Children.forEach(children, (child: React.ReactNode) => {
     if (!React.isValidElement(child)) return;
     if (child.type === Left) leftNodes.push(child);
     if (child.type === Right) rightNodes.push(child);
   });
-  const { userMap } = useUserInfo();
-
-  console.log(123, userMap);
 
   return <Container>
     {
-      isMobile ? <Mobile body={leftNodes} userMap={userMap} /> : <>
-        <MenuListDefault />
+      isMobile ? <Mobile body={leftNodes} user={user} /> : <>
+        <PcPadNav user={user} />
         <main className={classNames(styles.pcPadMain, {
           [styles.rightExists]: rightNodes.length
         })}>
           <div className={styles.left}>
-            <NavHeader title={metaPage?.title} link={metaPage?.link} />
+            <RelaySelector />
             {leftNodes}
           </div>
           { rightNodes.length > 0 && <div className={styles.right}>{rightNodes}</div> }
