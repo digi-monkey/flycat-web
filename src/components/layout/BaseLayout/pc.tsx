@@ -46,13 +46,13 @@ const PcPadNav = ({ user }: { user?: EventSetMetadataContent }) => {
         <li>
           { 
             <Dropdown 
-            menu={{ items: userMenus }} 
+            menu={{ items: isLoggedIn ? userMenus : [] }} 
             overlayClassName={styles.pcPadNavUserMenu}
             placement='bottom'
             arrow
           >
-            <div className={styles.user}>
-              { user ? <Avatar src={user.picture} /> : <Avatar icon={<UserOutlined />} onClick={() => router.push({ pathname: Paths.login })} /> }
+            <div className={styles.user} onClick={() => isLoggedIn ? null : router.push({ pathname: Paths.login })}>
+              { user ? <Avatar src={user.picture} /> : <Avatar icon={<UserOutlined />} /> }
               <h1>{ user ? user.display_name || user.name : t('nav.menu.signIn')}</h1>
             </div>
           </Dropdown>

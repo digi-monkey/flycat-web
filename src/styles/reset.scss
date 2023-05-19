@@ -9,7 +9,11 @@ body {
   scroll-behavior: smooth;
 }
 
-
 .swal2-container{
   z-index: 10000 !important;
+}
+
+// antd 
+.ant-btn-primary:disabled {
+  border: none;
 }

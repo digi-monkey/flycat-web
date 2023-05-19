@@ -119,6 +119,10 @@
   :global {
     .ant-dropdown-menu{
       border-radius: var(--baseBorderRadius8);
+
+      &:empty{
+        display: none;
+      }
     }
 
     .ant-dropdown-menu-item{
