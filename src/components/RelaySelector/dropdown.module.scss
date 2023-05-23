@@ -1,0 +1,22 @@
+.root {
+  max-width: 100%;
+  min-width: 650px;// fixme
+}
+
+.relayModeTitle {
+  color: var(--neutral-06);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 10px;
+}
+
+.borderOption {
+  border-top: 1px solid var(--neutral-02);
+  padding: 10px 0px;
+}
+
+.dropdownContent {
+  width: 100%;
+}

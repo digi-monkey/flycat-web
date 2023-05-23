@@ -1,4 +1,3 @@
-import { Grid } from '@mui/material';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
@@ -8,11 +7,14 @@ import { useDefaultGroup } from './hooks/useDefaultGroup';
 import { getSelectGroupId } from './util';
 import { relayGroups } from './groups';
 import { RelaySelectorStore } from './store';
-import { Button, Select } from 'antd';
-import { MenuOutlined } from '@ant-design/icons';
+import { Cascader, Spin } from 'antd';
 
 import styles from './index.module.scss';
 import styled from 'styled-components';
+import { dropdownRender } from './dropdown';
+import { RelayMode, RelayModeSelectOption, toLabel, toRelayMode } from './type';
+import { Pool } from 'service/relay/pool';
+import { db } from 'service/relay/auto';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -27,6 +29,12 @@ const Link = styled.a`
   }
 `;
 
+export interface Option {
+  value: string;
+  label: string;
+  children?: Option[];
+}
+
 export function RelaySelector({
   wsStatusCallback,
   newConnCallback,
@@ -38,20 +46,155 @@ export function RelaySelector({
   const store = new RelaySelectorStore();
   const myPublicKey = useReadonlyMyPublicKey();
 
+  const [selectedValue, setSelectedValue] = useState<string[]>();
   const [selectedGroup, setSelectedGroup] = useState<string>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
-  const [showRelayStatus, setShowRelayStatus] = useState<boolean>(false);
+
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
 
   const { worker, newConn, wsConnectStatus } = useCallWorker();
+
+
+  const getRelayGroupOptions = () => {
+    const ids = getSelectGroupId(groups);
+    return ids.map(id => {
+      return { value: id, label: `${id}(${groups[id].length})` };
+    });
+  };
+  
+  const getModeOptions = () => {
+    const mode: RelayModeSelectOption[] = [
+      {
+        value: RelayMode.global,
+        label: toLabel(RelayMode.global),
+        children: getRelayGroupOptions(),
+      },
+      { value: RelayMode.auto, label: toLabel(RelayMode.auto) },
+      { value: RelayMode.fastest, label: toLabel(RelayMode.fastest) },
+      { value: RelayMode.rule, label: toLabel(RelayMode.rule), disabled: true },
+    ];
+    return mode;
+  };
+
+  const getSwitchRelayByMode = async (mode: RelayMode) => {
+    if (mode === RelayMode.auto) {
+      const savedResult = store.loadAutoRelayResult(myPublicKey);
+      if (savedResult) {
+        return {
+          id: mode,
+          relays: savedResult,
+        };
+      }
+
+      const relayPool = new Pool();
+      const allRelays = await relayPool.getAllRelays();
+      await Pool.getBestRelay(
+        allRelays.map(r => r.url),
+        myPublicKey,
+      );
+      const relays = (await db.pick(myPublicKey)).slice(0, 6).map(i => i.relay);
+      store.saveAutoRelayResult(
+        myPublicKey,
+        relays.map(r => {
+          return { url: r, read: false, write: true };
+        }),
+      );
+
+      return {
+        id: mode,
+        relays: relays.map(r => {
+          return {
+            url: r,
+            read: false,
+            write: true,
+          };
+        }),
+      };
+    }
+
+    if (mode === RelayMode.fastest) {
+      const relayPool = new Pool();
+      const allRelays = await relayPool.getAllRelays();
+      const fastest = await Pool.getFastest(allRelays.map(r => r.url));
+
+      return {
+        id: mode,
+        relays: [
+          {
+            url: fastest[0],
+            read: true,
+            write: true,
+          },
+        ],
+      };
+    }
+
+    if (mode === RelayMode.rule) {
+      return {
+        id: mode,
+        relays: [], // todo
+      };
+    }
+
+    if (mode === RelayMode.global) {
+      if (!selectedGroup) throw new Error('no selected group');
+
+      return {
+        id: selectedGroup,
+        relays: groups[selectedGroup],
+      };
+    }
+
+    throw new Error('unknown mode');
+  };
+
+  const onSwitchRelay = async () => {
+    if (selectedValue) {
+      const mode = toRelayMode(selectedValue[0]);
+
+      const savedSelectedMode = store.loadSelectedMode(myPublicKey);
+      if (savedSelectedMode !== mode) {
+        store.saveSelectedMode(myPublicKey, mode);
+      }
+
+      if (mode === RelayMode.global) {
+        const groupId = selectedValue[1];
+        setSelectedGroup(groupId);
+      } else {
+        setProgressLoading(true);
+        setShowProgress(true);
+        const switchRelays = await getSwitchRelayByMode(mode);
+        setProgressLoading(false);
+        setShowProgress(false);
+        setSwitchRelays(prev => {
+          return switchRelays;
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     if (!myPublicKey) return;
 
-    const selected = store.loadSelectedGroupId(myPublicKey);
-    if (selected) {
-      setSelectedGroup(selected);
+    const selectedGroup = store.loadSelectedGroupId(myPublicKey);
+    if (selectedGroup) {
+      setSelectedGroup(selectedGroup);
+    }
+
+    const selectedMode = store.loadSelectedMode(myPublicKey);
+    if (selectedMode === RelayMode.global) {
+      if (selectedGroup) {
+        setSelectedValue([selectedMode, selectedGroup]);
+      }
+    } else if (selectedMode) {
+      setSelectedValue([selectedMode]);
     }
   }, [myPublicKey]);
+
+  useEffect(() => {
+    onSwitchRelay();
+  }, [selectedValue]);
 
   useEffect(() => {
     if (selectedGroup) {
@@ -104,68 +247,32 @@ export function RelaySelector({
     }
   }, [switchRelays, worker?.relayGroupId]);
 
-  // show relay status
-  const relayerStatusUI: any[] = [];
-  const relayerStatusIds: string[] = [];
-  const connectStatusArray = Array.from(wsConnectStatus.entries());
-  for (const relay of switchRelays?.relays || []) {
-    let status = connectStatusArray
-      .filter(c => c[0] === relay.url)
-      .map(c => c[1])[0];
-    if (status == null) {
-      // not found, it is not connected
-      status = false;
-    }
-    const style = status ? styles.connected : styles.disconnected;
-    const item = (
-      <li className={styles.rightMenuLi} key={relay.url}>
-        <Grid container style={{ fontSize: '14px' }}>
-          <Grid item xs={12} sm={8}>
-            <span className={style}> · </span>
-            <span style={{ color: 'gray' }}>
-              <Link href={'/backup?relay=' + relay}>{relay.url}</Link>
-            </span>
-          </Grid>
-        </Grid>
-      </li>
-    );
-    const index = relayerStatusIds.findIndex(v => v === relay.url);
-    if (index != -1) {
-      relayerStatusUI[index] = item;
-    } else {
-      relayerStatusIds[relayerStatusIds.length] = relay.url;
-      relayerStatusUI[relayerStatusUI.length] = item;
-    }
-  }
-
-  const getOptions = () => {
-    const ids = getSelectGroupId(groups);
-    return ids.map(id => {
-      return { value: id, label: `${id}(${groups[id].length})` };
-    });
+  const onChange = (value: string[] | any) => {
+    setSelectedValue(value);
   };
 
   return (
     <div className={styles.relaySelector}>
-      <Select
-        defaultValue={'default'}
-        value={selectedGroup}
-        style={{ width: '70%' }}
-        onChange={setSelectedGroup}
-        options={getOptions()}
+      <Cascader
+        defaultValue={['global', 'default']}
+        style={{ width: '100%', borderRadius: '8px' }}
+        dropdownRender={dropdownRender}
+        options={getModeOptions()}
+        allowClear={false}
+        value={selectedValue}
+        onChange={onChange}
       />
-
-      <Button
-        style={{ margin: '10px 5px' }}
-        onClick={() => {
-          setShowRelayStatus(!showRelayStatus);
-        }}
-        icon={<MenuOutlined />}
-      />
-
-      <div className={styles.relayStatus} hidden={!showRelayStatus}>
-        {relayerStatusUI}
-      </div>
+      {showProgress && (
+        <div className={styles.overlay}>
+          <div className={styles.spinContainer}>
+            <Spin
+              size="large"
+              tip="init mode, might takes 2-3 minutes, please wait.."
+              spinning={progressLoading}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,9 @@
 .relaySelector {
   display: flex;
   align-items: center;
+  width: 100%;
+  margin: 10px 0px;
+  display: inline-block;
 }
 
 .rightMenuLi {
@@ -31,4 +34,22 @@
     background: whitesmoke;
     padding: 5px;
     text-align: left;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .spinContainer {
+    padding: 10px;
+    background-color: white;
   }
