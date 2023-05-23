@@ -136,12 +136,8 @@ export function RelayManager({
     <div>
       
       <h3>
-        {t('relayManager.title')}({relays.length})
+        {t('relayManager.title')}
       </h3>
-      <ul style={styles.simpleUl}>{relayerStatusUI}</ul>
-      <RelayAdder publicKey={myPublicKey} />
-
-      <hr />
       <RelayPool />
     </div>
   );

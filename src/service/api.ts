@@ -101,21 +101,10 @@ export class base {
   }
 }
 
-const newHttpRequest = async (
-  subPath: string,
-  params: object = {},
-  type: HttpProtocolMethod = HttpProtocolMethod.get,
-) => {
-  const response: ApiHttpResponse = await (this as any).newHttpRequest()(
-    subPath,
-    params,
-    type,
-  );
-  return response;
-};
+
 export class Api extends base {
   constructor(url?: string, httpRequest?: HttpRequest) {
-    super(url || DEFAULT_API_URL, httpRequest || newHttpRequest);
+    super(url || DEFAULT_API_URL, httpRequest);
   }
 
   async getVersion(): Promise<string | null> {
