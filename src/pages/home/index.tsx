@@ -1,12 +1,9 @@
 import { Msgs } from 'components/layout/msg/Msg';
 import { Paths } from 'constants/path';
-import { Button } from '@mui/material';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { BlogFeeds } from '../blog/feed';
-import { getDraftId } from 'utils/common';
 import { LoginFormTip } from 'components/layout/NavHeader';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
@@ -15,21 +12,15 @@ import { useTranslation } from 'next-i18next';
 import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
+import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import { handleEvent, onSubmitText, refreshMsg } from './utils';
 import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
-import {
-  useSubGlobalMsg,
-  useSubMsg,
-  useSubMetaDataAndContactList,
-  useLoadMoreMsg,
-} from './hooks';
+import { useSubGlobalMsg, useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
 
 import styles from './index.module.scss';
-import BasicTabs from 'components/layout/SimpleTabs';
-import CreateIcon from '@mui/icons-material/Create';
-import PublicIcon from '@mui/icons-material/Public';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import Icon from 'components/Icon';
+import Link from 'next/link';
 
 export type ContactList = Map<
   PublicKey,
@@ -96,9 +87,41 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     loadMoreCount,
   });
 
-  const tabItems = {
-    note: (
-      <>
+  // right test data
+  const updates = [
+    {
+      content: '[4.13] Generating rss/json feed for...',
+      isNew: true,
+    },
+    {
+      content: '[4.12] ogp on blog post',
+      isNew: false,
+    }
+  ];
+  const friends = [
+    {
+      id: '1',
+      name: 'ElectronicMonkey',
+      desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
+      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+    },
+    {
+      id: '2',
+      name: 'ElectronicMonkey',
+      desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
+      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+    }
+  ];
+  const trending = [
+    { tag: 'Nostr', url: Paths.home },
+    { tag: 'Nip', url: Paths.home },
+    { tag: 'Bitcoin', url: Paths.home },
+    { tag: 'Zapping', url: Paths.home }
+  ]
+
+  return (
+    <BaseLayout>
+      <Left>
         <PubNoteTextarea
           mode={mode || ({} as LoginMode)}
           disabled={isReadonlyMode || !isLoggedIn}
@@ -112,7 +135,7 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         <div style={{ marginTop: '5px' }}>
           <div>
             <Button
-              fullWidth
+              block
               onClick={() =>
                 refreshMsg({
                   myContactList,
@@ -150,62 +173,46 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
           </ul>
         </div>
         <div>
-          <Button fullWidth onClick={() => setLoadMoreCount(prev => prev + 1)}>
+          <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>
             {t('home.loadMoreBtn')}
           </Button>
         </div>
-      </>
-    ),
-    post: (
-      <div>
-        <div
-          style={{
-            margin: '10px 0px 40px 0px',
-          }}
-        >
-          <Button
-            fullWidth
-            variant="contained"
-            style={{
-              textTransform: 'capitalize',
-              color: 'white',
-            }}
-            onClick={() =>
-              router.push({
-                pathname: Paths.write,
-                query: { did: getDraftId() },
-              })
-            }
-          >
-            <CreateIcon />
-            &nbsp;{t('nav.menu.blogDashboard')}
-          </Button>
-        </div>
-        <BlogFeeds />
-      </div>
-    ),
-  };
-
-  return (
-    <BaseLayout>
-      <Left>
-        <BasicTabs items={tabItems} />
       </Left>
       <Right>
-        <ul className={styles.menu}>
-          <li onClick={() => router.push({ pathname: Paths.universe })}>
-            <PublicIcon />
-            <span style={{ marginLeft: '5px' }}>
-              {'explore nostr universe'}
-            </span>
-          </li>
-          <li onClick={() => router.push({ pathname: Paths.fof })}>
-            <GroupAddIcon />
-            <span style={{ marginLeft: '5px' }}>
-              {'find friend of friends'}
-            </span>
-          </li>
-        </ul>
+        <div className={styles.rightPanel}>
+          <Input placeholder="Search" prefix={<Icon type='icon-search' />} />
+          <div className={styles.flycat}>
+            <h2>Flycat updates</h2>
+            {
+              updates.map((item, key) => (
+                <div className={styles.item} key={key}>
+                  <p>{item.content}</p>
+                  { item.isNew && <span>New</span> }
+                </div>
+              ))
+            }
+            <Link href={Paths.home}>Learn more</Link>
+          </div>
+          <div className={styles.friends}>
+            <h2>Friends of friends</h2>
+            {
+              friends.map((item, key) => (
+                <div className={styles.friend} key={key}>
+                  <Avatar src={item.avatar} />
+                  <div className={styles.friendInfo}>
+                    <h3>{item.name}</h3>
+                    <p>{item.desc}</p>
+                  </div>
+                  <Button className={styles.follow}>Follow</Button>
+                </div>
+              ))
+            }
+          </div>
+          <div className={styles.trending}>
+            <h2>Trending hashtags</h2>
+            { trending.map((item, key) => <Link href={item.url} key={key}>#{item.tag}</Link>) }
+          </div>
+        </div>
       </Right>
     </BaseLayout>
   );
