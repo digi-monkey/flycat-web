@@ -2,7 +2,7 @@ import { Relay } from 'service/relay/type';
 
 export interface RelayGroup {
 	id: string,
-   relays: RelayGroups,
+  relays: RelayGroups,
 }
 export interface RelayGroups {
   [name: string]: Relay[] | undefined;
