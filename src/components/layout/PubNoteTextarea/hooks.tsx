@@ -4,7 +4,7 @@ import { RootState } from 'store/configureStore';
 import { useSelector } from "react-redux";
 import { useCallWorker } from "hooks/useWorker";
 import { CallRelayType } from "service/worker/type";
-import { seedRelays } from "service/relay/seed";
+import { seedRelays } from "service/relay/pool/seed";
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
 import { deserializeMetadata, Event, EventContactListPTag, EventSetMetadataContent, EventTags, PublicKey, WellKnownEventKind } from 'service/api';
 import styles from './index.module.scss';

@@ -1,7 +1,7 @@
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { seedRelays } from "service/relay/seed";
+import { seedRelays } from "service/relay/pool/seed";
 import { Relay } from "service/relay/type";
 import { RootState } from "store/configureStore";
 

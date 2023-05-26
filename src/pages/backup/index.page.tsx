@@ -8,7 +8,7 @@ import { useTranslation } from 'next-i18next';
 import { connect, useSelector } from 'react-redux';
 import { WellKnownEventKind, Event } from 'service/api';
 import { isValidWssUrl } from 'service/helper';
-import { seedRelays } from 'service/relay/seed';
+import { seedRelays } from 'service/relay/pool/seed';
 import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';
 import styled from 'styled-components';

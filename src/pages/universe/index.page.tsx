@@ -7,7 +7,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { connect, useSelector } from 'react-redux';
-import { seedRelays } from 'service/relay/seed';
+import { seedRelays } from 'service/relay/pool/seed';
 import { UserMap } from 'service/type';
 import { CallRelayType } from 'service/worker/type';
 import { RootState } from 'store/configureStore';

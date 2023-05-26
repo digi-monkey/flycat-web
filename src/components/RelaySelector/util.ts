@@ -1,19 +1,19 @@
-import { RelayGroups, RelayMode, RelayModeSelectOption, toLabel } from './type';
+import { RelayGroupMap } from 'service/relay/group/type';
+import { RelayMode, RelayModeSelectOption, toLabel } from './type';
 
-export function getSelectGroupId(groups: RelayGroups) {
-  return Object.keys(groups)
-    .filter(key => groups[key] != null)
-    .map(key => `${key}`);
+export function getSelectGroupId(groups: RelayGroupMap) {
+  return Array.from(groups.keys())
+    .filter(key => groups.get(key) != null);
 }
 
-export function initRelayGroupOptions(groups: RelayGroups) {
+export function initRelayGroupOptions(groups: RelayGroupMap) {
   const ids = getSelectGroupId(groups);
   return ids.map(id => {
-    return { value: id, label: `${id}(${groups[id]!.length})` };
+    return { value: id, label: `${id}(${groups.get(id)!.length})` };
   });
 }
 
-export function initModeOptions(groups: RelayGroups) {
+export function initModeOptions(groups: RelayGroupMap) {
   const mode: RelayModeSelectOption[] = [
     {
       value: RelayMode.global,

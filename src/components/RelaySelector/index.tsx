@@ -3,15 +3,17 @@ import { useTranslation } from 'next-i18next';
 import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useDefaultGroup } from './hooks/useDefaultGroup';
+import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
 import { initModeOptions } from './util';
-import { relayGroups } from './groups';
 import { Cascader, Spin } from 'antd';
 import { dropdownRender } from './dropdown';
+import { RelayGroup } from 'service/relay/group';
+import { RelayGroupMap } from 'service/relay/group/type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
 
 import styles from './index.module.scss';
+
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
   newConnCallback?: (conns: string[]) => any;
@@ -28,10 +30,11 @@ export function RelaySelector({
   newConnCallback,
 }: RelaySelectorProps) {
   const { t } = useTranslation();
-  
   const defaultGroup = useDefaultGroup();
-  const groups = { ...relayGroups, default: defaultGroup };
   const myPublicKey = useReadonlyMyPublicKey();
+
+  const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
+
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const [selectedValue, setSelectedValue] = useState<string[]>();
@@ -53,12 +56,22 @@ export function RelaySelector({
   useLoadSelectedStore(myPublicKey, setSelectedValue);
   useGetSwitchRelay(
     myPublicKey,
-    groups,
+    relayGroupMap,
     selectedValue,
     setSwitchRelays,
     progressBegin,
     progressEnd,
   );
+
+  useEffect(() => {
+    // new a default group for the forward-compatibility
+    const defaultGroupId = "default";
+    const groups = new RelayGroup(myPublicKey);
+    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
+      groups.setGroup(defaultGroupId, defaultGroup);
+    }
+    setRelayGroupMap(groups.map);
+  }, [defaultGroup]);
 
   useEffect(() => {
     if (newConnCallback) {
@@ -101,7 +114,7 @@ export function RelaySelector({
         defaultValue={['global', 'default']}
         style={{ width: '100%', borderRadius: '8px' }}
         dropdownRender={dropdownRender}
-        options={initModeOptions(groups)}
+        options={initModeOptions(relayGroupMap)}
         allowClear={false}
         value={selectedValue}
         onChange={(value: string[] | any) => {
