@@ -1,4 +1,4 @@
-export const relayGroups = {
+export const seedGroups = {
 	"test-group": [
 		{
 			url: "wss://relay.damus.io",

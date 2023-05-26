@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { db } from 'service/relay/auto';
-import { RelayGroups, RelayMode, toRelayMode } from '../type';
+import { RelayMode, toRelayMode } from '../type';
 import { RelaySelectorStore } from '../store';
 import { Pool } from 'service/relay/pool';
 import { SwitchRelays } from 'service/worker/type';
+import { RelayGroupMap } from 'service/relay/group/type';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
-  groups: RelayGroups,
+  groups: RelayGroupMap,
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
 	progressBeginCb?: ()=>any,
@@ -83,7 +84,7 @@ export function useGetSwitchRelay(
 
       return {
         id: groupId,
-        relays: groups[groupId]!,
+        relays: groups.get(groupId)!,
       };
     }
 
@@ -101,7 +102,7 @@ export function useGetSwitchRelay(
       }
 
       const savedSelectedGroupId = store.loadSelectedGroupId(myPublicKey);
-      if (savedSelectedGroupId !== selectedGroup) {
+      if (selectedGroup && savedSelectedGroupId !== selectedGroup) {
         store.saveSelectedGroupId(myPublicKey, selectedGroup);
       }
 
@@ -110,7 +111,7 @@ export function useGetSwitchRelay(
 			}
 			// a very time-consuming operation
       const switchRelays = await getSwitchRelay(selectedValue);
-			
+
 		  if(progressEndCb){
 				progressEndCb();
 			}	

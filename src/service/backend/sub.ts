@@ -6,7 +6,7 @@ import {
 } from 'service/api';
 import { Pool } from 'service/backend/pool';
 import { waitUntilNip23RelayConnected, timeout } from 'service/backend/util';
-import { seedRelays } from 'service/relay/seed';
+import { seedRelays } from 'service/relay/pool/seed';
 
 export const callSubFilter = async ({
   filter,

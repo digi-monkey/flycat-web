@@ -1,10 +1,11 @@
 import { Api, PublicKey, Event, WellKnownEventKind } from 'service/api';
-import { Relay } from './type';
-import { ConnPool } from './connection/pool';
-import { WS } from './connection/ws';
-import { PubkeyRelay } from './auto/pubkey-relay';
-import { Assignment } from './auto/assignment';
-import { db } from './auto';
+import { Relay } from '../type';
+import { ConnPool } from '../connection/pool';
+import { WS } from '../connection/ws';
+import { PubkeyRelay } from '../auto/pubkey-relay';
+import { Assignment } from '../auto/assignment';
+import { db } from '../auto';
+import { RelayPoolDatabase } from './db';
 
 export interface BenchmarkResult {
   [url: string]: { benchmark: number; isFailed: boolean };
@@ -15,15 +16,17 @@ export class Pool {
   public relays: Relay[] = [];
 
   private api: Api;
+  private db: RelayPoolDatabase;
 
   constructor(url?: string) {
     if (url) this.apiUrl = url;
     this.api = new Api(this.apiUrl);
+    this.db = new RelayPoolDatabase();
   }
 
-  async getAllRelays() {
+  private async fetchApi(){
     const res: string[] = await this.api.httpRequest('');
-    this.relays = res.map(r => {
+    const relays = res.map(r => {
       return {
         url: r,
         read: true,
@@ -31,7 +34,20 @@ export class Pool {
         isConnected: true,
       };
     });
-    return this.relays;
+    return relays;
+  }
+
+  async getAllRelays() {
+    let relays = this.db.loadAll();
+    if(relays.length === 0){
+      relays = await this.fetchApi();
+      for(const r of relays){
+        this.db.save(r);
+      }
+    }
+
+    this.relays = relays;
+    return relays;
   }
 
   static async benchmark(urls: string[]): Promise<BenchmarkResult> {

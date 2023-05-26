@@ -1,13 +1,3 @@
-import { Relay } from 'service/relay/type';
-
-export interface RelayGroup {
-	id: string,
-  relays: RelayGroups,
-}
-export interface RelayGroups {
-  [name: string]: Relay[] | undefined;
-}
-
 export enum RelayMode {
   global = 'global',
   auto = 'auto',
