@@ -15,7 +15,7 @@ export async function getPublicKeyFromDotBit(
 
   const npubPk = record.value;
   const decoded = Nip19.decode(npubPk);
-  if (decoded.type !== Nip19DataType.Pubkey) {
+  if (decoded.type !== Nip19DataType.Npubkey) {
     throw new Error(
       'Nip19 Decode error: invalid nostr key value in dotbit ' +
         didAlias +

@@ -105,9 +105,9 @@ const LoginCard = ({
       return;
     }
 
-    if (pubKey.startsWith(Nip19DataPrefix.Pubkey)) {
+    if (pubKey.startsWith(Nip19DataPrefix.Npubkey)) {
       const res = Nip19.decode(pubKey);
-      if (res.type !== Nip19DataType.Pubkey) {
+      if (res.type !== Nip19DataType.Npubkey) {
         Swal.fire({
           icon: 'error',
           text: 'bech32 encoded publickey decoded err',
@@ -150,9 +150,9 @@ const LoginCard = ({
       return alert('please input privKey!');
     }
 
-    if (privKey.startsWith(Nip19DataPrefix.Privkey)) {
+    if (privKey.startsWith(Nip19DataPrefix.Nprivkey)) {
       const res = Nip19.decode(privKey);
-      if (res.type !== Nip19DataType.Privkey) {
+      if (res.type !== Nip19DataType.Nprivkey) {
         Swal.fire({
           icon: 'error',
           text: 'bech32 encoded privkey decoded err',
@@ -221,7 +221,7 @@ const LoginCard = ({
         {myPublicKey && (
           <CopyText
             name={t('loginForm.copyPubKey')}
-            textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Pubkey)}
+            textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
           />
         )}
       </div>
@@ -248,13 +248,13 @@ const LoginCard = ({
                   evmUsername,
                 );
                 if (privKey == null) throw new Error('unable to get privKey');
-                return Nip19.encode(privKey, Nip19DataType.Privkey);
+                return Nip19.encode(privKey, Nip19DataType.Nprivkey);
               } else {
                 const privKey = await getPrivateKeyFromWalletConnectSignIn(
                   evmUsername,
                 );
                 if (privKey == null) throw new Error('unable to get privKey');
-                return Nip19.encode(privKey, Nip19DataType.Privkey);
+                return Nip19.encode(privKey, Nip19DataType.Nprivkey);
               }
             }}
           />

@@ -12,7 +12,7 @@ secp256k1.utils.hmacSha256Sync = (key, ...msgs) =>
 secp256k1.utils.sha256Sync = (...msgs) =>
   sha256(secp256k1.utils.concatBytes(...msgs));
 
-const { bech32 } = require('bech32');
+import { bech32 } from "@scure/base";
 
 const MODE = CryptoJS.mode.CBC;
 const PADDING = CryptoJS.pad.Pkcs7;
@@ -54,16 +54,17 @@ export function randomKeyPair(): { privKey: string; pubKey: string } {
 
 export function bech32Encode(data: HexStr, prefix: Utf8Str): string {
   try {
-    const words = bech32.toWords(fromHexString(data));
+    const words = bech32.toWords(fromHexString(data)!);
     return bech32.encode(prefix, words);
   } catch (error: any) {
     throw new Error(`bech32Encode error ${error.message}`);
   }
 }
 
-export function bech32Decode(data: string) {
+export function bech32Decode(data: string, maxSize = 5e3) {
   try {
-    const { prefix, words } = bech32.decode(data);
+    const { prefix, words } = bech32.decode(data, maxSize);
+    console.log("decoded: ", prefix, words);
     const buffer = Buffer.from(bech32.fromWords(words));
     return { decoded: toHexString(buffer), prefix };
   } catch (error: any) {

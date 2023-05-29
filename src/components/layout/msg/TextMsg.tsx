@@ -24,6 +24,10 @@ import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 import { Nip19 } from 'service/nip/19';
 import { Nip21 } from 'service/nip/21';
+import { seedGroups } from 'service/relay/group/seed';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
+import { Relay } from 'service/relay/type';
 
 const styles = {
   root: {
@@ -409,14 +413,28 @@ export const TextMsg = ({
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
+  const myPublicKey = useReadonlyMyPublicKey();
+  
+  const [content, setContent] = useState<string>(msgEvent.content);
+  const [relayUrls, setRelayUrls] = useState<string[]>([]);
 
-  const content = useMemo(() => {
-    const event = msgEvent;
-    event.content = Nip21.replaceNprofile(event, userMap);
-    event.content = Nip08.replaceMentionPublickey(event, userMap);
-    event.content = Nip08.replaceMentionEventId(event);
+  useLoadSelectedRelays(myPublicKey, (r: Relay[])=>{setRelayUrls(r.map(r=>r.url))});
 
-    return event.content;
+  const updateContent = async () => {
+    let content = msgEvent.content;
+
+    content = await Nip21.replaceNprofile(msgEvent, userMap, relayUrls);
+    content = Nip21.replaceNote(content, userMap);
+    content = Nip21.replaceNevent(content, userMap);
+    content = Nip21.replaceNpub(content, userMap);
+    content = Nip08.replaceMentionPublickey(msgEvent, userMap);
+    content = Nip08.replaceMentionEventId(msgEvent);
+
+    setContent(content);
+  };
+
+  useEffect(()=>{
+    updateContent()
   }, [msgEvent, userMap]);
 
   return (
