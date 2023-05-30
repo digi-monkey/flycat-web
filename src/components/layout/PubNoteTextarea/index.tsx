@@ -75,7 +75,7 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
           className={styles.postTextArea}
           value={text}
           onChange={value => setText(value)}
-          onSelect={({key, value}) => setSelectMention({ [value || '']: Nip19.nprofileEncode(key || '', relays), ...selectMention })}
+          onSelect={({key, value}) => setSelectMention({ [value || '']: Nip19.encodeNprofile({pubkey: key ?? '', relays}), ...selectMention })}
           options={mentionValue}
           onFocus={() => setMentionsFocus(true)}
           onBlur={() => setMentionsFocus(false)}

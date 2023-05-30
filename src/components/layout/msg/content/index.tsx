@@ -79,7 +79,6 @@ export function Content({ text, classNames }: ContentProps) {
     videoUrls,
     audioUrls,
   } = normalizeContent(text);
-  
   return (
     <div className={classNames}>
       <Texting modifiedText={modifiedText} />

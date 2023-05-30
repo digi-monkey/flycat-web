@@ -150,6 +150,8 @@ export enum WellKnownEventKind {
   event_del = 5,
   reposts = 6,
   like = 7,
+  zap_request = 9734,
+  zap_receipt = 9735,
   article_highlight = 9802,
   flycat_site_metadata = 10000,
   long_form = 30023, // see nip23
@@ -167,13 +169,17 @@ export enum EventTags {
   D = 'd',
   T = 't',
   A = 'a',
+  Z = 'zap'
 }
+
+export type LudType = "lud06" | "lud16";
 
 export type EventETag = [EventTags.E, EventId, RelayUrl];
 export type EventPTag = [EventTags.P, PublicKey, RelayUrl];
 export type EventDTag = [EventTags.D, string];
 export type EventATag = [EventTags.A, Naddr, RelayUrl]; // ["a", "<kind>:<pubkey>:<d-identifier>", "<relay url>"]
 export type EventTTag = [EventTags.T, string];
+export type EventZTag = [EventTags.Z, string, LudType];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
 
 // relay response

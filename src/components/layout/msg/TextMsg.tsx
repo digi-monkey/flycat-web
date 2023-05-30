@@ -24,6 +24,10 @@ import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 import { Nip19 } from 'service/nip/19';
 import { Nip21 } from 'service/nip/21';
+import { seedGroups } from 'service/relay/group/seed';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
+import { Relay } from 'service/relay/type';
 
 const styles = {
   root: {
@@ -102,7 +106,7 @@ const styles = {
   msgWord: {
     fontSize: '14px',
     display: 'block',
-    wordBreak: "break-all" as const
+    wordBreak: 'break-all' as const,
   },
   userName: {
     color: 'black',
@@ -154,7 +158,6 @@ export interface TextMsgProps {
   msgEvent: EventWithSeen;
   lightingAddress?: string;
 }
-
 
 export const ProfileAvatar = ({
   picture,
@@ -232,9 +235,7 @@ export const ReactionGroups = ({
 }) => {
   const { t } = useTranslation();
 
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(
-    null,
-  );
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -300,7 +301,8 @@ export const ReactionGroups = ({
                 }
               }}
             >
-              <BroadcastOnPersonalIcon style={{ verticalAlign: 'middle' }} /> {t('seen.broadcast')}
+              <BroadcastOnPersonalIcon style={{ verticalAlign: 'middle' }} />{' '}
+              {t('seen.broadcast')}
             </button>
           </div>
         </Popover>
@@ -409,14 +411,38 @@ export const TextMsg = ({
 }: TextMsgProps) => {
   const { t } = useTranslation();
   const bg = { backgroundColor: 'white' };
+  const myPublicKey = useReadonlyMyPublicKey();
 
-  const content = useMemo(() => {
-    const event = msgEvent;
-    event.content = Nip21.replaceNprofile(event, userMap);
-    event.content = Nip08.replaceMentionPublickey(event, userMap);
-    event.content = Nip08.replaceMentionEventId(event);
+  const [content, setContent] = useState<string>('');
+  const [relayUrls, setRelayUrls] = useState<string[]>([]);
 
-    return event.content;
+  useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
+    setRelayUrls(r.map(r => r.url));
+  });
+
+  const updateContent = async () => {
+    msgEvent.content = await Nip21.replaceNprofile(
+      msgEvent.content,
+      userMap,
+      relayUrls,
+    );
+    msgEvent.content = await Nip21.replaceNote(msgEvent.content, relayUrls);
+    msgEvent.content = await Nip21.replaceNevent(msgEvent.content, userMap);
+    msgEvent.content = await Nip21.replaceNpub(
+      msgEvent.content,
+      userMap,
+      relayUrls,
+    );
+    msgEvent.content = await Nip21.replaceNaddr(msgEvent.content, relayUrls);
+    msgEvent.content = await Nip21.replaceNrelay(msgEvent.content);
+
+    msgEvent.content = Nip08.replaceMentionPublickey(msgEvent, userMap);
+    msgEvent.content = Nip08.replaceMentionEventId(msgEvent);
+    setContent(msgEvent.content);
+  };
+
+  useEffect(() => {
+    updateContent();
   }, [msgEvent, userMap]);
 
   return (
