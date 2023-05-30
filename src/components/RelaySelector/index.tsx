@@ -1,16 +1,15 @@
-import { useCallWorker } from 'hooks/useWorker';
-import { useTranslation } from 'next-i18next';
-import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
-import { useEffect, useState } from 'react';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
-import { initModeOptions } from './util';
-import { Cascader, Spin } from 'antd';
-import { dropdownRender } from './dropdown';
 import { RelayGroup } from 'service/relay/group';
 import { RelayGroupMap } from 'service/relay/group/type';
-import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
+import { useCallWorker } from 'hooks/useWorker';
+import { Cascader, Spin } from 'antd';
+import { useTranslation } from 'next-i18next';
+import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
+import { useEffect, useState } from 'react';
+import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
+import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';
 
@@ -112,9 +111,13 @@ export function RelaySelector({
     <div className={styles.relaySelector}>
       <Cascader
         defaultValue={['global', 'default']}
-        style={{ width: '100%', borderRadius: '8px' }}
-        dropdownRender={dropdownRender}
-        options={initModeOptions(relayGroupMap)}
+        className={styles.cascader}
+        popupClassName={styles.popup}
+        options={[
+          getDisabledTitle(),
+          ...initModeOptions(relayGroupMap),
+          ...getFooterMenus(),
+        ]}
         allowClear={false}
         value={selectedValue}
         onChange={(value: string[] | any) => {
