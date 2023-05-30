@@ -1,17 +1,21 @@
+import { Paths } from 'constants/path';
+import { useRouter } from 'next/router';
 import { RelayGroup } from 'service/relay/group';
 import { RelayGroupMap } from 'service/relay/group/type';
 import { useCallWorker } from 'hooks/useWorker';
-import { Cascader, Spin } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
+import { Button, Cascader, Modal, Spin } from 'antd';
 import { useEffect, useState } from 'react';
+import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
 import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';
+import Icon from 'components/Icon';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -29,18 +33,40 @@ export function RelaySelector({
   newConnCallback,
 }: RelaySelectorProps) {
   const { t } = useTranslation();
+  const { worker, newConn, wsConnectStatus } = useCallWorker();
+
+  const router = useRouter();
   const defaultGroup = useDefaultGroup();
   const myPublicKey = useReadonlyMyPublicKey();
 
+  const [openAbout, setOpenAbout] = useState(false);
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-
-  const { worker, newConn, wsConnectStatus } = useCallWorker();
-
   const [selectedValue, setSelectedValue] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
-
   const [progressLoading, setProgressLoading] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
+  const modalData = [
+    {
+      icon: <Icon type="icon-global-mode" />,
+      title: t('relaySelector.modal.global'),
+      desc: t('relaySelector.modal.globalDesc'),
+    },
+    {
+      icon: <Icon type="icon-auto-mode" />,
+      title: t('relaySelector.modal.auto'),
+      desc: t('relaySelector.modal.autoDesc'),
+    },
+    {
+      icon: <Icon type="icon-fastest-mode" />,
+      title: t('relaySelector.modal.fastest'),
+      desc: t('relaySelector.modal.fastestDesc'),
+    },
+    {
+      icon: <Icon type="icon-rule-mode" />,
+      title: t('relaySelector.modal.rule'),
+      desc: t('relaySelector.modal.ruleDesc'),
+    },
+  ];
 
   const progressBegin = () => {
     setProgressLoading(true);
@@ -107,6 +133,22 @@ export function RelaySelector({
     }
   }, [switchRelays, worker?.relayGroupId]);
 
+  const onChange = (value: string[] | any) => {
+    if(!Array.isArray(value)) return;
+    if(value[0] === RelayModeSelectMenus.displayBenchmark) {
+      // TODO
+    }
+    if(value[0] === RelayModeSelectMenus.aboutRelayMode) {
+      setOpenAbout(true);
+      return;
+    }
+    if(value[0] === RelayModeSelectMenus.manageRelays) {
+      router.push(Paths.relay);
+      return;
+    }
+    setSelectedValue(value);
+  }
+
   return (
     <div className={styles.relaySelector}>
       <Cascader
@@ -120,9 +162,11 @@ export function RelaySelector({
         ]}
         allowClear={false}
         value={selectedValue}
-        onChange={(value: string[] | any) => {
-          setSelectedValue(value);
-        }}
+        onChange={onChange}
+        displayRender={(label) => <>
+          <span className={styles.relayMode}>{label[0]}</span>
+          { label.length > 1 && <span className={styles.childrenItem}>{label[1]}</span> }
+        </>}
       />
       {showProgress && (
         <div className={styles.overlay}>
@@ -135,6 +179,29 @@ export function RelaySelector({
           </div>
         </div>
       )}
+      <Modal 
+        title={t('relaySelector.modal.title')}
+        wrapClassName={styles.modal}
+        footer={null}
+        open={openAbout}
+        onCancel={() => setOpenAbout(false)}
+        closeIcon={<Icon type='icon-cross' className={styles.modalCoseIcons} />}
+      >
+        <ul>
+          { modalData.map(item => (
+            <li key={item.title}>
+              {item.icon}
+              <div className={styles.content}>
+                <h1 className={styles.title}>{item.title}</h1>
+                <p className={styles.desc}>{item.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className={styles.footer}>
+          <Button type='primary' onClick={() => setOpenAbout(false)}>{t('relaySelector.modal.buttonText')}</Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -72,6 +72,18 @@
 
 .cascader{
   width: 100%;
+
+  .relayMode{
+    background-color: var(--neutral-02);
+    border-radius: var(--baseBorderRadius4);
+    padding: 2px 6px;
+    height: 26px;
+    @include font-label;
+  }
+
+  .childrenItem{
+    margin-left: 10px;
+  }
 }
 
 .popup{
@@ -80,7 +92,6 @@
   overflow: initial;
 
   :global{
-
     .ant-cascader-menus {
       ul + ul {
         margin-left: 7px !important;
@@ -140,4 +151,49 @@
       }
     }
   }
+}
+
+.modal{
+  ul{
+    margin: 0;
+    padding: 20px 56px 0 0;
+    list-style: none;
+
+    li{
+      display: flex;
+      margin-bottom: 24px;
+
+      svg{
+        width: 32px;
+        height: 32px;
+      }
+
+      .content{
+        margin-left: 15px;
+
+        .title{
+          @include font-label-bold;
+          margin: 0;
+        }
+        .desc{
+          @include font-footnote;
+          color: var(--neutral-06);
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .footer{
+    text-align: right;
+    button{
+      width: 103px;
+      height: 32px;
+    }
+  }
+}
+
+.modalCoseIcons{
+  width: 24px;
+  height: 24px;
 }
