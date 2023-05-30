@@ -97,6 +97,8 @@
   @include for-desktop-s {
     --container: calc(100vw - 80px * 2);
   }
+
+  --gridColWidth: calc((var(--container) - var(--gapWidth) * 11) / 12);
 }
 
 .f-container {

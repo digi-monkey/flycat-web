@@ -1,5 +1,5 @@
 import { RelayGroupMap } from 'service/relay/group/type';
-import { RelayMode, RelayModeSelectOption, toLabel } from './type';
+import { RelayMode, RelayModeSelectMenus, RelayModeSelectOption, toLabel } from './type';
 
 export function getSelectGroupId(groups: RelayGroupMap) {
   return Array.from(groups.keys())
@@ -25,4 +25,25 @@ export function initModeOptions(groups: RelayGroupMap) {
     { value: RelayMode.rule, label: toLabel(RelayMode.rule), disabled: true },
   ];
   return mode;
+}
+
+export function getDisabledTitle() {
+  return {
+    value: 'Relay Mode',
+    label: 'Relay Mode',
+    disabled: true,
+  }
+}
+
+export function getFooterMenus() {
+  return [{
+    value: RelayModeSelectMenus.displayBenchmark,
+    label: 'Display benchmark',
+  }, {
+    value: RelayModeSelectMenus.aboutRelayMode,
+    label: 'About Relay Mode',
+  }, {
+    value: RelayModeSelectMenus.manageRelays,
+    label: 'Manage Relays..'
+  }]
 }

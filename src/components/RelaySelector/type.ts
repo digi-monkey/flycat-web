@@ -5,6 +5,12 @@ export enum RelayMode {
   rule = 'rule',
 }
 
+export enum RelayModeSelectMenus {
+  displayBenchmark = 'DisplayBenchmark',
+  aboutRelayMode = 'AboutRelayMode',
+  manageRelays = 'ManageRelays',
+}
+
 export function toLabel(mode: RelayMode) {
   switch (mode) {
     case RelayMode.global:
