@@ -1,6 +1,5 @@
 import { Api } from 'service/api';
 import { compressImage } from 'service/helper';
-import { Nip19MetaDataPerfix } from "service/nip/19";
 
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {

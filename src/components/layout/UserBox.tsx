@@ -195,7 +195,7 @@ export const UserProfileBox = ({ pk, about, followCount }: UserBoxPros) => {
         <span style={styles.about}>
           <CopyText
             name={'🔑'}
-            textToCopy={Nip19.encode(pk, Nip19DataType.Pubkey)}
+            textToCopy={Nip19.encode(pk, Nip19DataType.Npubkey)}
             successMsg={'PublicKey copied to clipboard!'}
           />
           {about}

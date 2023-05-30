@@ -522,7 +522,7 @@ export const BlogFeed = ({ isLoggedIn }) => {
                 <span style={{ fontSize: '12px', color: 'gray' }}>
                   {' by '}
                   {userMap.get(s.pk)?.name ||
-                    shortPublicKey(Nip19.encode(s.pk, Nip19DataType.Pubkey))}
+                    shortPublicKey(Nip19.encode(s.pk, Nip19DataType.Npubkey))}
                 </span>
                 <span
                   style={{
