@@ -288,5 +288,19 @@
     "me": "我",
     "success": "发布成功！请刷新页面，抱歉，我们会尽快解决这个问题！",
     "placeholder": "请填写您的评论"
+  },
+  "relaySelector": {
+    "modal": {
+      "title": "什么是中继模式?",
+      "global": "全局",
+      "globalDesc": "您可以在列表中选择中继组/单个中继",
+      "auto": "自动",
+      "autoDesc": "我们将根据我们的算法自动选择一个继电器",
+      "fastest": "最快",
+      "fastestDesc": "我们将选择连接速度最快的中继",
+      "rule": "规则",
+      "ruleDesc": "您可以通过上传自己的脚本来定制您在Flycat上的整个体验",
+      "buttonText": "知道了"
+    }
   }
 }
