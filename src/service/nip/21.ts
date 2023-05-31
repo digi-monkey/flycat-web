@@ -1,4 +1,3 @@
-import { i18n } from 'next-i18next';
 import {
   Event,
   EventSetMetadataContent,
@@ -14,26 +13,67 @@ import {
   Nip19DataType,
   Nip19ShareableDataType,
 } from './19';
-import { Paths } from 'constants/path';
 import { UserMap } from 'service/type';
 import { ConnPool } from 'service/relay/connection/pool';
 import { WS } from 'service/relay/connection/ws';
-import { shortPublicKey } from 'service/helper';
+
+export interface NpubResult {
+  key: string;
+  profile:
+    | EventSetMetadataContent
+    | (EventSetMetadataContent & { created_at })
+    | null;
+  pubkey: string;
+}
+
+export interface NprofileResult {
+  key: string;
+  profile:
+    | EventSetMetadataContent
+    | (EventSetMetadataContent & { created_at })
+    | null;
+  decodedMetadata: DecodedNprofileResult;
+}
+
+export interface NoteResult {
+  key: string;
+  noteEvent: Event | null;
+  eventId: string;
+}
+
+export interface NeventResult {
+  key: string;
+  noteEvent: Event | null;
+  decodedMetadata: DecodedNeventResult;
+}
+
+export interface NaddrResult {
+  key: string;
+  replaceableEvent: Event | null;
+  decodedMetadata: DecodedNaddrResult;
+}
+
+export interface NrelayResult {
+  key: string;
+  decodedMetadata: DecodedNrelayResult;
+}
 
 export class Nip21 {
   // todo: change for-loop to parallel and re-use connection on fallback relays
-  static async replaceNpub(
+  static async transformNpub(
     content: string,
     userMap: UserMap,
     fallbackRelays: string[],
   ) {
-    const match = /nostr:npub\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+    const results: NpubResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:npub\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const npub = key.split(':')[1];
       const { type, data: pubkey } = Nip19.decode(npub);
-      if (type !== Nip19DataType.Npubkey) return content;
+      if (type !== Nip19DataType.Npubkey) return null;
 
       let user:
         | EventSetMetadataContent
@@ -52,36 +92,37 @@ export class Nip21 {
         }
       }
 
-      content = content.replace(
+      return {
         key,
-        `<a href="${i18n?.language + Paths.user + pubkey}" target="_self">@${
-          user?.name || shortPublicKey(pubkey)
-        }</a>`,
-      );
-      return content;
+        profile: user,
+        pubkey,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) results.push(result);
     }
 
-    return content;
+    return results;
   }
 
-  static async replaceNprofile(
+  static async transformNprofile(
     content: string,
     userMap: UserMap,
     fallbackRelays: string[],
   ) {
-    const match = /nostr:nprofile\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+    const results: NprofileResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:nprofile\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const nprofile = key.split(':')[1];
       const { type, data: _data } = Nip19.decodeShareable(nprofile);
-      if (type !== Nip19ShareableDataType.Nprofile) return content;
-      const data = _data as DecodedNprofileResult;
-      const pubkey = data.pubkey;
+      if (type !== Nip19ShareableDataType.Nprofile) return null;
+      const decodedMetadata = _data as DecodedNprofileResult;
+      const pubkey = decodedMetadata.pubkey;
 
       let user:
         | EventSetMetadataContent
@@ -94,9 +135,9 @@ export class Nip21 {
       }
 
       if (!user) {
-        const relays = data.relays || fallbackRelays;
+        const relays = decodedMetadata.relays || fallbackRelays;
         let _user = await fetchProfile({ pubkey, relays });
-        if (_user == null && data.relays) {
+        if (_user == null && decodedMetadata.relays) {
           _user = await fetchProfile({ pubkey, relays: fallbackRelays });
         }
 
@@ -105,105 +146,116 @@ export class Nip21 {
         }
       }
 
-      content = content.replace(
+      return {
         key,
-        `<a href="/${i18n?.language + Paths.user + pubkey}" target="_self">@${
-          user?.name || shortPublicKey(pubkey)
-        }</a>`,
-      );
-
-      return content;
+        decodedMetadata,
+        profile: user,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) {
+        results.push(result);
+      }
     }
 
-    return content;
+    return results;
   }
 
-  static async replaceNote(content: string, fallbackRelays: string[]) {
-    const match = /nostr:note\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+  static async transformNote(content: string, fallbackRelays: string[]) {
+    const results: NoteResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:note\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const encodedData = key.split(':')[1];
       const { type, data: eventId } = Nip19.decode(encodedData);
-      if (type !== Nip19DataType.EventId) return content;
+      if (type !== Nip19DataType.EventId) return null;
 
-      const event = await fetchNoteEvent({ eventId, relays: fallbackRelays });
+      const noteEvent = await fetchNoteEvent({
+        eventId,
+        relays: fallbackRelays,
+      });
 
-      content = content.replace(
+      return {
         key,
-        `<a href="/${
-          i18n?.language + Paths.event + eventId
-        }" target="_self">note@${event?.id || eventId}</a>`,
-      );
-
-      return content;
+        noteEvent,
+        eventId,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) {
+        results.push(result);
+      }
     }
 
-    return content;
+    return results;
   }
 
-  static async replaceNevent(content: string, userMap: UserMap) {
-    const match = /nostr:nevent\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+  static async transformNevent(content: string, userMap: UserMap) {
+    const results: NeventResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:nevent\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const nevent = key.split(':')[1];
       const { type, data: _data } = Nip19.decodeShareable(nevent);
-      if (type !== Nip19ShareableDataType.Nevent) return content;
+      if (type !== Nip19ShareableDataType.Nevent) return null;
 
-      const data = _data as DecodedNeventResult;
-      const eventId = data.id;
+      const decodedMetadata = _data as DecodedNeventResult;
+      const noteEvent = await fetchNoteEvent({
+        eventId: decodedMetadata.id,
+        relays: decodedMetadata.relays,
+      });
 
-      const event = await fetchNoteEvent({ eventId, relays: data.relays });
-
-      content = content.replace(
+      return {
         key,
-        `<a href="${
-          i18n?.language + Paths.event + eventId
-        }" target="_self">note@${event?.id || eventId}</a>`,
-      );
-      return content;
+        noteEvent,
+        decodedMetadata,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) {
+        results.push(result);
+      }
     }
 
-    return content;
+    return results;
   }
 
-  static async replaceNaddr(content: string, fallbackRelays: string[]) {
-    const match = /nostr:naddr\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+  static async transformNaddr(content: string, fallbackRelays: string[]) {
+    const results: NaddrResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:naddr\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const naddr = key.split(':')[1];
       const { type, data: _data } = Nip19.decodeShareable(naddr);
-      if (type !== Nip19ShareableDataType.Naddr) return content;
-      const data = _data as DecodedNaddrResult;
+      if (type !== Nip19ShareableDataType.Naddr) return null;
+      const decodedMetadata = _data as DecodedNaddrResult;
 
-      const pubkey = data.pubkey;
-      const identifier = data.identifier;
-      const kind = data.kind;
-      const relays = data.relays;
+      const pubkey = decodedMetadata.pubkey;
+      const identifier = decodedMetadata.identifier;
+      const kind = decodedMetadata.kind;
+      const relays = decodedMetadata.relays;
 
-      let event = await fetchReplaceableEvent({
+      let replaceableEvent = await fetchReplaceableEvent({
         kind,
         identifier,
         pubkey,
         relays,
       });
 
-      if (!event) {
-        event = await fetchReplaceableEvent({
+      if (!replaceableEvent) {
+        replaceableEvent = await fetchReplaceableEvent({
           kind,
           identifier,
           pubkey,
@@ -211,46 +263,49 @@ export class Nip21 {
         });
       }
 
-      content = content.replace(
+      return {
         key,
-        `<a href="${
-          i18n?.language + Paths.event + identifier
-        }" target="_self">naddr@${pubkey}:${kind}:${identifier}</a>`,
-      );
-      return content;
+        decodedMetadata,
+        replaceableEvent,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) {
+        results.push(result);
+      }
     }
 
-    return content;
+    return results;
   }
 
-  static async replaceNrelay(content: string) {
-    const match = /nostr:nrelay\S*\b/g.exec(content);
-    if (match == null || match?.length === 0) return content;
+  static async transformNrelay(content: string) {
+    const results: NrelayResult[] = [];
 
-    const replace = async (key: string) => {
+    const match = /nostr:nrelay\S*\b/g.exec(content);
+    if (match == null || match?.length === 0) return results;
+
+    const transform = async (key: string) => {
       const nrelay = key.split(':')[1];
       const { type, data: _data } = Nip19.decodeShareable(nrelay);
-      if (type !== Nip19ShareableDataType.Nrelay) return content;
+      if (type !== Nip19ShareableDataType.Nrelay) return null;
       const relay = _data as DecodedNrelayResult;
 
-      content = content.replace(
+      return {
         key,
-        `<a href="${
-          i18n?.language + Paths.event + relay
-        }" target="_self">relay@${relay}</a>`,
-      );
-      return content;
+        decodedMetadata: relay,
+      };
     };
 
     for (const key of match) {
-      content = await replace(key);
+      const result = await transform(key);
+      if (result) {
+        results.push(result);
+      }
     }
 
-    return content;
+    return results;
   }
 }
 

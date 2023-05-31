@@ -7,14 +7,14 @@ import { Tipping } from './reaction/Tipping';
 import { UserMap } from 'service/type';
 import { Bookmark } from './reaction/Bookmark';
 import { CallWorker } from 'service/worker/callWorker';
-import { isEmptyStr } from 'service/helper';
+import { isEmptyStr, shortPublicKey } from 'service/helper';
 import { ShowThread } from './reaction/ShowThread';
 import { ShareArticle } from './Share';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { Grid, Popover } from '@mui/material';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'service/worker/type';
-import { useTranslation } from 'next-i18next';
+import { i18n, useTranslation } from 'next-i18next';
 import { ReactToUserList } from './ReplyToUserList';
 import { useEffect, useMemo, useState } from 'react';
 import { ArticleContentNoAvatar, Content } from 'components/layout/msg/content';
@@ -23,7 +23,15 @@ import Link from 'next/link';
 import ReplyButton from 'components/layout/msg/reaction/ReplyBtn';
 import BroadcastOnPersonalIcon from '@mui/icons-material/BroadcastOnPersonal';
 import { Nip19 } from 'service/nip/19';
-import { Nip21 } from 'service/nip/21';
+import {
+  NaddrResult,
+  NeventResult,
+  Nip21,
+  NoteResult,
+  NprofileResult,
+  NpubResult,
+  NrelayResult,
+} from 'service/nip/21';
 import { seedGroups } from 'service/relay/group/seed';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
@@ -420,24 +428,129 @@ export const TextMsg = ({
     setRelayUrls(r.map(r => r.url));
   });
 
+  const npubHtml = (npub: NpubResult) => {
+    if (npub.profile) {
+      return `<div>${npub.profile.name} ${npub.profile.picture} ${npub.profile.about}</div>`;
+    }
+
+    return `<a href="${
+      i18n?.language + Paths.user + npub.pubkey
+    }" target="_self">@${shortPublicKey(npub.pubkey)}</a>`;
+  };
+
+  const nprofileHtml = (nprofile: NprofileResult) => {
+    if (nprofile.profile) {
+      return `<div>${nprofile.profile.name} ${nprofile.profile.picture} ${nprofile.profile.about}</div>`;
+    }
+
+    return `<a href="${
+      i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey
+    }" target="_self">@${shortPublicKey(nprofile.decodedMetadata.pubkey)}</a>`;
+  };
+
+  const neventHtml = (nevent: NeventResult) => {
+    if (nevent.noteEvent) {
+      return `<div>${nevent.noteEvent.id} ${nevent.noteEvent.content}</div>`;
+    }
+
+    return `<a href="${
+      i18n?.language + Paths.user + nevent.decodedMetadata.id
+    }" target="_self">nevent@${nevent.decodedMetadata.id}</a>`;
+  };
+
+  const noteHtml = (note: NoteResult) => {
+    if (note.noteEvent) {
+      return `<div>${note.noteEvent.content}</div>`;
+    }
+
+    return `<a href="${
+      i18n?.language + Paths.event + note.eventId
+    }" target="_self">note@${note.eventId}</a>`;
+  };
+
+  const nrelayHtml = (nrelay: NrelayResult) => {
+    return `<div>${nrelay.decodedMetadata}</div>`;
+  };
+
+  const naddrHtml = (naddr: NaddrResult) => {
+    if (naddr.replaceableEvent) {
+      return `<div>${naddr.replaceableEvent.content}</div>`;
+    }
+
+    return `<a href="${
+      i18n?.language + Paths.user + naddr.decodedMetadata.kind
+    }" target="_self">@addr
+    ${naddr.decodedMetadata.pubkey}:${naddr.decodedMetadata.kind}:${
+      naddr.decodedMetadata.identifier
+    }</a>`;
+  };
+
+  const replaceNpubs = (content: string, npubs: NpubResult[]) => {
+    for (const npub of npubs) {
+      content = content.replace(npub.key, npubHtml(npub));
+    }
+    return content;
+  };
+
+  const replaceNprofiles = (content: string, nprofiles: NprofileResult[]) => {
+    for (const nprofile of nprofiles) {
+      content = content.replace(nprofile.key, nprofileHtml(nprofile));
+    }
+    return content;
+  };
+
+  const replaceNevent = (content: string, nevents: NeventResult[]) => {
+    for (const nevent of nevents) {
+      content = content.replace(nevent.key, neventHtml(nevent));
+    }
+    return content;
+  };
+
+  const replaceNote = (content: string, notes: NoteResult[]) => {
+    for (const note of notes) {
+      content = content.replace(note.key, noteHtml(note));
+    }
+    return content;
+  };
+
+  const replaceNaddr = (content: string, naddrs: NaddrResult[]) => {
+    for (const naddr of naddrs) {
+      content = content.replace(naddr.key, naddrHtml(naddr));
+    }
+    return content;
+  };
+
+  const replaceNrelay = (content: string, nrelays: NrelayResult[]) => {
+    for (const nrelay of nrelays) {
+      content = content.replace(nrelay.key, nrelayHtml(nrelay));
+    }
+    return content;
+  };
+
   const updateContent = async () => {
-    msgEvent.content = await Nip21.replaceNprofile(
-      msgEvent.content,
+    const content = msgEvent.content;
+
+    const npubs = await Nip21.transformNpub(content, userMap, relayUrls);
+    const nprofiles = await Nip21.transformNprofile(
+      content,
       userMap,
       relayUrls,
     );
-    msgEvent.content = await Nip21.replaceNote(msgEvent.content, relayUrls);
-    msgEvent.content = await Nip21.replaceNevent(msgEvent.content, userMap);
-    msgEvent.content = await Nip21.replaceNpub(
-      msgEvent.content,
-      userMap,
-      relayUrls,
-    );
-    msgEvent.content = await Nip21.replaceNaddr(msgEvent.content, relayUrls);
-    msgEvent.content = await Nip21.replaceNrelay(msgEvent.content);
+    const notes = await Nip21.transformNote(content, relayUrls);
+    const nevents = await Nip21.transformNevent(content, userMap);
+    const naddrs = await Nip21.transformNaddr(content, relayUrls);
+    const nrelays = await Nip21.transformNrelay(content);
+
+    msgEvent.content = replaceNpubs(msgEvent.content, npubs);
+    msgEvent.content = replaceNprofiles(msgEvent.content, nprofiles);
+    msgEvent.content = replaceNote(msgEvent.content, notes);
+    msgEvent.content = replaceNevent(msgEvent.content, nevents);
+    msgEvent.content = replaceNaddr(msgEvent.content, naddrs);
+    msgEvent.content = replaceNrelay(msgEvent.content, nrelays);
 
     msgEvent.content = Nip08.replaceMentionPublickey(msgEvent, userMap);
     msgEvent.content = Nip08.replaceMentionEventId(msgEvent);
+
     setContent(msgEvent.content);
   };
 
