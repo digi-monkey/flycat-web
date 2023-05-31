@@ -5,7 +5,7 @@ import {
   WellKnownEventKind,
 } from 'service/api';
 import { bech32Decode } from 'service/crypto';
-import fetch from "cross-fetch";
+import fetch from 'cross-fetch';
 
 export class Nip57 {
   public static kind_request = WellKnownEventKind.zap_request;
@@ -80,8 +80,8 @@ export class Nip57 {
   }
 
   static validateReceipt() {
-		// todo
-	}
+    // todo
+  }
 
   static async getZapEndpoint(tag: EventZTag) {
     const value = tag[1];
@@ -113,13 +113,13 @@ export class Nip57 {
         break;
     }
 
-		const res = await fetch(lnurl)
-    const body = await res.json()
+    const res = await fetch(lnurl);
+    const body = await res.json();
 
     if (body.allowsNostr && body.nostrPubkey) {
-      return body.callback
+      return body.callback;
     }
 
-		return null;
+    return null;
   }
 }

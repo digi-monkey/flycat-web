@@ -64,7 +64,6 @@ export function bech32Encode(data: HexStr, prefix: Utf8Str): string {
 export function bech32Decode(data: string, maxSize = 5e3) {
   try {
     const { prefix, words } = bech32.decode(data, maxSize);
-    console.log("decoded: ", prefix, words);
     const buffer = Buffer.from(bech32.fromWords(words));
     return { decoded: toHexString(buffer), prefix };
   } catch (error: any) {
