@@ -153,7 +153,14 @@ export enum WellKnownEventKind {
   zap_request = 9734,
   zap_receipt = 9735,
   article_highlight = 9802,
-  flycat_site_metadata = 10000,
+
+  flycat_site_metadata = 10000, // deprecated, do not use
+
+  mute_list = 10000,
+  pin_list = 10001,
+  people_list = 30000,
+  bookmark_list = 30001,
+
   long_form = 30023, // see nip23
 }
 
