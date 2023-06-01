@@ -5,16 +5,19 @@ import { LoginMode } from 'store/loginReducer';
 import { PublicKey } from 'service/api';
 import { useTranslation } from 'next-i18next';
 import { useRef, useState } from 'react';
-import { Mentions, Popover } from 'antd';
+import { Button, Mentions, Popover, Tooltip } from 'antd';
 import { IMentions, useSetMentions, useSetRelays } from './hooks';
 import { handleFileSelect, handleSubmitText, makeInvoice } from './util';
-import { SmileOutlined, SendOutlined, FileImageOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { SmileOutlined, SendOutlined, ThunderboltOutlined } from '@ant-design/icons';
 
 import React from 'react';
+import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
 import classNames from 'classnames';
+import Link from 'next/link';
+import { Paths } from 'constants/path';
 
 interface Props {
   disabled: boolean;
@@ -26,30 +29,12 @@ interface Props {
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation();
-  const [isHovered, setIsHovered] = React.useState(false);
-  return (
-    <button
-      style={{
-        background: isHovered ? 'white' : '#8DC53F',
-        color: isHovered ? 'black' : 'white',
-        border: '1px solid #8DC53F',
-        padding: '5px 10px',
-        borderRadius: '5px',
-      }}
-      type="submit"
-      disabled={disabled}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <SendOutlined />
-    </button>
-  );
+  return <Button disabled={disabled} type='primary' htmlType="submit">Post</Button>;
 }
 
 export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText, userMap, userContactList }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isSendLightingInvoiceEnabled = mode === LoginMode.nip07Wallet && typeof window.webln !== undefined;
 
   const { t } = useTranslation();
   const [text, setText] = useState('');
@@ -70,7 +55,6 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
       <form onSubmit={event => handleSubmitText(event, text, attachImgs, setText, setAttachImgs, onSubmitText, selectMention)}>
         <Mentions
           rows={3}
-          autoFocus
           placeholder={t('pubNoteBox.hintText') || ''}
           className={styles.postTextArea}
           value={text}
@@ -78,37 +62,42 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
           onSelect={({key, value}) => setSelectMention({ [value || '']: Nip19.encodeNprofile({pubkey: key ?? '', relays}), ...selectMention })}
           options={mentionValue}
           onFocus={() => setMentionsFocus(true)}
-          onBlur={() => setMentionsFocus(false)}
+          // onBlur={() => setMentionsFocus(false)}
         />
-        <div className={styles.btn}>
+        { attachImgs.length > 0 && (
+            <div className={styles.imgs}>
+              { attachImgs.map((url, key) => (
+                  <div className={styles.imgItem} key={key}>
+                    <img src={url} key={key} alt="img" />
+                    <Icon type='icon-cross' onClick={() => setAttachImgs(attachImgs.filter((_, index) => index !== key))} />
+                  </div>
+                )
+              )}
+            </div>  
+          )
+        }
+        <div 
+          className={classNames(styles.btn, {
+            [styles.focus]: mentionsFocus
+          })}
+        >
           <div className={styles.icons}>
-            <div className={styles.imgs}>{ attachImgs.map((url, key) => <img src={url} key={key} alt="img" />) }</div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              disabled={isUploading}
-              className={styles.iconBtn}
-            >
-              <FileImageOutlined />+{isUploading ? '↺' : ''}
-            </button>
+            <Tooltip placement="top" title={"Insert image"}>
+              <Icon type='icon-image' onClick={() => fileInputRef.current && fileInputRef.current.click()} className={styles.upload} />
+            </Tooltip>
             <input type="file" ref={fileInputRef} onChange={event => handleFileSelect(event, setIsUploading, setAttachImgs)} />
-            {isSendLightingInvoiceEnabled && (
-              <button
-                type="button"
-                onClick={makeInvoice}
-                disabled={!isSendLightingInvoiceEnabled}
-                className={styles.iconBtn}
-              >
-                <ThunderboltOutlined />
-              </button>
-            )}
             <Popover placement="bottom" title={text} content={
               <Picker data={emojiData} onEmojiSelect={res => setText(text + res.native)} locale={router.locale} />
             }>
-              <button type="button" className={styles.iconBtn}>
-                <SmileOutlined />
-              </button>
+              <Tooltip placement="top" title={"Insert emoji"}>
+                <Icon type="icon-emoji" className={styles.emoji} />
+              </Tooltip>
             </Popover>
+            <Tooltip placement="top" title={"Write long-form"}>
+              <Link href={Paths.write} passHref>
+                <Icon type="icon-article" className={styles.article} />
+              </Link>
+            </Tooltip>
           </div>
           <SubmitButton disabled={disabled} />
         </div>
