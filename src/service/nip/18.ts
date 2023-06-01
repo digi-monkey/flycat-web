@@ -5,6 +5,8 @@ export class Nip18 {
   public static kind = WellKnownEventKind.reposts;
 
   static createRepost(target: Event, relay: string): RawEvent {
+		// todo: distinct the difference on long-form article 
+		// since it should use the d tags
     const tags = [
       [EventTags.E, target.id, relay],
       [EventTags.P, target.pubkey],
