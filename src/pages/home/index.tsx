@@ -21,6 +21,7 @@ import { useSubGlobalMsg, useSubMsg, useSubMetaDataAndContactList, useLoadMoreMs
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import Link from 'next/link';
+import classNames from 'classnames';
 
 export type ContactList = Map<
   PublicKey,
@@ -125,57 +126,34 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
         <PubNoteTextarea
           mode={mode || ({} as LoginMode)}
           disabled={isReadonlyMode || !isLoggedIn}
-          onSubmitText={text =>
-            onSubmitText(text, signEvent, myPublicKey, worker)
-          }
+          onSubmitText={text => onSubmitText(text, signEvent, myPublicKey, worker)}
           userContactList={myContactList!}
           userMap={userMap}
         />
-
-        <div style={{ marginTop: '5px' }}>
-          <div>
-            <Button
-              block
-              onClick={() =>
-                refreshMsg({
-                  myContactList,
-                  myPublicKey,
-                  worker,
-                  handleEvent: _handleEvent,
-                })
-              }
-            >
-              {t('home.refreshBtn')}
-            </Button>
-          </div>
-          <ul style={{ padding: '5px' }}>
-            {msgList.length === 0 && !isLoggedIn && (
-              <div>
-                <p style={{ color: 'gray' }}>
-                  {t('UserRequiredLoginBox.loginFirst')} <LoginFormTip />
-                </p>
-                <hr />
-                <p style={{ color: 'gray', fontSize: '14px' }}>
-                  {t('homeFeed.globalFeed')}
-                </p>
-                {Msgs(globalMsgList, worker!, userMap, relayUrls)}
+        <div className={classNames(styles.home, {
+          [styles.noData]: msgList.length === 0
+        })}>
+          {(msgList.length === 0 || !isLoggedIn) ? (
+            <>
+              <div className={styles.tipsy}>
+                <h1>Share Your Thoughts with The Community</h1>
+                <p>Only your notes and the ones you follow will show up here. Publish your ideas and discover what others are sharing!</p>
               </div>
-            )}
-            {msgList.length === 0 && isLoggedIn && ( 
-              <div>
-                <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
-                <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
-              </div>
-            )}
-            {msgList.length > 0 &&
-              isLoggedIn &&
-              Msgs(msgList, worker!, userMap, relayUrls)}
-          </ul>
-        </div>
-        <div>
-          <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>
-            {t('home.loadMoreBtn')}
-          </Button>
+              {!isLoggedIn && (
+                <div className={styles.login}>
+                  <Button type='primary' onClick={() => router.push(Paths.login)}>{t('nav.menu.signIn')}</Button>
+                  <span onClick={() => router.push(Paths.login)} className={styles.explore}>Explore as a guest</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <ul className={styles.msgList}>
+                { Msgs(msgList, worker!, userMap, relayUrls) }
+              </ul>
+              <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>{t('home.loadMoreBtn')}</Button>
+            </>
+          )}
         </div>
       </Left>
       <Right>
