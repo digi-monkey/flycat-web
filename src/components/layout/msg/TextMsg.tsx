@@ -36,6 +36,7 @@ import { seedGroups } from 'service/relay/group/seed';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
 import { Relay } from 'service/relay/type';
+import { ReactionBtnGroups } from 'components/ReactionBtnGroup/ReactionBtnGroup';
 
 const styles = {
   root: {
@@ -593,14 +594,11 @@ export const TextMsg = ({
             <Content text={content} />
           </div>
 
-          <ReactionGroups
-            msgEvent={msgEvent}
+          <ReactionBtnGroups 
+            ownerEvent={msgEvent}
             worker={worker!}
-            pk={msgEvent.pubkey}
-            eventId={msgEvent.id}
-            seen={msgEvent.seen}
-            relays={relays}
-            lightingAddress={lightingAddress}
+            seen={msgEvent.seen!}
+            userMap={userMap}
           />
         </div>
       </div>

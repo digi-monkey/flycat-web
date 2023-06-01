@@ -1,8 +1,6 @@
 import {
   Event,
   EventSetMetadataContent,
-  PublicKey,
-  WellKnownEventKind,
 } from 'service/api';
 import {
   DecodedNaddrResult,
@@ -14,8 +12,7 @@ import {
   Nip19ShareableDataType,
 } from './19';
 import { UserMap } from 'service/type';
-import { ConnPool } from 'service/relay/connection/pool';
-import { WS } from 'service/relay/connection/ws';
+import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 
 export interface NpubResult {
   key: string;
@@ -86,7 +83,7 @@ export class Nip21 {
       }
 
       if (!user) {
-        const _user = await fetchProfile({ pubkey, relays: fallbackRelays });
+        const _user = await OneTimeWebSocketClient.fetchProfile({ pubkey, relays: fallbackRelays });
         if (_user) {
           user = _user;
         }
@@ -136,9 +133,9 @@ export class Nip21 {
 
       if (!user) {
         const relays = decodedMetadata.relays || fallbackRelays;
-        let _user = await fetchProfile({ pubkey, relays });
+        let _user = await OneTimeWebSocketClient.fetchProfile({ pubkey, relays });
         if (_user == null && decodedMetadata.relays) {
-          _user = await fetchProfile({ pubkey, relays: fallbackRelays });
+          _user = await OneTimeWebSocketClient.fetchProfile({ pubkey, relays: fallbackRelays });
         }
 
         if (_user) {
@@ -174,7 +171,7 @@ export class Nip21 {
       const { type, data: eventId } = Nip19.decode(encodedData);
       if (type !== Nip19DataType.EventId) return null;
 
-      const noteEvent = await fetchNoteEvent({
+      const noteEvent = await OneTimeWebSocketClient.fetchEvent({
         eventId,
         relays: fallbackRelays,
       });
@@ -208,7 +205,7 @@ export class Nip21 {
       if (type !== Nip19ShareableDataType.Nevent) return null;
 
       const decodedMetadata = _data as DecodedNeventResult;
-      const noteEvent = await fetchNoteEvent({
+      const noteEvent = await OneTimeWebSocketClient.fetchEvent({
         eventId: decodedMetadata.id,
         relays: decodedMetadata.relays,
       });
@@ -247,7 +244,7 @@ export class Nip21 {
       const kind = decodedMetadata.kind;
       const relays = decodedMetadata.relays;
 
-      let replaceableEvent = await fetchReplaceableEvent({
+      let replaceableEvent = await OneTimeWebSocketClient.fetchReplaceableEvent({
         kind,
         identifier,
         pubkey,
@@ -255,7 +252,7 @@ export class Nip21 {
       });
 
       if (!replaceableEvent) {
-        replaceableEvent = await fetchReplaceableEvent({
+        replaceableEvent = await OneTimeWebSocketClient.fetchReplaceableEvent({
           kind,
           identifier,
           pubkey,
@@ -307,129 +304,4 @@ export class Nip21 {
 
     return results;
   }
-}
-
-export async function fetchProfile({
-  pubkey,
-  relays,
-}: {
-  pubkey: PublicKey;
-  relays: string[];
-}) {
-  const sub = new ConnPool();
-  sub.addConnections(relays);
-  const fn = async (conn: WebSocket) => {
-    const ws = new WS(conn);
-    const dataStream = ws.subFilter({
-      kinds: [WellKnownEventKind.set_metadata],
-      limit: 1,
-      authors: [pubkey],
-    });
-    let result: Event | null = null;
-
-    for await (const data of dataStream) {
-      if (!result) result = data;
-      if (result && result.created_at < data.created_at) {
-        result = data;
-      }
-    }
-    return result;
-  };
-  const results = (await sub.executeConcurrently(fn)) as Event[];
-  if (results.length === 0) return null;
-
-  const profileEvent = results.reduce((acc, curr) => {
-    if (curr.created_at > acc.created_at) {
-      return curr;
-    } else {
-      return acc;
-    }
-  }, results[0]);
-
-  const user: EventSetMetadataContent = JSON.parse(profileEvent.content);
-  return user;
-}
-
-export async function fetchNoteEvent({
-  eventId,
-  relays,
-}: {
-  eventId: string;
-  relays: string[];
-}) {
-  const sub = new ConnPool();
-  sub.addConnections(relays);
-  const fn = async (conn: WebSocket) => {
-    const ws = new WS(conn);
-    const dataStream = ws.subFilter({
-      ids: [eventId],
-      limit: 1,
-    });
-    let result: Event | null = null;
-
-    for await (const data of dataStream) {
-      if (!result) result = data;
-      if (result && result.created_at < data.created_at) {
-        result = data;
-      }
-    }
-    return result;
-  };
-  const results = (await sub.executeConcurrently(fn)) as Event[];
-  if (results.length === 0) return null;
-
-  const event = results.reduce((acc, curr) => {
-    if (curr.created_at > acc.created_at) {
-      return curr;
-    } else {
-      return acc;
-    }
-  }, results[0]);
-
-  return event;
-}
-
-export async function fetchReplaceableEvent({
-  kind,
-  identifier,
-  pubkey,
-  relays,
-}: {
-  kind: WellKnownEventKind;
-  identifier: string;
-  pubkey: PublicKey;
-  relays: string[];
-}) {
-  const sub = new ConnPool();
-  sub.addConnections(relays);
-  const fn = async (conn: WebSocket) => {
-    const ws = new WS(conn);
-    const dataStream = ws.subFilter({
-      kinds: [kind],
-      '#d': [identifier],
-      authors: [pubkey],
-      limit: 1,
-    });
-    let result: Event | null = null;
-
-    for await (const data of dataStream) {
-      if (!result) result = data;
-      if (result && result.created_at < data.created_at) {
-        result = data;
-      }
-    }
-    return result;
-  };
-  const results = (await sub.executeConcurrently(fn)) as Event[];
-  if (results.length === 0) return null;
-
-  const event = results.reduce((acc, curr) => {
-    if (curr.created_at > acc.created_at) {
-      return curr;
-    } else {
-      return acc;
-    }
-  }, results[0]);
-
-  return event;
 }

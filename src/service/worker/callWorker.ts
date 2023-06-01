@@ -512,6 +512,6 @@ export class CallWorker {
       type: ToWorkerMessageType.CALL_API,
       data,
     };
-    return this.call(msg);
+    this.call(msg);
   }
 }

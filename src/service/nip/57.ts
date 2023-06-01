@@ -1,4 +1,5 @@
 import {
+  EventSetMetadataContent,
   EventZTag,
   PublicKey,
   RawEvent,
@@ -19,20 +20,28 @@ export class Nip57 {
     e,
     a,
   }: {
-    lnurl: string;
-    amount: string;
+    lnurl?: string;
+    amount?: string;
     relays: string[];
     receipt: PublicKey;
     e?: string;
     a?: string;
   }): RawEvent {
-    const relaysTag = ['relays', ...relays].join(', ');
+    const relaysTag = ['relays'];
+		for(const r of relays){
+			relaysTag.push(r);
+		}
+		
     const tags = [
       relaysTag,
-      ['amount', amount],
-      ['lnurl', lnurl],
       ['p', receipt],
     ];
+		if(amount){
+			tags.push(['amount', amount]);
+		}
+		if(lnurl){
+			tags.push(['lnurl', lnurl]);
+		}
     if (e) {
       tags.push(['e', e]);
     }
@@ -83,7 +92,7 @@ export class Nip57 {
     // todo
   }
 
-  static async getZapEndpoint(tag: EventZTag) {
+  static async getZapEndpointByTag(tag: EventZTag) {
     const value = tag[1];
     const type = tag[2];
 
@@ -112,6 +121,30 @@ export class Nip57 {
         }
         break;
     }
+
+    const res = await fetch(lnurl);
+    const body = await res.json();
+
+    if (body.allowsNostr && body.nostrPubkey) {
+      return body.callback;
+    }
+
+    return null;
+  }
+
+  static async getZapEndpointByProfile(profile: EventSetMetadataContent) {
+    let lnurl: string | null = null;
+
+    if (profile.lud06) {
+      lnurl = profile.lud06;
+    }
+
+    if (profile.lud16) {
+      const [name, domain] = profile.lud16.split('@');
+      lnurl = `https://${domain}/.well-known/lnurlp/${name}`;
+    }
+
+    if (lnurl == null) return null;
 
     const res = await fetch(lnurl);
     const body = await res.json();
