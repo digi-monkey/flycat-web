@@ -1,15 +1,26 @@
 import { useTranslation } from 'react-i18next';
 import { CallWorker } from 'service/worker/callWorker';
-import { Event, EventTags, EventZTag } from 'service/api';
+import {
+  Event,
+  EventETag,
+  EventPTag,
+  EventTags,
+  EventZTag,
+  RawEvent,
+  WellKnownEventKind,
+} from 'service/api';
 import { Button } from 'antd';
 import { Nip18 } from 'service/nip/18';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { UserMap } from 'service/type';
 import { Nip57 } from 'service/nip/57';
-import { bech32Encode } from 'service/crypto';
-import fetch from 'cross-fetch';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
+import { Nip51 } from 'service/nip/51';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { fetchPublicBookmarkListEvent } from './util';
+import { useState } from 'react';
+import fetch from 'cross-fetch';
 
 export const ReactionBtnGroups = ({
   ownerEvent,
@@ -24,9 +35,12 @@ export const ReactionBtnGroups = ({
 }) => {
   const { t } = useTranslation();
 
+  const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
+
+  const [isBookmarking, setIsBookMarking] = useState(false);
 
   const repost = async () => {
     if (signEvent == null) return;
@@ -45,14 +59,11 @@ export const ReactionBtnGroups = ({
     if (zapTags.length > 0) {
       const zapTag = zapTags[0] as EventZTag;
       zapEndpoint = await Nip57.getZapEndpointByTag(zapTag);
-      // todo: fix lnurl
-      //lnurl = bech32Encode(zapTag[1], 'lnurl');
     } else {
       const profile = userMap.get(ownerEvent.pubkey);
       if (profile) zapEndpoint = await Nip57.getZapEndpointByProfile(profile);
-      if (profile?.lud16) {
-        // todo: fix lnurl
-        //lnurl = bech32Encode(profile.lud16, 'lnurl');
+      if (profile?.lud06) {
+        lnurl = profile.lud06;
       }
     }
     if (zapEndpoint == null) return;
@@ -61,7 +72,7 @@ export const ReactionBtnGroups = ({
     const receipt = ownerEvent.pubkey;
     const e = ownerEvent.id;
 
-    const rawEvent = Nip57.createRequest({ relays, receipt, e });
+    const rawEvent = Nip57.createRequest({ relays, receipt, e, lnurl });
     const event = await signEvent(rawEvent);
     const eventStr = encodeURI(JSON.stringify(event));
     const amount = 210000;
@@ -79,11 +90,45 @@ export const ReactionBtnGroups = ({
   };
 
   const comment = async () => {
-    // todo
+    // todo: below is how to post a comment.
+    // for the real case we should jump to the event page with comment input
+    if (signEvent == null) return;
+
+    const text = window.prompt('input the comment:');
+    if (text == null) return;
+
+    const rawEvent = new RawEvent(
+      '',
+      WellKnownEventKind.text_note,
+      [
+        [EventTags.E, ownerEvent.id, seen[0]] as EventETag,
+        [EventTags.P, ownerEvent.pubkey, seen[0]] as EventPTag,
+      ],
+      text,
+    );
+
+    const event = await signEvent(rawEvent);
+    worker?.pubEvent(event);
+    alert('published!');
   };
 
   const bookmark = async () => {
-    // todo
+    setIsBookMarking(true);
+    if (signEvent == null) return;
+
+    const result = await fetchPublicBookmarkListEvent(myPublicKey, worker);
+    const eventIds = result
+      ? result.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as string)
+      : [];
+    eventIds.push(ownerEvent.id);
+
+    console.log(result, eventIds);
+    const rawEvent = await Nip51.createPublicNoteBookmarkList(eventIds);
+    const event = await signEvent(rawEvent);
+
+    worker?.pubEvent(event);
+    setIsBookMarking(false);
+    alert('published!');
   };
 
   return (
@@ -97,7 +142,7 @@ export const ReactionBtnGroups = ({
       <Button onClick={comment} disabled={!signEvent}>
         comment
       </Button>
-      <Button onClick={bookmark} disabled={!signEvent}>
+      <Button loading={isBookmarking} onClick={bookmark} disabled={!signEvent}>
         bookmark
       </Button>
     </div>
