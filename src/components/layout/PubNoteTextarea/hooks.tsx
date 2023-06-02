@@ -1,12 +1,20 @@
 import { UserMap } from "service/type";
-import { useEffect, useState } from "react";
 import { RootState } from 'store/configureStore';
+import { seedRelays } from "service/relay/pool/seed";
 import { useSelector } from "react-redux";
 import { useCallWorker } from "hooks/useWorker";
 import { CallRelayType } from "service/worker/type";
-import { seedRelays } from "service/relay/pool/seed";
+import { useEffect, useState } from "react";
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
-import { deserializeMetadata, Event, EventContactListPTag, EventSetMetadataContent, EventTags, PublicKey, WellKnownEventKind } from 'service/api';
+import { 
+  deserializeMetadata,
+  Event,
+  EventContactListPTag,
+  EventSetMetadataContent,
+  EventTags,
+  PublicKey,
+  WellKnownEventKind
+} from 'service/api';
 import styles from './index.module.scss';
 
 export interface IMentions {
@@ -16,8 +24,8 @@ export interface IMentions {
 }
 
 export function useLoadContacts() {
-  const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
+  const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
   
   const [userMap, setUserMap] = useState<UserMap>(new Map());

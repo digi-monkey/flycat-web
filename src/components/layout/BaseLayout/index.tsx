@@ -1,15 +1,18 @@
-import { NavHeader } from '../NavHeader';
+import { Modal } from 'antd';
 import { useUserInfo } from './hooks';
 import { RelaySelector } from 'components/RelaySelector';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import { useTranslation } from 'next-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
-import React from 'react';
-import styles from './index.module.scss';
+import React, { useState } from 'react';
+import Icon from 'components/Icon';
 import Mobile from './mobile';
+import styles from './index.module.scss';
 import PcPadNav from './pc';
 import Container from 'components/Container';
 import classNames from 'classnames';
+import PubNoteTextarea from '../PubNoteTextarea';
 export interface BaseLayoutProps {
   children: React.ReactNode;
   silent?: boolean;
@@ -30,21 +33,20 @@ export const Left: React.FC<LeftProps> = ({ children }) => (
 export interface RightProps {
   children?: React.ReactNode;
 }
-export const Right: React.FC<RightProps> = ({ children }) => (
-  <div>{children}</div>
-);
 
-export const BaseLayout: React.FC<BaseLayoutProps> = ({
-  children,
-  silent,
-  metaPage,
-}) => {
+export const Right: React.FC<RightProps> = ({ children }) => <div>{children}</div>;
+
+export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPage }) => {
+  const { t } = useTranslation();
   const { userMap } = useUserInfo();
+
   const myPublicKey = useReadonlyMyPublicKey();
   const user = userMap.get(myPublicKey);
   const isMobile = useMatchMobile();
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
+
+  const [openWrite, setOpenWrite] = useState(false);
   
   React.Children.forEach(children, (child: React.ReactNode) => {
     if (!React.isValidElement(child)) return;
@@ -54,8 +56,8 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
 
   return <Container>
     {
-      isMobile ? <Mobile body={leftNodes} user={user} /> : <>
-        <PcPadNav user={user} />
+      isMobile ? <Mobile body={leftNodes} user={user} setOpenWrite={setOpenWrite} /> : <>
+        <PcPadNav user={user} setOpenWrite={setOpenWrite} />
         <main className={classNames(styles.pcPadMain, {
           [styles.rightExists]: rightNodes.length
         })}>
@@ -67,5 +69,16 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
         </main>
       </>
     }
+    <Modal 
+      title={t('baseLayout.modal.title')}
+      wrapClassName={styles.modal}
+      footer={null}
+      open={openWrite}
+      onCancel={() => setOpenWrite(false)}
+      closeIcon={<Icon type='icon-cross' className={styles.modalCoseIcons} />}
+    >
+      <p>{t('baseLayout.modal.desc')}</p>
+      <PubNoteTextarea />
+    </Modal>
   </Container>;
 };

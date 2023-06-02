@@ -302,5 +302,21 @@
       "ruleDesc": "您可以通过上传自己的脚本来定制您在Flycat上的整个体验",
       "buttonText": "知道了"
     }
+  },
+  "pubNoteTextarea": {
+    "icons": {
+      "image": "插入图片",
+      "emoji": "插入表情",
+      "longForm": "编写长文"
+    },
+    "btn": {
+      "post": "发布"
+    }
+  },
+  "baseLayout": {
+    "modal": {
+      "title": "写笔记",
+      "desc": "与社区分享您的想法"
+    }
   }
 }

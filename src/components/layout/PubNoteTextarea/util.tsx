@@ -1,5 +1,7 @@
-import { Api } from 'service/api';
+import { SignEvent } from 'store/loginReducer';
+import { CallWorker } from 'service/worker/callWorker';
 import { compressImage } from 'service/helper';
+import { Api, RawEvent, WellKnownEventKind } from 'service/api';
 
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {
@@ -90,8 +92,10 @@ export const handleSubmitText = async (
   attachImgs: string[],
   setText: React.Dispatch<React.SetStateAction<string>>, 
   setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>,
-  onSubmitText: (text: string) => Promise<any>,
-  selectMention: object
+  selectMention: object,
+  signEvent: SignEvent | undefined,
+  myPublicKey: string,
+  worker: CallWorker | undefined,
 ) => {
   formEvt.preventDefault();
 
@@ -101,8 +105,26 @@ export const handleSubmitText = async (
     textWithAttachImgs += `\n${url}`;
   }
 
-  await onSubmitText(textWithAttachImgs);
+  await onSubmitText(textWithAttachImgs, signEvent, myPublicKey, worker);
 
   setText('');
   setAttachImgs([]);
 };
+
+export async function onSubmitText(
+  text: string,
+  signEvent: SignEvent | undefined,
+  myPublicKey: string,
+  worker: CallWorker | undefined,
+) {
+  if (signEvent == null) return alert('no sign method!');
+
+  const rawEvent = new RawEvent(
+    myPublicKey,
+    WellKnownEventKind.text_note,
+    undefined,
+    text,
+  );
+  const event = await signEvent(rawEvent);
+  worker?.pubEvent(event);
+}

@@ -75,7 +75,7 @@ NavMenus[3],
 
 export const navClick = (item, myPublicKey, router, isLoggedIn, t) => {
   let pathname = item.link;
-  let query = {};
+  const query = {};
 
   if (!isLoggedIn && [MenuId.notifications, MenuId.bookmarks].includes(item.id)) {
     message.warning(t('comment.login'));
@@ -83,7 +83,6 @@ export const navClick = (item, myPublicKey, router, isLoggedIn, t) => {
   }
   
   if (item.id === MenuId.profile) pathname = item.link + myPublicKey;
-  if (item.id === MenuId.add) query = { did: getDraftId() };
 
   router.push({ pathname, query });
 }

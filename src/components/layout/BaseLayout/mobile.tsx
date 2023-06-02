@@ -5,10 +5,10 @@ import { useSelector } from 'react-redux';
 import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Drawer } from 'antd';
-import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'service/api';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';
+import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
@@ -16,10 +16,11 @@ import classNames from 'classnames';
 
 interface Props {
   body: React.ReactNode[],
-  user?: EventSetMetadataContent
+  user?: EventSetMetadataContent,
+  setOpenWrite: Dispatch<SetStateAction<boolean>>
 }
 
-const Mobile: React.FC<Props> = ({ body, user }) => {
+const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
   const router = useRouter();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
   const myPublicKey = useReadonlyMyPublicKey();
@@ -57,7 +58,7 @@ const Mobile: React.FC<Props> = ({ body, user }) => {
               [styles.add]: item.id === MenuId.add
             })}
           >
-            { item.id === MenuId.add ? <span>{ item.icon }</span> : item.icon }
+            { item.id === MenuId.add ? <span onClick={() => setOpenWrite(true)}>{ item.icon }</span> : item.icon }
           </li>
         ))}
       </ul>

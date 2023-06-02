@@ -7,7 +7,6 @@ import {
   PublicKey,
   EventTags,
   EventContactListPTag,
-  RawEvent,
   isEventPTag,
   deserializeMetadata,
 } from 'service/api';
@@ -165,26 +164,6 @@ export function handleEvent(
         break;
     }
   };
-}
-
-export async function onSubmitText(
-  text: string,
-  signEvent,
-  myPublicKey,
-  worker,
-) {
-  if (signEvent == null) {
-    return alert('no sign method!');
-  }
-
-  const rawEvent = new RawEvent(
-    myPublicKey,
-    WellKnownEventKind.text_note,
-    undefined,
-    text,
-  );
-  const event = await signEvent(rawEvent);
-  worker?.pubEvent(event);
 }
 
 export function refreshMsg({
