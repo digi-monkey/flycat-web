@@ -4,17 +4,15 @@ import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { LoginFormTip } from 'components/layout/NavHeader';
+import { handleEvent } from './utils';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
-import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { handleEvent, onSubmitText, refreshMsg } from './utils';
 import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
 import { useSubGlobalMsg, useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
 
@@ -22,6 +20,7 @@ import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import classNames from 'classnames';
+import PubNoteTextarea from 'components/layout/PubNoteTextarea';
 
 export type ContactList = Map<
   PublicKey,
@@ -37,22 +36,20 @@ export interface HomePageProps {
   signEvent?: SignEvent;
 }
 
-const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
-  const router = useRouter();
-  const myPublicKey = useMyPublicKey();
+const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker({});
 
+  const router = useRouter();
+  const myPublicKey = useMyPublicKey();
+
   const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
+  const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
-
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] =
-    useState<{ keys: PublicKey[]; created_at: number }>();
+  const [myContactList, setMyContactList] = useState<{ keys: PublicKey[]; created_at: number }>();
 
   const relayUrls = Array.from(wsConnectStatus.keys());
-  const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const _handleEvent = handleEvent(
     worker,
@@ -123,13 +120,7 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
   return (
     <BaseLayout>
       <Left>
-        <PubNoteTextarea
-          mode={mode || ({} as LoginMode)}
-          disabled={isReadonlyMode || !isLoggedIn}
-          onSubmitText={text => onSubmitText(text, signEvent, myPublicKey, worker)}
-          userContactList={myContactList!}
-          userMap={userMap}
-        />
+        <PubNoteTextarea />
         <div className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0
         })}>

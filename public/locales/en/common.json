@@ -302,5 +302,21 @@
       "ruleDesc": "You can customize your entire experience on Flycat by uploading your own scripts",
       "buttonText": "Got it"
     }
+  },
+  "pubNoteTextarea": {
+    "icons": {
+      "image": "Insert image",
+      "emoji": "Insert emoji",
+      "longForm": "Write long-form"
+    },
+    "btn": {
+      "post": "Post"
+    }
+  },
+  "baseLayout": {
+    "modal": {
+      "title": "Write notes",
+      "desc": "Share your thoughts with the community"
+    }
   }
 }

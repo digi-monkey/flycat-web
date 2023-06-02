@@ -1,42 +1,42 @@
+import { Paths } from 'constants/path';
 import { Nip19 } from 'service/nip/19';
-import { UserMap } from 'service/type';
+import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
-import { LoginMode } from 'store/loginReducer';
-import { PublicKey } from 'service/api';
+import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useRef, useState } from 'react';
+import { LoginMode, SignEvent } from 'store/loginReducer';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Button, Mentions, Popover, Tooltip } from 'antd';
-import { IMentions, useSetMentions, useSetRelays } from './hooks';
-import { handleFileSelect, handleSubmitText, makeInvoice } from './util';
-import { SmileOutlined, SendOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { handleFileSelect, handleSubmitText } from './util';
+import { IMentions, useLoadContacts, useSetMentions, useSetRelays } from './hooks';
 
-import React from 'react';
+import Link from 'next/link';
 import Icon from 'components/Icon';
+import React from 'react';
 import styles from './index.module.scss';
-import Picker from '@emoji-mart/react'
+import Picker from '@emoji-mart/react';
 import emojiData from '@emoji-mart/data'
 import classNames from 'classnames';
-import Link from 'next/link';
-import { Paths } from 'constants/path';
 
 interface Props {
-  disabled: boolean;
-  mode: LoginMode;
-  onSubmitText: (text: string) => Promise<any>;
-  userContactList?: { keys: PublicKey[]; created_at: number };
-  userMap: UserMap;
+  isLoggedIn: boolean;
+  mode: LoginMode;  
+  signEvent?: SignEvent;
 }
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation();
-  return <Button disabled={disabled} type='primary' htmlType="submit">Post</Button>;
+  return <Button disabled={disabled} type='primary' htmlType="submit">{t('pubNoteTextarea.btn.post')}</Button>;
 }
 
-export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText, userMap, userContactList }) => {
+const PubNoteTextarea: React.FC<Props> = ({ isLoggedIn, signEvent }) => {
   const router = useRouter();
+  const myPublicKey = useReadonlyMyPublicKey();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
+  const { worker } = useCallWorker();
   const [text, setText] = useState('');
   const [relays, setRelays] = useState<string[]>([]);
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
@@ -45,6 +45,7 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
   const [selectMention, setSelectMention] = useState({});
   const [mentionsFocus, setMentionsFocus] = useState(false);
 
+  const { userMap } = useLoadContacts();
   useSetMentions(setMentionsValue, userMap);
   useSetRelays(setRelays);
 
@@ -52,7 +53,19 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
     <div className={classNames(styles.pubNoteTextarea, {
       [styles.focus]: mentionsFocus
     })}>
-      <form onSubmit={event => handleSubmitText(event, text, attachImgs, setText, setAttachImgs, onSubmitText, selectMention)}>
+      <form 
+        onSubmit={event => handleSubmitText(
+          event,
+          text,
+          attachImgs,
+          setText,
+          setAttachImgs,
+          selectMention,
+          signEvent,
+          myPublicKey,
+          worker
+        )}
+      >
         <Mentions
           rows={3}
           placeholder={t('pubNoteBox.hintText') || ''}
@@ -73,7 +86,7 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
                   </div>
                 )
               )}
-            </div>  
+            </div>
           )
         }
         <div 
@@ -82,26 +95,35 @@ export const PubNoteTextarea: React.FC<Props> = ({ disabled, mode, onSubmitText,
           })}
         >
           <div className={styles.icons}>
-            <Tooltip placement="top" title={"Insert image"}>
+            <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
               <Icon type='icon-image' onClick={() => fileInputRef.current && fileInputRef.current.click()} className={styles.upload} />
             </Tooltip>
             <input type="file" ref={fileInputRef} onChange={event => handleFileSelect(event, setIsUploading, setAttachImgs)} />
             <Popover placement="bottom" title={text} content={
               <Picker data={emojiData} onEmojiSelect={res => setText(text + res.native)} locale={router.locale} />
             }>
-              <Tooltip placement="top" title={"Insert emoji"}>
+              <Tooltip placement="top" title={t('pubNoteTextarea.icons.emoji')}>
                 <Icon type="icon-emoji" className={styles.emoji} />
               </Tooltip>
             </Popover>
-            <Tooltip placement="top" title={"Write long-form"}>
+            <Tooltip placement="top" title={t('pubNoteTextarea.icons.longForm')}>
               <Link href={Paths.write} passHref>
                 <Icon type="icon-article" className={styles.article} />
               </Link>
             </Tooltip>
           </div>
-          <SubmitButton disabled={disabled} />
+          <SubmitButton disabled={text.length === 0 || isUploading || !isLoggedIn || isLoggedIn && signEvent == null} />
         </div>
       </form>
     </div>
   );
 };
+
+const mapStateToProps = state => ({
+  isLoggedIn: state.loginReducer.isLoggedIn,
+  mode: state.loginReducer.mode,
+  signEvent: state.loginReducer.signEvent,
+  publicKey: state.loginReducer.publicKey,
+  privateKey: state.loginReducer.privateKey,
+});
+export default connect(mapStateToProps)(PubNoteTextarea);

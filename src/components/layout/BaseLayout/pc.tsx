@@ -4,19 +4,20 @@ import { RootState } from 'store/configureStore';
 import { useSelector } from 'react-redux';
 import { useMatchPad } from 'hooks/useMediaQuery';
 import { MenuItemType } from 'antd/es/menu/hooks/useItems';
+import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'service/api';
 import { Avatar, Button, Dropdown } from 'antd';
+import { Dispatch, SetStateAction } from 'react';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';
 
 import Link from 'next/link';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
-import { UserOutlined } from '@ant-design/icons';
 
-const PcPadNav = ({ user }: { user?: EventSetMetadataContent }) => {
+const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setOpenWrite: Dispatch<SetStateAction<boolean>> }) => {
   const { t } = useTranslation();
   const isPad = useMatchPad();
   const router = useRouter();
@@ -72,10 +73,7 @@ const PcPadNav = ({ user }: { user?: EventSetMetadataContent }) => {
         type="primary"
         shape={isPad ? "circle" : 'default'}
         icon={isPad ? <Icon type='icon-Pencil' /> : null}
-        onClick={() => navClick({
-          id: MenuId.add,
-          link: Paths.write
-        }, myPublicKey, router, isLoggedIn, t)}
+        onClick={() => setOpenWrite(true)}
         disabled={!isLoggedIn}
       >
         { !isPad && t('nav.menu.blogDashboard') }
