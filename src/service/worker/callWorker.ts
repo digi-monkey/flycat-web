@@ -3,6 +3,7 @@ import {
   EventId,
   EventSubResponse,
   Filter,
+  isEventSubEoseResponse,
   isEventSubResponse,
   PublicKey,
   randomSubId,
@@ -21,8 +22,15 @@ import {
   ToPostMsg,
   ToWorkerMessageData,
   ToWorkerMessageType,
+  WsConnectStatus,
 } from './type';
-import { Relay } from 'service/relay/type';
+
+interface GroupAsyncGeneratorResult {
+  done?: boolean;
+  subId?: string;
+  timeout?: boolean;
+  data?: any;
+}
 
 class GroupedAsyncGenerator<T, K> {
   private resolveFunctions = new Map<
@@ -30,24 +38,88 @@ class GroupedAsyncGenerator<T, K> {
     (value: IteratorResult<T, any>) => void
   >();
 
+  private eosCount = new Map<K, number>();
+
   constructor(private messageStream: () => AsyncGenerator<T>) {}
 
-  async *getGenerator(key: K): AsyncGenerator<T, any, undefined> {
+  async *getGenerator(
+    subId: K,
+    timeoutMs = 10000,
+    wsConnectStatus?: WsConnectStatus,
+  ): AsyncGenerator<T, any, undefined> {
     while (true) {
-      const { value, done } = await this.messageStream().next();
-      const data = JSON.parse(value.nostrData);
-      const subscriptionId = data[1]?.split(':')[1] as K;
+      const timeoutPromise = new Promise(resolve =>
+        setTimeout(
+          () => resolve({ timeout: true } as GroupAsyncGeneratorResult),
+          timeoutMs,
+        ),
+      ) as Promise<GroupAsyncGeneratorResult>;
 
-      if (subscriptionId === key) {
-        yield value as unknown as T;
-      }
+      const messagePromise = new Promise(async resolve => {
+        while (true) {
+          const { value, done } = await this.messageStream().next();
 
-      if (done) {
-        this.resolveFunctions.get(subscriptionId)?.({
+          if (done) {
+            resolve({
+              done: true,
+            } as GroupAsyncGeneratorResult);
+            break;
+          }
+
+          // @ts-ignore
+          const data = JSON.parse(value.nostrData);
+          const subscriptionId = data[1]?.split(':')[1] as K;
+          if (subscriptionId === subId) {
+            if (isEventSubResponse(data)) {
+              resolve({
+                data: value as unknown as T,
+              } as GroupAsyncGeneratorResult);
+              break;
+            }
+
+            // if eose msg count is larger than 2/3, 
+            // terminate the generator
+            if (isEventSubEoseResponse(data)) {
+              const count = (this.eosCount.get(subId) || 0) + 1;
+              this.eosCount.set(subId, count);
+
+              if (wsConnectStatus) {
+                const urls = Array.from(wsConnectStatus.keys());
+                const connsCount = urls.filter(
+                  url => wsConnectStatus.get(url) === true,
+                ).length;
+
+                if (count >= connsCount * (2 / 3)) {
+                  this.eosCount.delete(subId);
+                  console.debug(subId, 'eose count reach!', count, '/', connsCount);
+                  resolve({
+                    done: true,
+                  } as GroupAsyncGeneratorResult);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }) as Promise<GroupAsyncGeneratorResult>;
+
+      const result = await Promise.race([messagePromise, timeoutPromise]);
+
+      if (result.timeout) {
+        this.resolveFunctions.get(subId)?.({
           value: undefined,
           done: true,
         });
         break;
+      } else if (result?.done) {
+        this.resolveFunctions.get(subId)?.({
+          value: undefined,
+          done: true,
+        });
+        break;
+      } else {
+        const value = result.data as unknown as T;
+        yield value;
       }
     }
   }
@@ -73,6 +145,7 @@ export class CallWorker {
   public _workerId = 'defaultCallWorker';
   public _portId: number | undefined;
   public relayGroupId: string | undefined;
+  public wsConnStatus: WsConnectStatus | undefined;
 
   receiveCount = 0;
   iteratorCount = 0;
@@ -99,6 +172,7 @@ export class CallWorker {
       switch (res.type) {
         case FromWorkerMessageType.WS_CONN_STATUS:
           {
+            this.wsConnStatus = res.data.wsConnectStatus;
             if (onWsConnStatus) {
               onWsConnStatus(data);
             }
@@ -139,13 +213,6 @@ export class CallWorker {
                 {
                   if (data.nostrData == null) {
                     throw new Error('nostrData is null!');
-                  }
-                  const subResponse = JSON.parse(
-                    data.nostrData,
-                  ) as EventSubResponse;
-                  const [resHead] = subResponse;
-                  if (resHead !== RelayResponseType.SubEvent) {
-                    throw new Error('invalid subEvent response');
                   }
                   that.receiveCount++;
                   resolve(data);
@@ -216,10 +283,18 @@ export class CallWorker {
       return {
         subscriptionId,
         getIterator: () => {
-          return this.groupedEvents.getGenerator(subscriptionId);
+          return this.groupedEvents.getGenerator(
+            subscriptionId,
+            undefined,
+            this.wsConnStatus,
+          );
         },
         iterating: ({ cb, onDone }) => {
-          const iterator = this.groupedEvents.getGenerator(subscriptionId);
+          const iterator = this.groupedEvents.getGenerator(
+            subscriptionId,
+            undefined,
+            this.wsConnStatus,
+          );
 
           (async () => {
             //await new Promise(resolve => setTimeout(resolve, 500));

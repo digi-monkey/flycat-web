@@ -10,7 +10,6 @@ import { CallWorker } from 'service/worker/callWorker';
 export async function fetchPublicBookmarkListEvent(
   myPublicKey: string,
   worker: CallWorker,
-  timeoutMs = 2000,
 ): Promise<Event | null> {
   const filter = Nip51.createPublicBookmarkListFilter(myPublicKey);
   const handler = await worker.subFilter(filter);
@@ -18,46 +17,29 @@ export async function fetchPublicBookmarkListEvent(
 
   let result: Event | null = null;
 
-	// todo: fix the iterator with correct stoppers to remove the manual timeout
-  const timeoutPromise = new Promise<Event | null>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error('Timeout'));
-    }, timeoutMs);
-  });
+  while (true) {
+		const data = await iterator.next();
+		if (data?.done) {
+			break;
+		} else {
+			const res = data?.value;
+			if (res == null) continue;
+			const msg = JSON.parse(res.nostrData); //todo: callback other datatype as well
+			if (isEventSubResponse(msg)) {
+				const event = (msg as EventSubResponse)[2];
 
-  try {
-    await Promise.race([
-      timeoutPromise,
-			(async () => {
-				while (true) {
-					const data = await iterator.next();
-					if (data?.done) {
-						break;
-					} else {
-						const res = data?.value;
-						if (res == null) continue;
-						const msg = JSON.parse(res.nostrData); //todo: callback other datatype as well
-						if (isEventSubResponse(msg)) {
-							const event = (msg as EventSubResponse)[2];
-							
-							if (event.kind !== WellKnownEventKind.bookmark_list) continue;
+				if (event.kind !== WellKnownEventKind.bookmark_list) continue;
 
-            if (!result) {
-              result = event;
-            }
-
-            if (result && result.created_at < event.created_at) {
-              result = event;
-            }
-						}
-					}
+				if (!result) {
+					result = event;
 				}
-			})()
-    ]);
-  } catch (error) {
-    // Handle the timeout error here if needed
-    console.log('Timeout occurred:', error);
-  }
+
+				if (result && result.created_at < event.created_at) {
+					result = event;
+				}
+			}
+		}
+	}
 
   return result;
 }
