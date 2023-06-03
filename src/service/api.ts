@@ -558,7 +558,7 @@ export class WsApi {
         break;
 
       case RelayResponseType.SubReachEnd:
-        this.handleSubReachEnd(evt);
+        this.handleSubReachEnd(evt, undefined, onEventSubCallback);
         break;
 
       default:
@@ -607,7 +607,7 @@ export class WsApi {
     cb(reason);
   }
 
-  handleSubReachEnd(evt: any, callback?: (subId: SubscriptionId) => any) {
+  handleSubReachEnd(evt: any, callback?: (subId: SubscriptionId) => any, onEventSubCallback?: (msg: any) => any) {
     const res = JSON.parse(evt.data);
     const type = (res as RelayResponse)[0];
     if (type !== RelayResponseType.SubReachEnd) {
@@ -620,6 +620,11 @@ export class WsApi {
       if (this.instantPool.has(subId)) {
         this.killInstantSub(subId);
       }
+     
+      if(onEventSubCallback){
+        onEventSubCallback(evt);
+      }
+
     };
     const cb = callback || defaultCb;
     cb(subId);
@@ -772,9 +777,17 @@ export function isFilterEqual(f1: Filter, f2: Filter): boolean {
 export function isEventSubResponse(data: any): data is EventSubResponse {
   return (
     Array.isArray(data) &&
-    data[0] === 'EVENT' &&
+    data[0] === RelayResponseType.SubEvent &&
     typeof data[1] === 'string' &&
     isEvent(data[2])
+  );
+}
+
+export function isEventSubEoseResponse(data: any): data is EventSubReachEndResponse {
+  return (
+    Array.isArray(data) &&
+    data[0] === RelayResponseType.SubReachEnd &&
+    typeof data[1] === 'string'
   );
 }
 
