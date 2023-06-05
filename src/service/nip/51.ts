@@ -2,6 +2,8 @@ import { EventTags, Filter, RawEvent, Tags, WellKnownEventKind } from "service/a
 
 export class Nip51 {
 
+	static publicNoteBookmarkIdentifier = "favorite"; 
+
 	static async createMuteList(){
 		// todo
 	}
@@ -21,7 +23,7 @@ export class Nip51 {
 
 	static async createPublicNoteBookmarkList(eventIds: string[]){
 		// todo: distinct the long-form event id from eventIds to use "A" tag
-		const identifier = "favorite";
+		const identifier = this.publicNoteBookmarkIdentifier;
 		const tags: Tags = eventIds.map(id => [EventTags.E, id]);
 		tags.push([EventTags.D, identifier]);
 		const content = '';
@@ -29,7 +31,7 @@ export class Nip51 {
 	}
 
 	static createPublicBookmarkListFilter(pubkey: string): Filter{
-		const identifier = "favorite";
+		const identifier = this.publicNoteBookmarkIdentifier;
 		const filter: Filter = {
 			authors: [pubkey],
 			kinds: [WellKnownEventKind.bookmark_list],

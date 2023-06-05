@@ -8,8 +8,8 @@ const Pages = {
     path: '/notification'
   },
   bookmarks: {
-    name: 'bookmarks',
-    path: '/bookmarks'
+    name: 'bookmark',
+    path: '/bookmark'
   },
   explore: {
     name: 'explore',

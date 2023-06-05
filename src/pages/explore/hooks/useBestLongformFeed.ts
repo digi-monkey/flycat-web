@@ -64,6 +64,9 @@ export function useBestLongFormFeed({
 
             // check if need to sub new user metadata
             const newPks: string[] = [];
+						if (userMap.get(event.pubkey) == null) {
+							newPks.push(event.pubkey);
+						}
             for (const t of event.tags) {
               if (isEventPTag(t)) {
                 const pk = t[1];

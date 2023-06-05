@@ -1,18 +1,21 @@
+import { useMyPublicKey, useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventWithSeen } from 'pages/type';
 import { useEffect, useState } from 'react';
 import {
   Event,
   EventSetMetadataContent,
+  EventTags,
   Filter,
   WellKnownEventKind,
   deserializeMetadata,
   isEventPTag,
 } from 'service/api';
+import { Nip51 } from 'service/nip/51';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';
 
-export function useLatestFeed({
+export function useBookmarkListFeed({
   worker,
   newConn,
   userMap,
@@ -25,7 +28,9 @@ export function useLatestFeed({
   setUserMap: any;
   maxMsgLength?: number;
 }) {
+	const myPublicKey = useReadonlyMyPublicKey();
   const [feed, setFeed] = useState<EventWithSeen[]>([]);
+	const [bookmarkEvent, setBookmarkEvent] = useState<Event>();
 
   const handleEvent = (event: Event, relayUrl?: string) => {
     switch (event.kind) {
@@ -63,7 +68,7 @@ export function useLatestFeed({
 
             // check if need to sub new user metadata
             const newPks: string[] = [];
-            if (userMap.get(event.pubkey) == null) {
+						if (userMap.get(event.pubkey) == null) {
 							newPks.push(event.pubkey);
 						}
             for (const t of event.tags) {
@@ -106,8 +111,19 @@ export function useLatestFeed({
           }
           return oldArray;
         });
-
         break;
+
+			case WellKnownEventKind.bookmark_list:
+				if(bookmarkEvent == null){
+					setBookmarkEvent(event);
+					return;
+				}
+				if(event.created_at > bookmarkEvent.created_at){
+					setBookmarkEvent(event);
+					return;
+				}
+				break;
+
       default:
         break;
     }
@@ -123,7 +139,9 @@ export function useLatestFeed({
     const limit = 50;
     const filter: Filter = {
       limit,
-      kinds: [WellKnownEventKind.text_note]
+			authors: [myPublicKey],
+      kinds: [WellKnownEventKind.bookmark_list],
+			'#d': [Nip51.publicNoteBookmarkIdentifier]
     }
     const sub = worker.subFilter(filter, undefined, undefined, callRelay)!;
 
@@ -133,6 +151,13 @@ export function useLatestFeed({
   useEffect(() => {
     getFeed(newConn);
   }, [newConn, worker]);
+
+	useEffect(()=>{
+		if(!bookmarkEvent)return;
+
+		const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
+		worker?.subFilter({ids: events})?.iterating({cb: handleEvent});
+	}, [bookmarkEvent]);
 
   return feed;
 }
