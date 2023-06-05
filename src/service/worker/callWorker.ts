@@ -7,7 +7,6 @@ import {
   isEventSubResponse,
   PublicKey,
   randomSubId,
-  RelayResponseType,
   WellKnownEventKind,
 } from 'service/api';
 import { Nip23 } from 'service/nip/23';
@@ -546,17 +545,19 @@ export class CallWorker {
     keepAlive,
     customId,
     callRelay,
+    limit
   }: {
     pks: PublicKey[];
     keepAlive?: boolean;
     customId?: string;
     callRelay?: { type: CallRelayType; data: string[] };
+    limit?: number;
   }) {
     const filter = Nip23.filter({
       authors: pks,
       overrides: {
-        limit: 50,
-      },
+        limit: limit || 50,
+      }
     });
     return this.subFilter(filter, keepAlive, customId, callRelay);
   }

@@ -11,6 +11,10 @@ const Pages = {
     name: 'bookmarks',
     path: '/bookmarks'
   },
+  explore: {
+    name: 'explore',
+    path: '/explore'
+  },
   blog: {
     name: 'blog',
     path: '/blog'
