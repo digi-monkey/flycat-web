@@ -26,7 +26,7 @@ export const NavMenus = [{
   id: MenuId.explore,
   icon: <Icon type="icon-explore" />,
   title: 'nav.menu.explore',
-  link: Paths.blog
+  link: Paths.explore
 }, {
   id: MenuId.relays,
   icon: <Icon type="icon-Relay" />,
