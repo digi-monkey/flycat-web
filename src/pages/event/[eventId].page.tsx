@@ -1,4 +1,3 @@
-import { Msgs } from 'components/layout/msg/Msg';
 import { ThinHr } from 'components/layout/ThinHr';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
@@ -24,6 +23,7 @@ import {
   EventId,
   deserializeMetadata,
 } from 'service/api';
+import PostItems from 'components/PostItems';
 
 export const styles = {
   root: {
@@ -301,9 +301,9 @@ export const EventPage = ({ isLoggedIn }) => {
         <div style={styles.message}>
           <h3>{t('thread.title')}</h3>
           <ThinHr></ThinHr>
-          <ul style={styles.msgsUl}>
-            {msgList.length > 0 && Msgs(msgList, worker!, userMap, relayUrls)}
-          </ul>
+          <div style={styles.msgsUl}>
+            {msgList.length > 0 && <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} />}
+          </div>
         </div>
       </Left>
       <Right></Right>
