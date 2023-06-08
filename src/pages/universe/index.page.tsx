@@ -21,6 +21,7 @@ import {
 import styled from 'styled-components';
 import SimpleSelect from 'components/inputs/Select';
 import PublicIcon from '@mui/icons-material/Public';
+import PostItems from 'components/PostItems';
 
 const styles = {
   label: { color: 'gray', fontSize: '14px' },
@@ -146,13 +147,11 @@ export function Backup({ isLoggedIn }) {
   return (
     <BaseLayout>
       <Left>
-        <div>
-          <div style={styles.section}>
-            <h3 style={{ textTransform: 'capitalize' }}>
-              {t('relayUniverse.title')}
-            </h3>
-            {Msgs(events, worker!, userMap, relays)}
-          </div>
+        <div style={styles.section}>
+          <h3 style={{ textTransform: 'capitalize' }}>
+            {t('relayUniverse.title')}
+          </h3>
+          <PostItems msgList={events} worker={worker!} userMap={userMap} relays={relays} />
         </div>
       </Left>
       <Right>

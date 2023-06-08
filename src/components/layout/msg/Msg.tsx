@@ -8,7 +8,7 @@ import { BlogHighlightMsgItem, BlogCommentMsgItem, PublishBlogMsgItem } from 'pa
 import { EventWithSeen } from 'pages/type';
 import { Nip9802 } from 'service/nip/9802';
 
-export const Msgs = (
+export const Msgs = ( 
   msgList: EventWithSeen[],
   worker: CallWorker,
   userMap: UserMap,

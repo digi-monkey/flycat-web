@@ -1,4 +1,3 @@
-import { Msgs } from 'components/layout/msg/Msg';
 import { Paths } from 'constants/path';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
@@ -21,6 +20,7 @@ import Icon from 'components/Icon';
 import Link from 'next/link';
 import classNames from 'classnames';
 import PubNoteTextarea from 'components/layout/PubNoteTextarea';
+import PostItems from 'components/PostItems';
 
 export type ContactList = Map<
   PublicKey,
@@ -139,9 +139,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             </>
           ) : (
             <>
-              <ul className={styles.msgList}>
-                { Msgs(msgList, worker!, userMap, relayUrls) }
-              </ul>
+              <div className={styles.msgList}>
+                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} />
+              </div>
               <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>{t('home.loadMoreBtn')}</Button>
             </>
           )}

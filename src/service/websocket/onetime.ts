@@ -40,7 +40,7 @@ export class OneTimeWebSocketClient {
     if (results.length === 0) return null;
 
     const profileEvent = results.reduce((acc, curr) => {
-      if (curr.created_at > acc.created_at) {
+      if (curr?.created_at > acc?.created_at) {
         return curr;
       } else {
         return acc;
@@ -80,7 +80,7 @@ export class OneTimeWebSocketClient {
     if (results.length === 0) return null;
 
     const event = results.reduce((acc, curr) => {
-      if (curr.created_at > acc.created_at) {
+      if (curr?.created_at > acc?.created_at) {
         return curr;
       } else {
         return acc;

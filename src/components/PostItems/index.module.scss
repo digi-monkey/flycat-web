@@ -1,0 +1,17 @@
+.post{
+  padding: var(--basePadding3) var(--basePadding5);
+  border-top: 1px solid var(--neutral-02);
+
+  .more{
+    width: 18px;
+    height: 18px;
+    color: var(--neutral-06);
+    cursor: pointer;
+  }
+
+  .content{
+    padding-left: calc(var(--padding) * 14);
+    margin-top: var(--basePadding3);
+    word-break: break-all;
+  }
+}

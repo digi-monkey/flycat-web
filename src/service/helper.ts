@@ -71,7 +71,7 @@ export function normalizeContent(text: string): {
   //modifiedText = linkify(modifiedText);
   const previewUrls = extractUrls(modifiedText);
 
-  const allowedTags = ['a'];
+  const allowedTags = ['a', 'div']; 
   modifiedText = DOMPurify.sanitize(modifiedText, {
     ALLOWED_TAGS: allowedTags,
   });
