@@ -47,6 +47,8 @@ export class OneTimeWebSocketClient {
       }
     }, results[0]);
 
+		if(profileEvent == null)return null;
+		
     const user: EventSetMetadataContent = JSON.parse(profileEvent.content);
     return user;
   }

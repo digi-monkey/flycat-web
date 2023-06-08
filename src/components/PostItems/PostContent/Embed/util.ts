@@ -11,7 +11,7 @@ export async function extractEmbedRef(
   const notes = await Nip21.transformNote(content, relayUrls);
   const nevents = await Nip21.transformNevent(content, userMap);
   const naddrs = await Nip21.transformNaddr(content, relayUrls);
-  const nrelay = await Nip21.transformNrelay(content);
+  const nrelays = await Nip21.transformNrelay(content);
 
-  return { npubs, nprofiles, notes, nevents, naddrs, nrelay };
+  return { npubs, nprofiles, notes, nevents, naddrs, nrelays };
 }

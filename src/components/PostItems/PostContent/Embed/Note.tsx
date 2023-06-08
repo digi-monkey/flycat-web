@@ -22,11 +22,13 @@ export const Note = (note: NoteResult) => {
   }
 
   return (
-    <a
-      href={'/' + i18n?.language + Paths.event + '/' + note.eventId}
-      target="_blank"
-    >
-      note@${note.eventId}
-    </a>
+    <div className={styles.refLink}>
+      <a
+        href={'/' + i18n?.language + Paths.event + '/' + note.eventId}
+        target="_blank"
+      >
+        note@{note.eventId}
+      </a>
+    </div>
   );
 };
