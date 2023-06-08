@@ -9,6 +9,7 @@ import styles from "./index.module.scss";
 import PostUser from "./PostUser";
 import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
+import { PostContent } from './PostContent';
 
 enum PostType {
   Link = "link",
@@ -28,8 +29,8 @@ const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays 
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
   return <>
-    { msgList.map((msg, index) => (
-        <div className={styles.post} key={index}>
+    { msgList.map((msg) => (
+        <div className={styles.post} key={msg.id}>
           <PostUser 
             publicKey={msg.pubkey}
             avatar={getUser(msg)?.picture || ''}
@@ -41,9 +42,9 @@ const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays 
             {
               Nip23.isBlogPost(msg) ? <PostArticle userAvatar={getUser(msg)?.picture || ''} userName={getUser(msg)?.name || ''} event={msg} /> : 
               Nip23.isBlogCommentMsg(msg) ? <>长文的评论</> : 
-              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <>其他消息体</>
+              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap}/>
             }
-            <PostReactions />
+            <PostReactions ownerEvent={msg} worker={worker} seen={[]} userMap={userMap} />
           </div>
         </div> 
       ))

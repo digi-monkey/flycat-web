@@ -1,0 +1,87 @@
+.imagePlate {
+  .imagePlateImg {
+    max-width: 100%;
+    max-height: 300px;
+    cursor: pointer;
+  }
+}
+
+.dialog {
+  :global {
+    .MuiPaper-root {
+      width: auto;
+    }
+    .MuiDialogContent-root {
+      padding: 0;
+    }
+  }
+}
+
+.gallery {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+
+  li {
+    display: inline-block;
+    box-sizing: border-box;
+    position: relative;
+    vertical-align: top;
+    padding: 0 5px 5px 0;
+    cursor: pointer;
+
+    div {
+      padding-bottom: 100%;
+
+      img {
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+
+  &.w33,
+  &.w50 {
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 0 -4px;
+
+    div img {
+      padding: 4px;
+      box-sizing: border-box;
+    }
+  }
+
+  &.w33 {
+    li {
+      width: 33.3333%;
+    }
+  }
+
+  &.w50 {
+    li {
+      width: 50%;
+    }
+  }
+
+  &.w100 {
+    li {
+      width: 100%;
+
+      div {
+        padding: 0;
+
+        img {
+          max-width: 100%;
+          width: auto;
+          height: auto;
+          position: initial;
+        }
+      }
+    }
+  }
+}
