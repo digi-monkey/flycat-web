@@ -42,7 +42,7 @@ const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays 
             {
               Nip23.isBlogPost(msg) ? <PostArticle userAvatar={getUser(msg)?.picture || ''} userName={getUser(msg)?.name || ''} event={msg} /> : 
               Nip23.isBlogCommentMsg(msg) ? <>长文的评论</> : 
-              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap}/>
+              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker}/>
             }
             <PostReactions ownerEvent={msg} worker={worker} seen={[]} userMap={userMap} />
           </div>
