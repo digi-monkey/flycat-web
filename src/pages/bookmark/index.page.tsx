@@ -8,6 +8,7 @@ import { UserMap } from 'service/type';
 import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
 import { Msgs } from 'components/layout/msg/Msg';
 import { FilterOptions } from './filterOptions';
+import PostItems from 'components/PostItems';
 
 const Bookmark = () => {
   const { t } = useTranslation();
@@ -28,11 +29,13 @@ const Bookmark = () => {
     const allowKinds: number[] = FilterOptions.filter(
       opt => opt.value === selectedValue,
     ).map(opt => opt.kinds)[0];
-    return Msgs(
-      feed.filter(f => allowKinds.includes(f.kind)),
-      worker!,
-      userMap,
-      [],
+    return (
+      <PostItems
+        msgList={feed.filter(f => allowKinds.includes(f.kind))}
+        worker={worker!}
+        userMap={userMap}
+        relays={[]}
+      />
     );
   };
 
