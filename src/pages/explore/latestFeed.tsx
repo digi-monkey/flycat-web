@@ -1,7 +1,7 @@
-import { Msgs } from 'components/layout/msg/Msg';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { useLatestFeed } from './hooks/useLatestFeed';
+import PostItems from 'components/PostItems';
 
 export const LatestFeed = ({
   worker,
@@ -15,5 +15,14 @@ export const LatestFeed = ({
   setUserMap: any;
 }) => {
   const feed = useLatestFeed({ worker, newConn, userMap, setUserMap });
-  return <div>{Msgs(feed, worker!, userMap, [])}</div>;
+  return (
+    <div>
+      <PostItems
+        msgList={feed}
+        worker={worker!}
+        userMap={userMap}
+        relays={[]}
+      />
+    </div>
+  );
 };
