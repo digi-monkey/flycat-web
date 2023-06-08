@@ -20,55 +20,59 @@ import { Nrelay } from './Nrelay';
 export const transformRefEmbed = (
   content: string,
   {
-    npub,
-    nevent,
-    naddr,
+    npubs,
+    nevents,
+    naddrs,
     notes,
-    nprofile,
-    nrelay,
+    nprofiles,
+    nrelays,
   }: {
-    npub?: NpubResult[];
-    nevent?: NeventResult[];
-    naddr?: NaddrResult[];
+    npubs?: NpubResult[];
+    nevents?: NeventResult[];
+    naddrs?: NaddrResult[];
     notes?: NoteResult[];
-    nprofile?: NprofileResult[];
-    nrelay: NrelayResult[];
+    nprofiles?: NprofileResult[];
+    nrelays?: NrelayResult[];
   },
 ) => {
   let refTexts: string[] = [];
   let refComponents: any[] = [];
 
-  if (npub) {
-    refTexts = refTexts.concat(npub.map(n => n.key));
-    refComponents = refComponents.concat(npub.map(n => Npub(n)));
+  if (npubs) {
+    refTexts = refTexts.concat(npubs.map(n => n.key));
+    refComponents = refComponents.concat(npubs.map(n => Npub(n)));
   }
-  if (nevent) {
-    refTexts = refTexts.concat(nevent.map(n => n.key));
-    refComponents = refComponents.concat(nevent.map(n => Nevent(n)));
+  if (nevents) {
+    refTexts = refTexts.concat(nevents.map(n => n.key));
+    refComponents = refComponents.concat(nevents.map(n => Nevent(n)));
   }
   if (notes) {
     refTexts = refTexts.concat(notes.map(n => n.key));
     refComponents = refComponents.concat(notes.map(n => Note(n)));
   }
-  if (nprofile) {
-    refTexts.concat(nprofile.map(n => n.key));
-    refComponents = refComponents.concat(nprofile.map(n => Nprofile(n)));
+  if (nprofiles) {
+    refTexts = refTexts.concat(nprofiles.map(n => n.key));
+    refComponents = refComponents.concat(nprofiles.map(n => Nprofile(n)));
   }
-  if (naddr) {
-    refTexts = refTexts.concat(naddr.map(n => n.key));
-    refComponents = refComponents.concat(naddr.map(n => Naddr(n)));
+  if (naddrs) {
+    refTexts = refTexts.concat(naddrs.map(n => n.key));
+    console.log("naddrs:", naddrs, refTexts);
+    refComponents = refComponents.concat(naddrs.map(n => Naddr(n)));
   }
-  if (nrelay) {
-    refTexts = refTexts.concat(nrelay.map(n => n.key));
-    refComponents = refComponents.concat(nrelay.map(n => Nrelay(n)));
+  if (nrelays) {
+    refTexts = refTexts.concat(nrelays.map(n => n.key));
+    refComponents = refComponents.concat(nrelays.map(n => Nrelay(n)));
   }
 
   const delimiters = refTexts;
   const pattern = new RegExp(delimiters.join('|'));
+ 
   // Split the string based on the substrings
   const textComponents = content
     .split(pattern)
     .map(text => <span key={text}>{text}</span>);
+
+    console.log("pattern:", pattern, "textComp:", textComponents)
 
   // Find the maximum length between the two arrays
   const maxLength = Math.max(textComponents.length, refComponents.length);

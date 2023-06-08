@@ -48,6 +48,7 @@ export const PostContent: React.FC<PostContentProp> = ({
 
   const transformContent = async () => {
     const ref = await extractEmbedRef(msgEvent.content, userMap, relayUrls);
+    console.log("nprofiles: ", ref.nprofiles, "naddrs: ", ref.naddrs)
     const result = transformRefEmbed(msgEvent.content, ref);
     setContentComponents(result);
   };
