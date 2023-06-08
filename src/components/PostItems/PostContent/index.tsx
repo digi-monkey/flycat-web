@@ -1,4 +1,10 @@
-import { Event, EventTags, WellKnownEventKind } from 'service/api';
+import {
+  Event,
+  EventSubResponse,
+  EventTags,
+  WellKnownEventKind,
+  isEventSubResponse,
+} from 'service/api';
 import { UserMap } from 'service/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
@@ -12,15 +18,18 @@ import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { shortPublicKey } from 'service/helper';
+import { CallWorker } from 'service/worker/callWorker';
 
 interface PostContentProp {
   ownerEvent: Event;
   userMap: UserMap;
+  worker: CallWorker;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
   userMap,
   ownerEvent: msgEvent,
+  worker,
 }) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -50,14 +59,39 @@ export const PostContent: React.FC<PostContentProp> = ({
         return { id: t[1], relay: t[2] };
       })[0];
     if (lastReply) {
-      const replyToEvent = await OneTimeWebSocketClient.fetchEvent({
-        eventId: lastReply.id,
-        relays:
-          lastReply.relay && lastReply.relay !== ''
-            ? [lastReply.relay]
-            : relayUrls,
-      });
-      if (replyToEvent) setLastReplyToEvent(replyToEvent);
+      const handler = worker.subMsgByEventIds([lastReply.id])!;
+      const dataStream = handler.getIterator();
+      let result: Event | undefined;
+      for await (const data of dataStream) {
+        const msg = JSON.parse(data.nostrData);
+        if (isEventSubResponse(msg)) {
+          const event = (msg as EventSubResponse)[2];
+
+          if (event.kind !== WellKnownEventKind.text_note) continue;
+
+          if (!result) {
+            result = event;
+          }
+
+          if (result && result.created_at < event.created_at) {
+            result = event;
+          }
+        }
+      }
+
+      if (result) {
+        setLastReplyToEvent(result);
+        return;
+      }
+
+      // fallback
+      if (lastReply.relay && lastReply.relay !== '') {
+        const replyToEvent = await OneTimeWebSocketClient.fetchEvent({
+          eventId: lastReply.id,
+          relays: [lastReply.relay],
+        });
+        if (replyToEvent) setLastReplyToEvent(replyToEvent);
+      }
     }
   };
 
