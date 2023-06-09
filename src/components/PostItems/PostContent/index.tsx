@@ -17,7 +17,7 @@ import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
-import { shortPublicKey } from 'service/helper';
+import { normalizeContent, shortPublicKey } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
 
 interface PostContentProp {
@@ -37,6 +37,10 @@ export const PostContent: React.FC<PostContentProp> = ({
   const [contentComponents, setContentComponents] = useState<any[]>([]);
   const [lastReplyToEvent, setLastReplyToEvent] = useState<Event>();
 
+  const {
+	modifiedText
+      } = normalizeContent(msgEvent.content);
+
   useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
     setRelayUrls(r.map(r => r.url));
   });
@@ -44,12 +48,11 @@ export const PostContent: React.FC<PostContentProp> = ({
   useEffect(() => {
     transformContent();
     buildLastReplyEvent();
-  }, [msgEvent.content, userMap, relayUrls]);
+  }, [modifiedText, userMap, relayUrls]);
 
   const transformContent = async () => {
-    const ref = await extractEmbedRef(msgEvent.content, userMap, relayUrls);
-    console.log("nprofiles: ", ref.nprofiles, "naddrs: ", ref.naddrs)
-    const result = transformRefEmbed(msgEvent.content, ref);
+    const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
+    const result = transformRefEmbed(modifiedText, ref);
     setContentComponents(result);
   };
 

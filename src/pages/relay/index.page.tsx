@@ -2,12 +2,14 @@ import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Button, Col, Menu, Row } from 'antd';
+import { Button, Col, Input, Menu, Row } from 'antd';
 import { BaseLayout, Left } from 'components/layout/BaseLayout';
 import { useRelayGroup } from './hooks/useRelayGroup';
 import { useDefaultGroup } from './hooks/useDefaultGroup';
 import { Relay } from 'service/relay/type';
 import { RelayPool } from './pool';
+import RelayGroupTable from './RelayGroupTable';
+import Icon from '@ant-design/icons';
 
 export function RelayManager() {
   const { t } = useTranslation();
@@ -34,9 +36,7 @@ export function RelayManager() {
     const selectedItems = groups.map.get(selectedGroupId) || [];
     return (
       <ul>
-        {selectedItems.map((item, index) => (
-          <li key={index}>{item.url}</li>
-        ))}
+        <RelayGroupTable  relays={selectedItems}/> 
       </ul>
     );
   };
@@ -60,7 +60,13 @@ export function RelayManager() {
   return (
     <BaseLayout>
       <Left>
-        <Row>
+        { !isBrowserRelayPool && 
+        <>
+       <div style={{margin: "10px"}}>
+       <span>Relays</span>
+        <span style={{float: "right"}}> <a href="http://" target="_blank" rel="noopener noreferrer">Explore 500+ relays</a> </span>
+       </div>
+        <Row> 
           <Col span={6}>
             <Button onClick={createNewGroup}>new group</Button>
             <Menu
@@ -81,11 +87,19 @@ export function RelayManager() {
             <Button onClick={()=>setIsBrowserRelayPool(!isBrowserRelayPool)}>Explore 500+ relays</Button>
           </Col>
           <Col span={18}>
-            <div>{renderRightPanel()}</div>
-
-            {isBrowserRelayPool && <RelayPool />}
+          <Row>
+          <Col span={12}>
+            {selectedGroupId}{"("+ groups?.map.get(selectedGroupId!)?.length +")"}
+          </Col>
+          <Col  span={12}>
+          <Input placeholder="Search" prefix={<Icon type='icon-search' />} />
           </Col>
         </Row>
+            <div>{renderRightPanel()}</div>
+          </Col>
+        </Row>
+        </>}
+        {isBrowserRelayPool && <RelayPool />}
       </Left>
     </BaseLayout>
   );

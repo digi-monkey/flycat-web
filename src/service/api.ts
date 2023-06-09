@@ -101,7 +101,6 @@ export class base {
   }
 }
 
-
 export class Api extends base {
   constructor(url?: string, httpRequest?: HttpRequest) {
     super(url || DEFAULT_API_URL, httpRequest);
@@ -165,9 +164,9 @@ export enum WellKnownEventKind {
 }
 
 export enum EventETagMarker {
-  reply = "reply",
-  root = "root",
-  mention = "mention",
+  reply = 'reply',
+  root = 'root',
+  mention = 'mention',
 }
 
 export enum EventTags {
@@ -176,10 +175,10 @@ export enum EventTags {
   D = 'd',
   T = 't',
   A = 'a',
-  Z = 'zap'
+  Z = 'zap',
 }
 
-export type LudType = "lud06" | "lud16";
+export type LudType = 'lud06' | 'lud16';
 
 export type EventETag = [EventTags.E, EventId, RelayUrl];
 export type EventPTag = [EventTags.P, PublicKey, RelayUrl];
@@ -607,7 +606,11 @@ export class WsApi {
     cb(reason);
   }
 
-  handleSubReachEnd(evt: any, callback?: (subId: SubscriptionId) => any, onEventSubCallback?: (msg: any) => any) {
+  handleSubReachEnd(
+    evt: any,
+    callback?: (subId: SubscriptionId) => any,
+    onEventSubCallback?: (msg: any) => any,
+  ) {
     const res = JSON.parse(evt.data);
     const type = (res as RelayResponse)[0];
     if (type !== RelayResponseType.SubReachEnd) {
@@ -620,11 +623,10 @@ export class WsApi {
       if (this.instantPool.has(subId)) {
         this.killInstantSub(subId);
       }
-     
-      if(onEventSubCallback){
+
+      if (onEventSubCallback) {
         onEventSubCallback(evt);
       }
-
     };
     const cb = callback || defaultCb;
     cb(subId);
@@ -783,7 +785,9 @@ export function isEventSubResponse(data: any): data is EventSubResponse {
   );
 }
 
-export function isEventSubEoseResponse(data: any): data is EventSubReachEndResponse {
+export function isEventSubEoseResponse(
+  data: any,
+): data is EventSubReachEndResponse {
   return (
     Array.isArray(data) &&
     data[0] === RelayResponseType.SubReachEnd &&

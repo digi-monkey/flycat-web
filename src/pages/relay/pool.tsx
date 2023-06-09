@@ -72,7 +72,7 @@ export function RelayPool() {
       {fastest && fastest?.[0]} {fastest?.[1].benchmark}ms{' '}
       {fastest?.[1].isFailed}
       <hr />
-      <WebSocketBenchmark urls={urls} />
+      <WebSocketBenchmark urls={urls} relays={relayPool?.relays || []}/>
     </div>
   );
 }

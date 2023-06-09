@@ -1,9 +1,21 @@
-.pool{
-    width: 100%;
-    text-align: left;
-    background: whitesmoke;
-    border: 1px solid whitesmoke;
-    padding: 10px;
-    max-height: 300px;
-    overflow-y: scroll;
-  }
+.pool {
+  width: 100%;
+  text-align: left;
+  background: whitesmoke;
+  border: 1px solid whitesmoke;
+  padding: 10px;
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.hoverable-row:hover .actions-column {
+  visibility: visible;
+}
+
+.actions-column {
+  visibility: hidden;
+}
+
+.actions-column .anticon {
+  margin-right: 8px;
+}
