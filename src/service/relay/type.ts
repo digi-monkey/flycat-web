@@ -1,20 +1,24 @@
-import { PublicKey } from "service/api";
+import { PublicKey } from 'service/api';
 
 export enum RelayAccessType {
-	Public,
-	Pay,
-	Private,
+  Public = 'Public',
+  Pay = 'Pay',
+  Private = 'Private',
 }
 
 export interface Relay {
-	read: boolean;
-	write: boolean;
-	url: string;
-	accessType?: RelayAccessType;
-	operator?: PublicKey;
-	about?: string;
-	area?: string;
-	isConnected?: boolean;
-	benchmark?: number; // delay in milliseconds
+  read: boolean;
+  write: boolean;
+  url: string;
+  accessType?: RelayAccessType;
+  operator?: PublicKey;
+  about?: string;
+  contact?: string;
+  supportedNips?: number[];
+  software?: string;
+  version?: string;
+  area?: string;
+  isOnline?: boolean;
+  benchmark?: number; // delay in milliseconds
+  lastBenchmarkTimestamp?: number;
 }
-
