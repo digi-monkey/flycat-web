@@ -1,0 +1,11 @@
+.hoverable-row:hover .actions-column {
+  visibility: visible;
+}
+
+.actions-column {
+  visibility: hidden;
+}
+
+.actions-column .anticon {
+  margin-right: 8px;
+}

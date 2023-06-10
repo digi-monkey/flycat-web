@@ -3,15 +3,13 @@ import { Button, Modal, Table, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { shortPublicKey } from 'service/helper';
 import { Nip11 } from 'service/nip/11';
-import { Pool } from 'service/relay/pool';
 import { Relay, RelayAccessType } from 'service/relay/type';
 import styles from './index.module.scss';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 
 const { Title, Paragraph, Text, Link } = Typography;
 
-interface WebSocketBenchmarkProps {
-  urls: string[];
+interface RelayPoolTableProp {
   relays: Relay[];
 }
 
@@ -21,10 +19,8 @@ interface BenchmarkResult {
   isFailed: boolean;
 }
 
-const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
-  urls,
-  relays,
-}) => {
+const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
+  const [urls, setUrls] = useState<string[]>(relays.map(r=>r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [isBenchmarked, setIsBenchmarked] = useState(false);
@@ -161,7 +157,12 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
         const numbers = num || [];
         if (numbers.length <= 3) {
           return numbers.map((number, index) => (
-            <span key={index} onClick={() => {console.log("not impl")}}>
+            <span
+              key={index}
+              onClick={() => {
+                console.log('not impl');
+              }}
+            >
               {number}
               {index !== numbers.length - 1 && ' '}
             </span>
@@ -172,7 +173,12 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
           return (
             <>
               {displayedNumbers.map((number, index) => (
-                <span key={index} onClick={() => {console.log("not impl")}}>
+                <span
+                  key={index}
+                  onClick={() => {
+                    console.log('not impl');
+                  }}
+                >
                   {number}
                   {index !== displayedNumbers.length - 1 && ' '}
                 </span>
@@ -290,4 +296,4 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
   );
 };
 
-export default WebSocketBenchmark;
+export default RelayPoolTable;
