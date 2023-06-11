@@ -3,15 +3,14 @@ import { Button, Modal, Table, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { shortPublicKey } from 'service/helper';
 import { Nip11 } from 'service/nip/11';
-import { Pool } from 'service/relay/pool';
 import { Relay, RelayAccessType } from 'service/relay/type';
 import styles from './index.module.scss';
 import { FilterDropdownProps } from 'antd/es/table/interface';
+import { RelayDetailModal } from '../Modal/detail';
+import { MultipleItemsAction } from '../Action/multipleItems';
+import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
 
-const { Title, Paragraph, Text, Link } = Typography;
-
-interface WebSocketBenchmarkProps {
-  urls: string[];
+interface RelayPoolTableProp {
   relays: Relay[];
 }
 
@@ -21,10 +20,10 @@ interface BenchmarkResult {
   isFailed: boolean;
 }
 
-const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
-  urls,
-  relays,
-}) => {
+export type RelayTableItem = Relay & { key: string };
+
+const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
+  const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [isBenchmarked, setIsBenchmarked] = useState(false);
@@ -93,6 +92,7 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
   };
 
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [data, setData] = useState<RelayTableItem[]>([]);
   const [relayDataSource, setRelayDataSource] = useState<Relay[]>(relays);
 
   const updateRelayMap = async () => {
@@ -108,7 +108,13 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
       }
     });
 
+
     setRelayDataSource(newRelays);
+    setData(
+      newRelays.map(r => {
+        return { ...r, ...{ key: r.url } };
+      }),
+    );
   };
 
   useEffect(() => {
@@ -161,7 +167,12 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
         const numbers = num || [];
         if (numbers.length <= 3) {
           return numbers.map((number, index) => (
-            <span key={index} onClick={() => {console.log("not impl")}}>
+            <span
+              key={index}
+              onClick={() => {
+                console.log('not impl');
+              }}
+            >
               {number}
               {index !== numbers.length - 1 && ' '}
             </span>
@@ -172,7 +183,12 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
           return (
             <>
               {displayedNumbers.map((number, index) => (
-                <span key={index} onClick={() => {console.log("not impl")}}>
+                <span
+                  key={index}
+                  onClick={() => {
+                    console.log('not impl');
+                  }}
+                >
                   {number}
                   {index !== displayedNumbers.length - 1 && ' '}
                 </span>
@@ -230,6 +246,7 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<Relay | null>(null);
+  const [selectedRelays, setSelectedRelays] = useState<Relay[]>([]);
 
   const handleOpenModal = record => {
     setSelectedRowData(record);
@@ -242,43 +259,30 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
 
   return (
     <div>
-      <Table<Relay>
+      <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
           onChange: (selectedRowKeys, selectedRows) => {
             console.log('Selected Row Keys:', selectedRowKeys);
             console.log('Selected Rows:', selectedRows);
+            setSelectedRelays(selectedRows);
           },
           // You can customize other selection properties here if needed
         }}
         columns={columns}
         rowClassName={rowClassName}
-        dataSource={relayDataSource}
+        dataSource={data}
         pagination={paginationConfig}
       />
+      <MultipleItemsPoolAction open={selectedRelays.length > 0} relays={selectedRelays} />
 
-      <Modal
-        title="Relay details"
-        open={modalVisible}
-        onCancel={handleCloseModal}
-        onOk={handleCloseModal}
-        okText={'Got it'}
-        // Remove the footer (cancel button)
-        //footer={[<button key="submit" onClick={handleCloseModal}>OK</button>]}
-      >
-        {/* Render modal content using selectedRowData */}
-        {selectedRowData && (
-          <>
-            <p>{selectedRowData.url}</p>
-            <p>{selectedRowData.about}</p>
-            <p>{selectedRowData.software}</p>
-            <p>{selectedRowData.supportedNips?.join(', ')}</p>
-            <p>{selectedRowData.contact}</p>
-            <p>{selectedRowData.area}</p>
-            <p>{selectedRowData.operator}</p>
-          </>
-        )}
-      </Modal>
+      {selectedRowData && (
+        <RelayDetailModal
+          relay={selectedRowData}
+          open={modalVisible}
+          onCancel={handleCloseModal}
+        />
+      )}
 
       <Button onClick={handleBenchmark} disabled={isBenchmarking}>
         Start Benchmark
@@ -290,4 +294,4 @@ const WebSocketBenchmark: React.FC<WebSocketBenchmarkProps> = ({
   );
 };
 
-export default WebSocketBenchmark;
+export default RelayPoolTable;

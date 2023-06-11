@@ -21,4 +21,5 @@ export interface Relay {
   isOnline?: boolean;
   benchmark?: number; // delay in milliseconds
   lastBenchmarkTimestamp?: number;
+  lastUpdateTimestamp?: number; // last relay info fetching time 
 }
