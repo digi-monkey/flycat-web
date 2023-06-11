@@ -5,6 +5,7 @@ import { BaseLayout, Left } from 'components/layout/BaseLayout';
 import { RelayPool } from './RelayPool';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';
+import "./index.module.scss";
 
 export interface RelayMenuProp {
   showRelayPool: boolean;

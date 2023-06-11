@@ -2,50 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Relay } from 'service/relay/type';
-import { EllipsisOutlined } from '@ant-design/icons';
 import { Nip11 } from 'service/nip/11';
 import { isRelayOutdate } from 'service/relay/util';
+import { SingleItemAction } from '../Action/singleItem';
 
 export type RelayTableItem = Relay & { key: string };
 
-const columns: ColumnsType<RelayTableItem> = [
-  {
-    title: 'Type',
-    dataIndex: 'accessType',
-    key: 'accessType',
-  },
-  {
-    title: 'URL',
-    dataIndex: 'url',
-    key: 'url',
-  },
-  {
-    title: 'Status',
-    dataIndex: 'isOnline',
-    key: 'isOnline',
-    render: (isOnline: boolean) => (isOnline ? 'Online' : 'Offline'),
-  },
-  {
-    key: 'action',
-    render: (_, record) => (
-      <EllipsisOutlined
-        onClick={() => {
-          console.log('click', record);
-        }}
-        style={{ cursor: 'pointer' }}
-      />
-    ),
-  },
-];
-
 export interface RelayGroupTableProp {
+  groupId: string;
   relays: Relay[];
 }
-const RelayGroupTable: React.FC<RelayGroupTableProp> = ({ relays }) => {
+
+const RelayGroupTable: React.FC<RelayGroupTableProp> = ({groupId, relays }) => {
   const [data, setData] = useState<RelayTableItem[]>([]);
+  const [selectRelays, setSelectRelays] = useState<Relay[]>([]);
 
   useEffect(() => {
-    updateRelayData(relays); 
+    updateRelayData(relays);
   }, [relays]);
 
   const updateRelayData = async (relays: Relay[]) => {
@@ -61,11 +34,35 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({ relays }) => {
     });
 
     // todo: save relay update value
-
-    setData(newRelays.map(r => {
-      return { ...r, ...{ key: r.url } };
-    }));
+    setData(
+      newRelays.map(r => {
+        return { ...r, ...{ key: r.url } };
+      }),
+    );
   };
+
+  const columns: ColumnsType<RelayTableItem> = [
+    {
+      title: 'Type',
+      dataIndex: 'accessType',
+      key: 'accessType',
+    },
+    {
+      title: 'URL',
+      dataIndex: 'url',
+      key: 'url',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isOnline',
+      key: 'isOnline',
+      render: (isOnline: boolean) => (isOnline ? 'Online' : 'Offline'),
+    },
+    {
+      key: 'action',
+      render: (_, record) => <SingleItemAction groupId={groupId} relay={record} />,
+    },
+  ];
 
   return (
     <Table<RelayTableItem>
@@ -74,6 +71,7 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({ relays }) => {
         onChange: (selectedRowKeys, selectedRows) => {
           console.log('Selected Row Keys:', selectedRowKeys);
           console.log('Selected Rows:', selectedRows);
+          setSelectRelays(selectedRows);
         },
         // You can customize other selection properties here if needed
       }}

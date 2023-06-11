@@ -1,0 +1,16 @@
+.actionFooter {
+  background-color: #f0f0f0;
+  padding: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actionFooterContainer {
+  transition: height 0.3s;
+  height: 0;
+  overflow: hidden;
+}
+
+.actionFooterContainer.active {
+  height: auto;
+}

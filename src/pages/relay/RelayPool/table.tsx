@@ -6,8 +6,8 @@ import { Nip11 } from 'service/nip/11';
 import { Relay, RelayAccessType } from 'service/relay/type';
 import styles from './index.module.scss';
 import { FilterDropdownProps } from 'antd/es/table/interface';
-
-const { Title, Paragraph, Text, Link } = Typography;
+import { RelayDetailModal } from '../Modal/detail';
+import { MultipleItemsAction } from '../Action/multipleItems';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -19,8 +19,10 @@ interface BenchmarkResult {
   isFailed: boolean;
 }
 
+export type RelayTableItem = Relay & { key: string };
+
 const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
-  const [urls, setUrls] = useState<string[]>(relays.map(r=>r.url));
+  const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [isBenchmarked, setIsBenchmarked] = useState(false);
@@ -89,6 +91,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
   };
 
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [data, setData] = useState<RelayTableItem[]>([]);
   const [relayDataSource, setRelayDataSource] = useState<Relay[]>(relays);
 
   const updateRelayMap = async () => {
@@ -104,7 +107,13 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       }
     });
 
+
     setRelayDataSource(newRelays);
+    setData(
+      newRelays.map(r => {
+        return { ...r, ...{ key: r.url } };
+      }),
+    );
   };
 
   useEffect(() => {
@@ -236,6 +245,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<Relay | null>(null);
+  const [selectedRelays, setSelectedRelays] = useState<Relay[]>([]);
 
   const handleOpenModal = record => {
     setSelectedRowData(record);
@@ -248,43 +258,30 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   return (
     <div>
-      <Table<Relay>
+      <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
           onChange: (selectedRowKeys, selectedRows) => {
             console.log('Selected Row Keys:', selectedRowKeys);
             console.log('Selected Rows:', selectedRows);
+            setSelectedRelays(selectedRows);
           },
           // You can customize other selection properties here if needed
         }}
         columns={columns}
         rowClassName={rowClassName}
-        dataSource={relayDataSource}
+        dataSource={data}
         pagination={paginationConfig}
       />
+      <MultipleItemsAction open={selectedRelays.length > 0} relays={selectedRelays} />
 
-      <Modal
-        title="Relay details"
-        open={modalVisible}
-        onCancel={handleCloseModal}
-        onOk={handleCloseModal}
-        okText={'Got it'}
-        // Remove the footer (cancel button)
-        //footer={[<button key="submit" onClick={handleCloseModal}>OK</button>]}
-      >
-        {/* Render modal content using selectedRowData */}
-        {selectedRowData && (
-          <>
-            <p>{selectedRowData.url}</p>
-            <p>{selectedRowData.about}</p>
-            <p>{selectedRowData.software}</p>
-            <p>{selectedRowData.supportedNips?.join(', ')}</p>
-            <p>{selectedRowData.contact}</p>
-            <p>{selectedRowData.area}</p>
-            <p>{selectedRowData.operator}</p>
-          </>
-        )}
-      </Modal>
+      {selectedRowData && (
+        <RelayDetailModal
+          relay={selectedRowData}
+          open={modalVisible}
+          onCancel={handleCloseModal}
+        />
+      )}
 
       <Button onClick={handleBenchmark} disabled={isBenchmarking}>
         Start Benchmark

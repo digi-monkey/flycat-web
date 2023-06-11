@@ -1,13 +1,12 @@
 import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Button, Col, Input, Menu, Row } from 'antd';
+import { Button, Col, Input, Menu, Row, Space } from 'antd';
 import { useRelayGroup } from '../hooks/useRelayGroup';
 import { useDefaultGroup } from '../hooks/useDefaultGroup';
 import { Relay } from 'service/relay/type';
 import RelayGroupTable from './table';
-import Icon from '@ant-design/icons';
+import { newRelay } from 'service/relay/util';
 
 export const RelayGroup: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +15,7 @@ export const RelayGroup: React.FC = () => {
   const groups = useRelayGroup(myPublicKey, defaultGroups);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [inputWsUrl, setInputWsUrl] = useState<string>();
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -30,11 +30,14 @@ export const RelayGroup: React.FC = () => {
     }
 
     const selectedItems = groups.map.get(selectedGroupId) || [];
-    return <RelayGroupTable relays={selectedItems} />
+    return <RelayGroupTable groupId={selectedGroupId} relays={selectedItems} />;
   };
 
-  const addToGroup = (groupId: string, relay: Relay) => {
-    groups?.addNewRelayToGroup(groupId, relay);
+  const addRelay = () => {
+    if (inputWsUrl && selectedGroupId) {
+      // todo: validate wss url
+      groups?.addNewRelayToGroup(selectedGroupId, newRelay(inputWsUrl));
+    }
   };
 
   const createNewGroup = () => {
@@ -76,10 +79,15 @@ export const RelayGroup: React.FC = () => {
               {'(' + groups?.map.get(selectedGroupId!)?.length + ')'}
             </Col>
             <Col span={12}>
-              <Input
-                placeholder="Search"
-                prefix={<Icon type="icon-search" />}
-              />
+              <Space.Compact style={{ width: '100%' }}>
+                <Input
+                  value={inputWsUrl}
+                  onChange={v => setInputWsUrl(v.currentTarget.value)}
+                />
+                <Button onClick={addRelay} type="primary">
+                  Add
+                </Button>
+              </Space.Compact>
             </Col>
           </Row>
           <div>{renderRightPanel()}</div>
