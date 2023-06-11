@@ -5,6 +5,7 @@ import { Relay } from 'service/relay/type';
 import { Nip11 } from 'service/nip/11';
 import { isRelayOutdate } from 'service/relay/util';
 import { SingleItemAction } from '../Action/singleItem';
+import { MultipleItemsAction } from '../Action/multipleItems';
 
 export type RelayTableItem = Relay & { key: string };
 
@@ -13,7 +14,10 @@ export interface RelayGroupTableProp {
   relays: Relay[];
 }
 
-const RelayGroupTable: React.FC<RelayGroupTableProp> = ({groupId, relays }) => {
+const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
+  groupId,
+  relays,
+}) => {
   const [data, setData] = useState<RelayTableItem[]>([]);
   const [selectRelays, setSelectRelays] = useState<Relay[]>([]);
 
@@ -60,25 +64,34 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({groupId, relays }) => {
     },
     {
       key: 'action',
-      render: (_, record) => <SingleItemAction groupId={groupId} relay={record} />,
+      render: (_, record) => (
+        <SingleItemAction groupId={groupId} relay={record} />
+      ),
     },
   ];
 
   return (
-    <Table<RelayTableItem>
-      rowSelection={{
-        type: 'checkbox',
-        onChange: (selectedRowKeys, selectedRows) => {
-          console.log('Selected Row Keys:', selectedRowKeys);
-          console.log('Selected Rows:', selectedRows);
-          setSelectRelays(selectedRows);
-        },
-        // You can customize other selection properties here if needed
-      }}
-      columns={columns}
-      dataSource={data}
-      pagination={false}
-    />
+    <>
+      <Table<RelayTableItem>
+        rowSelection={{
+          type: 'checkbox',
+          onChange: (selectedRowKeys, selectedRows) => {
+            console.log('Selected Row Keys:', selectedRowKeys);
+            console.log('Selected Rows:', selectedRows);
+            setSelectRelays(selectedRows);
+          },
+          // You can customize other selection properties here if needed
+        }}
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+      />
+      <MultipleItemsAction
+        groupId={groupId}
+        open={selectRelays.length > 0}
+        relays={selectRelays}
+      />
+    </>
   );
 };
 

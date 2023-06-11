@@ -8,6 +8,7 @@ import styles from './index.module.scss';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsAction } from '../Action/multipleItems';
+import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -273,7 +274,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
         dataSource={data}
         pagination={paginationConfig}
       />
-      <MultipleItemsAction open={selectedRelays.length > 0} relays={selectedRelays} />
+      <MultipleItemsPoolAction open={selectedRelays.length > 0} relays={selectedRelays} />
 
       {selectedRowData && (
         <RelayDetailModal
