@@ -1,23 +1,11 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';
-import { TagItem } from '../blog/hashTags/TagItem';
 import { useRouter } from 'next/router';
-import { UserHeader } from 'components/layout/UserBox';
-import { ProfileTextMsg } from 'components/layout/msg/TextMsg';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
-import { Article, Nip23 } from 'service/nip/23';
-import { Button, useTheme } from '@mui/material';
 import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
-import { useDateBookData } from 'hooks/useDateBookData';
-import {
-  ProfileBlogCommentMsgItem,
-  ProfileBlogHighlightMsgItem,
-  ProfilePublishBlogMsgItem,
-} from '../blog/components/MsgItem/index';
 import { useState, useEffect } from 'react';
-import { PersonalBlogFeedItem } from '../blog/feed/FeedItem';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -36,124 +24,14 @@ import {
   RawEvent,
   deserializeMetadata,
 } from 'service/api';
+import { Avatar, Button, Tabs } from 'antd';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import BasicTabs from 'components/layout/SimpleTabs';
-import { Nip9802 } from 'service/nip/9802';
 
-export const styles = {
-  root: {
-    maxWidth: '900px',
-    margin: '0 auto',
-  },
-  title: {
-    color: 'black',
-    fontSize: '2em',
-    fontWeight: '380',
-    diplay: 'block',
-    width: '100%',
-    margin: '5px',
-  },
-  ul: {
-    padding: '10px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  li: {
-    display: 'inline',
-    padding: '10px',
-  },
-  content: {
-    margin: '5px 0px',
-    minHeight: '700px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  left: {
-    height: '100%',
-    minHeight: '700px',
-    padding: '20px',
-  },
-  right: {
-    minHeight: '700px',
-    backgroundColor: '#E1D7C6',
-    padding: '20px',
-  },
-  postBox: {},
-  postHintText: {
-    color: '#acdae5',
-    marginBottom: '5px',
-  },
-  postTextArea: {
-    resize: 'none' as const,
-    boxShadow: 'inset 0 0 1px #aaa',
-    border: '1px solid #b9bcbe',
-    width: '100%',
-    height: '80px',
-    fontSize: '14px',
-    padding: '5px',
-    overflow: 'auto',
-  },
-  btn: {
-    display: 'box',
-    textAlign: 'right' as const,
-  },
-  message: {
-    marginTop: '5px',
-  },
-  msgsUl: {
-    padding: '5px',
-  },
-  msgItem: {
-    display: 'block',
-    borderBottom: '1px dashed #ddd',
-    padding: '15px 0',
-  },
-  avatar: {
-    display: 'block',
-    width: '60px',
-    height: '60px',
-  },
-  userName: {
-    textDecoration: 'underline',
-    marginRight: '5px',
-  },
-  time: {
-    color: 'gray',
-    fontSize: '12px',
-    marginTop: '5px',
-  },
-  smallBtn: {
-    fontSize: '12px',
-    marginLeft: '5px',
-    border: 'none' as const,
-  },
-  connected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'green',
-  },
-  disconnected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'red',
-  },
-  userProfile: {
-    //padding: '10px',
-  },
-  userProfileAvatar: {
-    width: '80px',
-    height: '80px',
-    marginRight: '10px',
-  },
-  userProfileName: {
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-  userProfileBtnGroup: {
-    marginTop: '20px',
-  },
-};
+import newStyles from './index.module.scss';
+import PostItems from 'components/PostItems';
+import { stringHasImageUrl } from 'utils/common';
+import Icon from 'components/Icon';
 
 export type ContactList = Map<
   PublicKey,
@@ -181,7 +59,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactInfo>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articleMsgList, setArticleMsgList] = useState<Event[]>([]);
 
   const { worker, newConn } = useCallWorker();
 
@@ -209,7 +87,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
       case WellKnownEventKind.text_note:
       case WellKnownEventKind.article_highlight:
-      case WellKnownEventKind.long_form:
         if (event.pubkey === publicKey) {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -303,34 +180,54 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             };
           });
         }
+
         break;
 
       case WellKnownEventKind.long_form:
-        const article = Nip23.toArticle(event);
-        setArticles(prev => {
-          if (prev.map(p => p.eventId).includes(event.id)) return prev;
+        setArticleMsgList(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+            const newItems = [...oldArray, event];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          }
+          return oldArray;
+        });
 
-          const index = prev.findIndex(p => p.id === article.id);
-          if (index !== -1) {
-            const old = prev[index];
-            if (old.updated_at >= article.updated_at) {
-              return prev;
-            } else {
-              return prev.map((p, id) => {
-                if (id === index) return article;
-                return p;
-              });
+        setMsgList(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+            const newItems = [...oldArray, event];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          }
+          return oldArray;
+        });
+
+        // check if need to sub new user metadata
+        const newPks: string[] = [];
+        for (const t of event.tags) {
+          if (isEventPTag(t)) {
+            const pk = t[1];
+            if (userMap.get(pk) == null) {
+              newPks.push(pk);
             }
           }
-
-          // only add un-duplicated and replyTo msg
-          const newItems = [...prev, article];
-          // sort by timestamp in asc
-          const sortedItems = newItems.sort((a, b) =>
-            a.updated_at >= b.updated_at ? -1 : 1,
-          );
-          return sortedItems;
-        });
+        }
+        if (newPks.length > 0) {
+          worker
+            ?.subMetadata(newPks, false, undefined, {
+              type: CallRelayType.single,
+              data: [relayUrl!],
+            })
+            ?.iterating({ cb: handleEvent });
+        }
         break;
 
       default:
@@ -366,7 +263,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       ?.iterating({ cb: handleEvent });
   }, [newConn]);
 
-  const dateBooks = useDateBookData(articles);
+  useEffect(() => {
+    if (!worker) return;
+    if (!userContactList || userContactList.keys.length === 0) return;
+
+    worker?.subMetadata(userContactList.keys)?.iterating({ cb: handleEvent });
+  }, [worker, userContactList?.keys]);
 
   const followUser = async () => {
     if (signEvent == null) {
@@ -472,172 +374,115 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
   const followOrUnfollowOnClick = isFollowed ? unfollowUser : followUser;
 
-  const directorys: string[][] = articles
-    .filter(a => a.dirs != null)
-    .map(a => a.dirs!);
-
-  const tabItems = {
-    note: (
-      <ul style={styles.msgsUl}>
-        {msgList.map((msg, index) => {
-          if (Nip23.isBlogPost(msg)) {
-            return (
-              <ProfilePublishBlogMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else if (Nip23.isBlogCommentMsg(msg)) {
-            return (
-              <ProfileBlogCommentMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else if (Nip9802.isBlogHighlightMsg(msg)) {
-            return (
-              <ProfileBlogHighlightMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else {
-            return (
-              <ProfileTextMsg
-                msgEvent={msg}
-                key={msg.id}
-                userMap={userMap}
-                replyTo={msg.tags
-                  .filter(t => t[0] === EventTags.P)
-                  .map(t => {
-                    return {
-                      name: userMap.get(t[1])?.name,
-                      pk: t[1],
-                    };
-                  })}
-                worker={worker!}
-                lightingAddress={
-                  userMap.get(msg.pubkey)?.lud06 ||
-                  userMap.get(msg.pubkey)?.lud16
-                }
-              />
-            );
-          }
-        })}
-      </ul>
-    ),
-    post: (
-      <ul style={styles.msgsUl}>
-        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() =>
-              router.push({ pathname: `${Paths.blog}/${publicKey}` })
-            }
-          >
-            {"go to the user's blog page"}
-          </Button>
-        </div>
-        {articles.map((a, key) => (
-          <PersonalBlogFeedItem
-            key={key}
-            article={a}
-            lightingAddress={
-              userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
-            }
+  const tabItems = [
+    {
+      label: `all`,
+      key: 'all',
+      children: (
+        <ul>
+          <PostItems
+            msgList={msgList}
+            worker={worker!}
+            userMap={userMap}
+            relays={[]}
           />
-        ))}
-      </ul>
-    ),
-  };
+        </ul>
+      ),
+    },
+    {
+      label: `long-form`,
+      key: 'longForm',
+      children: (
+        <ul>
+          <PostItems
+            msgList={articleMsgList}
+            worker={worker!}
+            userMap={userMap}
+            relays={[]}
+          />
+        </ul>
+      ),
+    },
+    {
+      label: `media`,
+      key: 'media',
+      children: (
+        <ul>
+          <PostItems
+            msgList={msgList.filter(
+              e =>
+                e.kind === WellKnownEventKind.text_note &&
+                stringHasImageUrl(e.content),
+            )}
+            worker={worker!}
+            userMap={userMap}
+            relays={[]}
+          />
+        </ul>
+      ),
+    },
+  ];
+
   return (
     <BaseLayout>
       <Left>
-        <div style={styles.userProfile}>
-          <UserHeader
-            pk={publicKey}
-            isFollowed={isFollowed}
-            followOrUnfollowOnClick={followOrUnfollowOnClick}
-            metadata={userMap.get(publicKey)}
+        {userMap.get(publicKey)?.banner && (
+          <div className={newStyles.banner}>
+            <img src={userMap.get(publicKey)?.banner} alt="" />
+          </div>
+        )}
+
+        <div>
+          <Tabs
+            defaultActiveKey="all"
+            centered
+            items={tabItems}
+            size={'large'}
           />
-        </div>
-
-        <div style={{ marginTop: '20px' }}>
-          <CommitCalendar pk={publicKey} />
-        </div>
-
-        <div style={styles.message}>
-          <BasicTabs items={tabItems} />
         </div>
       </Left>
       <Right>
-        {dateBooks.length > 0 && (
-          <div style={{ marginTop: '10px' }}>{'Collection'}</div>
-        )}
-        <div style={{ marginTop: '20px', fontSize: '14px' }}>
-          {dateBooks.map((book, key) => (
-            <div
-              key={key}
-              style={{
-                color: 'gray',
-                padding: '5px 0px',
-                margin: '10px 0px',
-                borderBottom: '1px dashed rgb(221, 221, 221)',
-                textTransform: 'capitalize',
-              }}
-            >
-              <span>{book.title}</span>
-              <span style={{ float: 'right' }}>
-                {'('}
-                {book.count}
-                {')'}
-              </span>
-            </div>
-          ))}
-          {directorys
-            .map(d => d[0])
-            .filter((value, index, self) => self.indexOf(value) === index)
-            .map((dir, key) => (
-              <div
-                key={key}
-                style={{
-                  color: 'gray',
-                  padding: '5px 0px',
-                  margin: '10px 0px',
-                  borderBottom: '1px dashed rgb(221, 221, 221)',
-                  textTransform: 'capitalize',
-                }}
-              >
-                <span>{dir}</span>
-
-                <span style={{ float: 'right' }}>
-                  {'('}
-                  {
-                    articles
-                      .filter(a => a.dirs != null)
-                      .filter(a => a.dirs![0] === dir).length
-                  }
-                  {')'}
-                </span>
-              </div>
-            ))}
-        </div>
         <div>
-          <div style={{ marginTop: '20px', fontSize: '14px' }}>
-            {articles
-              .map(article => article.hashTags)
-              .flat(Infinity)
-              .filter(t => typeof t === 'string')
-              .map((t, key) => (
-                <TagItem key={key} tag={t as string} />
-              ))}
+          <div className={newStyles.profile}>
+            <div className={newStyles.img}>
+              <Avatar
+                style={{ width: '100%', height: '100%' }}
+                src={userMap.get(publicKey)?.picture}
+                alt=""
+              />
+            </div>
+            <div className={newStyles.name}>{userMap.get(publicKey)?.name}</div>
+            <div className={newStyles.description}>
+              {userMap.get(publicKey)?.about}
+            </div>
+          </div>
+        </div>
+
+        <div className={newStyles.calendar}>
+          <CommitCalendar pk={publicKey} />
+        </div>
+
+        <div className={newStyles.btnGroup}>
+          <Button onClick={followOrUnfollowOnClick}>
+            {isFollowed ? 'unfollow' : 'follow'}
+          </Button>
+          <Icon type="icon-rss" className={newStyles.icon} />
+          <Icon type="icon-bolt" className={newStyles.icon} />
+        </div>
+
+        <div className={newStyles.following}>
+          <div className={newStyles.followingTitle}>Followings</div>
+          <ul>
+            {userContactList?.keys.slice(0, 5).map(key => (
+              <li key={key} className={newStyles.followingList}>
+                <Avatar src={userMap.get(key)?.picture} alt="" />
+                <div>{userMap.get(key)?.name}</div>
+                <Icon type="icon-more-horizontal" className={newStyles.icon} />
+              </li>
+            ))}
+          </ul>
+          <div>
+            <Button>View all {userContactList?.keys.length}</Button>
           </div>
         </div>
       </Right>

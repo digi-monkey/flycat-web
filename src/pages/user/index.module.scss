@@ -1,0 +1,66 @@
+.banner {
+  width: 100%;
+  height: 157px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+.profile {
+  width: 100%;
+  margin-top: 72px;
+
+  .img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .name {
+    margin-top: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .description {
+    margin-top: 12px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--neutral-06);
+  }
+}
+.calendar {
+  margin-top: 16px;
+}
+
+.btnGroup {
+  margin-top: 12px;
+  height: 50px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin-left: 16px;
+}
+
+.followingList {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.followingTitle {
+  margin-top: 40px;
+  color: var(--neutral-09);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
