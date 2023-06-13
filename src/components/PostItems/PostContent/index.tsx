@@ -19,17 +19,20 @@ import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { normalizeContent, shortPublicKey } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
+import { EventWithSeen } from 'pages/type';
 
 interface PostContentProp {
   ownerEvent: Event;
   userMap: UserMap;
   worker: CallWorker;
+  showLastReplyToEvent?: boolean;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
   userMap,
   ownerEvent: msgEvent,
   worker,
+  showLastReplyToEvent = true,
 }) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -37,9 +40,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   const [contentComponents, setContentComponents] = useState<any[]>([]);
   const [lastReplyToEvent, setLastReplyToEvent] = useState<Event>();
 
-  const {
-	modifiedText
-      } = normalizeContent(msgEvent.content);
+  const { modifiedText } = normalizeContent(msgEvent.content);
 
   useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
     setRelayUrls(r.map(r => r.url));
@@ -47,7 +48,9 @@ export const PostContent: React.FC<PostContentProp> = ({
 
   useEffect(() => {
     transformContent();
-    buildLastReplyEvent();
+    if (showLastReplyToEvent) {
+      buildLastReplyEvent();
+    }
   }, [modifiedText, userMap, relayUrls]);
 
   const transformContent = async () => {
@@ -103,23 +106,37 @@ export const PostContent: React.FC<PostContentProp> = ({
     <div>
       <div>{contentComponents}</div>
 
-      {lastReplyToEvent && (
-        <div className={styles.replyEvent}>
-          <div>
-            <Avatar
-              src={userMap.get(lastReplyToEvent.pubkey)?.picture}
-              alt="picture"
-            />{' '}
-            @
-            {userMap.get(lastReplyToEvent.pubkey)?.name ||
-              shortPublicKey(lastReplyToEvent.pubkey)}
-          </div>
-          {lastReplyToEvent.content}
-          <MediaPreviews content={lastReplyToEvent.content} />
-        </div>
+      {showLastReplyToEvent && lastReplyToEvent && (
+        <SubPostItem userMap={userMap} event={lastReplyToEvent} />
       )}
 
       <MediaPreviews content={msgEvent.content} />
+    </div>
+  );
+};
+
+export interface SubPostItemProp {
+  event: Event;
+  userMap: UserMap;
+}
+
+export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
+  const clickUserProfile = () => {
+    window.location.href = `/user/${event.pubkey}`;
+  };
+  const clickEventBody = () => {
+    window.location.href = `/event/${event.id}`;
+  };
+  return (
+    <div className={styles.replyEvent}>
+      <div className={styles.user} onClick={clickUserProfile}>
+        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" /> @
+        {userMap.get(event.pubkey)?.name || shortPublicKey(event.pubkey)}
+      </div>
+      <div className={styles.content} onClick={clickEventBody}>
+        {event.content}
+        <MediaPreviews content={event.content} />
+      </div>
     </div>
   );
 };

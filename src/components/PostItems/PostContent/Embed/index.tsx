@@ -56,7 +56,6 @@ export const transformRefEmbed = (
   }
   if (naddrs) {
     refTexts = refTexts.concat(naddrs.map(n => n.key));
-    console.log("naddrs:", naddrs, refTexts);
     refComponents = refComponents.concat(naddrs.map(n => Naddr(n)));
   }
   if (nrelays) {
@@ -70,9 +69,7 @@ export const transformRefEmbed = (
   // Split the string based on the substrings
   const textComponents = content
     .split(pattern)
-    .map(text => <span key={text}>{text}</span>);
-
-    console.log("pattern:", pattern, "textComp:", textComponents)
+    .map((text, index) => <span key={text+index}>{text}</span>);
 
   // Find the maximum length between the two arrays
   const maxLength = Math.max(textComponents.length, refComponents.length);

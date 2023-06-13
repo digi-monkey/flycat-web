@@ -1,4 +1,3 @@
-import { ThinHr } from 'components/layout/ThinHr';
 import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
@@ -18,134 +17,15 @@ import {
   PublicKey,
   RelayUrl,
   PetName,
-  isEventETag,
   isEventPTag,
-  EventId,
   deserializeMetadata,
 } from 'service/api';
 import PostItems from 'components/PostItems';
-
-export const styles = {
-  root: {
-    maxWidth: '900px',
-    margin: '0 auto',
-  },
-  title: {
-    color: 'black',
-    fontSize: '2em',
-    fontWeight: '380',
-    diplay: 'block',
-    width: '100%',
-    margin: '5px',
-  },
-  ul: {
-    padding: '10px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  li: {
-    display: 'inline',
-    padding: '10px',
-  },
-  content: {
-    margin: '5px 0px',
-    minHeight: '700px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  left: {
-    height: '100%',
-    minHeight: '700px',
-    padding: '20px',
-  },
-  right: {
-    minHeight: '700px',
-    backgroundColor: '#E1D7C6',
-    padding: '20px',
-  },
-  postBox: {},
-  postHintText: {
-    color: '#acdae5',
-    marginBottom: '5px',
-  },
-  postTextArea: {
-    resize: 'none' as const,
-    boxShadow: 'inset 0 0 1px #aaa',
-    border: '1px solid #b9bcbe',
-    width: '100%',
-    height: '80px',
-    fontSize: '14px',
-    padding: '5px',
-    overflow: 'auto',
-  },
-  btn: {
-    display: 'box',
-    textAlign: 'right' as const,
-  },
-  message: {
-    marginTop: '5px',
-  },
-  msgsUl: {
-    padding: '5px',
-  },
-  msgItem: {
-    display: 'block',
-    borderBottom: '1px dashed #ddd',
-    padding: '15px 0',
-  },
-  avatar: {
-    display: 'block',
-    width: '60px',
-    height: '60px',
-  },
-  msgWord: {
-    fontSize: '14px',
-    display: 'block',
-  },
-  userName: {
-    textDecoration: 'underline',
-    marginRight: '5px',
-  },
-  time: {
-    color: 'gray',
-    fontSize: '12px',
-    marginTop: '5px',
-  },
-  myAvatar: {
-    width: '48px',
-    height: '48px',
-  },
-  smallBtn: {
-    fontSize: '12px',
-    marginLeft: '5px',
-    border: 'none' as const,
-  },
-  connected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'green',
-  },
-  disconnected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'red',
-  },
-  userProfile: {
-    padding: '10px',
-  },
-  userProfileAvatar: {
-    width: '80px',
-    height: '80px',
-    marginRight: '10px',
-  },
-  userProfileName: {
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-  userProfileBtnGroup: {
-    marginTop: '20px',
-  },
-};
+import { Avatar, Segmented, Input } from 'antd';
+import styles from './index.module.scss';
+import { TreeNode } from './tree';
+import { SubPostItem } from 'components/PostItems/PostContent';
+import { CommentInput } from './CommentInput';
 
 export type ContactList = Map<
   PublicKey,
@@ -163,7 +43,12 @@ export const EventPage = ({ isLoggedIn }) => {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
+  const [sentMsgIds, setSentMsgIds] = useState<string[]>([]);
+  const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
+  const [threadTreeNodes, setThreadTreeNodes] = useState<
+    TreeNode<EventWithSeen>[]
+  >([]);
+  const [rootEvent, setRootEvent] = useState<EventWithSeen>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
 
   function handEvent(event: Event, relayUrl?: string) {
@@ -188,9 +73,24 @@ export const EventPage = ({ isLoggedIn }) => {
         });
         break;
 
+      case WellKnownEventKind.article_highlight:
+      case WellKnownEventKind.long_form:
       case WellKnownEventKind.text_note:
         {
-          setMsgList(oldArray => {
+          if (event.id === eventId) {
+            if (rootEvent == null) {
+              setRootEvent({ ...event, ...{ seen: [relayUrl!] } });
+            } else {
+              if (!rootEvent.seen?.includes(relayUrl!)) {
+                rootEvent.seen?.push(relayUrl!);
+                setRootEvent(rootEvent);
+              }
+            }
+
+            return;
+          }
+
+          setCommentList(oldArray => {
             const replyToEventIds = oldArray
               .map(e => getEventIdsFromETags(e.tags))
               .reduce((prev, current) => prev.concat(current), []);
@@ -243,7 +143,6 @@ export const EventPage = ({ isLoggedIn }) => {
             return oldArray;
           });
         }
-
         break;
 
       default:
@@ -269,40 +168,130 @@ export const EventPage = ({ isLoggedIn }) => {
   }, [unknownPks, newConn]);
 
   useEffect(() => {
-    const replyToEventIds = msgList
-      .map(e => getEventIdsFromETags(e.tags))
-      .reduce((prev, current) => prev.concat(current), []);
-    const msgIds = msgList.map(m => m.id);
-
-    // subscribe new reply event id
-    const newIds: EventId[] = [];
-    for (const id of replyToEventIds) {
-      if (!msgIds.includes(id)) {
-        newIds.push(id);
-      }
-    }
-    if (newIds.length > 0) {
-      worker?.subMsgByEventIds(newIds)?.iterating({ cb: handEvent });
-    }
-  }, [newConn, msgList.length]);
-
-  useEffect(() => {
-    const msgIds = msgList.map(e => e.id);
+    const msgIds = commentList.map(e => e.id);
     if (msgIds.length > 0) {
       worker?.subMsgByETags(msgIds)?.iterating({ cb: handEvent });
     }
-  }, [msgList.length]);
+  }, [commentList.length]);
+
+  useEffect(() => {
+    if (worker == null) return;
+
+    if (commentList.length === 0) {
+      worker.subMsgByETags([eventId])?.iterating({ cb: handEvent });
+    }
+  }, [worker, eventId]);
+
+  useEffect(() => {
+    if (!worker) return;
+
+    const msgIds = commentList.map(m => m.id);
+    const newIds = msgIds.filter(id => sentMsgIds.includes(id));
+    const pks = commentList
+      .filter(event => newIds.includes(event.id))
+      .map(event => event.pubkey);
+    worker.subMsgByETags(newIds)?.iterating({ cb: handEvent });
+    worker.subMetadata(pks)?.iterating({ cb: handEvent });
+    setSentMsgIds(prev => [...prev, ...newIds]);
+  }, [worker, commentList.length]);
+
+  useEffect(() => {
+    buildThreadNodes();
+  }, [commentList.length]);
+
+  // todo: better tree algo 
+  const buildThreadNodes = () => {
+    const ids = threadTreeNodes.map(t => t.value.id);
+    for (const comment of commentList) {
+      if (!ids.includes(comment.id)) {
+        const node = new TreeNode(comment);
+        const parentIds = getEventIdsFromETags(comment.tags);
+        for (const id of parentIds) {
+          if (ids.includes(id)) {
+            const parentNodes = threadTreeNodes.filter(n => n.value.id === id);
+            {
+              for (const parent of parentNodes) {
+                if (
+                  !parent.children.map(n => n.value.id).includes(node.value.id)
+                ) {
+                  parent.addChild(node);
+                }
+              }
+            }
+          }
+        }
+        threadTreeNodes.push(node);
+      }
+    }
+
+    const newThreadTreeNodes = truncateThreadNodes(threadTreeNodes);
+    setThreadTreeNodes(newThreadTreeNodes);
+  };
+  const truncateThreadNodes = (threadTreeNodes: TreeNode<EventWithSeen>[]) => {
+    let newThreadNodes: TreeNode<EventWithSeen>[] = threadTreeNodes;
+    for (const node of threadTreeNodes) {
+      const ids = node.children.map(n => n.value.id);
+      for (const otherNode of threadTreeNodes.filter(
+        n => n.value.id !== node.value.id,
+      )) {
+        if (ids.includes(otherNode.value.id)) {
+          newThreadNodes = newThreadNodes.filter(
+            n => n.value.id !== otherNode.value.id,
+          );
+        }
+      }
+    }
+    return newThreadNodes;
+  };
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
   return (
     <BaseLayout>
       <Left>
-        <div style={styles.message}>
+        <div>
           <h3>{t('thread.title')}</h3>
-          <ThinHr></ThinHr>
-          <div style={styles.msgsUl}>
-            {msgList.length > 0 && <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} />}
+
+          <div>
+            <div>
+              {rootEvent && (
+                <PostItems
+                  msgList={[rootEvent]}
+                  worker={worker!}
+                  userMap={userMap}
+                  relays={relayUrls}
+                />
+              )}
+            </div>
+            <div className={styles.repliesHeader}>
+              <div className={styles.title}>
+                Replies{`(${commentList.length})`}
+              </div>
+              <div className={styles.tab}>
+                <Segmented options={['recent', 'hot', 'zapest']} />
+              </div>
+            </div>
+
+            {rootEvent && <CommentInput worker={worker!} replyTo={rootEvent} userMap={userMap} />}
+            
+            {threadTreeNodes.map(n => (
+              <div key={n.value.id}>
+                <PostItems
+                  msgList={[{ ...n.value, ...{ seen: [''] } }]}
+                  worker={worker!}
+                  userMap={userMap}
+                  relays={[]}
+                  showLastReplyToEvent={false}
+                />
+                <div className={styles.subRepliesContainer}>
+                  {n.children.map(c => (
+                    <SubPostItem key={c.value.id} event={c.value} userMap={userMap} />
+                  ))}
+                </div>
+                <br />
+                <br />
+              </div>
+            ))}
           </div>
         </div>
       </Left>
@@ -315,8 +304,8 @@ export default connect(loginMapStateToProps)(EventPage);
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
-      ...(await serverSideTranslations(locale, ['common']))
-  }
+    ...(await serverSideTranslations(locale, ['common'])),
+  },
 });
 
 export const getStaticPaths = () => ({ paths: [], fallback: true });
