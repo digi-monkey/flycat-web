@@ -256,7 +256,8 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
             content={content}
             t={t}
           />
-          <div className={styles.comment} style={{ background: theme.palette.secondary.main }}>
+
+          <div className={styles.comment}>
             <div className={styles.commentPanel}>
               <TextField
                 className={styles.textarea}
