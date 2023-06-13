@@ -64,7 +64,8 @@ export const PostContent: React.FC<PostContentProp> = ({
       .filter(t => t[0] === EventTags.E)
       .map(t => {
         return { id: t[1], relay: t[2] };
-      })[0];
+      }).pop();
+      
     if (lastReply) {
       const handler = worker.subMsgByEventIds([lastReply.id])!;
       const dataStream = handler.getIterator();
