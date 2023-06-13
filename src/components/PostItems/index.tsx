@@ -23,9 +23,10 @@ interface PostItemsProps {
   worker: CallWorker, 
   userMap: UserMap, 
   relays: string[],
+  showLastReplyToEvent?: boolean;
 }
 
-const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays }) => {
+const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays, showLastReplyToEvent=true }) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
   return <>
@@ -42,7 +43,7 @@ const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays 
             {
               Nip23.isBlogPost(msg) ? <PostArticle userAvatar={getUser(msg)?.picture || ''} userName={getUser(msg)?.name || ''} event={msg} /> : 
               Nip23.isBlogCommentMsg(msg) ? <>长文的评论</> : 
-              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker}/>
+              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker} showLastReplyToEvent={showLastReplyToEvent}/>
             }
             <PostReactions ownerEvent={msg} worker={worker} seen={[]} userMap={userMap} />
           </div>

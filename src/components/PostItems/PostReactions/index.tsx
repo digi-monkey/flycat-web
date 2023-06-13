@@ -94,26 +94,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   };
 
   const comment = async () => {
-    // todo: below is how to post a comment.
-    // for the real case we should jump to the event page with comment input
-    if (signEvent == null) return;
-
-    const text = window.prompt('input the comment:');
-    if (text == null) return;
-
-    const rawEvent = new RawEvent(
-      '',
-      WellKnownEventKind.text_note,
-      [
-        [EventTags.E, ownerEvent.id, seen[0]] as EventETag,
-        [EventTags.P, ownerEvent.pubkey, seen[0]] as EventPTag,
-      ],
-      text,
-    );
-
-    const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
-    alert('published!');
+    window.location.href = `/event/${ownerEvent.id}`;
   };
 
   const bookmark = async () => {
