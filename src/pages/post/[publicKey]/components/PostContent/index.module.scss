@@ -1,31 +1,87 @@
-.postContent{
+.postContent {
   padding: 0;
   margin: 0;
-  background-color: #fff;
 
-  .postHeader{
+  .postHeader {
     word-break: break-all;
-    
-    .banner {
-      max-width: 100%;
-      margin: 0 auto;
-      display: block;
+
+    p {
+      margin: 10px 0px;
     }
 
-    .postTitleInfo{
-      margin: 10px 0px 40px 0px;
+    .banner {
+      width: 100%;
+      max-width: 100%;
+      max-height: 354px;
+      margin: 0 auto;
+      display: block;
+      border-radius: 12px;
+      object-fit: cover;
+      object-position: center;
+    }
 
-      .title{
-        font-size: 25px;
+    .postTitleInfo {
+      margin: 10px 0px 40px 0px;
+      border-bottom: 1px solid var(--neutral-02);
+
+      .title {
+        font-family: 'Poppins';
+        font-weight: 700;
+        font-size: 30px;
+        line-height: 38px;
         margin: 20px 0px;
-        font-weight: bold;
         text-transform: capitalize;
       }
 
-      .name{
-        color: gray;
-        font-size: 14px;
-        margin: 5px 0px 10px 0px;
+      .summary {
+        font-family: 'Noto Sans';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        color: var(--neutral-06);
+      }
+
+      .author {
+        display: flex;
+        justify-content: space-between;
+        margin: 24px 0px;
+
+        .img {
+          width: 44px;
+          height: 44px;
+        }
+
+        .info {
+          display: flex;
+          justify-content: space-between;
+          margin: 0;
+          max-width: 230px;
+
+          .text {
+            text-align: left;
+            margin-left: 10px;
+          }
+          .username {
+            font-family: 'Noto Sans';
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 24px;
+            a {
+              text-decoration: none;
+              color: inherit;
+            }
+          }
+          .time {
+            font-family: 'Noto Sans';
+            font-style: normal;
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 18px;
+            color: var(--neutral-06);
+          }
+        }
       }
     }
 
@@ -33,7 +89,7 @@
       margin: 10px 0px 30px 0px;
       font-size: 14px;
 
-      span{
+      span {
         margin-right: 10px;
         padding: 5px;
         border-radius: 5px;
@@ -42,7 +98,7 @@
     }
   }
 
-  .info{
+  .info {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -50,17 +106,17 @@
     margin: 80px 0px 20px 0px;
     width: 100%;
 
-    .author{
+    .author {
       align-items: center;
       justify-content: center;
       text-align: center;
       width: 100%;
 
-      .picture{
+      .picture {
         width: 80px;
         margin: 0 auto;
-        
-        img{
+
+        img {
           width: 80px;
           height: 80px;
           display: block;
@@ -68,34 +124,34 @@
         }
       }
 
-      .name{
+      .name {
         margin: 10px 0px 20px 0px;
 
-        a{
+        a {
           font-size: 16px;
           color: black;
         }
       }
 
-      .collected{
+      .collected {
         margin: 60px 0px 20px 0px;
         border-radius: 5px;
         padding: 10px;
         text-align: left;
 
-        .title{
+        .title {
           text-transform: capitalize;
           color: gray;
         }
 
-        .datetime{
+        .datetime {
           margin: 5px;
           padding: 5px;
           border-radius: 5px;
           text-decoration: underline;
         }
 
-        .dirs{
+        .dirs {
           margin: 5px;
           padding: 5px;
           border-radius: 5px;
@@ -105,14 +161,77 @@
     }
   }
 
-  .updated_at{
+  .updated_at {
     margin: 20px 0;
 
-    span{
+    span {
       margin: 0px 5px;
       font-size: 14px;
       color: gray;
       text-transform: capitalize;
     }
+  }
+
+  // markdown render
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 32px;
+    color: #000000;
+    margin: 24px 0px;
+  }
+
+  p {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--neutral-09);
+    margin-bottom: 24px;
+  }
+
+  li {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    padding-inline-start: 10px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+  }
+
+  pre {
+    padding: 10px;
+    margin: 10px 5px;
+    background-color: var(--neutral-02);
+    border-radius: 5px;
+  }
+
+  .articleImg {
+    width: 100%;
+    margin: 12px 0px;
+  }
+
+  blockquote {
+    border-left: 5px solid var(--primary-02);
+    padding: 0.5rem;
+    margin: 0 0 1rem;
+    font-style: italic;
+  }
+}
+
+.postTags{
+  margin: 40px 0px;
+  span{
+    color: var(--primary-06);
+    margin: 5px;
+    text-transform: capitalize;
   }
 }

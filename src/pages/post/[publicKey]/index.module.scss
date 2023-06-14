@@ -73,3 +73,66 @@
     }
   }
 }
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 80px 0px 20px 0px;
+  width: 100%;
+
+  .author {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+
+    .picture {
+      width: 80px;
+      margin: 0 auto;
+
+      img {
+        width: 80px;
+        height: 80px;
+        display: block;
+        border-radius: 50%;
+      }
+    }
+
+    .name {
+      margin: 10px 0px 20px 0px;
+
+      a {
+        font-size: 16px;
+        color: black;
+      }
+    }
+
+    .collected {
+      margin: 60px 0px 20px 0px;
+      border-radius: 5px;
+      padding: 10px;
+      text-align: left;
+
+      .title {
+        text-transform: capitalize;
+        color: gray;
+      }
+
+      .datetime {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        text-decoration: underline;
+      }
+
+      .dirs {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        text-decoration: underline;
+      }
+    }
+  }
+}

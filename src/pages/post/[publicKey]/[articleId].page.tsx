@@ -11,13 +11,23 @@ import { callSubFilter } from 'service/backend/sub';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'service/nip/23';
 import { Nip08, RenderFlag } from 'service/nip/08';
-import { TextField, Button } from "@mui/material";
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import { useEffect, useMemo, useState } from 'react';
-import { Event, EventSetMetadataContent, EventTags, WellKnownEventKind } from 'service/api';
-import { dontLikeComment, findNodeById, parseLikeData, replyComments, toTimeString } from './util';
+import {
+  Event,
+  EventSetMetadataContent,
+  EventTags,
+  WellKnownEventKind,
+} from 'service/api';
+import {
+  dontLikeComment,
+  findNodeById,
+  parseLikeData,
+  replyComments,
+  toTimeString,
+} from './util';
 
 import styles from './index.module.scss';
 import Head from 'next/head';
@@ -26,11 +36,19 @@ import Comment from './components/Comment';
 import PostContent from './components/PostContent';
 import ReplyDialog from './components/ReplyDialog';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import PostReactions from 'components/PostItems/PostReactions';
+import Link from 'next/link';
+import { Paths } from 'constants/path';
+import { payLnUrlInWebLn } from 'service/lighting/lighting';
+import Icon from 'components/Icon';
+import { Button, Input } from 'antd';
+
+const { TextArea } = Input;
 
 type UserParams = {
   publicKey: string;
   articleId: string;
-}
+};
 export interface newComments extends Event {
   replys: object;
   likes: object;
@@ -38,7 +56,6 @@ export interface newComments extends Event {
 }
 
 export default function NewArticle({ preArticle }: { preArticle?: Article }) {
-  const theme = useTheme();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
   const myPublicKey = useReadonlyMyPublicKey();
@@ -46,8 +63,10 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const articleId = decodeURIComponent(query.articleId);
   const { worker, newConn } = useCallWorker();
 
-  const signEvent = useSelector((state: RootState) => state.loginReducer.signEvent);
-  
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
+
   const [image, setImage] = useState('');
   const [replyId, setReplyId] = useState('');
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -62,27 +81,27 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     if (signEvent == null) {
       Swal.fire({
         icon: 'error',
-        text: 'sign method not found'
+        text: 'sign method not found',
       });
       return;
     }
     if (article == null) {
       Swal.fire({
         icon: 'error',
-        text: 'article is not loaded'
+        text: 'article is not loaded',
       });
       return;
     }
     if (worker == null) {
       Swal.fire({
         icon: 'error',
-        text: 'worker is null'
+        text: 'worker is null',
       });
       return;
     }
 
     let content = inputComment;
-    if (image) content = (content + "\n" + image).trim();
+    if (image) content = (content + '\n' + image).trim();
 
     const rawEvent = Nip23.commentToArticle(content, article);
     const event = await signEvent(rawEvent);
@@ -91,7 +110,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     setImage('');
     Swal.fire({
       icon: 'success',
-      text: t("comment.success"),
+      text: t('comment.success'),
     });
   };
 
@@ -133,9 +152,13 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     if (event.kind === WellKnownEventKind.text_note) {
       setComments(prev => {
         if (!prev.map(p => p.id).includes(event.id)) {
-          worker?.subMsgByETags([event.id])?.iterating({ cb: replyComments(event) });
+          worker
+            ?.subMsgByETags([event.id])
+            ?.iterating({ cb: replyComments(event) });
 
-          return [...prev, event].sort((a, b) => a.created_at >= b.created_at ? 1 : -1) as newComments[];
+          return [...prev, event].sort((a, b) =>
+            a.created_at >= b.created_at ? 1 : -1,
+          ) as newComments[];
         }
 
         return prev;
@@ -175,26 +198,29 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
 
   useEffect(() => {
     if (!replyId.length || !Object.keys(replyComment || {}).length) return;
-    
+
     const target = findNodeById(replyComment, replyId);
     if (!target) return;
 
     setReplyDialog(true);
     setReplyComment(target);
-    
+
     if (target.replys) {
       const ids = Object.keys(target.replys);
-      worker?.subMsgByETags(ids)?.iterating({ 
-        cb: (event)=>{
-          const tagIds = event.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as string);
-          for(const id of ids){
-            if(tagIds.includes(id)){
-              if (target.replys[id].replys) target.replys[id].replys[event.id] = event;
-              else target.replys[id].replys = {[event.id]: event};
+      worker?.subMsgByETags(ids)?.iterating({
+        cb: event => {
+          const tagIds = event.tags
+            .filter(t => t[0] === EventTags.E)
+            .map(t => t[1] as string);
+          for (const id of ids) {
+            if (tagIds.includes(id)) {
+              if (target.replys[id].replys)
+                target.replys[id].replys[event.id] = event;
+              else target.replys[id].replys = { [event.id]: event };
             }
           }
-          setReplyComment({...replyComment, ...target});
-        }
+          setReplyComment({ ...replyComment, ...target });
+        },
       });
     }
   }, [replyId]);
@@ -213,100 +239,160 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   }, [articleEvent, userMap]);
 
   return (
-   <>
-    <Head>
-      <title>{preArticle?.title || 'nostr blog post'}</title>
-      <meta
-        name="description"
-        content={preArticle?.summary || 'nostr nip23 long-form post'}
-      />
-      <meta
-        property="og:title"
-        content={preArticle?.title || 'nostr blog post'}
-      />
-      <meta
-        property="og:description"
-        content={preArticle?.summary || 'nostr nip23 long-form post'}
-      />
-      <meta property="og:image" content={preArticle?.image} />
-      <meta property="og:type" content="article" />
-      <meta
-        name="keywords"
-        content={preArticle?.hashTags?.join(',').toString()}
-      />
-      <meta name="author" content={preArticle?.pubKey || publicKey} />
-      <meta
-        name="published_date"
-        content={toTimeString(preArticle?.published_at)}
-      />
-      <meta
-        name="last_updated_date"
-        content={toTimeString(preArticle?.updated_at)}
-      />
-      <meta name="category" content={'flycat nostr blog post'} />
-    </Head>
-    <BaseLayout silent={true}>
-      <Left>
-        <div className={styles.post}>
-          <PostContent 
-            article={article}
-            publicKey={publicKey}
-            userMap={userMap}
-            articleId={articleId}
-            content={content}
-            t={t}
-          />
-          <div className={styles.comment} style={{ background: theme.palette.secondary.main }}>
-            <div className={styles.commentPanel}>
-              <TextField
-                className={styles.textarea}
-                multiline
-                minRows={4}
-                placeholder={t('comment.placeholder') as string}
-                value={inputComment}
-                onChange={(e) => setInputComment(e.target.value)}
-              />
-              { image && <div className={styles.image}>
-                  <img src={image} alt="replyImage" />
-                  <HighlightOffIcon onClick={() => setImage('')} />
-                </div>
-              }
-              <div className={styles.footer}>
-                <div className={styles.icons}>
-                  <ImageUploader onImgUrls={url => setImage(url[0])} />
-                </div>
-                <Button disabled={!inputComment.length} variant="contained" size='large' onClick={handleCommentSubmit}>
-                  {t('articleRead.submit')}
-                </Button>
-              </div>
-            </div>
-            <ThinHr></ThinHr>
-            <Comment 
-              comments={comments}
-              worker={worker}
+    <>
+      <Head>
+        <title>{preArticle?.title || 'nostr blog post'}</title>
+        <meta
+          name="description"
+          content={preArticle?.summary || 'nostr nip23 long-form post'}
+        />
+        <meta
+          property="og:title"
+          content={preArticle?.title || 'nostr blog post'}
+        />
+        <meta
+          property="og:description"
+          content={preArticle?.summary || 'nostr nip23 long-form post'}
+        />
+        <meta property="og:image" content={preArticle?.image} />
+        <meta property="og:type" content="article" />
+        <meta
+          name="keywords"
+          content={preArticle?.hashTags?.join(',').toString()}
+        />
+        <meta name="author" content={preArticle?.pubKey || publicKey} />
+        <meta
+          name="published_date"
+          content={toTimeString(preArticle?.published_at)}
+        />
+        <meta
+          name="last_updated_date"
+          content={toTimeString(preArticle?.updated_at)}
+        />
+        <meta name="category" content={'flycat nostr blog post'} />
+      </Head>
+      <BaseLayout silent={true}>
+        <Left>
+          <div className={styles.post}>
+            <PostContent
+              article={article}
+              publicKey={publicKey}
               userMap={userMap}
-              setReplyId={setReplyId}
-              setReplyComment={setReplyComment}
-              notLike={(eventId) => dontLikeComment(worker, signEvent, eventId, myPublicKey)}
-              like={(comment) => parseLikeData(comment, worker, signEvent, myPublicKey)}
-            />
-            <ReplyDialog
-              open={replyDialog}
-              onClose={() => {
-                setReplyId('');
-                setReplyDialog(false);
-              }}
-              comment={replyComment}
-              userMap={userMap}
-              worker={worker}
+              articleId={articleId}
+              content={content}
               t={t}
             />
+
+            <PostReactions
+              worker={worker!}
+              ownerEvent={articleEvent!}
+              userMap={userMap}
+              seen={[]}
+            />
+
+            <hr />
+
+            <div className={styles.info}>
+              <div className={styles.author}>
+                <div className={styles.picture}>
+                  <Link href={Paths.user + publicKey}>
+                    <img
+                      src={userMap.get(publicKey)?.picture}
+                      alt={userMap.get(publicKey)?.name}
+                    />
+                  </Link>
+                </div>
+
+                <div className={styles.name}>
+                  <Link href={Paths.user + publicKey}>
+                    {userMap.get(publicKey)?.name}
+                  </Link>
+                </div>
+
+                <div>
+                  <Button
+                    onClick={async () => {
+                      const lnUrl =
+                        userMap.get(publicKey)?.lud06 ||
+                        userMap.get(publicKey)?.lud16;
+                      if (lnUrl == null) {
+                        return alert(
+                          'no ln url, please tell the author to set up one.',
+                        );
+                      }
+                      await payLnUrlInWebLn(lnUrl);
+                    }}
+                  >
+                    <Icon
+                      style={{ width: '15px', height: '15px' }}
+                      type="icon-bolt"
+                    />
+                    <span style={{ marginLeft: '5px' }}>
+                      {'like the author'}
+                    </span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.comment}>
+              <div className={styles.commentPanel}>
+                <TextArea
+                  className={styles.textarea}
+                  placeholder={t('comment.placeholder') as string}
+                  value={inputComment}
+                  onChange={e => setInputComment(e.target.value)}
+                />
+                {image && (
+                  <div className={styles.image}>
+                    <img src={image} alt="replyImage" />
+                    <HighlightOffIcon onClick={() => setImage('')} />
+                  </div>
+                )}
+                <div className={styles.footer}>
+                  <div className={styles.icons}>
+                    <ImageUploader onImgUrls={url => setImage(url[0])} />
+                  </div>
+                  <Button
+                    disabled={!inputComment.length}
+                    size="large"
+                    onClick={handleCommentSubmit}
+                  >
+                    {t('articleRead.submit')}
+                  </Button>
+                </div>
+              </div>
+              <ThinHr></ThinHr>
+              <Comment
+                comments={comments}
+                worker={worker}
+                userMap={userMap}
+                setReplyId={setReplyId}
+                setReplyComment={setReplyComment}
+                notLike={eventId =>
+                  dontLikeComment(worker, signEvent, eventId, myPublicKey)
+                }
+                like={comment =>
+                  parseLikeData(comment, worker, signEvent, myPublicKey)
+                }
+              />
+              <ReplyDialog
+                open={replyDialog}
+                onClose={() => {
+                  setReplyId('');
+                  setReplyDialog(false);
+                }}
+                comment={replyComment}
+                userMap={userMap}
+                worker={worker}
+                t={t}
+              />
+            </div>
           </div>
-        </div>
-      </Left>
-      <Right></Right>
-    </BaseLayout>
-   </> 
+        </Left>
+        <Right></Right>
+      </BaseLayout>
+    </>
   );
 }
 
