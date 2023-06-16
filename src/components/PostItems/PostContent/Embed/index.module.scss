@@ -17,12 +17,12 @@
 }
 
 .refProfile {
-  background: #f2f2f2;
-  width: 100%;
-  left: 56px;
-  top: 0px;
+  background: var(--neutral-03);
   border-radius: 12px;
   padding: 12px;
+  position: absolute;
+  display: none;
+  z-index: 1;
 
   .user {
     font-family: 'Noto Sans';
@@ -30,8 +30,11 @@
     font-weight: 500;
     font-size: 16px;
     line-height: 24px;
-    color: var(--neutral-02);
   }
+}
+
+.hoverLink:hover + .refProfile {
+  display: block;
 }
 
 .refLink {

@@ -9,6 +9,15 @@ import styles from './index.module.scss';
 export const Npub = (npub: NpubResult) => {
   if (npub.profile) {
     return (
+      <span>
+        <a
+        href={i18n?.language + Paths.user + npub.pubkey}
+        target="_blank"
+        className={styles.hoverLink}
+      >
+        @{npub.profile.name}
+      </a>
+      
       <div className={styles.refProfile}>
         <div className={styles.user}>
           <Avatar src={npub.profile.picture} alt="picture" /> @
@@ -16,6 +25,7 @@ export const Npub = (npub: NpubResult) => {
         </div>
         <div>{npub.profile.about}</div>
       </div>
+      </span>
     );
   }
 

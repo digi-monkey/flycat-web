@@ -1,6 +1,5 @@
 import { bech32Decode, bech32Encode } from 'service/crypto';
 import { PublicKey, Event, WellKnownEventKind, EventId } from 'service/api';
-import { nip19 } from 'nostr-tools';
 
 import * as secp256k1 from '@noble/secp256k1';
 
@@ -219,11 +218,6 @@ export class Nip19 {
   static encodeNrelay(url: string) {
     const nrelay = nrelayEncode(url);
     return 'nostr:' + nrelay;
-  }
-
-  static decodeNprofile(link) {
-    const result = nip19.decode(link).data as { pubkey: string };
-    return result.pubkey;
   }
 }
 
