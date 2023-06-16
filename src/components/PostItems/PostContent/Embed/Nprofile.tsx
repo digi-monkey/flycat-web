@@ -9,6 +9,14 @@ import styles from './index.module.scss';
 export const Nprofile = (nprofile: NprofileResult) => {
   if (nprofile.profile) {
     return (
+      <span>
+      <a
+        href={i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey}
+        target="_blank"
+        className={styles.hoverLink}
+      >
+        @{nprofile.profile.name}
+      </a>
       <div className={styles.refProfile}>
         <div className={styles.user}>
           <Avatar src={nprofile.profile.picture} alt="picture" /> @
@@ -17,6 +25,7 @@ export const Nprofile = (nprofile: NprofileResult) => {
         </div>
         <div>{nprofile.profile.about}</div>
       </div>
+      </span> 
     );
   }
 

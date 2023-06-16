@@ -12,8 +12,8 @@ const URLPreview = ({ image, title, url, description }: UrlMetadata) => {
     )}
     <div>
       {title && ( <span style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}>{title}</span> )}
-      {url && <Link href={url}>{url}</Link>}
-      {description && <p style={{ fontSize: '12px', color: 'gray' }}>{description}</p>}
+      {url && <Link href={url}>{url.slice(0, 100)}..</Link>}
+      {description && <p style={{ fontSize: '12px', color: 'gray' }}>{description.slice(0,100)}..</p>}
     </div>
   </div>
 }
