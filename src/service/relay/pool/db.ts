@@ -84,6 +84,12 @@ export class RelayPoolDatabase implements RelayPoolDB {
 		return key;
   }
 
+	saveAll(relays: Relay[]){
+		for(const relay of relays){
+			this.save(relay);
+		}
+	}
+
 	load(url: string){
 		const key = this.getKeyByUrl(url);
 		return this.get(key);

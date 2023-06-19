@@ -2,6 +2,7 @@ import DOMPurify from 'dompurify';
 import { isEventETag, isEventPTag, PublicKey } from 'service/api';
 import { FlycatShareHeader } from './flycat-protocol';
 import imageCompression from 'browser-image-compression';
+import { isValidPublicKey } from './validator';
 
 export function normalizeContent(text: string): {
   lnUrls: string[];
@@ -176,11 +177,17 @@ export const getPkFromFlycatShareHeader = (header: FlycatShareHeader) => {
 };
 
 export const shortPublicKey = (key: PublicKey | undefined) => {
-  if (key) {
+  if (key && isValidPublicKey(key)) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
-  } else {
-    return 'unknown';
   }
+  if(typeof key === "string" && key.length < 8){
+    return key;
+  }
+  if(typeof key === "string" && key.length > 8){
+    return key.slice(0, 3) + '..' + key.slice(key.length - 3);
+  }
+
+  return 'Anonymous';
 };
 
 export function equalMaps(map1: Map<string, any>, map2: Map<string, any>) {

@@ -1,14 +1,16 @@
 import { EllipsisOutlined } from '@ant-design/icons';
-import { Button, Modal, Table, Typography } from 'antd';
+import { Avatar, Button, Table, Badge } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { shortPublicKey } from 'service/helper';
 import { Nip11 } from 'service/nip/11';
-import { Relay, RelayAccessType } from 'service/relay/type';
-import styles from './index.module.scss';
+import { Relay, RelayTracker } from 'service/relay/type';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { RelayDetailModal } from '../Modal/detail';
-import { MultipleItemsAction } from '../Action/multipleItems';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
+import { EventSetMetadataContent } from 'service/api';
+import { RelayPoolDatabase } from 'service/relay/pool/db';
+
+import styles from './table.module.scss';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -96,9 +98,19 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
   const [relayDataSource, setRelayDataSource] = useState<Relay[]>(relays);
 
   const updateRelayMap = async () => {
-    const details = await Nip11.getRelays(
-      relays.slice((currentPage - 1) * 10, currentPage * 10).map(r => r.url),
+    const currentRelays = relays.slice(
+      (currentPage - 1) * 10,
+      currentPage * 10,
     );
+    const details = await Nip11.updateRelays(
+      currentRelays.filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp)),
+    );
+    // save the updated relay info
+    if (details.length > 0) {
+      const db = new RelayPoolDatabase();
+      db.saveAll(details);
+    }
+
     const oldRelays = relayDataSource.length > 0 ? relayDataSource : relays;
     const newRelays = oldRelays.map(r => {
       if (details.map(d => d.url).includes(r.url)) {
@@ -107,7 +119,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
         return r;
       }
     });
-
 
     setRelayDataSource(newRelays);
     setData(
@@ -157,7 +168,13 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       dataIndex: 'isOnline',
       key: 'isOnline',
       sorter: true,
-      render: isOnline => (isOnline ? 'Online' : 'Offline'),
+      render: isOnline => (
+        <Badge
+          status={isOnline ? 'success' : 'error'}
+          className="connection-status-dot"
+          text={isOnline ? 'Online' : 'Offline'}
+        />
+      ),
     },
     {
       title: 'Nip',
@@ -201,10 +218,11 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
     },
     {
       title: 'Country',
-      dataIndex: 'area',
-      key: 'area',
+      dataIndex: 'relayCountries',
+      key: 'relayCountries',
       sorter: true,
-      render: (area: string | null) => (area ? area : 'unknown'),
+      render: (relayCountries: string[] | undefined) =>
+        relayCountries ? JSON.stringify(relayCountries) : 'unknown',
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -220,10 +238,22 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
     },
     {
       title: 'Operator',
-      dataIndex: 'operator',
-      key: 'operator',
-      render: (pubkey: string | null) =>
-        pubkey ? shortPublicKey(pubkey) : pubkey,
+      dataIndex: 'operatorDetail',
+      key: 'operatorDetail',
+      render: (
+        operatorDetail: EventSetMetadataContent | undefined,
+        record: Relay,
+      ) =>
+        operatorDetail ? (
+          <>
+            <Avatar src={operatorDetail.picture} alt="picture" />{' '}
+            {operatorDetail.name}
+          </>
+        ) : (
+          <>
+            <Avatar alt="picture" /> {shortPublicKey(record.operator)}
+          </>
+        ),
     },
     // Other columns...
     {
@@ -274,7 +304,10 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
         dataSource={data}
         pagination={paginationConfig}
       />
-      <MultipleItemsPoolAction open={selectedRelays.length > 0} relays={selectedRelays} />
+      <MultipleItemsPoolAction
+        open={selectedRelays.length > 0}
+        relays={selectedRelays}
+      />
 
       {selectedRowData && (
         <RelayDetailModal

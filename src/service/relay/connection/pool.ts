@@ -26,10 +26,12 @@ export class ConnPool {
         timeoutMs || 5000,
         `Data stream timed out! ${ws.url}`,
       );
-      const dataPromise = (async () => {
-        const data = await fn(ws);
-        results.push(data);
-      })();
+      const dataPromise = new Promise((resolve) => {
+        fn(ws).then(data => {
+          results.push(data);
+          resolve(data);
+        });
+      });
 
       try {
         await Promise.race([dataPromise, timeoutPromise]);

@@ -38,8 +38,21 @@ export class RelayPool {
     return relays;
   }
 
-  async getAllRelays() {
+  async getAllRelays(alwaysFetch = false) {
     let relays = this.db.loadAll();
+
+    if (alwaysFetch) {
+      const urls = relays.map(r => r.url);
+      const newRelays = await this.fetchApi();
+      for (const r of newRelays) {
+        if (!urls.includes(r.url)) {
+          this.db.save(r);
+          relays.push(r);
+        }
+      }
+      return relays;
+    }
+
     if (relays.length === 0) {
       relays = await this.fetchApi();
       for (const r of relays) {
@@ -264,7 +277,7 @@ export class RelayPool {
       const lengthB = map.get(b)?.length || 0;
       return lengthB - lengthA;
     });
-  
+
     return sortedKeys.slice(0, 3);
   }
 }
