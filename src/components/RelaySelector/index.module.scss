@@ -1,7 +1,7 @@
 .relaySelector {
   display: flex;
   align-items: center;
-  width: 100%;
+  padding: 0 var(--basePadding4); 
   margin: {
     top: var(--basePadding4);
     bottom: var(--basePadding4);

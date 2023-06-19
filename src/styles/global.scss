@@ -107,6 +107,9 @@
   margin-left: auto;
 
   >nav{
+    height: 100%;
+    border-right: 1px solid var(--neutral-02);
+
     grid-column: span 3;
 
     @include for-pad {
@@ -126,7 +129,7 @@
 .f-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  column-gap: var(--gapWidth);
+  //column-gap: var(--gapWidth);
 
   @include for-pad {
     grid-template-columns: repeat(8, 1fr);

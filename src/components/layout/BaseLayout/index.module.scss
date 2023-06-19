@@ -27,6 +27,7 @@
   ul{
     padding: 0;
     margin: 0;
+    margin-top: var(--basePadding10);
     list-style: none;
 
     li{
@@ -140,7 +141,7 @@
 .pcPadMain{
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  column-gap: var(--gapWidth);
+  //column-gap: var(--gapWidth);
   grid-template-areas: "left left left left left left left left left";
   @include for-pad {
     grid-template-columns: repeat(7, 1fr);
@@ -165,6 +166,10 @@
   }
 
   .right{
+    height: 100%;
+    border-left: 1px solid var(--neutral-02);
+    padding-left: var(--basePadding5);
+
     grid-area: right;
 
     @include for-pad {
