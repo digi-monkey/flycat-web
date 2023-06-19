@@ -157,6 +157,7 @@ export enum WellKnownEventKind {
 
   mute_list = 10000,
   pin_list = 10001,
+  relay_list = 10002,
   people_list = 30000,
   bookmark_list = 30001,
 
@@ -176,6 +177,7 @@ export enum EventTags {
   T = 't',
   A = 'a',
   Z = 'zap',
+  R = 'r',
 }
 
 export type LudType = 'lud06' | 'lud16';
@@ -186,6 +188,7 @@ export type EventDTag = [EventTags.D, string];
 export type EventATag = [EventTags.A, Naddr, RelayUrl]; // ["a", "<kind>:<pubkey>:<d-identifier>", "<relay url>"]
 export type EventTTag = [EventTags.T, string];
 export type EventZTag = [EventTags.Z, string, LudType];
+export type EventRTag = [EventTags.R, string, "read" | "write" | null];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
 
 // relay response

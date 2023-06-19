@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { db } from 'service/relay/auto';
 import { RelayMode, toRelayMode } from '../type';
 import { RelaySelectorStore } from '../store';
-import { Pool } from 'service/relay/pool';
+import { RelayPool } from 'service/relay/pool';
 import { SwitchRelays } from 'service/worker/type';
 import { RelayGroupMap } from 'service/relay/group/type';
 
@@ -29,9 +29,9 @@ export function useGetSwitchRelay(
         };
       }
 
-      const relayPool = new Pool();
+      const relayPool = new RelayPool();
       const allRelays = await relayPool.getAllRelays();
-      await Pool.getBestRelay(
+      await RelayPool.getBestRelay(
         allRelays.map(r => r.url),
         myPublicKey,
       );
@@ -56,9 +56,9 @@ export function useGetSwitchRelay(
     }
 
     if (mode === RelayMode.fastest) {
-      const relayPool = new Pool();
+      const relayPool = new RelayPool();
       const allRelays = await relayPool.getAllRelays();
-      const fastest = await Pool.getFastest(allRelays.map(r => r.url));
+      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url));
 
       return {
         id: mode,

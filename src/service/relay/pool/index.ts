@@ -6,12 +6,13 @@ import { PubkeyRelay } from '../auto/pubkey-relay';
 import { Assignment } from '../auto/assignment';
 import { db } from '../auto';
 import { RelayPoolDatabase } from './db';
+import { Nip65 } from 'service/nip/65';
 
 export interface BenchmarkResult {
   [url: string]: { benchmark: number; isFailed: boolean };
 }
 
-export class Pool {
+export class RelayPool {
   public apiUrl = 'https://api.nostr.watch/v1/online';
   public relays: Relay[] = [];
 
@@ -24,7 +25,7 @@ export class Pool {
     this.db = new RelayPoolDatabase();
   }
 
-  private async fetchApi(){
+  private async fetchApi() {
     const res: string[] = await this.api.httpRequest('');
     const relays = res.map(r => {
       return {
@@ -39,9 +40,9 @@ export class Pool {
 
   async getAllRelays() {
     let relays = this.db.loadAll();
-    if(relays.length === 0){
+    if (relays.length === 0) {
       relays = await this.fetchApi();
-      for(const r of relays){
+      for (const r of relays) {
         this.db.save(r);
       }
     }
@@ -59,7 +60,7 @@ export class Pool {
         if (completedCount === urls.length) {
           return resolve(results);
         }
-      }; 
+      };
 
       // todo: impl a queue to avoid resource insufficient
       urls.forEach(url => {
@@ -114,98 +115,161 @@ export class Pool {
     return averageBenchmark;
   }
 
-  static async getBestRelay(urls: string[], pubkey: PublicKey){
+  static async getBestRelay(urls: string[], pubkey: PublicKey) {
     const connPool = new ConnPool();
     await connPool.addConnections(urls);
 
-    async function getRankData(conn: WebSocket): Promise<{ url: string, data: Event }[]> {
+    async function getRankData(
+      conn: WebSocket,
+    ): Promise<{ url: string; data: Event }[]> {
       const ws = new WS(conn);
-      const dataStream = ws.subFilter({ kinds: [WellKnownEventKind.contact_list, WellKnownEventKind.set_metadata, WellKnownEventKind.long_form, WellKnownEventKind.text_note], limit: 4, authors: [pubkey] });
-      const result: { url: string, data: Event }[] = [];
-      
+      const dataStream = ws.subFilter({
+        kinds: [
+          WellKnownEventKind.contact_list,
+          WellKnownEventKind.set_metadata,
+          WellKnownEventKind.long_form,
+          WellKnownEventKind.text_note,
+        ],
+        limit: 4,
+        authors: [pubkey],
+      });
+      const result: { url: string; data: Event }[] = [];
+
       for await (const data of dataStream) {
         result.push({ url: conn.url, data });
       }
       return result;
     }
-    
+
     const timeoutMs = 5000;
     const _results = await connPool.executeConcurrently(getRankData, timeoutMs);
-    const results = ([] as { url: string, data: Event }[]).concat(..._results)
+    const results = ([] as { url: string; data: Event }[]).concat(..._results);
 
-    results.map(res => res.url).forEach(url => {
-      const pubkeyRelay: PubkeyRelay = initPubkeyRelay(pubkey, url); 
-      db.add(pubkeyRelay);
-    });
+    results
+      .map(res => res.url)
+      .forEach(url => {
+        const pubkeyRelay: PubkeyRelay = initPubkeyRelay(pubkey, url);
+        db.add(pubkeyRelay);
+      });
 
-    for(const res of results){
-     let pr = db.get(pubkey, res.url);
-     if(!pr){
-      pr = initPubkeyRelay(pubkey, res.url);
-     }
+    for (const res of results) {
+      let pr = db.get(pubkey, res.url);
+      if (!pr) {
+        pr = initPubkeyRelay(pubkey, res.url);
+      }
 
-     const event = res.data;
-     switch (event.kind) {
-      case WellKnownEventKind.text_note:
-        if(pr.last_kind_1 >= event.created_at)return;
+      const event = res.data;
+      switch (event.kind) {
+        case WellKnownEventKind.text_note:
+          if (pr.last_kind_1 >= event.created_at) return;
 
-        pr.last_kind_1 = event.created_at;
-        break;
+          pr.last_kind_1 = event.created_at;
+          break;
 
         case WellKnownEventKind.contact_list:
-          if(pr.last_kind_3 >= event.created_at)return;
+          if (pr.last_kind_3 >= event.created_at) return;
 
-          pr.last_kind_3 = event.created_at; 
-        break;
+          pr.last_kind_3 = event.created_at;
+          break;
 
         case WellKnownEventKind.set_metadata:
-          if(pr.last_kind_0 >= event.created_at)return;
+          if (pr.last_kind_0 >= event.created_at) return;
 
           pr.last_kind_0 = event.created_at;
-        break;
+          break;
 
         case WellKnownEventKind.long_form:
-          if(pr.last_kind_30023 >= event.created_at)return;
+          if (pr.last_kind_30023 >= event.created_at) return;
 
           pr.last_kind_30023 = event.created_at;
-        break;
-     
-      default:
-        break;
-     }
-     db.add(pr);
+          break;
+
+        default:
+          break;
+      }
+      db.add(pr);
     }
 
     const prs: PubkeyRelay[] = [];
-    for(const  res of results){
+    for (const res of results) {
       let pr = db.get(pubkey, res.url);
-     if(!pr){
-      pr = initPubkeyRelay(pubkey, res.url); 
-     }
+      if (!pr) {
+        pr = initPubkeyRelay(pubkey, res.url);
+      }
 
-     pr.score = Assignment.calcScore(pr);
-     db.add(pr);
-     if(!prs.includes(pr)){
-      prs.push(pr);
-     }
+      pr.score = Assignment.calcScore(pr);
+      db.add(pr);
+      if (!prs.includes(pr)) {
+        prs.push(pr);
+      }
     }
 
     const sorted = prs.sort((a, b) => b.score - a.score);
-    for(const pr of sorted){
-      console.debug("high score: ", pr.relay, pr.score);
+    for (const pr of sorted) {
+      console.debug('high score: ', pr.relay, pr.score);
     }
 
     return sorted;
   }
 
-  static async pickRelay(urls: string[], pubKeys: PublicKey[]){
-    //todo
-    console.log("not impl")
+  static async pickRelay(urls: string[], pubKeys: PublicKey[]) {
+    const connPool = new ConnPool();
+    await connPool.addConnections(urls);
+
+    async function getRelayList(
+      conn: WebSocket,
+    ): Promise<{ url: string; data: Event }[]> {
+      const ws = new WS(conn);
+      const dataStream = ws.subFilter({
+        kinds: [WellKnownEventKind.relay_list],
+        limit: pubKeys.length,
+        authors: pubKeys,
+      });
+      const result: { url: string; data: Event }[] = [];
+
+      for await (const data of dataStream) {
+        result.push({ url: conn.url, data });
+      }
+      return result;
+    }
+
+    const timeoutMs = 5000;
+    const _results = await connPool.executeConcurrently(
+      getRelayList,
+      timeoutMs,
+    );
+    const results = ([] as { url: string; data: Event }[]).concat(..._results);
+    const map = new Map<string, string[]>(); // relay, pub keys
+    for (const res of results) {
+      const user = res.data.pubkey;
+      const relays = Nip65.toRelays(res.data)
+        .filter(r => r.write === true)
+        .map(r => r.url);
+      for (const relay of relays) {
+        if (map.has(relay)) {
+          const pubKeys = map.get(relay)!;
+          if (!pubKeys.includes(user)) {
+            pubKeys.push(user);
+            map.set(relay, pubKeys);
+          }
+        } else {
+          map.set(relay, [user]);
+        }
+      }
+    }
+
+    // return the most 3 coverage relays
+    const sortedKeys = Array.from(map.keys()).sort((a, b) => {
+      const lengthA = map.get(a)?.length || 0;
+      const lengthB = map.get(b)?.length || 0;
+      return lengthB - lengthA;
+    });
+  
+    return sortedKeys.slice(0, 3);
   }
 }
 
-
-function initPubkeyRelay(pubkey: string, relay: string){
+function initPubkeyRelay(pubkey: string, relay: string) {
   const pubkeyRelay: PubkeyRelay = {
     pubkey: pubkey,
     relay: relay,
@@ -214,6 +278,6 @@ function initPubkeyRelay(pubkey: string, relay: string){
     last_kind_3: 0,
     last_kind_30023: 0,
     score: 0,
-  }
+  };
   return pubkeyRelay;
 }

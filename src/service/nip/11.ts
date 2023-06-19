@@ -27,9 +27,6 @@ export class Nip11 {
       // Access the relay information from the response data
       const relayInformation: RelayInformation = response.data;
 
-      // Process the relay information as needed
-      console.log(relayInformation);
-
       return relayInformation;
     } catch (error) {
       // Handle any errors that occur during the request
