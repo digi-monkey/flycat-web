@@ -2,7 +2,7 @@ import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left } from 'components/layout/BaseLayout';
-import { RelayPool } from './RelayPool';
+import { RelayPoolManager } from './RelayPool';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';
 import "./index.module.scss";
@@ -52,7 +52,7 @@ export function RelayManager() {
           showRelayPool={showRelayPool}
         />
         {!showRelayPool && <RelayGroup />}
-        {showRelayPool && <RelayPool />}
+        {showRelayPool && <RelayPoolManager />}
       </Left>
     </BaseLayout>
   );
