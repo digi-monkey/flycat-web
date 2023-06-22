@@ -88,7 +88,7 @@ class GroupedAsyncGenerator<T, K> {
                   url => wsConnectStatus.get(url) === true,
                 ).length;
 
-                if (count >= connsCount * (2 / 3)) {
+                if (count >= connsCount * (7 / 7)) {
                   this.eosCount.delete(subId);
                   console.debug(subId, 'eose count reach!', count, '/', connsCount);
                   resolve({

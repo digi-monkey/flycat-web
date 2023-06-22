@@ -2,24 +2,42 @@ import React, { useEffect, useState } from 'react';
 import { RelayPool } from 'service/relay/pool';
 import RelayPoolTable from './table';
 import { Button } from 'antd';
-import { seedRelays } from 'service/relay/pool/seed';
+import { Relay } from 'service/relay/type';
+import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+//import { seedRelays } from 'service/relay/pool/seed';
 
 export function RelayPoolManager() {
-  const [relayPool, setRelayPool] = useState<RelayPool>();
+  const myPublicKey = useReadonlyMyPublicKey();
+  const [relays, setRelays] = useState<Relay[]>([]);
 
   useEffect(() => {
-    const relayPool = new RelayPool();
-    relayPool.getAllRelays();
-    setRelayPool(relayPool);
+    initRelays(); 
   }, []);
 
+  const initRelays = async () => {
+    const relayPool = new RelayPool();
+    const relays = await relayPool.getAllRelays(true);
+    setRelays(relays);
+  }
+
   const pickRelay = async () => {
-      const relays = await RelayPool.pickRelay(seedRelays, [
-        "63fe6318dc58583cfe16810f86dd09e18bfd76aabc24a0081ce2856f330504ed",
-        "1bc70a0148b3f316da33fe3c89f23e3e71ac4ff998027ec712b905cd24f6a411",
-        "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
-        "634bd19e5c87db216555c814bf88e66ace175805291a6be90b15ac3b2247da9b"
-      ]);
+    
+    const seedRelays = [
+      'wss://relay.nostr.band/',
+      'wss://relay.nostr.bg/',
+      'wss://universe.nostrich.land/',
+      'wss://relay.snort.social/',
+    ];
+    
+    console.log(myPublicKey, seedRelays);
+    const contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: seedRelays});
+    console.log(contactList)
+    if(contactList == null || contactList.length === 0)return alert("no contactlist");
+
+    
+
+      const relays = await RelayPool.pickRelay(seedRelays, contactList);
       console.log("pick relays!", relays);
   }
 
@@ -30,7 +48,7 @@ export function RelayPoolManager() {
         Pick relay
       </Button>
       
-      <RelayPoolTable relays={relayPool?.relays || []}/>
+      <RelayPoolTable relays={relays}/>
     </div>
   );
 }

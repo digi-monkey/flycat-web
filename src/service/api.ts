@@ -188,7 +188,7 @@ export type EventDTag = [EventTags.D, string];
 export type EventATag = [EventTags.A, Naddr, RelayUrl]; // ["a", "<kind>:<pubkey>:<d-identifier>", "<relay url>"]
 export type EventTTag = [EventTags.T, string];
 export type EventZTag = [EventTags.Z, string, LudType];
-export type EventRTag = [EventTags.R, string, "read" | "write" | null];
+export type EventRTag = [EventTags.R, string, "read" | "write" | '' | null];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
 
 // relay response

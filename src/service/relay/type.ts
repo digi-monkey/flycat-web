@@ -50,14 +50,14 @@ export interface Relay {
   lastUpdateTimestamp?: number; // last update time milliseconds
 
   // connection statistic
-  success_count?: number;
-  failure_count?: number;
+  successCount?: number;
+  failureCount?: number;
 }
 
 export class RelayTracker {
   static attempts(relay: Relay) {
-    const success = relay.success_count || 0;
-    const failure = relay.failure_count || 0;
+    const success = relay.successCount || 0;
+    const failure = relay.failureCount || 0;
     return success + failure;
   }
 
@@ -67,7 +67,7 @@ export class RelayTracker {
     if (attempts === 0) {
       return 0.5;
     } // unknown, so we put it in the middle
-    return (relay.success_count || 0) / attempts;
+    return (relay.successCount || 0) / attempts;
   }
 
   static isOutdated(timestamp?: number, offsetDays = 7) {

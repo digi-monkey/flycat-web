@@ -42,6 +42,8 @@ export function useSubMsg(
 ) {
   useEffect(() => {
     const pks = myContactList?.keys || [];
+    console.log("contact list:", myContactList);
+
     // subscribe myself msg too
     if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0)
       pks.push(myPublicKey);
@@ -61,36 +63,13 @@ export function useSubMsg(
         cb: handleEvent,
       });
 
+      console.log("worker.subMsg:", pks)
       const subMsg = worker?.subMsg(pks, false, 'homeMsg', callRelay);
       subMsg?.iterating({
         cb: handleEvent,
       });
     }
-  }, [myContactList?.created_at, newConn]);
-}
-
-export function useSubGlobalMsg(isLoggedIn, newConn, worker, handleEvent) {
-  useEffect(() => {
-    if (isLoggedIn) return;
-    if (newConn.length === 0) return;
-
-    const sub = worker?.subFilter(
-      {
-        kinds: [WellKnownEventKind.text_note],
-        limit: 50,
-      },
-      undefined,
-      undefined,
-      {
-        type: CallRelayType.batch,
-        data: newConn,
-      },
-    );
-
-    sub?.iterating({
-      cb: handleEvent,
-    });
-  }, [isLoggedIn, newConn]);
+  }, [myContactList?.created_at, newConn, worker]);
 }
 
 export function useLoadMoreMsg({
@@ -102,7 +81,6 @@ export function useLoadMoreMsg({
   userMap,
   setUserMap,
   setMsgList,
-  setGlobalMsgList,
   setMyContactList,
   loadMoreCount,
 }: {
@@ -122,7 +100,6 @@ export function useLoadMoreMsg({
   worker?: CallWorker;
   userMap: UserMap;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
-  setGlobalMsgList: Dispatch<SetStateAction<Event[]>>;
   setMsgList: Dispatch<SetStateAction<Event[]>>;
   loadMoreCount: number;
 }) {
@@ -155,7 +132,6 @@ export function useLoadMoreMsg({
           userMap,
           myPublicKey,
           setUserMap,
-          setGlobalMsgList,
           setMsgList,
           setMyContactList,
           50 * loadMoreCount,

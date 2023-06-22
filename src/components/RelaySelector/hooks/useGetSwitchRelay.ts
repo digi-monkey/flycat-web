@@ -5,6 +5,7 @@ import { RelaySelectorStore } from '../store';
 import { RelayPool } from 'service/relay/pool';
 import { SwitchRelays } from 'service/worker/type';
 import { RelayGroupMap } from 'service/relay/group/type';
+import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
@@ -13,6 +14,7 @@ export function useGetSwitchRelay(
   cb: (val: SwitchRelays) => any,
 	progressBeginCb?: ()=>any,
 	progressEndCb?: ()=>any,
+  progressCb?: (restCount: number) => any
 ) {
   const store = new RelaySelectorStore();
 
@@ -30,12 +32,24 @@ export function useGetSwitchRelay(
       }
 
       const relayPool = new RelayPool();
-      const allRelays = await relayPool.getAllRelays();
-      await RelayPool.getBestRelay(
-        allRelays.map(r => r.url),
-        myPublicKey,
+
+      let contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: relayPool.seedRelays});
+      if(contactList == null){
+        contactList = [myPublicKey];
+      }
+      const allRelays = (await relayPool.getAllRelays()).map(r => r.url);
+      await RelayPool.getBestRelay(allRelays, myPublicKey, progressCb);
+      const bestRelay = (await db.pick(myPublicKey)).slice(0, 6).map(i => i.relay);
+
+      const pickRelays = await RelayPool.pickRelay(
+        relayPool.seedRelays,
+        contactList,
       );
-      const relays = (await db.pick(myPublicKey)).slice(0, 6).map(i => i.relay);
+
+      const relays = [...bestRelay, ...pickRelays];
+      console.log("bestRelay: ", bestRelay, "pick nip-65 relays: ", pickRelays);
+      
+     // const relays = (await db.a(myPublicKey)).slice(0, 6).map(i => i.relay);
       store.saveAutoRelayResult(
         myPublicKey,
         relays.map(r => {

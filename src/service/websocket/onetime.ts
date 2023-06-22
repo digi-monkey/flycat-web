@@ -3,6 +3,9 @@ import {
   PublicKey,
   WellKnownEventKind,
   EventSetMetadataContent,
+  EventTags,
+  EventETag,
+  EventPTag,
 } from 'service/api';
 import { ConnPool } from 'service/relay/connection/pool';
 import { WS } from 'service/relay/connection/ws';
@@ -51,6 +54,50 @@ export class OneTimeWebSocketClient {
 		
     const user: EventSetMetadataContent = JSON.parse(profileEvent.content);
     return user;
+  }
+
+  static async fetchContactList({
+    pubkey,
+    relays,
+  }: {
+    pubkey: PublicKey;
+    relays: string[];
+  }) {
+    const sub = new ConnPool();
+    sub.addConnections(relays);
+    const fn = async (conn: WebSocket) => {
+      const ws = new WS(conn);
+      const dataStream = ws.subFilter({
+        kinds: [WellKnownEventKind.contact_list],
+        limit: 1,
+        authors: [pubkey],
+      });
+      let result: Event | null = null;
+
+      for await (const data of dataStream) {
+        console.log(data);
+        if (!result) result = data;
+        if (result && result.created_at < data.created_at) {
+          result = data;
+        }
+      }
+      return result;
+    };
+    const results = (await sub.executeConcurrently(fn)) as Event[];
+    if (results.length === 0) return null;
+
+    const newestContactListEvent = results.reduce((acc, curr) => {
+      if (curr?.created_at > acc?.created_at) {
+        return curr;
+      } else {
+        return acc;
+      }
+    }, results[0]);
+    console.log("result", results, newestContactListEvent)
+
+		if(newestContactListEvent == null)return null;
+		
+   return newestContactListEvent.tags.filter(t => t[0] === EventTags.P).map(t => (t as EventPTag)[1]);
   }
 
   static async fetchEvent({
@@ -135,5 +182,5 @@ export class OneTimeWebSocketClient {
     }, results[0]);
 
     return event;
-  }
+  } 
 }

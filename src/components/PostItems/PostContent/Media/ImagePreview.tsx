@@ -9,7 +9,7 @@ export function ImagePreview({ url }: { url: string }) {
   return (
     <li>
       <div>
-        <img src={url} alt="img" onClick={() => setShowPopup(true)} />
+        <img  src={url} alt="img" onClick={() => setShowPopup(true)} />
         <Dialog
           disableAutoFocus
           open={showPopup}
