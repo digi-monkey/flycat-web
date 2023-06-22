@@ -1,5 +1,5 @@
 import { Api, PublicKey, Event, WellKnownEventKind } from 'service/api';
-import { Relay } from '../type';
+import { Relay, RelayTracker } from '../type';
 import { ConnPool } from '../connection/pool';
 import { WS } from '../connection/ws';
 import { PubkeyRelay } from '../auto/pubkey-relay';
@@ -7,6 +7,7 @@ import { Assignment } from '../auto/assignment';
 import { db } from '../auto';
 import { RelayPoolDatabase } from './db';
 import { Nip65 } from 'service/nip/65';
+import { seedRelays } from './seed';
 
 export interface BenchmarkResult {
   [url: string]: { benchmark: number; isFailed: boolean };
@@ -15,6 +16,7 @@ export interface BenchmarkResult {
 export class RelayPool {
   public apiUrl = 'https://api.nostr.watch/v1/online';
   public relays: Relay[] = [];
+  public seedRelays: string[];
 
   private api: Api;
   private db: RelayPoolDatabase;
@@ -23,6 +25,7 @@ export class RelayPool {
     if (url) this.apiUrl = url;
     this.api = new Api(this.apiUrl);
     this.db = new RelayPoolDatabase();
+    this.seedRelays = seedRelays;
   }
 
   private async fetchApi() {
@@ -50,6 +53,7 @@ export class RelayPool {
           relays.push(r);
         }
       }
+
       return relays;
     }
 
@@ -60,7 +64,7 @@ export class RelayPool {
       }
     }
 
-    this.relays = relays;
+    this.relays = relays.sort((a,b)=> RelayTracker.success_rate(a) - RelayTracker.success_rate(b));
     return relays;
   }
 
@@ -128,7 +132,7 @@ export class RelayPool {
     return averageBenchmark;
   }
 
-  static async getBestRelay(urls: string[], pubkey: PublicKey) {
+  static async getBestRelay(urls: string[], pubkey: PublicKey, progressCb?: (restCount: number) => any) {
     const connPool = new ConnPool();
     await connPool.addConnections(urls);
 
@@ -155,7 +159,7 @@ export class RelayPool {
     }
 
     const timeoutMs = 5000;
-    const _results = await connPool.executeConcurrently(getRankData, timeoutMs);
+    const _results = await connPool.executeConcurrently(getRankData, timeoutMs, progressCb);
     const results = ([] as { url: string; data: Event }[]).concat(..._results);
 
     results
@@ -225,10 +229,12 @@ export class RelayPool {
     return sorted;
   }
 
-  static async pickRelay(urls: string[], pubKeys: PublicKey[]) {
+  static async pickRelay(relayUrls: string[], pubKeys: PublicKey[]) {
+    console.log("pick -->", relayUrls, relayUrls.length, pubKeys.length);
     const connPool = new ConnPool();
-    await connPool.addConnections(urls);
+    await connPool.addConnections(relayUrls);
 
+  
     async function getRelayList(
       conn: WebSocket,
     ): Promise<{ url: string; data: Event }[]> {
@@ -278,8 +284,37 @@ export class RelayPool {
       return lengthB - lengthA;
     });
 
-    return sortedKeys.slice(0, 3);
+    console.log(map)
+    return getCoverNeededRelays(map) 
+    //return sortedKeys.slice(0, 3);
   }
+}
+
+function getCoverNeededRelays(relayPubkeys: Map<string, string[]>){
+  // Assuming your relayPubkeys is a Map<string, string[]>
+const relayPubkeysArray = Array.from(relayPubkeys.entries());
+
+// Sort relays by the number of pubkeys they cover in descending order
+relayPubkeysArray.sort(
+  ([, pubkeysA], [, pubkeysB]) => pubkeysB.length - pubkeysA.length
+);
+
+const selectedRelays = new Set();
+const coveredPubkeys = new Set();
+
+for (const [relay, pubkeys] of relayPubkeysArray) {
+  const uncoveredPubkeys = pubkeys.filter(pubkey => !coveredPubkeys.has(pubkey));
+  
+  if (uncoveredPubkeys.length > 0) {
+    selectedRelays.add(relay);
+    uncoveredPubkeys.forEach(pubkey => coveredPubkeys.add(pubkey));
+  }
+}
+
+const numRelays = selectedRelays.size;
+console.log(`You need ${numRelays} relays to cover all the pubkey lists.`);
+console.log(`Selected relays:`, selectedRelays);
+return Array.from(selectedRelays) as string[];
 }
 
 function initPubkeyRelay(pubkey: string, relay: string) {

@@ -1,11 +1,11 @@
-import { Result } from 'antd';
 import { connectWebSocket } from './util';
+import { RelayPoolDatabase } from '../pool/db';
 
 export class ConnPool {
   maxConnection: number;
   urls: string[] = [];
 
-  constructor(maxConnection = 20) {
+  constructor(maxConnection = 21) {
     this.maxConnection = maxConnection;
   }
 
@@ -17,6 +17,7 @@ export class ConnPool {
   public async executeConcurrently<T>(
     fn: (connection: WebSocket) => Promise<T>,
     timeoutMs?: number,
+    progressCb?: (restCount: number) => any
   ): Promise<T[]> {
     const results: T[] = [];
     const urls = this.urls;
@@ -41,17 +42,21 @@ export class ConnPool {
     };
 
     let currentConcurrency = 0;
-
+    const db = new RelayPoolDatabase();
     while (urls.length > 0) {
-      const requests = urls.splice(0, this.maxConnection - currentConcurrency); // 选择下一个要处理的请求数量
+      if(progressCb)progressCb(urls.length);
+
+      const requests = urls.splice(0, this.maxConnection - currentConcurrency);
       currentConcurrency += requests.length;
 
       const requestPromises = requests.map(async url => {
         try {
           const ws = await connectWebSocket(url);
           await fnWithTimeout(ws);
+          db.incrementSuccessCount(url);
         } catch (error) {
           console.debug('ws error: ', error);
+          db.incrementFailureCount(url);
         } finally {
           currentConcurrency--;
         }
@@ -59,7 +64,7 @@ export class ConnPool {
 
       await Promise.all(requestPromises);
     }
-    return results;
+    return results.filter(r => r != null);
   }
 }
 

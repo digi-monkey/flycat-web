@@ -482,7 +482,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             ))}
           </ul>
           <div>
-            <Button>View all {userContactList?.keys.length}</Button>
+            <Button onClick={()=>window.location.href = "/contact/"+publicKey}>View all {userContactList?.keys.length}</Button>
           </div>
         </div>
       </Right>

@@ -122,8 +122,8 @@ export class Nip11 {
 
       lastAttemptNip11Timestamp: Date.now(),
 
-      success_count: relay.success_count || 0,
-      failure_count: relay.failure_count || 0,
+      successCount: relay.successCount || 0,
+      failureCount: relay.failureCount || 0,
 
       // todo: area
     };
@@ -156,8 +156,8 @@ export class Nip11 {
 
       lastAttemptNip11Timestamp: Date.now(),
 
-      success_count: 0,
-      failure_count: 0,
+      successCount: 0,
+      failureCount: 0,
 
       // todo: area
     };

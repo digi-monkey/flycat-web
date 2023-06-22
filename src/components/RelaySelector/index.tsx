@@ -6,7 +6,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { Button, Cascader, Modal, Spin } from 'antd';
+import { Button, Cascader, Modal, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
@@ -43,8 +43,11 @@ export function RelaySelector({
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
   const [selectedValue, setSelectedValue] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
-  const [progressLoading, setProgressLoading] = useState(false);
-  const [showProgress, setShowProgress] = useState(false);
+
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const messageKey = 'relay-progress';
+
   const modalData = [
     {
       icon: <Icon type="icon-global-mode" />,
@@ -69,13 +72,30 @@ export function RelaySelector({
   ];
 
   const progressBegin = () => {
-    setProgressLoading(true);
-    setShowProgress(true);
+    messageApi.open({
+      key: messageKey,
+      type: 'loading',
+      content: 'start auto-select...',
+      duration: 0,
+    });
   };
 
   const progressEnd = () => {
-    setProgressLoading(false);
-    setShowProgress(false);
+    messageApi.open({
+      key: messageKey,
+      type: 'success',
+      content: 'Loaded!',
+      duration: 1,
+    });
+  };
+
+  const progressCb = (restCount: number) => {
+    messageApi.open({
+      key: messageKey,
+      type: 'loading',
+      content: `${restCount} relays left to check..`,
+      duration: 0,
+    });
   };
 
   useLoadSelectedStore(myPublicKey, setSelectedValue);
@@ -86,11 +106,12 @@ export function RelaySelector({
     setSwitchRelays,
     progressBegin,
     progressEnd,
+    progressCb,
   );
 
   useEffect(() => {
     // new a default group for the forward-compatibility
-    const defaultGroupId = "default";
+    const defaultGroupId = 'default';
     const groups = new RelayGroup(myPublicKey);
     if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
       groups.setGroup(defaultGroupId, defaultGroup);
@@ -134,23 +155,26 @@ export function RelaySelector({
   }, [switchRelays, worker?.relayGroupId]);
 
   const onChange = (value: string[] | any) => {
-    if(!Array.isArray(value)) return;
-    if(value[0] === RelayModeSelectMenus.displayBenchmark) {
+    if (!Array.isArray(value)) return;
+    if (value[0] === RelayModeSelectMenus.displayBenchmark) {
       // TODO
     }
-    if(value[0] === RelayModeSelectMenus.aboutRelayMode) {
+    if (value[0] === RelayModeSelectMenus.aboutRelayMode) {
       setOpenAbout(true);
       return;
     }
-    if(value[0] === RelayModeSelectMenus.manageRelays) {
+    if (value[0] === RelayModeSelectMenus.manageRelays) {
       router.push(Paths.relay);
       return;
     }
     setSelectedValue(value);
-  }
+  };
+
+  //const 
 
   return (
     <div className={styles.relaySelector}>
+      {contextHolder}
       <Cascader
         defaultValue={['global', 'default']}
         className={styles.cascader}
@@ -163,32 +187,26 @@ export function RelaySelector({
         allowClear={false}
         value={selectedValue}
         onChange={onChange}
-        displayRender={(label) => <>
-          <span className={styles.relayMode}>{label[0]}</span>
-          { label.length > 1 && <span className={styles.childrenItem}>{label[1]}</span> }
-        </>}
+        displayRender={label => (
+          <>
+            <span className={styles.relayMode}>{label[0]}</span>
+            {label.length > 1 && (
+              <span className={styles.childrenItem}>{label[1]}</span>
+            )}
+          </>
+        )}
       />
-      {showProgress && (
-        <div className={styles.overlay}>
-          <div className={styles.spinContainer}>
-            <Spin
-              size="large"
-              tip="init mode, might takes 2-3 minutes, please wait.."
-              spinning={progressLoading}
-            />
-          </div>
-        </div>
-      )}
-      <Modal 
+
+      <Modal
         title={t('relaySelector.modal.title')}
         wrapClassName={styles.modal}
         footer={null}
         open={openAbout}
         onCancel={() => setOpenAbout(false)}
-        closeIcon={<Icon type='icon-cross' className={styles.modalCoseIcons} />}
+        closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
       >
         <ul>
-          { modalData.map(item => (
+          {modalData.map(item => (
             <li key={item.title}>
               {item.icon}
               <div className={styles.content}>
@@ -199,7 +217,9 @@ export function RelaySelector({
           ))}
         </ul>
         <div className={styles.footer}>
-          <Button type='primary' onClick={() => setOpenAbout(false)}>{t('relaySelector.modal.buttonText')}</Button>
+          <Button type="primary" onClick={() => setOpenAbout(false)}>
+            {t('relaySelector.modal.buttonText')}
+          </Button>
         </div>
       </Modal>
     </div>

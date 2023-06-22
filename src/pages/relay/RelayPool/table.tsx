@@ -162,6 +162,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       title: 'Url',
       dataIndex: 'url',
       key: 'url',
+      render: (url: string) => url.split("wss://")
     },
     {
       title: 'Status',
@@ -289,6 +290,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   return (
     <div>
+      {relays.length}
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',

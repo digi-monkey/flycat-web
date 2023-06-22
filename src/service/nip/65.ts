@@ -4,11 +4,11 @@ import { Relay } from 'service/relay/type';
 export class Nip65 {
   static toRelays(event: Event) {
     const tags = event.tags;
-    const relays = (tags.filter(t => t[0] === EventTags.R) as EventRTag[]).map(
-      t => {
+    const relays = (tags.filter(t => t[0] === EventTags.R) as EventRTag[])
+      .map(t => {
         const url = t[1];
         const readOrWrite = t[2];
-        if (readOrWrite == null) {
+        if (readOrWrite == null || readOrWrite === '') {
           const relay: Relay = {
             url,
             read: true,
@@ -35,9 +35,10 @@ export class Nip65 {
           return relay;
         }
 
-        throw new Error('invalid relay r tag');
-      },
-    );
+        console.debug(`invalid relay r tag..`, t);
+        return null;
+      })
+      .filter(r => r != null) as Relay[];
 
     return relays;
   }

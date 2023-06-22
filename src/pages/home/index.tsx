@@ -13,7 +13,7 @@ import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
 import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
-import { useSubGlobalMsg, useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
+import { useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
@@ -43,7 +43,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const router = useRouter();
   const myPublicKey = useMyPublicKey();
 
-  const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
@@ -57,7 +56,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     userMap,
     myPublicKey,
     setUserMap,
-    setGlobalMsgList,
     setMsgList,
     setMyContactList,
   );
@@ -70,7 +68,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     _handleEvent,
   );
   useSubMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
-  useSubGlobalMsg(isLoggedIn, newConn, worker, _handleEvent);
   useLoadMoreMsg({
     isLoggedIn,
     myContactList,
@@ -80,7 +77,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     userMap,
     setUserMap,
     setMsgList,
-    setGlobalMsgList,
     setMyContactList,
     loadMoreCount,
   });

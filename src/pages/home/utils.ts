@@ -17,7 +17,6 @@ export function handleEvent(
   userMap,
   myPublicKey,
   setUserMap,
-  setGlobalMsgList,
   setMsgList,
   setMyContactList,
   maxMsgLength = 50,
@@ -48,42 +47,6 @@ export function handleEvent(
       case WellKnownEventKind.text_note:
       case WellKnownEventKind.article_highlight:
       case WellKnownEventKind.long_form:
-        if (!isLoggedIn) {
-          setGlobalMsgList(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
-              const newItems = [...oldArray, event];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-
-              // check if need to sub new user metadata
-              const newPks: string[] = [event.pubkey];
-              for (const t of event.tags) {
-                if (isEventPTag(t)) {
-                  const pk = t[1];
-                  if (userMap.get(pk) == null) {
-                    newPks.push(pk);
-                  }
-                }
-              }
-              if (newPks.length > 0) {
-                const sub = worker?.subMetadata(newPks, false, 'homeMetadata', {
-                  type: CallRelayType.single,
-                  data: [relayUrl!],
-                });
-                sub?.iterating({ cb: handleEvent });
-              }
-
-              return sortedItems;
-            }
-            return oldArray;
-          });
-
-          return;
-        }
-
         setMsgList(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
