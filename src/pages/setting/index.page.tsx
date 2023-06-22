@@ -1,4 +1,3 @@
-import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import {
@@ -19,7 +18,7 @@ import { BaseLayout, Left } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Avatar } from 'antd';
+import { Avatar, Button } from 'antd';
 
 const styles = {
   userInfo: {
@@ -332,7 +331,7 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
                   onChange={handleInputChange}
                 />
               </Div>
-              <Button fullWidth variant="contained" type="submit">
+              <Button>
                 {t('profileEditPanel.submit')}
               </Button>
             </form>

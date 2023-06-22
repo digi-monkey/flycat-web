@@ -1,9 +1,9 @@
-import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { decode } from 'service/lighting/bolt11';
-import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 import { getParams, LNURLPayParams } from 'js-lnurl';
 import { useTranslation } from 'next-i18next';
+import { Button } from 'antd';
+import Icon from 'components/Icon';
 
 export function LightingInvoice({ url }: { url: string }) {
   const { t } = useTranslation();
@@ -52,10 +52,10 @@ export function LightingInvoice({ url }: { url: string }) {
 
       <span style={{ display: 'block', fontSize: '30px', margin: '10px 0px' }}>
         {amount?.toString()} sats
-        <ElectricBoltOutlinedIcon color="warning" />
+        <Icon type="icon-bolt" /> 
       </span>
       <span style={{}}>
-        <Button fullWidth variant="outlined" color="success" onClick={pay}>
+        <Button onClick={pay}>
           {t('lighting.pay')}
         </Button>
       </span>
@@ -125,10 +125,10 @@ export function LnUrlInvoice({ url }: { url: string }) {
       <span style={{ display: 'block', fontSize: '30px', margin: '10px 0px' }}>
         <span style={{ fontSize: '12px' }}>{t('lighting.atLeast')}</span>{' '}
         {minSendable} Sats
-        <ElectricBoltOutlinedIcon color="warning" />
+        <Icon type="icon-bolt" /> 
       </span>
       <span style={{}}>
-        <Button fullWidth variant="outlined" color="success" onClick={pay}>
+        <Button onClick={pay}>
           {t('lighting.pay')}
         </Button>
       </span>

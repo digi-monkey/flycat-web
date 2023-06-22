@@ -1,6 +1,5 @@
 import { ThinHr } from 'components/ThinHr';
 import { UserMap } from 'service/type';
-import { useTheme } from '@mui/material';
 import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
@@ -35,7 +34,6 @@ import Swal from 'sweetalert2/dist/sweetalert2.js';
 import Comment from './components/Comment';
 import PostContent from './components/PostContent';
 import ReplyDialog from './components/ReplyDialog';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import PostReactions from 'components/PostItems/PostReactions';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
@@ -346,7 +344,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                 {image && (
                   <div className={styles.image}>
                     <img src={image} alt="replyImage" />
-                    <HighlightOffIcon onClick={() => setImage('')} />
+                    <Icon type="icon-image" onClick={() => setImage('')} />
                   </div>
                 )}
                 <div className={styles.footer}>

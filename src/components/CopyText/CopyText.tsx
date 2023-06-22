@@ -1,5 +1,4 @@
-import { Alert, Snackbar } from '@mui/material';
-import React, { useState } from 'react';
+import { message } from 'antd';
 
 export interface CopyTextProps {
   name: string;
@@ -16,10 +15,8 @@ export const CopyText = ({
   getTextToCopy,
   successMsg,
   failedMsg,
-  alertLastMilsecs,
+  alertLastMilsecs = 5000,
 }: CopyTextProps) => {
-  const [copySuccessToast, setCopySuccessToast] = useState<boolean>(false);
-  const [copyFailedToast, setCopyFailedToast] = useState<boolean>(false);
 
   const copy = async (text: string) => {
     const inputElement = document.createElement('input');
@@ -57,47 +54,15 @@ export const CopyText = ({
             await copy(text);
           } catch (error: any) {
             console.error("copy failed: ", error.message);
-            setCopyFailedToast(true);
-            setTimeout(() => {
-              setCopyFailedToast(false);
-            }, alertLastMilsecs || 5000);
+            message.error(failedMsg || 'Failed to copied to clipboard!', alertLastMilsecs);
             return;
           }
 
-          setCopySuccessToast(true);
-          setTimeout(() => {
-            setCopySuccessToast(false);
-          }, alertLastMilsecs || 5000);
+          message.success(successMsg || 'Text copied to clipboard!', alertLastMilsecs);
         }}
       >
         {name}
       </span>
-      <Snackbar
-        open={copySuccessToast}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={4000}
-        onClose={() => setCopySuccessToast(false)}
-      >
-        <Alert severity="success">
-          {successMsg || 'Text copied to clipboard!'}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={copyFailedToast}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={4000}
-        onClose={() => setCopyFailedToast(false)}
-      >
-        <Alert severity="error">
-          {failedMsg || 'Failed to copied to clipboard!'}
-        </Alert>
-      </Snackbar>
     </>
   );
 };

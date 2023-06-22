@@ -6,13 +6,13 @@ import { useEffect, useState } from 'react';
 import { EventTags, EventETagMarker } from 'service/event/type';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { findNodeById, nonzero, submitReply } from '../../util';
-import { Dialog, DialogContent, TextField, Button } from '@mui/material';
+import { Dialog, DialogContent, TextField } from '@mui/material';
 
 import styles from './index.module.scss';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import CommentContent from '../CommentContent';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import Icon from 'components/Icon';
+import { Button } from 'antd';
 
 const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
   const [reply, setReply] = useState('');
@@ -93,14 +93,14 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
             />
             { image && <div className={styles.image}>
                 <img src={image} alt="replyImage" />
-                <HighlightOffIcon onClick={() => setImage('')} />
+                <Icon type="icon-image" onClick={() => setImage('')} />
               </div>
             }
             <div className={styles.commentFooter}>
               <div className={styles.icons}>
                 <ImageUploader onImgUrls={url => setImage(url[0])} />
               </div>
-              <Button disabled={!reply.length} variant="contained" size='large' onClick={handleSubmit}>
+              <Button disabled={!reply.length} size='large' onClick={handleSubmit}>
                 {t('articleRead.submit')}
               </Button>
             </div>
@@ -117,7 +117,7 @@ const ReplyDialog = ({ open, onClose, comment, userMap, worker, t }) => {
                   />
                   <div className={styles.tools}>
                     <div className={styles.reply} onClick={() => updateComment(newComments?.replys[item].id)}>
-                      <ModeCommentOutlinedIcon />
+                      <Icon type="icon-comment"/>
                       { nonzero(newComments.replys[item].replys) && <span>{ Object.keys(newComments.replys[item].replys).length }</span> }
                     </div>
                   </div>

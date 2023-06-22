@@ -1,5 +1,4 @@
 import { ThinHr } from '../../components/ThinHr';
-import { Button } from '@mui/material';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { CopyText } from 'components/CopyText/CopyText';
@@ -19,6 +18,7 @@ import {isDotBitName} from "service/dotbit";
 
 import styles from './index.module.scss';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
+import { Button } from 'antd';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -280,7 +280,6 @@ const LoginCard = ({
         <div className={styles.title}>{t('loginForm.title')}</div>
         <div className={styles.buttonBox}>
           <Button
-            variant="contained"
             className={`${styles.button} ${styles.alby}`}
             onClick={signWithNip07Wallet}
           >
@@ -291,7 +290,6 @@ const LoginCard = ({
 
         <div className={styles.buttonBox}>
           <Button
-            variant="contained"
             className={`${styles.button} ${styles.metamask}`}
             onClick={signWithEthWallet}
           >
@@ -310,7 +308,6 @@ const LoginCard = ({
 
         <div className={styles.buttonBox}>
           <Button
-            variant="contained"
             className={`${styles.button} ${styles.walletConnect}`}
             onClick={signWithWalletConnect}
           >

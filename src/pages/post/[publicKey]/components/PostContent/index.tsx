@@ -1,20 +1,11 @@
-import { red } from '@mui/material/colors';
 import { Paths } from 'constants/path';
-import { styled } from '@mui/material/styles';
-import { useTheme } from '@mui/material';
-import { calculateReadTime, formatDate, formatLongDate } from 'utils/time';
-import { useTimeSince } from 'hooks/useTimeSince';
-import { payLnUrlInWebLn } from 'service/lighting/lighting';
+import { calculateReadTime, formatLongDate } from 'utils/time';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 import Link from 'next/link';
 import styles from './index.module.scss';
-import EditIcon from '@mui/icons-material/Edit';
 import ReactMarkdown from 'react-markdown';
-import ElectricBoltOutlinedIcon from '@mui/icons-material/ElectricBoltOutlined';
 import { Avatar, Button } from 'antd';
-import PostReactions from 'components/PostItems/PostReactions';
-import { worker } from 'cluster';
 
 const PostContent = ({
   article,
@@ -24,7 +15,6 @@ const PostContent = ({
   content,
   t,
 }) => {
-  const theme = useTheme();
   const myPublicKey = useReadonlyMyPublicKey();
 
   return (

@@ -22,9 +22,9 @@ import {
 import { Event } from 'service/event/Event';
 
 import Link from 'next/link';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import { maxStrings } from 'utils/common';
 import { Avatar } from 'antd';
+import Icon from 'components/Icon';
 
 export interface ItemProps {
   msg: Event;
@@ -78,7 +78,7 @@ export function LikeItem({ msg, eventId, userMap, worker }: ItemProps) {
       onClick={read}
     >
       <span style={{ color: 'red' }}>
-        <FavoriteIcon />
+        <Icon type="icon-bi-heart" /> 
       </span>
       <span style={{ margin: '0px 5px' }}>
         <Link href={Paths.user + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</Link>
