@@ -6,7 +6,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Drawer } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { EventSetMetadataContent } from 'service/event/type';
+import { EventSetMetadataContent } from 'service/nostr/type';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 

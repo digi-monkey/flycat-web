@@ -1,6 +1,6 @@
 import { bech32Decode, bech32Encode } from 'service/crypto';
-import { PublicKey, WellKnownEventKind, EventId } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { PublicKey, WellKnownEventKind, EventId } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 
 import * as secp256k1 from '@noble/secp256k1';
 

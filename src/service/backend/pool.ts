@@ -1,9 +1,9 @@
 import { randomSubId } from 'service/api/ws';
-import { isEventSubResponse } from 'service/event/util';
+import { isEventSubResponse } from 'service/nostr/util';
 import {
   EventSubResponse,
   Filter
-} from 'service/event/type';
+} from 'service/nostr/type';
 import { NodeWsApi } from './api';
 import { CallRelayType, WsConnectStatus } from 'service/worker/type';
 import { MessageEvent, ErrorEvent } from 'ws';

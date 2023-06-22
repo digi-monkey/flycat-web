@@ -1,11 +1,11 @@
-import { isEventSubResponse } from 'service/event/util';
+import { isEventSubResponse } from 'service/nostr/util';
 import {
   EventSubResponse,
   EventTags,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { UserMap } from 'service/type';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { UserMap } from 'service/nostr/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -17,7 +17,7 @@ import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
-import { normalizeContent, shortifyPublicKey } from 'service/event/content';
+import { normalizeContent, shortifyPublicKey } from 'service/nostr/content';
 import { CallWorker } from 'service/worker/callWorker';
 import { EventWithSeen } from 'pages/type';
 

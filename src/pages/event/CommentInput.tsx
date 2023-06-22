@@ -1,7 +1,7 @@
 import { Avatar, Button, Input } from 'antd';
 import styles from './index.module.scss';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { worker } from 'cluster';
@@ -10,9 +10,9 @@ import {
   EventTags,
   EventETag,
   EventPTag
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { useState } from 'react';

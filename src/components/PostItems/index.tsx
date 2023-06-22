@@ -1,6 +1,6 @@
 import { Nip23 } from 'service/nip/23';
 import { Nip9802 } from 'service/nip/9802';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { EventWithSeen } from 'pages/type';
 

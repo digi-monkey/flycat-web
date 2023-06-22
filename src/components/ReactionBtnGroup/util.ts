@@ -1,9 +1,9 @@
-import { isEventSubResponse } from 'service/event/util';
+import { isEventSubResponse } from 'service/nostr/util';
 import {
   EventSubResponse,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { Nip51 } from 'service/nip/51';
 import { CallWorker } from 'service/worker/callWorker';
 

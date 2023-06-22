@@ -17,7 +17,7 @@ import {
   switchRelays,
 } from './pool';
 import { getPortIdFomSubId } from 'service/api/ws';
-import { EventSubResponse } from 'service/event/type';
+import { EventSubResponse } from 'service/nostr/type';
 
 /**
  * the worker and callWorker (1-to-many) are communicating through SharedWorker

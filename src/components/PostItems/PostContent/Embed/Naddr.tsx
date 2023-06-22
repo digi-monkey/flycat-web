@@ -3,7 +3,7 @@ import { i18n } from 'next-i18next';
 import { NaddrResult } from 'service/nip/21';
 
 import styles from './index.module.scss';
-import { shortifyPublicKey } from 'service/event/content';
+import { shortifyPublicKey } from 'service/nostr/content';
 
 export const Naddr = (naddr: NaddrResult) => {
   if (naddr.replaceableEvent) {

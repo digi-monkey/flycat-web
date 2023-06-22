@@ -1,5 +1,5 @@
 import { Nip23 } from 'service/nip/23';
-import { Event } from 'service/event/Event';
+import { Event } from 'service/nostr/Event';
 import { Avatar } from 'antd';
 import { useTranslation } from 'next-i18next';
 

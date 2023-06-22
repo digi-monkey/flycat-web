@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Select } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
 import { FilterOptions } from './filterOptions';
 import PostItems from 'components/PostItems';

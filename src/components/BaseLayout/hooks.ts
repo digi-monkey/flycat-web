@@ -1,15 +1,15 @@
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { useMatchPad } from 'hooks/useMediaQuery';
 import { useCallWorker } from 'hooks/useWorker';
 import { CallRelayType } from 'service/worker/type';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { deserializeMetadata } from 'service/event/content';
+import { deserializeMetadata } from 'service/nostr/content';
 import {
   WellKnownEventKind,
   EventSetMetadataContent
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { isEmptyStr } from 'utils/validator';
 
 export function useUserInfo () {

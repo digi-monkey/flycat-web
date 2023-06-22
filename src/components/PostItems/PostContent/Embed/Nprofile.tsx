@@ -1,7 +1,7 @@
 import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
-import { shortifyPublicKey } from 'service/event/content';
+import { shortifyPublicKey } from 'service/nostr/content';
 import { NprofileResult } from 'service/nip/21';
 
 import styles from './index.module.scss';

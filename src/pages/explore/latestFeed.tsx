@@ -1,4 +1,4 @@
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { useLatestFeed } from './hooks/useLatestFeed';
 import PostItems from 'components/PostItems';

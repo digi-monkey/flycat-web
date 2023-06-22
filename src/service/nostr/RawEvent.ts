@@ -3,8 +3,8 @@ import {
   schnorrSign,
   Sha256
 } from '../crypto';
-import { EventId, PublicKey, EventKind, Tags, PrivateKey, Signature } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { EventId, PublicKey, EventKind, Tags, PrivateKey, Signature } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 
 export interface RawEvent {
   id?: EventId;

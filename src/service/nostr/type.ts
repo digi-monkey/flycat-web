@@ -190,3 +190,8 @@ export interface EventSetMetadataContent {
   banner: string;
   nip05: string;
 }
+
+export type UserMap = Map<
+  PublicKey,
+  EventSetMetadataContent & { created_at: number }
+>;

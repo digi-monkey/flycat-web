@@ -4,8 +4,8 @@ import {
   EventSetMetadataContent,
   Nostr,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import styled from 'styled-components';
 import { ThinHr } from 'components/ThinHr';
 import { useVersion } from 'hooks/useVersion';

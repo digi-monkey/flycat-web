@@ -1,7 +1,7 @@
 import { Nip23 } from 'service/nip/23';
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { useRouter } from 'next/router';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';
@@ -13,13 +13,13 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { defaultLastNotifyTime, get, update } from 'service/last-notify';
-import { deserializeMetadata } from 'service/event/content';
+import { deserializeMetadata } from 'service/nostr/content';
 import {
   EventSetMetadataContent,
   EventTags,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 
 import Link from 'next/link';
 import { maxStrings } from 'utils/common';

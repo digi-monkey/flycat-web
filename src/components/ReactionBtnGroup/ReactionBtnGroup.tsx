@@ -6,14 +6,14 @@ import {
   EventTags,
   EventZTag,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { Button } from 'antd';
 import { Nip18 } from 'service/nip/18';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { Nip57 } from 'service/nip/57';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { Nip51 } from 'service/nip/51';

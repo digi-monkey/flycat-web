@@ -2,13 +2,13 @@ import { randomSubId } from 'service/api/ws';
 import {
   isEventSubEoseResponse,
   isEventSubResponse
-} from 'service/event/util';
+} from 'service/nostr/util';
 import {
   EventId,
   EventSubResponse,
   Filter, PublicKey, WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { Nip23 } from 'service/nip/23';
 import SharedWorkerPolyfill from './polyfill';
 import {

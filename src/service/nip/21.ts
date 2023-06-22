@@ -1,5 +1,5 @@
-import { EventSetMetadataContent } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { EventSetMetadataContent } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import {
   DecodedNaddrResult,
   DecodedNeventResult,
@@ -9,7 +9,7 @@ import {
   Nip19DataType,
   Nip19ShareableDataType,
 } from './19';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 
 export interface NpubResult {

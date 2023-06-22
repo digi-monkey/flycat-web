@@ -1,6 +1,6 @@
 import { ImageProvider } from 'service/api/img';
-import { PublicKey, WellKnownEventKind } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { PublicKey, WellKnownEventKind } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { Relay, RelayTracker } from '../type';
 import { ConnPool } from '../connection/pool';
 import { WS } from '../connection/ws';

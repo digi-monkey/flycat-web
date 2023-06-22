@@ -2,7 +2,7 @@ import {
   WsEvent,
   randomSubId
 } from 'service/api/ws';
-import { isEventSubResponse, isFilterEqual } from 'service/event/util';
+import { isEventSubResponse, isFilterEqual } from 'service/nostr/util';
 import {
   AuthPubRequest,
   AuthSubResponse,
@@ -20,8 +20,8 @@ import {
   RelayResponseType,
   SubCloseRequest,
   SubscriptionId
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import WebSocket, {MessageEvent, CloseEvent, OpenEvent, ErrorEvent} from 'ws';
 
 export interface NodeWsApiHandler {

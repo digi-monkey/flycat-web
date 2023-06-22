@@ -1,5 +1,5 @@
 import { Nip04 } from './04';
-import { Event } from 'service/event/Event';
+import { Event } from 'service/nostr/Event';
 
 export interface RelayPolicy {
   read: boolean;

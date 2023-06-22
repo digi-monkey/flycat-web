@@ -6,9 +6,9 @@ import {
   PublicKey,
   Tags,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { generateRandomBytes } from 'service/crypto';
 
 export enum Nip23ArticleMetaTags {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Filter } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { Filter } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { CallRelayType } from 'service/worker/type';
 import { useCallWorker } from './useWorker';
 

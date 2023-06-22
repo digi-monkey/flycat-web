@@ -1,9 +1,9 @@
 import { i18n } from 'next-i18next';
-import { UserMap } from 'service/type';
-import { shortifyPublicKey } from 'service/event/content';
+import { UserMap } from 'service/nostr/type';
+import { shortifyPublicKey } from 'service/nostr/content';
 import { isValidPublicKey } from 'utils/validator';
-import { EventTags } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { EventTags } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { Nip19DataType, Nip19 } from 'service/nip/19';
 
 export enum RenderFlag {

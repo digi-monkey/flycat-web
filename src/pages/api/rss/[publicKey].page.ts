@@ -1,6 +1,6 @@
 import { eventToFeed } from 'service/rss';
 import { callSubFilter } from 'service/backend/sub';
-import { Filter, WellKnownEventKind } from 'service/event/type';
+import { Filter, WellKnownEventKind } from 'service/nostr/type';
 import { NextApiResponse, NextApiRequest } from 'next';
 
 export default async function handler(

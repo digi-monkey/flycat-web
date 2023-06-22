@@ -1,5 +1,5 @@
 import { newSubId, randomSubId, WsApi } from 'service/api/ws';
-import { SubscriptionId } from 'service/event/type';
+import { SubscriptionId } from 'service/nostr/type';
 import { seedRelays } from 'service/relay/pool/seed';
 import { WorkerEventEmitter } from './bus';
 import {

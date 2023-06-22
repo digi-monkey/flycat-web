@@ -1,5 +1,5 @@
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { fetchSigner } from '@wagmi/core';
 import { getCaip10, getMessage, privateKeyFromX } from '../nip/111';
 import { getPublicKey } from 'service/crypto';

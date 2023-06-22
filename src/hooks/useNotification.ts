@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { WellKnownEventKind } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { WellKnownEventKind } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { get } from 'service/last-notify';
 import { CallRelayType } from 'service/worker/type';
 import { useReadonlyMyPublicKey } from './useMyPublicKey';

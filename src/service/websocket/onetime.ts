@@ -5,8 +5,8 @@ import {
   EventTags,
   EventETag,
   EventPTag
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { ConnPool } from 'service/relay/connection/pool';
 import { WS } from 'service/relay/connection/ws';
 

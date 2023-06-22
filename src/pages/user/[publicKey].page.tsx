@@ -1,6 +1,6 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
@@ -11,8 +11,8 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { CallRelay, CallRelayType } from 'service/worker/type';
-import { deserializeMetadata } from 'service/event/content';
-import { isEventPTag } from 'service/event/util';
+import { deserializeMetadata } from 'service/nostr/content';
+import { isEventPTag } from 'service/nostr/util';
 import {
   EventSetMetadataContent,
   WellKnownEventKind,
@@ -21,9 +21,9 @@ import {
   PetName,
   EventTags,
   EventContactListPTag
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { Avatar, Button, Tabs } from 'antd';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';

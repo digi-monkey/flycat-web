@@ -1,4 +1,4 @@
-import { Event } from './event/Event';
+import { Event } from './nostr/Event';
 import { Feed, Item } from 'feed';
 import { Article, Nip23 } from './nip/23';
 

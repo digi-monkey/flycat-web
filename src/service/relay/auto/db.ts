@@ -1,4 +1,4 @@
-import { PublicKey } from 'service/event/type';
+import { PublicKey } from 'service/nostr/type';
 import { PubkeyRelay } from "./pubkey-relay";
 
 // todo: maybe store it in the real database instead of memory

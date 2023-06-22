@@ -3,8 +3,8 @@ import {
   EventZTag,
   PublicKey,
   WellKnownEventKind
-} from 'service/event/type';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { bech32Decode } from 'service/crypto';
 import fetch from 'cross-fetch';
 

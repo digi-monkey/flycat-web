@@ -18,7 +18,7 @@ import {
   pullRelayGroupId,
 } from './pool';
 import { getPortIdFomSubId } from 'service/api/ws';
-import { EventSubResponse } from 'service/event/type';
+import { EventSubResponse } from 'service/nostr/type';
 
 //let count = 0;
 

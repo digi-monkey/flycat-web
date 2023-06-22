@@ -1,8 +1,8 @@
 import { HexStr } from 'types';
 import { generateRandomBytes } from '../crypto';
-import { Event } from '../event/Event';
-import { SubscriptionId, Filter, RelayResponse, RelayResponseType, EventId, Reason, EventPubResponse, ErrorReason, NoticeResponse, EventSubReachEndResponse, Challenge, AuthSubResponse, AuthPubRequest, ClientRequestType, EventPubRequest, EventSubRequest, SubCloseRequest } from '../event/type';
-import { isFilterEqual, isEventSubResponse } from '../event/util';
+import { Event } from '../nostr/Event';
+import { SubscriptionId, Filter, RelayResponse, RelayResponseType, EventId, Reason, EventPubResponse, ErrorReason, NoticeResponse, EventSubReachEndResponse, Challenge, AuthSubResponse, AuthPubRequest, ClientRequestType, EventPubRequest, EventSubRequest, SubCloseRequest } from '../nostr/type';
+import { isFilterEqual, isEventSubResponse } from '../nostr/util';
 
 export interface WsApiHandler {
   onMsgHandler?: (evt: any) => any;

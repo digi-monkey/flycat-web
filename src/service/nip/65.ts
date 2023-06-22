@@ -1,5 +1,5 @@
-import { EventRTag, EventTags } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { EventRTag, EventTags } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { Relay } from 'service/relay/type';
 
 export class Nip65 {

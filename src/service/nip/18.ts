@@ -1,6 +1,6 @@
-import { EventTags, WellKnownEventKind } from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+import { EventTags, WellKnownEventKind } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 
 export class Nip18 {

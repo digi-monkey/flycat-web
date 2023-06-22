@@ -1,5 +1,5 @@
 import { ThinHr } from 'components/ThinHr';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
@@ -18,8 +18,8 @@ import {
   EventSetMetadataContent,
   EventTags,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import {
   dontLikeComment,
   findNodeById,

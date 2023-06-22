@@ -1,5 +1,5 @@
-import { Event } from 'service/event/Event';
-import { UserMap } from 'service/type';
+import { Event } from 'service/nostr/Event';
+import { UserMap } from 'service/nostr/type';
 import { nonzero } from '../../util';
 import { RootState } from 'store/configureStore';
 import { CallWorker } from 'service/worker/callWorker';

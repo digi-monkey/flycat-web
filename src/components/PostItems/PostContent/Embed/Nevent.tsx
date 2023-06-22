@@ -1,6 +1,6 @@
 import { NeventResult } from 'service/nip/21';
 import { Avatar } from 'antd';
-import { shortifyPublicKey } from 'service/event/content';
+import { shortifyPublicKey } from 'service/nostr/content';
 import { MediaPreviews } from '../Media';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';

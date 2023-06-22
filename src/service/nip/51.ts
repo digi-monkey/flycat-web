@@ -1,5 +1,5 @@
-import { EventTags, Filter, Tags, WellKnownEventKind } from 'service/event/type';
-import { RawEvent } from 'service/event/RawEvent';
+import { EventTags, Filter, Tags, WellKnownEventKind } from 'service/nostr/type';
+import { RawEvent } from 'service/nostr/RawEvent';
 
 export class Nip51 {
 

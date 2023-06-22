@@ -1,4 +1,3 @@
-import { UserMap } from "service/type";
 import { RootState } from 'store/configureStore';
 import { seedRelays } from "service/relay/pool/seed";
 import { useSelector } from "react-redux";
@@ -6,15 +5,16 @@ import { useCallWorker } from "hooks/useWorker";
 import { CallRelayType } from "service/worker/type";
 import { useEffect, useState } from "react";
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
-import { deserializeMetadata } from 'service/event/content';
+import { deserializeMetadata } from 'service/nostr/content';
 import {
   EventContactListPTag,
   EventSetMetadataContent,
   EventTags,
   PublicKey,
+  UserMap,
   WellKnownEventKind
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import styles from './index.module.scss';
 
 export interface IMentions {

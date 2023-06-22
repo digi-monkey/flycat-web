@@ -1,5 +1,5 @@
-import { WellKnownEventKind, EventTags } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { WellKnownEventKind, EventTags } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 
 export class Nip9802 {
 	static kind: number = WellKnownEventKind.article_highlight;

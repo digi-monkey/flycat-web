@@ -10,14 +10,14 @@ import {
   WellKnownEventKind,
   EventETag,
   EventPTag
-} from 'service/event/type';
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+} from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { Nip18 } from 'service/nip/18';
 import { Nip51 } from 'service/nip/51';
 import { Nip57 } from 'service/nip/57';
-import { UserMap } from 'service/type';
+import { UserMap } from 'service/nostr/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { RootState } from 'store/configureStore';
 

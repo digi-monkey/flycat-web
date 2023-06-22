@@ -1,6 +1,6 @@
 import { randomSubId } from 'service/api/ws';
-import { ClientRequestType, EventPubRequest, EventSubRequest, Filter } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { ClientRequestType, EventPubRequest, EventSubRequest, Filter } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 import { SubscriptionDataStream, createSubscriptionDataStream } from "./sub";
 
 export class WS {

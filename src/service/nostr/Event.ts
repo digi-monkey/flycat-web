@@ -1,4 +1,4 @@
-import { EventId, PublicKey, EventKind, Tags, Signature } from 'service/event/type';
+import { EventId, PublicKey, EventKind, Tags, Signature } from 'service/nostr/type';
 
 export interface Event {
   id: EventId;

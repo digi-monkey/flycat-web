@@ -1,7 +1,7 @@
 import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
 
-import { RawEvent } from 'service/event/RawEvent';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { relayReducer } from './relayReducer';
 import { createReducer } from './reducers';
 import { createWrapper } from "next-redux-wrapper";

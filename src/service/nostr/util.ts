@@ -1,5 +1,5 @@
 import { Event } from './Event';
-import { Filter, RelayResponseType, EventSubReachEndResponse, EventSubResponse, EventETag, EventTags, EventPTag } from './type';
+import { Filter, RelayResponseType, EventSubReachEndResponse, EventSubResponse, EventETag, EventTags, EventPTag, EventId } from './type';
 
 const isObject = object => object != null && typeof object === 'object';
 
@@ -93,3 +93,5 @@ export const getLastEventIdFromETags = (tags: any[]) => {
     return null;
   }
 };
+
+export const getEventIdsFromETags = (tags: any[]) => tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);

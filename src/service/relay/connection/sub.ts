@@ -1,5 +1,5 @@
-import { RelayResponse, RelayResponseType } from 'service/event/type';
-import { Event } from 'service/event/Event';
+import { RelayResponse, RelayResponseType } from 'service/nostr/type';
+import { Event } from 'service/nostr/Event';
 
 export interface Subscription {
 	ws: WebSocket;

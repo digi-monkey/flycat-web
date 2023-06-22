@@ -1,5 +1,5 @@
-import { Event } from 'service/event/Event';
-import { RawEvent } from 'service/event/RawEvent';
+import { Event } from 'service/nostr/Event';
+import { RawEvent } from 'service/nostr/RawEvent';
 import { getPublicKeyFromDotBit } from 'service/dotbit';
 import {
   createMetamaskSignEvent,
