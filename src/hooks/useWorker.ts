@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { equalMaps } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
 import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import { isEqualMaps } from 'utils/validator';
 
 export type OnMsgHandler = (this, nostrData: any, relayUrl?: string) => any;
 
@@ -22,7 +22,7 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   useEffect(() => {
     const worker = new CallWorker((message: FromWorkerMessageData) => {
       if (message.wsConnectStatus) {
-        if (equalMaps(wsConnectStatus, message.wsConnectStatus)) {
+        if (isEqualMaps(wsConnectStatus, message.wsConnectStatus)) {
           // no changed
           console.debug('[wsConnectStatus] same, not updating');
           return;
@@ -51,7 +51,7 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   }, []);
 
   useEffect(() => {
-    if (equalMaps(lastWsConnectStatus, wsConnectStatus)) {
+    if (isEqualMaps(lastWsConnectStatus, wsConnectStatus)) {
       return;
     }
 

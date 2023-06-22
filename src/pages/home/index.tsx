@@ -11,15 +11,15 @@ import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { PublicKey, RelayUrl, PetName } from 'service/event/type';
 import { useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import classNames from 'classnames';
-import PubNoteTextarea from 'components/layout/PubNoteTextarea';
+import PubNoteTextarea from 'components/PubNoteTextarea';
 import PostItems from 'components/PostItems';
 
 export type ContactList = Map<

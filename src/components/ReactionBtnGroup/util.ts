@@ -1,9 +1,9 @@
+import { isEventSubResponse } from 'service/event/util';
 import {
-  Event,
-  isEventSubResponse,
   EventSubResponse,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { Nip51 } from 'service/nip/51';
 import { CallWorker } from 'service/worker/callWorker';
 

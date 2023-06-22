@@ -1,12 +1,12 @@
 import {
-  Event,
   PublicKey,
   WellKnownEventKind,
   EventSetMetadataContent,
   EventTags,
   EventETag,
-  EventPTag,
-} from 'service/api';
+  EventPTag
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { ConnPool } from 'service/relay/connection/pool';
 import { WS } from 'service/relay/connection/ws';
 

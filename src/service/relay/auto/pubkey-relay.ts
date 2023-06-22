@@ -1,4 +1,4 @@
-import { PublicKey } from 'service/api';
+import { PublicKey } from 'service/event/type';
 
 export interface PubkeyRelay {
   pubkey: PublicKey;

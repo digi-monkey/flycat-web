@@ -5,14 +5,14 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Event,
   EventTags,
   EventZTag,
-  RawEvent,
   WellKnownEventKind,
   EventETag,
-  EventPTag,
-} from 'service/api';
+  EventPTag
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { Nip18 } from 'service/nip/18';
 import { Nip51 } from 'service/nip/51';

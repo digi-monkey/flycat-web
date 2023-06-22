@@ -1,7 +1,7 @@
 import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left } from 'components/layout/BaseLayout';
+import { BaseLayout, Left } from 'components/BaseLayout';
 import { RelayPoolManager } from './RelayPool';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';

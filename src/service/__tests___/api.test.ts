@@ -1,5 +1,5 @@
 import { schnorrVerify, schnorrSign } from 'service/crypto';
-import { RawEvent } from '../api';
+import { RawEvent } from 'service/event/RawEvent';
 
 describe('sha256 event id', () => {
   it('should return a correct sha256 event id', () => {

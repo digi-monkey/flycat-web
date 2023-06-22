@@ -17,7 +17,8 @@ import {
   switchRelays,
   pullRelayGroupId,
 } from './pool';
-import { EventSubResponse, getPortIdFomSubId } from 'service/api';
+import { getPortIdFomSubId } from 'service/api/ws';
+import { EventSubResponse } from 'service/event/type';
 
 //let count = 0;
 

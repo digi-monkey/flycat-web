@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { EventSetMetadataContent } from 'service/api';
+import { EventSetMetadataContent } from 'service/event/type';
 import { Relay, RelayAccessType } from 'service/relay/type';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 

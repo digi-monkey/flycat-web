@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { CallRelayType } from 'service/worker/type';
-import { Event, PublicKey, WellKnownEventKind } from 'service/api';
+import { PublicKey, WellKnownEventKind } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { handleEvent } from './utils';

@@ -1,7 +1,7 @@
 import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
-import { shortPublicKey } from 'service/helper';
+import { shortifyPublicKey } from 'service/event/content';
 import { NoteResult } from 'service/nip/21';
 import { MediaPreviews } from '../Media';
 
@@ -13,7 +13,7 @@ export const Note = (note: NoteResult) => {
       <div className={styles.refNote}>
         <div>
           <Avatar src={''} alt="picture" /> @
-          {shortPublicKey(note.noteEvent.pubkey)}
+          {shortifyPublicKey(note.noteEvent.pubkey)}
         </div>
         {note.noteEvent.content}
         <MediaPreviews content={note.noteEvent.content} />

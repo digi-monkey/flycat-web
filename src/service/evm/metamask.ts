@@ -1,4 +1,5 @@
-import { RawEvent, Event } from "service/api";
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { connectToMetaMask } from "service/metamask";
 import { getCaip10, getMessage, getSignature, privateKeyFromX } from "../nip/111";
 import { getPublicKey } from "service/crypto";

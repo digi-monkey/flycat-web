@@ -1,4 +1,4 @@
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
 import { Select } from 'antd';
@@ -6,7 +6,6 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
 import { UserMap } from 'service/type';
 import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
-import { Msgs } from 'components/layout/msg/Msg';
 import { FilterOptions } from './filterOptions';
 import PostItems from 'components/PostItems';
 

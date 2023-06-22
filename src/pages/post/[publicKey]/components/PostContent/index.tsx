@@ -2,7 +2,7 @@ import { red } from '@mui/material/colors';
 import { Paths } from 'constants/path';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material';
-import { calculateReadTime, formatDate, formatLongDate } from 'service/helper';
+import { calculateReadTime, formatDate, formatLongDate } from 'utils/time';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { payLnUrlInWebLn } from 'service/lighting/lighting';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

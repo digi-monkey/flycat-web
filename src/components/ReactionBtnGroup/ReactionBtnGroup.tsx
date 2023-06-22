@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { CallWorker } from 'service/worker/callWorker';
 import {
-  Event,
   EventETag,
   EventPTag,
   EventTags,
   EventZTag,
-  RawEvent,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { Button } from 'antd';
 import { Nip18 } from 'service/nip/18';
 import { useSelector } from 'react-redux';

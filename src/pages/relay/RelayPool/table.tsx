@@ -1,13 +1,13 @@
 import { EllipsisOutlined } from '@ant-design/icons';
 import { Avatar, Button, Table, Badge } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { shortPublicKey } from 'service/helper';
+import { shortifyPublicKey } from 'service/event/content';
 import { Nip11 } from 'service/nip/11';
 import { Relay, RelayTracker } from 'service/relay/type';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
-import { EventSetMetadataContent } from 'service/api';
+import { EventSetMetadataContent } from 'service/event/type';
 import { RelayPoolDatabase } from 'service/relay/pool/db';
 
 import styles from './table.module.scss';
@@ -252,7 +252,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
           </>
         ) : (
           <>
-            <Avatar alt="picture" /> {shortPublicKey(record.operator)}
+            <Avatar alt="picture" /> {shortifyPublicKey(record.operator)}
           </>
         ),
     },

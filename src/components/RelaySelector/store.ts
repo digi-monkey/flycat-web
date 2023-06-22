@@ -1,4 +1,4 @@
-import { PublicKey } from 'service/api';
+import { PublicKey } from 'service/event/type';
 import { RelayMode, toRelayMode } from './type';
 import { Relay } from 'service/relay/type';
 

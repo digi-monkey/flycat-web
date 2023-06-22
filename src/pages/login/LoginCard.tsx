@@ -1,4 +1,4 @@
-import { ThinHr } from '../../components/layout/ThinHr';
+import { ThinHr } from '../../components/ThinHr';
 import { Button } from '@mui/material';
 import { connect } from 'react-redux';
 import { useState } from 'react';
@@ -11,10 +11,11 @@ import { connect as wagmiConnect } from '@wagmi/core';
 import { getPublicKey, randomKeyPair } from 'service/crypto';
 import { EvmSignInMode, EvmSignInPopup } from './Popup';
 import { login, LoginMode, LoginRequest } from 'store/loginReducer';
-import { isDotBitName, isNip05DomainName } from 'service/helper';
+import { isNip05DomainName } from 'service/nip/05';
 import { getPrivateKeyFromMetamaskSignIn } from 'service/evm/metamask';
 import { getPrivateKeyFromWalletConnectSignIn } from 'service/evm/walletConnect';
 import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'service/nip/19';
+import {isDotBitName} from "service/dotbit";
 
 import styles from './index.module.scss';
 import Swal from 'sweetalert2/dist/sweetalert2.js';

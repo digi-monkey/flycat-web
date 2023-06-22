@@ -26,3 +26,7 @@ export async function getPublicKeyFromDotBit(
   const pk = decoded.data;
   return pk;
 }
+
+export function isDotBitName(name: string): boolean {
+  return name.endsWith('.bit');
+}

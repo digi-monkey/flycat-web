@@ -2,30 +2,29 @@ import { Nip23 } from 'service/nip/23';
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'service/type';
-import { Content } from 'components/layout/msg/content';
 import { useRouter } from 'next/router';
-import { maxStrings } from 'service/helper';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';
-import { ProfileAvatar } from 'components/layout/msg/TextMsg';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { defaultLastNotifyTime, get, update } from 'service/last-notify';
+import { deserializeMetadata } from 'service/event/content';
 import {
-  deserializeMetadata,
-  Event,
   EventSetMetadataContent,
   EventTags,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 
 import Link from 'next/link';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { maxStrings } from 'utils/common';
+import { Avatar } from 'antd';
 
 export interface ItemProps {
   msg: Event;
@@ -132,10 +131,10 @@ export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
       key={msg.id}
     >
       <span style={{ marginBottom: '10px' }}>
-        <ProfileAvatar
-          picture={userMap.get(msg.pubkey)?.picture}
-          name={userMap.get(msg.pubkey)?.name}
+        <Avatar
+          src={userMap.get(msg.pubkey)?.picture}
         />
+        <span>{userMap.get(msg.pubkey)?.name}</span>
         <span style={{ margin: '0px 5px' }}>
           <Link href={Paths.user + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</Link>
         </span>
@@ -154,7 +153,7 @@ export function ReplyItem({ msg, userMap, eventId, worker }: ItemProps) {
           href={'#'}
           onClick={read}
         >
-          <Content text={msg?.content} />
+          {msg?.content} 
         </a>
       </span>
     </span>
@@ -210,10 +209,10 @@ export function ArticleCommentItem({
       key={msg.id}
     >
       <span style={{ marginBottom: '10px' }}>
-        <ProfileAvatar
-          picture={userMap.get(msg.pubkey)?.picture}
-          name={userMap.get(msg.pubkey)?.name}
+        <Avatar
+          src={userMap.get(msg.pubkey)?.picture}
         />
+        <span>{userMap.get(msg.pubkey)?.name}</span>
         <span style={{ margin: '0px 5px' }}>
           <Link href={Paths.user + msg.pubkey}>{userMap.get(msg.pubkey)?.name}</Link>
         </span>
@@ -234,7 +233,7 @@ export function ArticleCommentItem({
           href={'#'}
           onClick={read}
         >
-          <Content text={msg?.content} />
+          {msg?.content}
         </a>
       </span>
     </span>

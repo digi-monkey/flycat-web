@@ -1,10 +1,10 @@
 import { Paths } from 'constants/path';
-import { ProfileAvatar } from 'components/layout/msg/TextMsg';
 import { ContentType, MediaType, parseContent, parseMedia } from 'utils/content';
 
 import Link from 'next/link';
 import classNames from 'classnames';
 import styles from './index.module.scss';
+import { Avatar } from 'antd';
 
 const CommentContent = ({ userMap, comment, onClick }) => {
   const checkClickFunction = onClick !== null;
@@ -25,10 +25,10 @@ const CommentContent = ({ userMap, comment, onClick }) => {
     <div className={classNames(styles.avatarAndContent, {
       [styles.cursor]: checkClickFunction
     })} onClick={checkClickFunction ? onClick : null}>
-      <ProfileAvatar
-        picture={userMap.get(comment.pubkey)?.picture}
-        name={comment.pubkey}
+      <Avatar
+        src={userMap.get(comment.pubkey)?.picture}
       />
+      <span>{comment.pubkey}</span>
       <div className={styles.content}>
         <Link
           style={{ fontSize: '14px' }}

@@ -1,11 +1,13 @@
 import {
-  Event,
+  WsEvent,
+  randomSubId
+} from 'service/api/ws';
+import { isEventSubResponse, isFilterEqual } from 'service/event/util';
+import {
   AuthPubRequest,
   AuthSubResponse,
   Challenge,
-  ClientRequestType,
-  DEFAULT_WS_API_URL,
-  ErrorReason,
+  ClientRequestType, ErrorReason,
   EventId,
   EventPubRequest,
   EventPubResponse,
@@ -17,12 +19,9 @@ import {
   RelayResponse,
   RelayResponseType,
   SubCloseRequest,
-  SubscriptionId,
-  WsEvent,
-  isEventSubResponse,
-  randomSubId,
-  isFilterEqual,
-} from '../api';
+  SubscriptionId
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import WebSocket, {MessageEvent, CloseEvent, OpenEvent, ErrorEvent} from 'ws';
 
 export interface NodeWsApiHandler {
@@ -51,7 +50,7 @@ export class NodeWsApi {
       throw new Error('maxSub <= maxKeepAlive');
     }
 
-    this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+    this.ws = new WebSocket(url);
 		this.updateListeners(url, wsHandler);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
@@ -65,7 +64,7 @@ export class NodeWsApi {
     wsHandler?: NodeWsApiHandler,
   ) {
     if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
-      this.ws = new WebSocket(url || DEFAULT_WS_API_URL);
+      this.ws = new WebSocket(url || "");
     }
 
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;

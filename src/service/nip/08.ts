@@ -1,8 +1,9 @@
 import { i18n } from 'next-i18next';
 import { UserMap } from 'service/type';
-import { shortPublicKey } from 'service/helper';
-import { isValidPublicKey } from 'service/validator';
-import { Event, EventTags } from 'service/api';
+import { shortifyPublicKey } from 'service/event/content';
+import { isValidPublicKey } from 'utils/validator';
+import { EventTags } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { Nip19DataType, Nip19 } from 'service/nip/19';
 
 export enum RenderFlag {
@@ -33,14 +34,14 @@ export class Nip08 {
         content = content.replace(
           regex,
           `<a href="/${i18n?.language}/user/${replacement.pk}">@${
-            userMap.get(replacement.pk)?.name || shortPublicKey(replacement.pk)
+            userMap.get(replacement.pk)?.name || shortifyPublicKey(replacement.pk)
           }</a>`,
         );
       } else if (renderFlag === RenderFlag.Markdown) {
         content = content.replace(
           regex,
           `[@${
-            userMap.get(replacement.pk)?.name || shortPublicKey(replacement.pk)
+            userMap.get(replacement.pk)?.name || shortifyPublicKey(replacement.pk)
           }](/${i18n?.language}/user/${replacement.pk})`,
         );
       }

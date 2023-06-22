@@ -1,7 +1,5 @@
-import {
-  Event,
-  EventSetMetadataContent,
-} from 'service/api';
+import { EventSetMetadataContent } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import {
   DecodedNaddrResult,
   DecodedNeventResult,

@@ -1,15 +1,15 @@
 import { useMyPublicKey, useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventWithSeen } from 'pages/type';
 import { useEffect, useState } from 'react';
+import { deserializeMetadata } from 'service/event/content';
+import { isEventPTag } from 'service/event/util';
 import {
-  Event,
   EventSetMetadataContent,
   EventTags,
   Filter,
-  WellKnownEventKind,
-  deserializeMetadata,
-  isEventPTag,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { Nip51 } from 'service/nip/51';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';

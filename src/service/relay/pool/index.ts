@@ -1,4 +1,6 @@
-import { Api, PublicKey, Event, WellKnownEventKind } from 'service/api';
+import { ImageProvider } from 'service/api/img';
+import { PublicKey, WellKnownEventKind } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { Relay, RelayTracker } from '../type';
 import { ConnPool } from '../connection/pool';
 import { WS } from '../connection/ws';
@@ -18,12 +20,12 @@ export class RelayPool {
   public relays: Relay[] = [];
   public seedRelays: string[];
 
-  private api: Api;
+  private api: ImageProvider;
   private db: RelayPoolDatabase;
 
   constructor(url?: string) {
     if (url) this.apiUrl = url;
-    this.api = new Api(this.apiUrl);
+    this.api = new ImageProvider(this.apiUrl);
     this.db = new RelayPoolDatabase();
     this.seedRelays = seedRelays;
   }

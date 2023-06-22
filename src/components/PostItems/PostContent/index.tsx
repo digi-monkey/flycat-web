@@ -1,10 +1,10 @@
+import { isEventSubResponse } from 'service/event/util';
 import {
-  Event,
   EventSubResponse,
   EventTags,
-  WellKnownEventKind,
-  isEventSubResponse,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { UserMap } from 'service/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'service/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
-import { normalizeContent, shortPublicKey } from 'service/helper';
+import { normalizeContent, shortifyPublicKey } from 'service/event/content';
 import { CallWorker } from 'service/worker/callWorker';
 import { EventWithSeen } from 'pages/type';
 
@@ -132,7 +132,7 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
     <div className={styles.replyEvent}>
       <div className={styles.user} onClick={clickUserProfile}>
         <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" /> @
-        {userMap.get(event.pubkey)?.name || shortPublicKey(event.pubkey)}
+        {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
       </div>
       <div className={styles.content} onClick={clickEventBody}>
         {event.content}

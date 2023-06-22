@@ -1,12 +1,12 @@
 import { EventWithSeen } from 'pages/type';
 import { useEffect, useState } from 'react';
+import { deserializeMetadata } from 'service/event/content';
+import { isEventPTag } from 'service/event/util';
 import {
-  Event,
   EventSetMetadataContent,
-  WellKnownEventKind,
-  deserializeMetadata,
-  isEventPTag,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { UserMap } from 'service/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { CallRelayType } from 'service/worker/type';

@@ -1,6 +1,6 @@
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import LoginCard from './LoginCard';
-import { BaseLayout, Left } from 'components/layout/BaseLayout';
+import { BaseLayout, Left } from 'components/BaseLayout';
 
 export function Login() {
   return (

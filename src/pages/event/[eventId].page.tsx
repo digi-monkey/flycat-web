@@ -8,18 +8,18 @@ import { getEventIdsFromETags } from 'utils/nostr';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import React, { useState, useEffect } from 'react';
+import { deserializeMetadata } from 'service/event/content';
+import { isEventPTag } from 'service/event/util';
 import {
-  Event,
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
-  PetName,
-  isEventPTag,
-  deserializeMetadata,
-} from 'service/api';
+  PetName
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import PostItems from 'components/PostItems';
 import { Avatar, Segmented, Input } from 'antd';
 import styles from './index.module.scss';

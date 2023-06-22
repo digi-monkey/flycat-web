@@ -1,7 +1,8 @@
 import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import Calendar from 'react-github-contribution-calendar';
-import { Event, WellKnownEventKind } from 'service/api';
+import { WellKnownEventKind } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { CallRelayType } from 'service/worker/type';
 
 const panelColors = ['#EEEEEE', '#D6E685', '#8CC665', '#44A340', '#1E6823'];

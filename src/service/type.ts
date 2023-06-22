@@ -1,4 +1,4 @@
-import { EventSetMetadataContent, PublicKey } from './api';
+import { EventSetMetadataContent, PublicKey } from './event/type';
 
 export type UserMap = Map<
   PublicKey,

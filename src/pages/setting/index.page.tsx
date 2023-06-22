@@ -2,24 +2,24 @@ import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import {
-  Event,
   EventSetMetadataContent,
   Nostr,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import styled from 'styled-components';
-import { ThinHr } from 'components/layout/ThinHr';
+import { ThinHr } from 'components/ThinHr';
 import { useVersion } from 'hooks/useVersion';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { ImageUploader } from 'components/ImageUploader';
 import { useCallWorker } from 'hooks/useWorker';
 import { CallRelayType } from 'service/worker/type';
-import { BaseLayout, Left } from 'components/layout/BaseLayout';
+import { BaseLayout, Left } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { ProfileAvatar, ProfileBanner } from 'components/layout/msg/TextMsg';
+import { Avatar } from 'antd';
 
 const styles = {
   userInfo: {
@@ -257,7 +257,7 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
                 </label>
                 <div>
                   <span style={{ marginRight: '10px' }}>
-                    <ProfileAvatar picture={avatar} />
+                    <Avatar src={avatar} />
                   </span>
                   <ImageUploader
                     onImgUrls={(imgs: string[]) =>
@@ -279,7 +279,7 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
                 <label htmlFor="bannerUrl">
                   {t('profileEditPanel.banner')}
                 </label>
-                <ProfileBanner picture={banner} />
+                <img src={banner} />
                 <ImageUploader
                   onImgUrls={(imgs: string[]) =>
                     setBanner(imgs[imgs.length - 1])

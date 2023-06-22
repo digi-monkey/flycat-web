@@ -1,4 +1,4 @@
-import { EventSetMetadataContent, PublicKey } from 'service/api';
+import { EventSetMetadataContent, PublicKey } from 'service/event/type';
 import {
   RelayCountries,
   RelayFeeItem,

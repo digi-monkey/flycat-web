@@ -1,4 +1,4 @@
-import { Event } from 'service/api';
+import { Event } from 'service/event/Event';
 import { UserMap } from 'service/type';
 import { nonzero } from '../../util';
 import { RootState } from 'store/configureStore';

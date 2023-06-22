@@ -1,9 +1,6 @@
-import {
-  Event,
-  Filter,
-  isEventSubResponse,
-  EventSubResponse,
-} from 'service/api';
+import { isEventSubResponse } from 'service/event/util';
+import { Filter, EventSubResponse } from 'service/event/type';
+import { Event } from 'service/event/Event';
 import { Pool } from 'service/backend/pool';
 import { waitUntilNip23RelayConnected, timeout } from 'service/backend/util';
 import { seedRelays } from 'service/relay/pool/seed';

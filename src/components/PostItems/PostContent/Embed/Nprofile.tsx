@@ -1,7 +1,7 @@
 import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
-import { shortPublicKey } from 'service/helper';
+import { shortifyPublicKey } from 'service/event/content';
 import { NprofileResult } from 'service/nip/21';
 
 import styles from './index.module.scss';
@@ -21,7 +21,7 @@ export const Nprofile = (nprofile: NprofileResult) => {
         <div className={styles.user}>
           <Avatar src={nprofile.profile.picture} alt="picture" /> @
           {nprofile.profile.name ||
-            shortPublicKey(nprofile.decodedMetadata.pubkey)}
+            shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
         </div>
         <div>{nprofile.profile.about}</div>
       </div>
@@ -35,7 +35,7 @@ export const Nprofile = (nprofile: NprofileResult) => {
         href={i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey}
         target="_blank"
       >
-        nprofile@{shortPublicKey(nprofile.decodedMetadata.pubkey)}
+        nprofile@{shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
       </a>
     </div>
   );

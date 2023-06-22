@@ -1,4 +1,4 @@
-import { ThinHr } from 'components/layout/ThinHr';
+import { ThinHr } from 'components/ThinHr';
 import { UserMap } from 'service/type';
 import { useTheme } from '@mui/material';
 import { RootState } from 'store/configureStore';
@@ -13,14 +13,14 @@ import { Article, Nip23 } from 'service/nip/23';
 import { Nip08, RenderFlag } from 'service/nip/08';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Event,
   EventSetMetadataContent,
   EventTags,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
 import {
   dontLikeComment,
   findNodeById,

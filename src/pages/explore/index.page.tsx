@@ -1,4 +1,4 @@
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
 import { Segmented } from 'antd';

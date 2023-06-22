@@ -6,13 +6,13 @@ import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { worker } from 'cluster';
 import {
-  Event,
-  RawEvent,
   WellKnownEventKind,
   EventTags,
   EventETag,
-  EventPTag,
-} from 'service/api';
+  EventPTag
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'service/worker/callWorker';
 import { useState } from 'react';

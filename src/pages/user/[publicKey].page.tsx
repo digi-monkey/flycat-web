@@ -9,21 +9,21 @@ import { useState, useEffect } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { CallRelay, CallRelayType } from 'service/worker/type';
+import { deserializeMetadata } from 'service/event/content';
+import { isEventPTag } from 'service/event/util';
 import {
-  Event,
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
   PetName,
   EventTags,
-  EventContactListPTag,
-  isEventPTag,
-  RawEvent,
-  deserializeMetadata,
-} from 'service/api';
+  EventContactListPTag
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { Avatar, Button, Tabs } from 'antd';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';

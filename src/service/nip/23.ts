@@ -1,14 +1,14 @@
 import {
-  Event,
   EventATag,
   EventTags,
   EventTTag,
   Filter,
   PublicKey,
-  RawEvent,
   Tags,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import { generateRandomBytes } from 'service/crypto';
 
 export enum Nip23ArticleMetaTags {

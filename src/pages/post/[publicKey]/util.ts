@@ -1,4 +1,7 @@
-import { EventTags, isEventETag, RawEvent, WellKnownEventKind, Event, EventETagMarker } from "service/api";
+import { isEventETag } from 'service/event/util';
+import { EventTags, WellKnownEventKind, EventETagMarker } from 'service/event/type';
+import { Event } from 'service/event/Event';
+import { RawEvent } from 'service/event/RawEvent';
 import Alert from 'sweetalert2/dist/sweetalert2.js';
 
 export async function submitReply(worker, signEvent, content, pubkey, tags, onClose) {

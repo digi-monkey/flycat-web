@@ -2,9 +2,9 @@ import {
   EventSetMetadataContent,
   EventZTag,
   PublicKey,
-  RawEvent,
-  WellKnownEventKind,
-} from 'service/api';
+  WellKnownEventKind
+} from 'service/event/type';
+import { RawEvent } from 'service/event/RawEvent';
 import { bech32Decode } from 'service/crypto';
 import fetch from 'cross-fetch';
 
