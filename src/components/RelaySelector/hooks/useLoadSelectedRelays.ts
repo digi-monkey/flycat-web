@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RelaySelectorStore } from '../store';
 import { RelayMode } from '../type';
-import { RelayGroupStorage } from 'service/relay/group/store';
-import { Relay } from 'service/relay/type';
+import { RelayGroupStorage } from 'core/relay/group/store';
+import { Relay } from 'core/relay/type';
 
 export function useLoadSelectedRelays(
   myPublicKey: string,

@@ -1,4 +1,4 @@
-import { ImageProvider } from 'service/api/img';
+import { ImageProvider } from 'core/api/img';
 import { FileImageOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from "react";
 

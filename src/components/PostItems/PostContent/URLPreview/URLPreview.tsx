@@ -1,4 +1,4 @@
-import { UrlMetadata } from 'service/ogp';
+import { UrlMetadata } from 'core/ogp';
 
 import Link from 'next/link';
 import styles from './index.module.scss';

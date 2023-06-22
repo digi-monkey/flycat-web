@@ -1,6 +1,6 @@
-import { PublicKey } from 'service/nostr/type';
+import { PublicKey } from 'core/nostr/type';
 import { RelayMode, toRelayMode } from './type';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 
 export class RelaySelectorStore {
   storePrefix = 'relay-selector';

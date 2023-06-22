@@ -1,7 +1,7 @@
 import { EllipsisOutlined } from '@ant-design/icons';
 import { Dropdown, MenuProps } from 'antd';
 import { ActionType, RelayActionModal } from '../Modal/action';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import { useState } from 'react';
 import { RelayDetailModal } from '../Modal/detail';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

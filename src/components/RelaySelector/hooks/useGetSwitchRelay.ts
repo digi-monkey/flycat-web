@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
-import { db } from 'service/relay/auto';
+import { db } from 'core/relay/auto';
 import { RelayMode, toRelayMode } from '../type';
 import { RelaySelectorStore } from '../store';
-import { RelayPool } from 'service/relay/pool';
-import { SwitchRelays } from 'service/worker/type';
-import { RelayGroupMap } from 'service/relay/group/type';
-import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { RelayPool } from 'core/relay/pool';
+import { SwitchRelays } from 'core/worker/type';
+import { RelayGroupMap } from 'core/relay/group/type';
+import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 
 export function useGetSwitchRelay(
   myPublicKey: string,

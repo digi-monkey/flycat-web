@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { decode } from 'service/lighting/bolt11';
+import { decode } from 'core/lighting/bolt11';
 import { getParams, LNURLPayParams } from 'js-lnurl';
 import { useTranslation } from 'next-i18next';
 import { Button } from 'antd';

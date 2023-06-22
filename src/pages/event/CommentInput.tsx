@@ -1,7 +1,7 @@
 import { Avatar, Button, Input } from 'antd';
 import styles from './index.module.scss';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { worker } from 'cluster';
@@ -10,11 +10,11 @@ import {
   EventTags,
   EventETag,
   EventPTag
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { RawEvent } from 'service/nostr/RawEvent';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
 import { EventWithSeen } from 'pages/type';
-import { CallWorker } from 'service/worker/callWorker';
+import { CallWorker } from 'core/worker/callWorker';
 import { useState } from 'react';
 
 export interface CommentInputProp {

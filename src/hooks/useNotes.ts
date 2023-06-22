@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Filter } from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { CallRelayType } from 'service/worker/type';
+import { Filter } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from './useWorker';
 
 export function useNotes(filter: Filter, deps: any[]) {

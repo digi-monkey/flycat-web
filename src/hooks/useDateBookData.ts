@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Article } from 'service/nip/23';
+import { Article } from 'core/nip/23';
 
 export interface BookMetadata {
   title: string;

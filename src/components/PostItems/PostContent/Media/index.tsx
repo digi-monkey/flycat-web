@@ -1,4 +1,4 @@
-import { normalizeContent } from 'service/nostr/content';
+import { normalizeContent } from 'core/nostr/content';
 import { UrlPreview } from 'components/PostItems/PostContent/URLPreview';
 import { LightingInvoice, LnUrlInvoice } from './LightingInvoice';
 import { AudioPreview } from './AudioPreview';

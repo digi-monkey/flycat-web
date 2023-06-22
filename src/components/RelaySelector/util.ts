@@ -1,4 +1,4 @@
-import { RelayGroupMap } from 'service/relay/group/type';
+import { RelayGroupMap } from 'core/relay/group/type';
 import { RelayMode, RelayModeSelectMenus, RelayModeSelectOption, toLabel } from './type';
 
 export function getSelectGroupId(groups: RelayGroupMap) {

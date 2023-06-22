@@ -1,11 +1,11 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
-import { CallRelayType } from 'service/worker/type';
-import { PublicKey, WellKnownEventKind } from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+import { CallRelayType } from 'core/worker/type';
+import { PublicKey, WellKnownEventKind } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 import { EventWithSeen } from 'pages/type';
-import { CallWorker } from 'service/worker/callWorker';
+import { CallWorker } from 'core/worker/callWorker';
 import { handleEvent } from './utils';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 
 export function useSubMetaDataAndContactList(
   myPublicKey,

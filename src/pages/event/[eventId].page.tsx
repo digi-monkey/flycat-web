@@ -1,4 +1,4 @@
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
@@ -9,16 +9,16 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import React, { useState, useEffect } from 'react';
-import { deserializeMetadata } from 'service/nostr/content';
-import { getEventIdsFromETags, isEventPTag } from 'service/nostr/util';
+import { deserializeMetadata } from 'core/nostr/content';
+import { getEventIdsFromETags, isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
   RelayUrl,
   PetName
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 import PostItems from 'components/PostItems';
 import { Avatar, Segmented, Input } from 'antd';
 import styles from './index.module.scss';

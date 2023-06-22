@@ -1,4 +1,4 @@
-import { Nip06 } from 'service/nip/06';
+import { Nip06 } from 'core/nip/06';
 import { WebLNProvider } from '@webbtc/webln-types';
 
 declare global {

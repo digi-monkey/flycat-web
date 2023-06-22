@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { buildNote, urlToHTML } from './utils';
-import { getUrlMetadata, UrlMetadata } from 'service/ogp';
+import { getUrlMetadata, UrlMetadata } from 'core/ogp';
 
 import styles from './index.module.scss';
 import URLPreview from './URLPreview';

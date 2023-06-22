@@ -1,5 +1,5 @@
-import { UserMap } from 'service/nostr/type';
-import { CallWorker } from 'service/worker/callWorker';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/callWorker';
 import { useBestLongFormFeed } from './hooks/useBestLongformFeed';
 import PostItems from 'components/PostItems';
 

@@ -1,15 +1,15 @@
 import { ThinHr } from 'components/ThinHr';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
-import { CallRelayType } from 'service/worker/type';
+import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { ImageUploader } from 'components/ImageUploader';
-import { callSubFilter } from 'service/backend/sub';
+import { callSubFilter } from 'core/backend/sub';
 import { useTranslation } from 'next-i18next';
-import { Article, Nip23 } from 'service/nip/23';
-import { Nip08, RenderFlag } from 'service/nip/08';
+import { Article, Nip23 } from 'core/nip/23';
+import { Nip08, RenderFlag } from 'core/nip/08';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
@@ -18,8 +18,8 @@ import {
   EventSetMetadataContent,
   EventTags,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 import {
   dontLikeComment,
   findNodeById,
@@ -37,7 +37,7 @@ import ReplyDialog from './components/ReplyDialog';
 import PostReactions from 'components/PostItems/PostReactions';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
-import { payLnUrlInWebLn } from 'service/lighting/lighting';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
 

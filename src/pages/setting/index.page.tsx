@@ -4,8 +4,8 @@ import {
   EventSetMetadataContent,
   Nostr,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 import styled from 'styled-components';
 import { ThinHr } from 'components/ThinHr';
 import { useVersion } from 'hooks/useVersion';
@@ -13,7 +13,7 @@ import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { ImageUploader } from 'components/ImageUploader';
 import { useCallWorker } from 'hooks/useWorker';
-import { CallRelayType } from 'service/worker/type';
+import { CallRelayType } from 'core/worker/type';
 import { BaseLayout, Left } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

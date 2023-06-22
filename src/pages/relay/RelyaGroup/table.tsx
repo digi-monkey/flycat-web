@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { Relay } from 'service/relay/type';
-import { Nip11 } from 'service/nip/11';
-import { isRelayOutdate } from 'service/relay/util';
+import { Relay } from 'core/relay/type';
+import { Nip11 } from 'core/nip/11';
+import { isRelayOutdate } from 'core/relay/util';
 import { SingleItemAction } from '../Action/singleItem';
 import { MultipleItemsAction } from '../Action/multipleItems';
 

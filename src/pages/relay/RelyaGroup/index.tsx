@@ -4,9 +4,9 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Button, Col, Input, Menu, Row, Space } from 'antd';
 import { useRelayGroup } from '../hooks/useRelayGroup';
 import { useDefaultGroup } from '../hooks/useDefaultGroup';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import RelayGroupTable from './table';
-import { newRelay } from 'service/relay/util';
+import { newRelay } from 'core/relay/util';
 
 export const RelayGroup: React.FC = () => {
   const { t } = useTranslation();

@@ -1,7 +1,7 @@
-import { isEventETag } from 'service/nostr/util';
-import { EventTags, WellKnownEventKind, EventETagMarker } from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { RawEvent } from 'service/nostr/RawEvent';
+import { isEventETag } from 'core/nostr/util';
+import { EventTags, WellKnownEventKind, EventETagMarker } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
 import Alert from 'sweetalert2/dist/sweetalert2.js';
 
 export async function submitReply(worker, signEvent, content, pubkey, tags, onClose) {

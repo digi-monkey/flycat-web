@@ -1,15 +1,15 @@
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
-import { deserializeMetadata } from 'service/nostr/content';
-import { isEventPTag } from 'service/nostr/util';
+import { CallWorker } from 'core/worker/callWorker';
+import { CallRelayType } from 'core/worker/type';
+import { deserializeMetadata } from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
   EventTags,
   EventContactListPTag
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 
 export function handleEvent(
   worker,

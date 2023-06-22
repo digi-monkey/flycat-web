@@ -7,7 +7,7 @@ import { MenuItemType } from 'antd/es/menu/hooks/useItems';
 import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { EventSetMetadataContent } from 'service/nostr/type';
+import { EventSetMetadataContent } from 'core/nostr/type';
 import { Avatar, Button, Dropdown } from 'antd';
 import { Dispatch, SetStateAction } from 'react';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';

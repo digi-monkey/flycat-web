@@ -1,10 +1,10 @@
-import { Nip23 } from 'service/nip/23';
+import { Nip23 } from 'core/nip/23';
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { useRouter } from 'next/router';
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
+import { CallWorker } from 'core/worker/callWorker';
+import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
@@ -12,14 +12,14 @@ import { loginMapStateToProps } from 'pages/helper';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { defaultLastNotifyTime, get, update } from 'service/last-notify';
-import { deserializeMetadata } from 'service/nostr/content';
+import { defaultLastNotifyTime, get, update } from 'core/last-notify';
+import { deserializeMetadata } from 'core/nostr/content';
 import {
   EventSetMetadataContent,
   EventTags,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 
 import Link from 'next/link';
 import { maxStrings } from 'utils/common';

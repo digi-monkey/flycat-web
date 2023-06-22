@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Segmented } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { LatestFeed } from './latestFeed';
 import { BestLongFormFeed } from './bestLongFormFeed';
 

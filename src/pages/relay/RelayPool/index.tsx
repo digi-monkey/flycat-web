@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { RelayPool } from 'service/relay/pool';
+import { RelayPool } from 'core/relay/pool';
 import RelayPoolTable from './table';
 import { Button } from 'antd';
-import { Relay } from 'service/relay/type';
-import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { Relay } from 'core/relay/type';
+import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 //import { seedRelays } from 'service/relay/pool/seed';
 

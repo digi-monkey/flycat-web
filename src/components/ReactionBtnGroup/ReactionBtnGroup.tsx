@@ -1,22 +1,22 @@
 import { useTranslation } from 'react-i18next';
-import { CallWorker } from 'service/worker/callWorker';
+import { CallWorker } from 'core/worker/callWorker';
 import {
   EventETag,
   EventPTag,
   EventTags,
   EventZTag,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { RawEvent } from 'service/nostr/RawEvent';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
 import { Button } from 'antd';
-import { Nip18 } from 'service/nip/18';
+import { Nip18 } from 'core/nip/18';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { UserMap } from 'service/nostr/type';
-import { Nip57 } from 'service/nip/57';
-import { payLnUrlInWebLn } from 'service/lighting/lighting';
-import { Nip51 } from 'service/nip/51';
+import { UserMap } from 'core/nostr/type';
+import { Nip57 } from 'core/nip/57';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
+import { Nip51 } from 'core/nip/51';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { fetchPublicBookmarkListEvent } from './util';
 import { useState } from 'react';

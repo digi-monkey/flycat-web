@@ -1,7 +1,7 @@
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
-import { RelayGroup } from 'service/relay/group';
-import { RelayGroupMap } from 'service/relay/group/type';
+import { RelayGroup } from 'core/relay/group';
+import { RelayGroupMap } from 'core/relay/group/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
+import { SwitchRelays, WsConnectStatus } from 'core/worker/type';
 import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';

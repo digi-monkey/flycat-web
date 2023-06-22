@@ -1,14 +1,14 @@
 import { EllipsisOutlined } from '@ant-design/icons';
 import { Avatar, Button, Table, Badge } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { shortifyPublicKey } from 'service/nostr/content';
-import { Nip11 } from 'service/nip/11';
-import { Relay, RelayTracker } from 'service/relay/type';
+import { shortifyPublicKey } from 'core/nostr/content';
+import { Nip11 } from 'core/nip/11';
+import { Relay, RelayTracker } from 'core/relay/type';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
-import { EventSetMetadataContent } from 'service/nostr/type';
-import { RelayPoolDatabase } from 'service/relay/pool/db';
+import { EventSetMetadataContent } from 'core/nostr/type';
+import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import styles from './table.module.scss';
 

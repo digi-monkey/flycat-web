@@ -1,7 +1,7 @@
-import { Nip23 } from 'service/nip/23';
-import { Nip9802 } from 'service/nip/9802';
-import { UserMap } from 'service/nostr/type';
-import { CallWorker } from 'service/worker/callWorker';
+import { Nip23 } from 'core/nip/23';
+import { Nip9802 } from 'core/nip/9802';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/callWorker';
 import { EventWithSeen } from 'pages/type';
 
 import Icon from 'components/Icon';

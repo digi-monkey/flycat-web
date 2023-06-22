@@ -1,5 +1,5 @@
-import { Nip21 } from 'service/nip/21';
-import { UserMap } from 'service/nostr/type';
+import { Nip21 } from 'core/nip/21';
+import { UserMap } from 'core/nostr/type';
 
 export async function extractEmbedRef(
   content: string,

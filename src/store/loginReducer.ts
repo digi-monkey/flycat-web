@@ -1,17 +1,17 @@
-import { Event } from 'service/nostr/Event';
-import { RawEvent } from 'service/nostr/RawEvent';
-import { getPublicKeyFromDotBit } from 'service/dotbit';
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
+import { getPublicKeyFromDotBit } from 'core/dotbit';
 import {
   createMetamaskSignEvent,
   createMetamaskGetPublicKey,
   getPublicKeyFromMetamaskSignIn,
-} from 'service/evm/metamask';
+} from 'core/evm/metamask';
 import {
   createWalletConnectSignEvent,
   createWalletConnectGetPublicKey,
   getPublicKeyFromWalletConnectSignIn,
-} from 'service/evm/walletConnect';
-import { disconnectWagmi } from 'service/evm/wagmi/helper';
+} from 'core/evm/walletConnect';
+import { disconnectWagmi } from 'core/evm/wagmi/helper';
 
 
 export enum LoginMode {

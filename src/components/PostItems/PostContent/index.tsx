@@ -1,24 +1,24 @@
-import { isEventSubResponse } from 'service/nostr/util';
+import { isEventSubResponse } from 'core/nostr/util';
 import {
   EventSubResponse,
   EventTags,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { UserMap } from 'service/nostr/type';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import { extractEmbedRef } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
-import { normalizeContent, shortifyPublicKey } from 'service/nostr/content';
-import { CallWorker } from 'service/worker/callWorker';
+import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
+import { CallWorker } from 'core/worker/callWorker';
 import { EventWithSeen } from 'pages/type';
 
 interface PostContentProp {

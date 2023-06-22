@@ -1,8 +1,8 @@
 import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
-import { shortifyPublicKey } from 'service/nostr/content';
-import { NoteResult } from 'service/nip/21';
+import { shortifyPublicKey } from 'core/nostr/content';
+import { NoteResult } from 'core/nip/21';
 import { MediaPreviews } from '../Media';
 
 import styles from './index.module.scss';

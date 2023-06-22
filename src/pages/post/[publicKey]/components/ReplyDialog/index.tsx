@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { newComments } from '../../[articleId].page';
 import { ImageUploader } from 'components/ImageUploader';
 import { useEffect, useState } from 'react';
-import { EventTags, EventETagMarker } from 'service/nostr/type';
+import { EventTags, EventETagMarker } from 'core/nostr/type';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { findNodeById, nonzero, submitReply } from '../../util';
 import { Dialog, DialogContent, TextField } from '@mui/material';

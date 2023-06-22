@@ -1,5 +1,5 @@
 import { Paths } from 'constants/path';
-import { Nip19 } from 'service/nip/19';
+import { Nip19 } from 'core/nip/19';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';

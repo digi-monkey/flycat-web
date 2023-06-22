@@ -1,11 +1,11 @@
-import { isEventSubResponse } from 'service/nostr/util';
+import { isEventSubResponse } from 'core/nostr/util';
 import {
   EventSubResponse,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { Nip51 } from 'service/nip/51';
-import { CallWorker } from 'service/worker/callWorker';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { Nip51 } from 'core/nip/51';
+import { CallWorker } from 'core/worker/callWorker';
 
 export async function fetchPublicBookmarkListEvent(
   myPublicKey: string,

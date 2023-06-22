@@ -1,16 +1,16 @@
 import { EventWithSeen } from 'pages/type';
 import { useEffect, useState } from 'react';
-import { deserializeMetadata } from 'service/nostr/content';
-import { isEventPTag } from 'service/nostr/util';
+import { deserializeMetadata } from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
   Filter,
   WellKnownEventKind
-} from 'service/nostr/type';
-import { Event } from 'service/nostr/Event';
-import { UserMap } from 'service/nostr/type';
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/callWorker';
+import { CallRelayType } from 'core/worker/type';
 
 // todo: best algo and sort result
 export function useBestLongFormFeed({

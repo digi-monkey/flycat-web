@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import { CallWorker } from 'core/worker/callWorker';
+import { FromWorkerMessageData, WsConnectStatus } from 'core/worker/type';
 import { isEqualMaps } from 'utils/validator';
 
 export type OnMsgHandler = (this, nostrData: any, relayUrl?: string) => any;

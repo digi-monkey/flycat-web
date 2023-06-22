@@ -1,8 +1,8 @@
 import { SignEvent } from 'store/loginReducer';
-import { CallWorker } from 'service/worker/callWorker';
-import { ImageProvider, compressImage} from 'service/api/img';
-import { WellKnownEventKind } from 'service/nostr/type';
-import { RawEvent } from 'service/nostr/RawEvent';
+import { CallWorker } from 'core/worker/callWorker';
+import { ImageProvider, compressImage} from 'core/api/img';
+import { WellKnownEventKind } from 'core/nostr/type';
+import { RawEvent } from 'core/nostr/RawEvent';
 
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {

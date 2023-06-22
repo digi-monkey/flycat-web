@@ -1,5 +1,5 @@
 import { Paths } from 'constants/path';
-import { UserMap } from 'service/nostr/type';
+import { UserMap } from 'core/nostr/type';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -12,7 +12,7 @@ import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { PublicKey, RelayUrl, PetName } from 'service/nostr/type';
+import { PublicKey, RelayUrl, PetName } from 'core/nostr/type';
 import { useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
 
 import styles from './index.module.scss';
