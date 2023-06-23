@@ -2,7 +2,6 @@ import { HexStr, Utf8Str } from 'types';
 import { RawEvent } from './RawEvent';
 import { Event } from './Event';
 
-
 export type Hash64Bytes = string;
 export type Hash32Bytes = string;
 export type RelayUrl = string;
@@ -12,7 +11,6 @@ export type ErrorReason = Utf8Str;
 export type Reason = Utf8Str;
 export type Challenge = string;
 export type Naddr = string; // <kind>:<pubkey>:<d-identifier>
-
 
 export type EventId = Hash32Bytes;
 export type PublicKey = Hash32Bytes;
@@ -39,13 +37,13 @@ export enum WellKnownEventKind {
   people_list = 30000,
   bookmark_list = 30001,
 
-  long_form = 30023
+  long_form = 30023,
 }
 
 export enum EventETagMarker {
   reply = 'reply',
   root = 'root',
-  mention = 'mention'
+  mention = 'mention',
 }
 
 export enum EventTags {
@@ -55,7 +53,7 @@ export enum EventTags {
   T = 't',
   A = 'a',
   Z = 'zap',
-  R = 'r'
+  R = 'r',
 }
 
 export type LudType = 'lud06' | 'lud16';
@@ -67,7 +65,7 @@ export type EventATag = [EventTags.A, Naddr, RelayUrl]; // ["a", "<kind>:<pubkey
 
 export type EventTTag = [EventTags.T, string];
 export type EventZTag = [EventTags.Z, string, LudType];
-export type EventRTag = [EventTags.R, string, "read" | "write" | '' | null];
+export type EventRTag = [EventTags.R, string, 'read' | 'write' | '' | null];
 export type EventContactListPTag = [EventTags.P, PublicKey, RelayUrl, PetName];
 // relay response
 
@@ -76,54 +74,56 @@ export enum RelayResponseType {
   SubReachEnd = 'EOSE',
   SubAuth = 'AUTH',
   PubEvent = 'OK',
-  Notice = 'NOTICE'
+  Notice = 'NOTICE',
 }
 
 export type EventSubResponse = [
   RelayResponseType.SubEvent,
   SubscriptionId,
-  Event
+  Event,
 ];
 export type EventSubReachEndResponse = [
   RelayResponseType.SubReachEnd,
-  SubscriptionId
+  SubscriptionId,
 ];
 export type AuthSubResponse = [RelayResponseType.SubAuth, Challenge];
 export type EventPubResponse = [
   RelayResponseType.PubEvent,
   EventId,
   boolean,
-  Reason
+  Reason,
 ];
 export type NoticeResponse = [RelayResponseType.Notice, ErrorReason];
 
-export type RelayResponse = EventSubResponse |
-  EventSubReachEndResponse |
-  AuthSubResponse |
-  EventPubResponse |
-  NoticeResponse;
+export type RelayResponse =
+  | EventSubResponse
+  | EventSubReachEndResponse
+  | AuthSubResponse
+  | EventPubResponse
+  | NoticeResponse;
 // client request
 
 export enum ClientRequestType {
   PubEvent = 'EVENT',
   PubAuth = 'AUTH',
   SubFilter = 'REQ',
-  Close = 'CLOSE'
+  Close = 'CLOSE',
 }
 
 export type EventPubRequest = [ClientRequestType.PubEvent, Event];
 export type EventSubRequest = [
   ClientRequestType.SubFilter,
   SubscriptionId,
-  Filter
+  Filter,
 ];
 export type SubCloseRequest = [ClientRequestType.Close, SubscriptionId];
 export type AuthPubRequest = [ClientRequestType.PubAuth, Event];
 
-export type ClientRequest = EventPubRequest |
-  EventSubRequest |
-  SubCloseRequest |
-  AuthPubRequest;
+export type ClientRequest =
+  | EventPubRequest
+  | EventSubRequest
+  | SubCloseRequest
+  | AuthPubRequest;
 
 export interface Filter {
   ids?: EventId[];
@@ -139,14 +139,16 @@ export interface Filter {
   limit?: number;
 }
 
-export type Tags = (EventETag |
-  EventPTag |
-  EventDTag |
-  EventTTag |
-  EventATag |
-  EventContactListPTag |
-  string[] |
-  any[])[];
+export type Tags = (
+  | EventETag
+  | EventPTag
+  | EventDTag
+  | EventTTag
+  | EventATag
+  | EventContactListPTag
+  | string[]
+  | any[]
+)[];
 export class Nostr {
   static async newLikeRawEvent(toEventId: string, toPublicKey: string) {
     const kind = WellKnownEventKind.like;
@@ -160,7 +162,7 @@ export class Nostr {
 
   static async newDisLikeRawEvent(
     toEventId: string,
-    toPublicKey: string
+    toPublicKey: string,
   ): Promise<RawEvent> {
     const kind = WellKnownEventKind.like;
     const content = '-';
@@ -171,7 +173,7 @@ export class Nostr {
   }
 
   static async newProfileRawEvent(
-    content: EventSetMetadataContent
+    content: EventSetMetadataContent,
   ): Promise<RawEvent> {
     const kind = WellKnownEventKind.set_metadata;
     const tags = [];
@@ -195,3 +197,8 @@ export type UserMap = Map<
   PublicKey,
   EventSetMetadataContent & { created_at: number }
 >;
+
+export interface EventPubResult {
+  isSuccess: boolean;
+  reason?: string;
+}

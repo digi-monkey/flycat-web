@@ -1,38 +1,19 @@
-import {
-  WsEvent,
-  randomSubId
-} from 'core/api/wsApi';
-import { isEventSubResponse, isFilterEqual } from 'core/nostr/util';
-import {
-  AuthPubRequest,
-  AuthSubResponse,
-  Challenge,
-  ClientRequestType, ErrorReason,
-  EventId,
-  EventPubRequest,
-  EventPubResponse,
-  EventSubReachEndResponse,
-  EventSubRequest,
-  Filter,
-  NoticeResponse,
-  Reason,
-  RelayResponse,
-  RelayResponseType,
-  SubCloseRequest,
-  SubscriptionId
-} from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
-import WebSocket, {MessageEvent, CloseEvent, OpenEvent, ErrorEvent} from 'ws';
+import { HexStr } from 'types';
+import { generateRandomBytes } from '../crypto';
+import { Event } from '../nostr/Event';
+import { SubscriptionId, Filter, RelayResponse, RelayResponseType, EventId, Reason, EventPubResponse, ErrorReason, NoticeResponse, EventSubReachEndResponse, Challenge, AuthSubResponse, AuthPubRequest, ClientRequestType, EventPubRequest, EventSubRequest, SubCloseRequest } from '../nostr/type';
+import { isFilterEqual, isEventSubResponse } from '../nostr/util';
 
-export interface NodeWsApiHandler {
-  onMsgHandler?: (evt: MessageEvent) => any;
-  onOpenHandler?: (evt: OpenEvent) => any;
-  onCloseHandler?: (evt: CloseEvent) => any;
-  onErrHandler?: (evt: ErrorEvent) => any;
+export interface WsApiHandler {
+  onMsgHandler?: (evt: any) => any;
+  onOpenHandler?: (evt: WsEvent) => any;
+  onCloseHandler?: (evt: WsEvent) => any;
+  onErrHandler?: (evt: WsEvent) => any;
 }
 
-// websocket used on backend
-export class NodeWsApi {
+export type WsEvent = globalThis.Event;
+
+export class WsApi {
   private ws: WebSocket;
   public maxSub: number;
   private maxKeepAlive: number;
@@ -42,16 +23,17 @@ export class NodeWsApi {
 
   constructor(
     url: string,
-    wsHandler: NodeWsApiHandler,
+    wsHandler: WsApiHandler,
     maxSub = 10,
-    maxKeepAlive: 5,
+    maxKeepAlive = 2,
+    reconnectIntervalSecs?: 10
   ) {
     if (maxSub <= maxKeepAlive) {
       throw new Error('maxSub <= maxKeepAlive');
     }
 
     this.ws = new WebSocket(url);
-		this.updateListeners(url, wsHandler);
+    this.updateListeners(url, wsHandler, reconnectIntervalSecs);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
     this.maxInstant = maxSub - maxKeepAlive;
@@ -59,32 +41,50 @@ export class NodeWsApi {
     this.keepAlivePool = new Map();
   }
 
-  private updateListeners(
-    url?: string,
-    wsHandler?: NodeWsApiHandler,
-  ) {
-    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
-      this.ws = new WebSocket(url || "");
-    }
-
-    this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
-    this.ws.onmessage = evt => {
-      this.handleResponse(evt, wsHandler?.onMsgHandler);
-    };
-    this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = () => {console.log(this.ws.url, "closed")};
-  }
-
   isDuplicatedFilter(
     map: Map<SubscriptionId, Filter>,
-    filter: Filter,
+    filter: Filter
   ): boolean {
     return (
       Array.from(map.values()).filter(f => isFilterEqual(f, filter)).length > 0
     );
   }
 
-  get url() {
+  private updateListeners(
+    url?: string,
+    wsHandler?: WsApiHandler,
+    reconnectIntervalSecs = 3
+  ) {
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      this.ws = new WebSocket(url || "");
+    }
+
+    const reconnect = (e: CloseEvent) => {
+      this.handleClose(e, () => {
+        setTimeout(() => {
+          if (wsHandler?.onCloseHandler) {
+            wsHandler?.onCloseHandler(e);
+          }
+          console.log('try reconnect..');
+          this.updateListeners(url, wsHandler, reconnectIntervalSecs);
+        }, reconnectIntervalSecs * 1000);
+      });
+    };
+
+    this.ws.addEventListener('open', event => {
+      if (wsHandler?.onOpenHandler) {
+        wsHandler?.onOpenHandler(event);
+      }
+    });
+    this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
+    this.ws.onmessage = evt => {
+      this.handleResponse(evt, wsHandler?.onMsgHandler);
+    };
+    this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
+    this.ws.onclose = reconnect;
+  }
+
+  url() {
     return this.ws.url;
   }
 
@@ -109,22 +109,22 @@ export class NodeWsApi {
   }
 
   close() {
+    this.ws.onclose = null;
     this.ws.close();
   }
 
   async _send(data: string | ArrayBuffer) {
     if (this.isConnected()) {
       await this.ws.send(data);
-      console.debug(this.ws.url, " sent data: ", data);
     } else {
       console.log(
-        `${this.url} not open, abort send msg.., ws.readState: ${this.ws.readyState}`,
+        `${this.url()} not open, abort send msg.., ws.readState: ${this.ws.readyState}`
       );
     }
   }
 
   handleClose(event: any, callBack?: any) {
-    console.log('ws close!');
+    console.log('ws close!', event);
     if (callBack) {
       callBack();
     }
@@ -141,10 +141,9 @@ export class NodeWsApi {
     }
   }
   /******* above is websocket handling */
-
   /******* below is nostr handling */
   handleResponse(evt: MessageEvent, onEventSubCallback?: (msg: any) => any) {
-    const msg: RelayResponse = JSON.parse(evt.data as string);
+    const msg: RelayResponse = JSON.parse(evt.data);
     const type = msg[0];
     switch (type) {
       case RelayResponseType.Notice:
@@ -164,7 +163,7 @@ export class NodeWsApi {
         break;
 
       case RelayResponseType.SubReachEnd:
-        this.handleSubReachEnd(evt);
+        this.handleSubReachEnd(evt, undefined, onEventSubCallback);
         break;
 
       default:
@@ -176,14 +175,12 @@ export class NodeWsApi {
   handleEventPub(
     evt: any,
     callback?: ({
-      eventId,
-      isSuccess,
-      reason,
+      eventId, isSuccess, reason,
     }: {
       eventId: EventId;
       isSuccess: boolean;
       reason: Reason;
-    }) => any,
+    }) => any
   ) {
     const res = JSON.parse(evt.data);
     const type = (res as RelayResponse)[0];
@@ -208,12 +205,16 @@ export class NodeWsApi {
     }
 
     const msg: NoticeResponse = res;
-    const reason = this.url + ' => ' + msg[1];
+    const reason = this.url() + ' => ' + msg[1];
     const cb = callback || console.warn;
     cb(reason);
   }
 
-  handleSubReachEnd(evt: any, callback?: (subId: SubscriptionId) => any) {
+  handleSubReachEnd(
+    evt: any,
+    callback?: (subId: SubscriptionId) => any,
+    onEventSubCallback?: (msg: any) => any
+  ) {
     const res = JSON.parse(evt.data);
     const type = (res as RelayResponse)[0];
     if (type !== RelayResponseType.SubReachEnd) {
@@ -225,6 +226,10 @@ export class NodeWsApi {
     const defaultCb = (subId: SubscriptionId) => {
       if (this.instantPool.has(subId)) {
         this.killInstantSub(subId);
+      }
+
+      if (onEventSubCallback) {
+        onEventSubCallback(evt);
       }
     };
     const cb = callback || defaultCb;
@@ -345,4 +350,21 @@ export class NodeWsApi {
   isKeepAlive(subId: SubscriptionId) {
     return this.keepAlivePool.has(subId);
   }
+}
+
+export function newSubId(portId: number, subId: string) {
+  // todo: fix the patch
+  if (subId.includes(':')) return subId;
+
+  return `${portId}:${subId}`;
+}
+
+export function getPortIdFomSubId(subId: string): number | null {
+  if (!subId.includes(':')) return null;
+
+  return +subId.split(':')[0];
+}
+
+export function randomSubId(size = 8): HexStr {
+  return generateRandomBytes(size);
 }

@@ -3,7 +3,7 @@ import { PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { Relay, RelayTracker } from '../type';
 import { ConnPool } from '../connection/pool';
-import { WS } from '../connection/ws';
+import { WS } from '../../api/ws';
 import { PubkeyRelay } from '../auto/pubkey-relay';
 import { Assignment } from '../auto/assignment';
 import { db } from '../auto';

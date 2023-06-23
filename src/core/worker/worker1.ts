@@ -16,7 +16,7 @@ import {
   pullRelayStatus,
   switchRelays,
 } from './pool';
-import { getPortIdFomSubId } from 'core/api/ws';
+import { getPortIdFomSubId } from 'core/api/wsApi';
 import { EventSubResponse } from 'core/nostr/type';
 
 /**

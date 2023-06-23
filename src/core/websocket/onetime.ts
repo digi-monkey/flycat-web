@@ -8,7 +8,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { ConnPool } from 'core/relay/connection/pool';
-import { WS } from 'core/relay/connection/ws';
+import { WS } from 'core/api/ws';
 
 // the main websocket handler is in the shared-worker across all the pages(see worker/worker0.ts worker1.ts callWorker.ts)
 // this one time websocket client is used in only some temp data fetching
