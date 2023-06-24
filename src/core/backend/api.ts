@@ -1,7 +1,6 @@
 import {
-  WsEvent,
-  randomSubId
-} from 'core/api/wsApi';
+  WsEvent} from 'core/api/wsApi';
+import { randomSubId } from 'core/worker/util';
 import { isEventSubResponse, isFilterEqual } from 'core/nostr/util';
 import {
   AuthPubRequest,

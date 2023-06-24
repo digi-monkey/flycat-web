@@ -1,4 +1,5 @@
-import { newSubId, randomSubId, WsApi } from 'core/api/wsApi';
+import { WsApi } from 'core/api/wsApi';
+import { newSubId, randomSubId } from 'core/worker/util';
 import { SubscriptionId } from 'core/nostr/type';
 import { seedRelays } from 'core/relay/pool/seed';
 import { WorkerEventEmitter } from './bus';

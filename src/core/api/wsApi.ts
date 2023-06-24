@@ -1,8 +1,7 @@
-import { HexStr } from 'types';
-import { generateRandomBytes } from '../crypto';
 import { Event } from '../nostr/Event';
 import { SubscriptionId, Filter, RelayResponse, RelayResponseType, EventId, Reason, EventPubResponse, ErrorReason, NoticeResponse, EventSubReachEndResponse, Challenge, AuthSubResponse, AuthPubRequest, ClientRequestType, EventPubRequest, EventSubRequest, SubCloseRequest } from '../nostr/type';
 import { isFilterEqual, isEventSubResponse } from '../nostr/util';
+import { randomSubId } from '../worker/util';
 
 export interface WsApiHandler {
   onMsgHandler?: (evt: any) => any;
@@ -352,19 +351,4 @@ export class WsApi {
   }
 }
 
-export function newSubId(portId: number, subId: string) {
-  // todo: fix the patch
-  if (subId.includes(':')) return subId;
 
-  return `${portId}:${subId}`;
-}
-
-export function getPortIdFomSubId(subId: string): number | null {
-  if (!subId.includes(':')) return null;
-
-  return +subId.split(':')[0];
-}
-
-export function randomSubId(size = 8): HexStr {
-  return generateRandomBytes(size);
-}

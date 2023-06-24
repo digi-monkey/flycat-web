@@ -1,4 +1,4 @@
-import { randomSubId } from 'core/api/wsApi';
+import { randomSubId } from '../worker/util';
 import {
   ClientRequestType,
   EventPubRequest,

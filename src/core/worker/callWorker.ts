@@ -1,4 +1,4 @@
-import { randomSubId } from 'core/api/wsApi';
+import { randomSubId } from 'core/worker/util';
 import {
   isEventSubEoseResponse,
   isEventSubResponse
