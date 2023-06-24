@@ -12,12 +12,13 @@ import {
   ToWorkerMessageType,
   WsConnectStatus,
 } from './type';
+import { WS } from 'core/api/ws';
 
 export const workerEventEmitter = new WorkerEventEmitter();
 
 export class Pool {
   private wsConnectStatus: WsConnectStatus = new Map();
-  private wsApiList: WsApi[] = [];
+  private clients: WS[] = [];
   private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
   public maxSub: number;
@@ -41,23 +42,23 @@ export class Pool {
         `portSubs(only keep-alive): ${this.portSubs.size}`,
         this.portSubs,
       );
-      this.wsApiList
+      this.clients
         .filter(ws => ws.isConnected())
         .forEach(ws => {
           console.debug(
-            `${ws.url()} subs: total ${ws.subPoolLength()}, keep-alive ${
-              ws.keepAlivePool.size
-            }, instant ${ws.instantPool.size}`,
+            `${ws.url} subs: active ${ws.activeSubscriptions.getSize()}, pending ${
+              ws.pendingSubscriptions.size
+            }`,
           );
         });
     }, 10 * 1000);
   }
 
   private closeAll(){
-    for(const ws of this.wsApiList){
+    for(const ws of this.clients){
       ws.close();
     }
-    this.wsApiList = [];
+    this.clients = [];
     this.wsConnectStatus.clear();
     this.sendWsConnectStatusUpdate();
   }
@@ -71,38 +72,34 @@ export class Pool {
         };
         workerEventEmitter.emit(FromWorkerMessageType.NOSTR_DATA, msg);
       };
-      const onerror = (event: Event) => {
-        console.error(`WebSocket error: `, event);
-        this.wsConnectStatus.set(relayUrl, false);
-      };
-      const onclose = () => {
-        if (this.wsConnectStatus.get(relayUrl) === true) {
-          console.log(`WebSocket connection to ${relayUrl} closed`);
-          this.wsConnectStatus.set(relayUrl, false);
-          this.sendWsConnectStatusUpdate();
-        }
-      };
-
+      
       if (!this.wsConnectStatus.has(relayUrl)) {
-        const ws = new WsApi(
-          relayUrl,
-          {
-            onOpenHandler: _event => {
-              if (ws.isConnected() === true) {
-                this.wsConnectStatus.set(relayUrl, true);
-                console.log(`WebSocket connection to ${relayUrl} connected`);
-                this.sendWsConnectStatusUpdate();
-              }
-            },
-            onMsgHandler: onmessage,
-            onCloseHandler: onclose,
-            onErrHandler: onerror,
-          },
-          this.maxSub,
-          this.maxKeepAliveSub
-        );
+        const onOpen = _event => {
+          if (ws.isConnected() === true) {
+            this.wsConnectStatus.set(relayUrl, true);
+            console.log(`WebSocket connection to ${relayUrl} connected`);
+            this.sendWsConnectStatusUpdate();
+          }
+        }
+        const onerror = (event: globalThis.Event) => {
+          console.error(`WebSocket error: `, event);
+          this.wsConnectStatus.set(relayUrl, false);
+        };
+        const onclose = () => {
+          if (this.wsConnectStatus.get(relayUrl) === true) {
+            console.log(`WebSocket connection to ${relayUrl} closed`);
+            this.wsConnectStatus.set(relayUrl, false);
+            this.sendWsConnectStatusUpdate();
+          }
+        };
+
+        const ws = new WS(relayUrl, this.maxSub, true);
+        ws.onOpen(onOpen);
+        ws.onError(onerror);
+        ws.addCloseListener(onclose);
+
         this.wsConnectStatus.set(relayUrl, false);
-        this.wsApiList.push(ws);
+        this.clients.push(ws);
       }
     });
   }
@@ -164,7 +161,7 @@ export class Pool {
           return;
         }
 
-        this.wsApiList
+        this.clients
           .filter(ws => {
             switch (callRelayType) {
               case CallRelayType.all:
@@ -176,14 +173,14 @@ export class Pool {
               case CallRelayType.batch:
                 if (urls == null)
                   throw new Error('null callRelayUrls for CallRelayType.batch');
-                return urls.includes(ws.url());
+                return urls.includes(ws.url);
 
               case CallRelayType.single:
                 if (urls == null || urls.length !== 1)
                   throw new Error(
                     'callRelayUrls.length != 1 or is null for CallRelayType.single',
                   );
-                return urls[0] === ws.url();
+                return urls[0] === ws.url;
 
               default:
                 return ws.isConnected();
@@ -225,7 +222,7 @@ export class Pool {
     workerEventEmitter.on(
       ToWorkerMessageType.DISCONNECT,
       (_message: ToWorkerMessageData) => {
-        this.wsApiList.forEach(ws => ws.close());
+        this.clients.forEach(ws => ws.close());
       },
     );
 
@@ -236,9 +233,9 @@ export class Pool {
         const subIds = this.portSubs.get(portId);
         if (subIds && subIds.length > 0) {
           for (const id of subIds) {
-            this.wsApiList
+            this.clients
               .filter(ws => ws.isConnected())
-              .forEach(ws => ws.killKeepAliveSub(id));
+              .forEach(ws => ws.close());
           }
         }
         this.portSubs.delete(portId);

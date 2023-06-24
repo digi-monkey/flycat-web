@@ -21,6 +21,7 @@ export class WS {
   public url: string;
   public maxSub: number;
   public reconnectIdleSecs: number;
+  public onCloseListeners: ((_e: CloseEvent)=>any)[];
 
   public subscriptionFilters: Map<SubscriptionId, Filter>;
   public pendingSubscriptions: Queue<SubscriptionId>;
@@ -36,7 +37,7 @@ export class WS {
       this.url = urlOrWebsocket;
       this._ws = new WebSocket(urlOrWebsocket);
       if(autoReconnect){
-        this.onCloseReconnectListeners(urlOrWebsocket);
+        this.doReconnect();
       }
     } else {
       this.url = urlOrWebsocket.url;
@@ -44,6 +45,7 @@ export class WS {
     }
 
     this.maxSub = maxSub;
+    this.onCloseListeners = [];
     this.reconnectIdleSecs = reconnectIdleSecs;
     this.subscriptionFilters = new Map();
     this.pendingSubscriptions = new Queue<SubscriptionId>();
@@ -114,19 +116,24 @@ export class WS {
     }
   }
 
-  private onCloseReconnectListeners(url: string) {
+  private doReconnect() {
     if (!this._ws || this._ws.readyState === WebSocket.CLOSED) {
-      this._ws = new WebSocket(url);
+      this._ws = new WebSocket(this.url);
     }
 
     const reconnect = (_e: CloseEvent) => {
       setTimeout(() => {
         console.log('try reconnect..');
-        this.onCloseReconnectListeners(url);
+        this.doReconnect();
       }, this.reconnectIdleSecs * 1000);
     };
 
+
     this._ws.onclose = reconnect;
+    // note: do not change order the onclose and addEventListener otherwise added listener will gone.
+    for(const listener of this.onCloseListeners){
+      this.addCloseListener(listener);
+    }
   }
 
   isConnected() {
@@ -153,4 +160,19 @@ export class WS {
     this._ws.onclose = null;
     this._ws.close();
   }
+
+  addCloseListener(cb: (event: CloseEvent) => any) {
+    this.onCloseListeners.push(cb);
+    this._ws.addEventListener("close", cb);
+  }
+
+  onOpen(cb: (event: WSEvent) => any) {
+    this._ws.onopen = cb;
+  }
+
+  onError(cb: (event: WSEvent) => any) {
+    this._ws.onerror = cb;
+  }
 }
+
+export type WSEvent = globalThis.Event;
