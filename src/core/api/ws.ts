@@ -29,12 +29,15 @@ export class WS {
   constructor(
     urlOrWebsocket: string | WebSocket,
     maxSub = 10,
+    autoReconnect = true,
     reconnectIdleSecs = 10,
   ) {
     if (typeof urlOrWebsocket === 'string') {
       this.url = urlOrWebsocket;
       this._ws = new WebSocket(urlOrWebsocket);
-      this.onCloseReconnectListeners(urlOrWebsocket);
+      if(autoReconnect){
+        this.onCloseReconnectListeners(urlOrWebsocket);
+      }
     } else {
       this.url = urlOrWebsocket.url;
       this._ws = urlOrWebsocket;
