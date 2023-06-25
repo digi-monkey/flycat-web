@@ -15,6 +15,7 @@ import { Event } from 'core/nostr/Event';
 export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
   unsubscribe(): void;
   id: string;
+  url: string;
 }
 
 export interface SubscriptionNoticeStream
@@ -114,6 +115,7 @@ export function createSubscriptionEventStream(
       webSocket.removeEventListener('error', onError);
     },
     id: id,
+    url: webSocket.url,
   };
 
   return subscription;

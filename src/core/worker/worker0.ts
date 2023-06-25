@@ -1,26 +1,14 @@
 /* eslint-disable no-restricted-globals */
 import {
-  FromPostMsg,
-  FromWorkerMessageData,
-  FromWorkerMessageType,
-  ToPostMsg,
-  ToWorkerMessageType,
+  FromConsumerMsg,
+  FromConsumerMsgType,
+  FromProducerMsg,
+  FromProducerMsgType,
+  PubEventResultMsg,
+  RelayInfoMsg,
+  SubFilterResultMsg,
 } from './type';
-import {
-  addRelays,
-  callApi,
-  closePort,
-  disconnect,
-  listenFromPool,
-  pullRelayStatus,
-  pool,
-  switchRelays,
-  pullRelayGroupId,
-} from './pool';
-import { getPortIdFomSubId } from 'core/worker/util';
-import { EventSubResponse } from 'core/nostr/type';
-
-//let count = 0;
+import { pool } from './pool';
 
 /**
  * the worker and callWorker (1-to-many) are communicating through SharedWorker
@@ -33,71 +21,94 @@ self.onconnect = (evt: MessageEvent) => {
   const port = evt.ports[0];
   port.start();
   port.onmessage = (event: MessageEvent) => {
-    const res: ToPostMsg = event.data;
-    const data = res.data;
+    const res: FromConsumerMsg = event.data;
     const type = res.type;
-
     switch (type) {
-      case ToWorkerMessageType.SWITCH_RELAYS:
-        console.log('SWITCH_RELAYS');
-        // switchRelays(data.switchRelays!, data.portId);
-          pool.doSwitchRelays(data.switchRelays!);
-        break;
-
-      case ToWorkerMessageType.ADD_RELAY_URL:
-        console.log('ADD_RELAY_URL');
-        //addRelays(data.urls!, data.portId);
-        pool.doAddRelays(data.urls!);
-        break;
-
-      case ToWorkerMessageType.PULL_RELAY_STATUS:
+      case FromConsumerMsgType.switchRelays:
         {
-          console.log('PULL_RELAY_STATUS');
-        // pullRelayStatus(data.portId);
-        const msg: FromWorkerMessageData = {
-          wsConnectStatus: pool.wsConnectStatus,
-        };
-        port.postMessage({
-          data: msg,
-          type: FromWorkerMessageType.WS_CONN_STATUS,
-        });
+          console.log('SWITCH_RELAYS');
+          const data = res.data;
+          pool.doSwitchRelays(data.switchRelays!);
         }
-        
         break;
 
-        case ToWorkerMessageType.GET_RELAY_GROUP_ID:
-          {
-            console.log('GET_RELAY_GROUP_ID');
-          //pullRelayGroupId(data.portId);
-          const msg: FromWorkerMessageData = {
-            relayGroupId: pool.switchRelays.id
+      case FromConsumerMsgType.pullRelayInfo:
+        {
+          console.log('PULL_RELAY_INFO');
+          const data = res.data;
+          const msg: RelayInfoMsg = {
+            id: pool.switchRelays.id,
+            relays: pool.switchRelays.relays,
+            wsConnectStatus: pool.wsConnectStatus,
+            portId: data.portId,
           };
           port.postMessage({
             data: msg,
-            type: FromWorkerMessageType.RELAY_GROUP_ID,
+            type: FromProducerMsgType.relayInfo,
           });
-          }
-          break;
+        }
 
-      case ToWorkerMessageType.CALL_API:
-        //console.log('CALL_API', data.callMethod!, data.callData!);
-        callApi(data.callMethod!, data.callData!, data.portId, {
-          type: data.callRelayType,
-          data: data.callRelayUrls,
-        });
         break;
 
-      
-
-      case ToWorkerMessageType.DISCONNECT:
-        console.log('DISCONNECT');
-        //disconnect(data.portId);
-        pool.closeAll();
+      case FromConsumerMsgType.subFilter:
+        {
+          console.log('SUB_FILTER');
+          const data = res.data;
+          const subs = pool.subFilter(data);
+          subs.forEach(async sub => {
+            for await (const event of sub) {
+              const msg: SubFilterResultMsg = {
+                event,
+                subId: sub.id,
+                relayUrl: sub.url,
+                portId: data.portId,
+              };
+              port.postMessage({
+                data: msg,
+                type: FromProducerMsgType.event,
+              });
+            }
+          });
+        }
         break;
 
-      case ToWorkerMessageType.CLOSE_PORT:
-        connectedPorts[data.portId] = null;
-        closePort(data.portId);
+      case FromConsumerMsgType.pubEvent:
+        {
+          console.log('PUB EVENT');
+          const data = res.data;
+          const pubs = pool.pubEvent(data);
+          pubs.forEach(async pub => {
+            for await (const result of pub) {
+              const msg: PubEventResultMsg = {
+                isSuccess: result.isSuccess,
+                reason: result.reason,
+                portId: data.portId,
+                eventId: data.event.id,
+              };
+              port.postMessage({
+                data: msg,
+                type: FromProducerMsgType.pubResult,
+              });
+            }
+          });
+        }
+        break;
+
+      case FromConsumerMsgType.disconnect:
+        {
+          console.log('DISCONNECT');
+          pool.closeAll();
+        }
+
+        break;
+
+      case FromConsumerMsgType.closePort:
+        {
+          const data = res.data;
+          connectedPorts[data.portId] = null;
+          //todo
+          // closePort(data.portId);
+        }
         break;
 
       default:
@@ -107,65 +118,14 @@ self.onconnect = (evt: MessageEvent) => {
   connectedPorts.push(port);
 
   // post the portId to callWorker
-  const msg: FromPostMsg = {
-    type: FromWorkerMessageType.PORT_ID,
+  const msg: FromProducerMsg = {
+    type: FromProducerMsgType.portId,
     data: {
       portId: connectedPorts.length - 1,
     },
   };
   port.postMessage(msg);
 };
-
-listenFromPool(
-  (message: FromWorkerMessageData) => {
-    if (message.wsConnectStatus) {
-      connectedPorts.forEach(port => {
-        if (port != null)
-          port.postMessage({
-            data: message,
-            type: FromWorkerMessageType.WS_CONN_STATUS,
-          });
-      });
-    }
-  },
-  (message: FromWorkerMessageData) => {
-    if (message.nostrData) {
-      // currently we only relay the EventSubResponse
-      // todo: maybe all types?
-      const msg: EventSubResponse = JSON.parse(message.nostrData);
-      const subId = msg[1];
-      const portId = getPortIdFomSubId(subId);
-      if (portId) {
-        connectedPorts[portId]?.postMessage({
-          data: message,
-          type: FromWorkerMessageType.NOSTR_DATA,
-        });
-        return;
-      }
-
-      // send to all ports
-      connectedPorts.forEach(port => {
-        if (port != null) {
-          port.postMessage({
-            data: message,
-            type: FromWorkerMessageType.NOSTR_DATA,
-          });
-        }
-      });
-    }
-  },
-  (message: FromWorkerMessageData) => {
-    if (message.relayGroupId) {
-      connectedPorts.forEach(port => {
-        if (port != null)
-          port.postMessage({
-            data: message,
-            type: FromWorkerMessageType.RELAY_GROUP_ID,
-          });
-      });
-    }
-  },
-);
 
 self.addEventListener('disconnect', e => {
   // todo: seems not triggering?

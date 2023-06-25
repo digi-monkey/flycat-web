@@ -146,7 +146,7 @@ export interface SubFilterResultMsg {
 export interface PubEventResultMsg {
   eventId: EventId;
   isSuccess: boolean;
-  reason: string;
+  reason?: string;
   portId: number;
 }
 
