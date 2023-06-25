@@ -67,13 +67,11 @@ export const PostContent: React.FC<PostContentProp> = ({
       }).pop();
       
     if (lastReply) {
-      const handler = worker.subMsgByEventIds([lastReply.id])!;
+      const handler = worker.subMsgByEventIds([lastReply.id], "lastRelay"+lastReply.id)!;
       const dataStream = handler.getIterator();
       let result: Event | undefined;
       for await (const data of dataStream) {
-        const msg = JSON.parse(data.nostrData);
-        if (isEventSubResponse(msg)) {
-          const event = (msg as EventSubResponse)[2];
+        const event = data.event;
 
           if (event.kind !== WellKnownEventKind.text_note) continue;
 
@@ -84,8 +82,8 @@ export const PostContent: React.FC<PostContentProp> = ({
           if (result && result.created_at < event.created_at) {
             result = event;
           }
-        }
       }
+      dataStream.unsubscribe();
 
       if (result) {
         setLastReplyToEvent(result);

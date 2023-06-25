@@ -90,8 +90,6 @@ export class CallWorker {
           }
           break;
         default:
-
-          console.log(res)
           break;
       }
     };
@@ -168,6 +166,7 @@ export class CallWorker {
       callRelay,
       subId,
     };
+    console.log("sub: ", this._workerId, data);
     const msg: FromConsumerMsg = {
       type: FromConsumerMsgType.subFilter,
       data,
@@ -180,15 +179,23 @@ export class CallWorker {
       getIterator: () => {
         return stream;
       },
-      iterating: ({ cb, onDone }) => {
+      iterating: async({ cb, onDone }) => {
         const iterator = stream;
-
         (async () => {
-          //await new Promise(resolve => setTimeout(resolve, 500));
+          const TIMEOUT_DURATION = 2000;// 2 seconds;
           while (true) {
-            console.log("start: ..")
-            const result = await iterator?.next();
-            console.log("iterating:", result);
+            const resultPromise = Promise.race([
+              iterator?.next(),
+              new Promise<IteratorResult<any>>((resolve) =>
+                setTimeout(() => {
+                  resolve({ done: true } as any);
+                  console.log("timeout! itering..");
+                }, TIMEOUT_DURATION)
+              )
+            ]);
+        
+            const result = await resultPromise;
+        
             if (result?.done) {
               if (onDone) onDone();
               break;
@@ -198,7 +205,11 @@ export class CallWorker {
               cb(res.event, res.relayUrl);
             }
           }
+          
+          console.log("unscribe from iterting...");
+          iterator.unsubscribe();
         })();
+        
       },
     };
   }

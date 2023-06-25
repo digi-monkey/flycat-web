@@ -12,21 +12,13 @@ export async function fetchPublicBookmarkListEvent(
   worker: CallWorker,
 ): Promise<Event | null> {
   const filter = Nip51.createPublicBookmarkListFilter(myPublicKey);
-  const handler = await worker.subFilter(filter);
+  const handler = await worker.subFilter({filter});
   const iterator = handler!.getIterator();
 
   let result: Event | null = null;
 
-  while (true) {
-		const data = await iterator.next();
-		if (data?.done) {
-			break;
-		} else {
-			const res = data?.value;
-			if (res == null) continue;
-			const msg = JSON.parse(res.nostrData); //todo: callback other datatype as well
-			if (isEventSubResponse(msg)) {
-				const event = (msg as EventSubResponse)[2];
+	for await(const data of iterator){
+		const event = data.event;
 
 				if (event.kind !== WellKnownEventKind.bookmark_list) continue;
 
@@ -37,9 +29,8 @@ export async function fetchPublicBookmarkListEvent(
 				if (result && result.created_at < event.created_at) {
 					result = event;
 				}
-			}
-		}
 	}
-
+	iterator.unsubscribe();
+	
   return result;
 }

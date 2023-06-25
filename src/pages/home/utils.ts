@@ -151,7 +151,7 @@ export function refreshMsg({
       data: [],
     };
 
-    const subMsg = worker?.subMsg(pks, false, 'homeRefreshMsg', callRelay);
+    const subMsg = worker?.subMsg(pks, 'homeRefreshMsg', callRelay);
     subMsg?.iterating({
       cb: handleEvent,
     });

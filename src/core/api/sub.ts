@@ -36,8 +36,11 @@ export interface AuthStream extends AsyncIterableIterator<Challenge> {
 export function createSubscriptionEventStream(
   webSocket: WebSocket,
   id: string,
+  unsubscribeCb?: (id: string) => any,
+  timeoutSecs?: number
 ): SubscriptionEventStream {
   let observer: ((done: boolean, value?: Event) => void) | null;
+  let timeoutId: ReturnType<typeof setTimeout> | null;
 
   const onMessage = event => {
     const msg: RelayResponse = JSON.parse(event.data);
@@ -81,6 +84,22 @@ export function createSubscriptionEventStream(
     }
   };
 
+  const startTimeout = () => {
+    timeoutId = setTimeout(() => {
+      if (observer) {
+        console.log("timeout!!", webSocket.url);
+        observer(true);
+      }
+    }, (timeoutSecs || 2)*1000);
+  };
+
+  const removeTimeout = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+
   webSocket.addEventListener('message', onMessage);
   webSocket.addEventListener('error', onError);
 
@@ -88,17 +107,19 @@ export function createSubscriptionEventStream(
     next() {
       return new Promise<IteratorResult<Event>>((resolve: any, reject) => {
         observer = (done: boolean, value?: Event) => {
+          removeTimeout();
           if (done === true) {
             resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
             return;
           }
           resolve({ value, done: false });
+          startTimeout();
         };
       });
     },
     return(): Promise<IteratorResult<Event>> {
       return new Promise<IteratorResult<Event>>(resolve => {
-        // webSocket.close();
+        removeTimeout();
         resolve({ value: undefined as any, done: true });
       });
     },
@@ -109,10 +130,14 @@ export function createSubscriptionEventStream(
       return this;
     },
     unsubscribe() {
+      removeTimeout();
       observer = null;
       webSocket.send(JSON.stringify([ClientRequestType.Close, id]));
       webSocket.removeEventListener('message', onMessage);
       webSocket.removeEventListener('error', onError);
+      if(unsubscribeCb){
+        unsubscribeCb(id);
+      }
     },
     id: id,
     url: webSocket.url,

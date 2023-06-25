@@ -81,6 +81,7 @@ export class OneTimeWebSocketClient {
           result = data;
         }
       }
+      dataStream.unsubscribe();
       return result;
     };
     const results = (await sub.executeConcurrently(fn)) as Event[];
@@ -123,6 +124,7 @@ export class OneTimeWebSocketClient {
           result = data;
         }
       }
+      dataStream.unsubscribe();
       return result;
     };
     const results = (await sub.executeConcurrently(fn)) as Event[];
@@ -168,6 +170,7 @@ export class OneTimeWebSocketClient {
           result = data;
         }
       }
+      dataStream.unsubscribe();
       return result;
     };
     const results = (await sub.executeConcurrently(fn)) as Event[];

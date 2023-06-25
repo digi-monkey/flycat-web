@@ -162,7 +162,7 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
     if (myPublicKey == null) return;
 
     worker
-      ?.subMetadata([myPublicKey], undefined, undefined, {
+      ?.subMetadata([myPublicKey], undefined, {
         type: CallRelayType.batch,
         data: newConn,
       })

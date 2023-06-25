@@ -80,7 +80,7 @@ export function useBookmarkListFeed({
               }
             }
             if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
+              const sub = worker?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               });
@@ -143,7 +143,7 @@ export function useBookmarkListFeed({
       kinds: [WellKnownEventKind.bookmark_list],
 			'#d': [Nip51.publicNoteBookmarkIdentifier]
     }
-    const sub = worker.subFilter(filter, undefined, undefined, callRelay)!;
+    const sub = worker.subFilter({filter, callRelay})!;
 
     sub.iterating({ cb: handleEvent });
   };
@@ -156,7 +156,7 @@ export function useBookmarkListFeed({
 		if(!bookmarkEvent)return;
 
 		const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
-		worker?.subFilter({ids: events})?.iterating({cb: handleEvent});
+		worker?.subFilter({filter: {ids: events}})?.iterating({cb: handleEvent});
 	}, [bookmarkEvent]);
 
   return feed;

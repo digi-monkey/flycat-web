@@ -302,7 +302,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
             if (newPks.length > 0) {
               worker
-                ?.subMetadata(newPks, undefined, undefined, {
+                ?.subMetadata(newPks,  undefined, {
                   type: CallRelayType.single,
                   data: [relayUrl!],
                 })

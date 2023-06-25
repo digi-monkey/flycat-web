@@ -72,7 +72,7 @@ export function useHottestFeed({
               }
             }
             if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
+              const sub = worker?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               });
@@ -119,7 +119,7 @@ export function useHottestFeed({
       data: conns,
     };
     const limit = 50;
-    const sub = worker.subMsg(pks, undefined, undefined, callRelay, { limit })!;
+    const sub = worker.subMsg(pks, undefined, callRelay, { limit })!;
 
     sub.iterating({ cb: handleEvent });
   };

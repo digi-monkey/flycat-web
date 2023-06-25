@@ -76,9 +76,7 @@ self.onconnect = (evt: MessageEvent) => {
           console.log('SUB_FILTER');
           const data = res.data;
           const subs = pool.subFilter(data);
-          console.log("subs.length: ", subs.length)
           subs.forEach(async sub => {
-            
             for await (const event of sub) {
               const msg: SubFilterResultMsg = {
                 event,
@@ -91,6 +89,7 @@ self.onconnect = (evt: MessageEvent) => {
                 type: FromProducerMsgType.event,
               });
             }
+            sub.unsubscribe();
           });
         }
         break;

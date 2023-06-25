@@ -64,7 +64,7 @@ export class WS {
     this.subscriptionFilters.set(subId, filter);
 
     this.processSubFilter(subId);
-    return createSubscriptionEventStream(this._ws, subId);
+    return createSubscriptionEventStream(this._ws, subId, (id:string)=>this.releaseActiveSubscription(id));
   }
 
   subNotice() {
@@ -162,7 +162,10 @@ export class WS {
   }
 
   addCloseListener(cb: (event: CloseEvent) => any) {
-    this.onCloseListeners.push(cb);
+    if(!this.onCloseListeners.includes(cb)){
+      this.onCloseListeners.push(cb);
+    }
+
     this._ws.addEventListener("close", cb);
   }
 

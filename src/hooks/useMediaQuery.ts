@@ -16,7 +16,6 @@ export function useMatchPad() {
     const padRegex = /(iPad|Android|Tablet)/i;
     const excludeRegex = /Mobile/i;
 
-    // 进行匹配判断
     const isPadDevice = padRegex.test(userAgent); // && !excludeRegex.test(userAgent);
 
     setIsPad(isPadDevice);

@@ -38,7 +38,7 @@ export function useSubMsg(
   myContactList,
   myPublicKey,
   newConn,
-  worker,
+  worker: CallWorker,
   handleEvent,
 ) {
   useEffect(() => {
@@ -56,7 +56,6 @@ export function useSubMsg(
       };
       const subMetadata = worker?.subMetadata(
         pks,
-        false,
         'homeMetadata',
         callRelay,
       );
@@ -65,10 +64,12 @@ export function useSubMsg(
       });
 
       console.log("worker.subMsg:", pks)
+      
       const subMsg = worker?.subMsg(pks, 'homeMsg', callRelay);
       subMsg?.iterating({
         cb: handleEvent,
       });
+      
     }
   }, [myContactList?.created_at, newConn, worker]);
 }

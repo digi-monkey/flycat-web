@@ -39,7 +39,6 @@ export const Right: React.FC<RightProps> = ({ children }) => <div>{children}</di
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPage }) => {
   const { t } = useTranslation();
   const { userMap } = useUserInfo();
-
   const myPublicKey = useReadonlyMyPublicKey();
   const user = userMap.get(myPublicKey);
   const isMobile = useMatchMobile();

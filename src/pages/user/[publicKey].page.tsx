@@ -113,7 +113,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           }
           if (newPks.length > 0) {
             worker
-              ?.subMetadata(newPks, false, undefined, {
+              ?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               })
@@ -222,7 +222,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         }
         if (newPks.length > 0) {
           worker
-            ?.subMetadata(newPks, false, undefined, {
+            ?.subMetadata(newPks, undefined, {
               type: CallRelayType.single,
               data: [relayUrl!],
             })
@@ -250,13 +250,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       data: newConn,
     };
     worker
-      ?.subContactList(pks, undefined, undefined, callRelay)
+      ?.subContactList(pks, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subMetadata(pks, undefined, undefined, callRelay)
+      ?.subMetadata(pks, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subMsg([publicKey], undefined, undefined, callRelay)
+      ?.subMsg([publicKey], undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
       ?.subNip23Posts({ pks: [publicKey], callRelay })

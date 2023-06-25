@@ -75,7 +75,7 @@ export function useLatestFeed({
               }
             }
             if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
+              const sub = worker?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               });
@@ -125,7 +125,7 @@ export function useLatestFeed({
       limit,
       kinds: [WellKnownEventKind.text_note]
     }
-    const sub = worker.subFilter(filter, undefined, undefined, callRelay)!;
+    const sub = worker.subFilter({filter, callRelay})!;
 
     sub.iterating({ cb: handleEvent });
   };

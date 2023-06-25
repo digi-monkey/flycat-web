@@ -67,7 +67,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     worker,
     _handleEvent,
   );
-  useSubMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
+  useSubMsg(myContactList, myPublicKey, newConn, worker!, _handleEvent);
   useLoadMoreMsg({
     isLoggedIn,
     myContactList,
@@ -136,7 +136,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           ) : (
             <>
               <div className={styles.msgList}>
-                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} />
+                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} showLastReplyToEvent={false} />
               </div>
               <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>{t('home.loadMoreBtn')}</Button>
             </>

@@ -34,7 +34,7 @@ const Comment = ({ comments, userMap, worker, setReplyId, setReplyComment, like,
 
     const pks = newComments.map(a => a.pubkey);
     if (pks.length === 0) return;
-    worker?.subMetadata(pks, undefined, 'article-data');
+    worker?.subMetadata(pks, 'article-data');
   }, [comments]);
 
   return (

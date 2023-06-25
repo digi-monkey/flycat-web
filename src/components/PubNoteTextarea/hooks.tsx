@@ -74,7 +74,7 @@ export function useLoadContacts() {
     if (pks.length === 0) return;
 
     worker
-      ?.subMetaDataAndContactList(pks, undefined, undefined, {
+      ?.subMetaDataAndContactList(pks, undefined, {
         type: CallRelayType.batch,
         data: newConn || Array.from(wsConnectStatus.keys()),
       })

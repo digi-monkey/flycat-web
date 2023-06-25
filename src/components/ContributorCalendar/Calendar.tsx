@@ -57,7 +57,6 @@ export function CommitCalendar({ pk }: { pk: string }) {
       ?.subMsg(
         [pk],
         undefined,
-        undefined,
         {
           type: CallRelayType.batch,
           data: newConn,

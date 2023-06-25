@@ -175,14 +175,14 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     };
 
     worker
-      ?.subMetadata([publicKey as string], undefined, undefined, callRelay)
+      ?.subMetadata([publicKey as string], undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     const filter = Nip23.filter({
       authors: [publicKey as string],
       articleIds: [articleId as string],
     });
     worker
-      ?.subFilter(filter, undefined, 'article-data', callRelay)
+      ?.subFilter({filter, customId: 'article-data', callRelay})
       ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
@@ -190,7 +190,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     if (article == null) return;
 
     worker
-      ?.subFilter(Nip23.toPullCommentFilter(article), undefined, 'article-data')
+      ?.subFilter({filter: Nip23.toPullCommentFilter(article), customId: 'article-data'})
       ?.iterating({ cb: handleEvent });
   }, [article]);
 

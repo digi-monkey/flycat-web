@@ -15,13 +15,11 @@ export function createSubFilterResultStream(
 
   const onMessage =  (e: MessageEvent)  => {
     const res: FromProducerMsg = e.data;
-		console.log("onmessge: ", res);
 		const type = res.type;
     switch (type) {
 			case FromProducerMsgType.event:
 				{
 					const data = res.data;
-					console.log("event:", data.subId, subId);
 					if (data.subId === subId && observer) {
 						observer(false, data);
 					}

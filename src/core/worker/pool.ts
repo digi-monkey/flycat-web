@@ -39,7 +39,7 @@ export class Pool {
             } subs: active ${ws.activeSubscriptions.getSize()}, pending ${ws.pendingSubscriptions.size()}`,
           );
         });
-    }, 10 * 1000);
+    }, 1 * 1000);
   }
 
   closeAll() {
@@ -123,17 +123,13 @@ export class Pool {
           return ws.isConnected();
       }
     });
-    console.log(message, relays.length);
     return relays.map(ws => {
       const filterSubId = subId;
-      console.log('sub id', filterSubId);
-
       const data = this.portSubs.get(portId);
       if (data != null && !data.includes(filterSubId)) {
         data.push(filterSubId);
         this.portSubs.set(portId, data);
       } else {
-        console.debug('create new portSub', portId);
         this.portSubs.set(portId, [filterSubId]);
       }
 
