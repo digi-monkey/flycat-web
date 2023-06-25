@@ -5,6 +5,10 @@ export class Queue<T> {
     this.items = [];
   }
 
+  has(item: T): boolean{
+    return this.items.includes(item);
+  }
+
   enqueue(item: T): void {
     this.items.push(item);
   }

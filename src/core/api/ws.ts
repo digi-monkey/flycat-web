@@ -94,7 +94,11 @@ export class WS {
     const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
 
     if (this.activeSubscriptions.isFull()) {
-      this.pendingSubscriptions.enqueue(subId);
+      if(!this.pendingSubscriptions.has(subId)){
+        this.pendingSubscriptions.enqueue(subId);
+      }else{
+        console.debug(`${subId} already in the pending queue`);
+      }
       return;
     }
 
