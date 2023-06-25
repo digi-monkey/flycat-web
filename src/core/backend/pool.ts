@@ -1,14 +1,13 @@
 import { randomSubId } from 'core/worker/util';
 import { isEventSubResponse } from 'core/nostr/util';
-import {
-  EventSubResponse,
-  Filter
-} from 'core/nostr/type';
+import { EventSubResponse, Filter } from 'core/nostr/type';
 import { NodeWsApi } from './api';
 import { CallRelayType, WsConnectStatus } from 'core/worker/type';
 import { MessageEvent, ErrorEvent } from 'ws';
 import { NostrFilterMessage } from './types';
-import { WorkerEventEmitter } from 'core/worker/bus';
+import EventEmitter from 'events';
+
+export class WorkerEventEmitter extends EventEmitter {}
 
 export const workerEventEmitter = new WorkerEventEmitter();
 
@@ -27,7 +26,7 @@ class GroupedAsyncGenerator<T, K> {
       const data = JSON.parse(value?.nostrData);
       const subscriptionId = data[1] as K;
 
-			if (done) {
+      if (done) {
         this.resolveFunctions.get(subscriptionId)?.({
           value: undefined,
           done: true,
@@ -37,7 +36,7 @@ class GroupedAsyncGenerator<T, K> {
 
       if (subscriptionId === key) {
         yield value as unknown as T;
-      }      
+      }
     }
   }
 }
@@ -73,9 +72,9 @@ export class Pool {
     );
   }
 
-	close(){
-		this.wsApiList.filter(ws => ws.isConnected()).forEach(ws => ws.close());
-	}
+  close() {
+    this.wsApiList.filter(ws => ws.isConnected()).forEach(ws => ws.close());
+  }
 
   private setupWebSocketApis() {
     this.relayUrls.forEach(relayUrl => {
@@ -216,4 +215,3 @@ export class Pool {
       });
   }
 }
-

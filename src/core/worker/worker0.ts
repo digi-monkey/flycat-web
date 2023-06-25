@@ -8,7 +8,8 @@ import {
   RelayInfoMsg,
   SubFilterResultMsg,
 } from './type';
-import { pool } from './pool';
+import { Pool } from './pool';
+import { seedRelays } from 'core/relay/pool/seed';
 
 /**
  * the worker and callWorker (1-to-many) are communicating through SharedWorker
@@ -16,6 +17,26 @@ import { pool } from './pool';
  */
 
 const connectedPorts: (MessagePort | null)[] = [];
+
+const pool = new Pool({
+  id: 'default',
+  relays: seedRelays.map(url => {
+    return { url, read: true, write: true };
+  }),
+}, (wsConnectStatus)=>{
+  connectedPorts.forEach((port,index) => {
+    const msg: RelayInfoMsg = {
+      id: pool.switchRelays.id,
+      relays: pool.switchRelays.relays,
+      wsConnectStatus,
+      portId: index,
+    };
+    port?.postMessage({
+      data: msg,
+      type: FromProducerMsgType.relayInfo,
+    });
+  }) 
+} );
 
 self.onconnect = (evt: MessageEvent) => {
   const port = evt.ports[0];
@@ -65,7 +86,6 @@ self.onconnect = (evt: MessageEvent) => {
                 relayUrl: sub.url,
                 portId: data.portId,
               };
-              console.log(msg);
               port.postMessage({
                 data: msg,
                 type: FromProducerMsgType.event,
