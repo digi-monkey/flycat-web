@@ -80,6 +80,7 @@ const start = port => {
               const msg: PubEventResultMsg = {
                 isSuccess: result.isSuccess,
                 reason: result.reason,
+                relayUrl: result.relayUrl,
                 portId: data.portId,
                 eventId: data.event.id,
               };

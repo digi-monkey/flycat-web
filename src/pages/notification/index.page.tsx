@@ -3,7 +3,7 @@ import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { UserMap } from 'core/nostr/type';
 import { useRouter } from 'next/router';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';

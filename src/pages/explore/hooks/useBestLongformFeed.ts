@@ -9,7 +9,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
 
 // todo: best algo and sort result

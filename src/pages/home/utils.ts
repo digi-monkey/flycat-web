@@ -1,4 +1,4 @@
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
 import { deserializeMetadata } from 'core/nostr/content';
 import { isEventPTag } from 'core/nostr/util';

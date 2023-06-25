@@ -14,7 +14,7 @@ import {
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { EventWithSeen } from 'pages/type';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { useState } from 'react';
 
 export interface CommentInputProp {

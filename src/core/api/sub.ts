@@ -207,6 +207,7 @@ export function createPublishEventResultStream(
           const result: EventPubResult = {
             isSuccess,
             reason,
+            relayUrl: webSocket.url
           };
           observer(false, result);
         }

@@ -18,7 +18,7 @@ import { Nip18 } from 'core/nip/18';
 import { Nip51 } from 'core/nip/51';
 import { Nip57 } from 'core/nip/57';
 import { UserMap } from 'core/nostr/type';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
 
 import Icon from 'components/Icon';

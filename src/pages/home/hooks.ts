@@ -3,7 +3,7 @@ import { CallRelayType } from 'core/worker/type';
 import { PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { EventWithSeen } from 'pages/type';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { handleEvent } from './utils';
 import { UserMap } from 'core/nostr/type';
 
@@ -11,7 +11,7 @@ export function useSubMetaDataAndContactList(
   myPublicKey,
   newConn,
   isLoggedIn,
-  worker,
+  worker: CallWorker | undefined,
   handleEvent,
 ) {
   useEffect(() => {
@@ -24,10 +24,10 @@ export function useSubMetaDataAndContactList(
         : { type: CallRelayType.batch, data: newConn };
     const sub = worker?.subMetaDataAndContactList(
       [myPublicKey],
-      false,
       'userMetaAndContact',
       callRelay,
     );
+    
     sub?.iterating({
       cb: handleEvent,
     });
@@ -65,7 +65,7 @@ export function useSubMsg(
       });
 
       console.log("worker.subMsg:", pks)
-      const subMsg = worker?.subMsg(pks, false, 'homeMsg', callRelay);
+      const subMsg = worker?.subMsg(pks, 'homeMsg', callRelay);
       subMsg?.iterating({
         cb: handleEvent,
       });
@@ -123,7 +123,7 @@ export function useLoadMoreMsg({
         data: [],
       };
 
-      const subMsg = worker?.subMsg(pks, false, 'homeMoreMsg', callRelay, {
+      const subMsg = worker?.subMsg(pks, 'homeMoreMsg', callRelay, {
         until: lastMsg.created_at,
       });
       subMsg?.iterating({

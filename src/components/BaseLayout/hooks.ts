@@ -22,7 +22,7 @@ export function useUserInfo () {
 
     if (!isEmptyStr(myPublicKey) && userMap.get(myPublicKey) == null) {
       worker
-        ?.subMetadata([myPublicKey], undefined, undefined, {
+        ?.subMetadata([myPublicKey], undefined, {
           type: CallRelayType.batch,
           data: newConn,
         })

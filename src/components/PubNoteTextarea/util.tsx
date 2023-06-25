@@ -1,5 +1,5 @@
 import { SignEvent } from 'store/loginReducer';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { ImageProvider, compressImage} from 'core/api/img';
 import { WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';

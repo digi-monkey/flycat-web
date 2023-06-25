@@ -201,4 +201,5 @@ export type UserMap = Map<
 export interface EventPubResult {
   isSuccess: boolean;
   reason?: string;
+  relayUrl: string;
 }

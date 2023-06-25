@@ -31,8 +31,15 @@ export class WS {
     urlOrWebsocket: string | WebSocket,
     maxSub = 10,
     autoReconnect = true,
-    reconnectIdleSecs = 10,
+    reconnectIdleSecs = 3,
   ) {
+    this.maxSub = maxSub;
+    this.onCloseListeners = [];
+    this.reconnectIdleSecs = reconnectIdleSecs;
+    this.subscriptionFilters = new Map();
+    this.pendingSubscriptions = new Queue<SubscriptionId>();
+    this.activeSubscriptions = new Pool<SubscriptionId>(this.maxSub);
+
     if (typeof urlOrWebsocket === 'string') {
       this.url = urlOrWebsocket;
       this._ws = new WebSocket(urlOrWebsocket);
@@ -43,13 +50,6 @@ export class WS {
       this.url = urlOrWebsocket.url;
       this._ws = urlOrWebsocket;
     }
-
-    this.maxSub = maxSub;
-    this.onCloseListeners = [];
-    this.reconnectIdleSecs = reconnectIdleSecs;
-    this.subscriptionFilters = new Map();
-    this.pendingSubscriptions = new Queue<SubscriptionId>();
-    this.activeSubscriptions = new Pool<SubscriptionId>(this.maxSub);
   }
 
   // todo: change to async and get pub response

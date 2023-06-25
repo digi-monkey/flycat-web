@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import {
   EventETag,
   EventPTag,

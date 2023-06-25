@@ -92,14 +92,14 @@ export enum FromConsumerMsgType {
 export interface SubFilterMsg {
   portId: number;
   filter: Filter;
-  callRelays: CallRelay;
-  subId?: SubscriptionId;
+  callRelay: CallRelay;
+  subId: SubscriptionId;
 }
 
 export interface PubEventMsg {
   portId: number;
   event: Event;
-  callRelays: CallRelay;
+  callRelay: CallRelay;
 }
 
 export interface SwitchRelayMsg {
@@ -148,6 +148,7 @@ export interface PubEventResultMsg {
   isSuccess: boolean;
   reason?: string;
   portId: number;
+  relayUrl: string;
 }
 
 export interface PortIdMsg {

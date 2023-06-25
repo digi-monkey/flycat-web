@@ -150,7 +150,7 @@ export function RelaySelector({
 
     if (worker.relayGroupId !== switchRelays?.id) {
       worker?.switchRelays(switchRelays);
-      worker?.pullRelayGroupId();
+      worker.pullRelayInfo();
     }
   }, [switchRelays, worker?.relayGroupId]);
 

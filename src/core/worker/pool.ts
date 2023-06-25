@@ -39,19 +39,14 @@ export class Pool {
 
   startMonitor() {
     setInterval(() => {
-      console.debug(
-        `portSubs(only keep-alive): ${this.portSubs.size}`,
-        this.portSubs,
-      );
+      console.debug(`portSubs: ${this.portSubs.size}`, this.portSubs);
       this.wsList
         .filter(ws => ws.isConnected())
         .forEach(ws => {
           console.debug(
             `${
               ws.url
-            } subs: active ${ws.activeSubscriptions.getSize()}, pending ${
-              ws.pendingSubscriptions.size
-            }`,
+            } subs: active ${ws.activeSubscriptions.getSize()}, pending ${ws.pendingSubscriptions.size()}`,
           );
         });
     }, 10 * 1000);
@@ -270,60 +265,58 @@ export class Pool {
 
   subFilter(message: SubFilterMsg) {
     const portId = message.portId;
-    const callRelayType = message.callRelays.type;
-    const urls = message.callRelays.data;
+    const callRelayType = message.callRelay.type;
+    const urls = message.callRelay.data;
     const subId = message.subId;
     const filter = message.filter;
 
-    return this.wsList
-      .filter(ws => {
-        switch (callRelayType) {
-          case CallRelayType.all:
-            return true;
+    const relays = this.wsList.filter(ws => {
+      switch (callRelayType) {
+        case CallRelayType.all:
+          return true;
 
-          case CallRelayType.connected:
-            return ws.isConnected();
+        case CallRelayType.connected:
+          return ws.isConnected();
 
-          case CallRelayType.batch:
-            if (urls == null)
-              throw new Error('null callRelayUrls for CallRelayType.batch');
-            return urls.includes(ws.url);
+        case CallRelayType.batch:
+          if (urls == null)
+            throw new Error('null callRelayUrls for CallRelayType.batch');
+          return urls.includes(ws.url);
 
-          case CallRelayType.single:
-            if (urls == null || urls.length !== 1)
-              throw new Error(
-                'callRelayUrls.length != 1 or is null for CallRelayType.single',
-              );
-            return urls[0] === ws.url;
-
-          default:
-            return ws.isConnected();
-        }
-      })
-      .map(ws => {
-            const filterSubId = newSubId(
-              message.portId,
-              subId || randomSubId(),
+        case CallRelayType.single:
+          if (urls == null || urls.length !== 1)
+            throw new Error(
+              'callRelayUrls.length != 1 or is null for CallRelayType.single',
             );
-            
-            const data = this.portSubs.get(portId);
-              if (data != null && !data.includes(filterSubId)) {
-                data.push(filterSubId);
-                this.portSubs.set(portId, data);
-              } else {
-                console.debug('create new portSub', portId);
-                this.portSubs.set(portId, [filterSubId]);
-              }
+          return urls[0] === ws.url;
 
-            return ws.subFilter(filter, filterSubId);
-      });
+        default:
+          return ws.isConnected();
+      }
+    });
+    console.log(message, relays.length);
+    return relays.map(ws => {
+      const filterSubId = subId;
+      console.log('sub id', filterSubId);
+      
+      const data = this.portSubs.get(portId);
+      if (data != null && !data.includes(filterSubId)) {
+        data.push(filterSubId);
+        this.portSubs.set(portId, data);
+      } else {
+        console.debug('create new portSub', portId);
+        this.portSubs.set(portId, [filterSubId]);
+      }
+
+      return ws.subFilter(filter, filterSubId);
+    });
   }
 
-  pubEvent(message: PubEventMsg){
+  pubEvent(message: PubEventMsg) {
     const portId = message.portId;
-    const callRelayType = message.callRelays.type;
-    const urls = message.callRelays.data;
-    const event = message.event; 
+    const callRelayType = message.callRelay.type;
+    const urls = message.callRelay.data;
+    const event = message.event;
 
     return this.wsList
       .filter(ws => {
@@ -377,4 +370,3 @@ export const pool = new Pool({
     return { url, read: true, write: true };
   }),
 });
-

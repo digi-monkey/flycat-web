@@ -5,7 +5,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { Nip51 } from 'core/nip/51';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 
 export async function fetchPublicBookmarkListEvent(
   myPublicKey: string,

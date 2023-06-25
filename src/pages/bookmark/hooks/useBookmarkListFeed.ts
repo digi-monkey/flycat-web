@@ -12,7 +12,7 @@ import {
 import { Event } from 'core/nostr/Event';
 import { Nip51 } from 'core/nip/51';
 import { UserMap } from 'core/nostr/type';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
 
 export function useBookmarkListFeed({

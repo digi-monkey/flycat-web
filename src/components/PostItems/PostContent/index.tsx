@@ -18,7 +18,7 @@ import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
 
 interface PostContentProp {

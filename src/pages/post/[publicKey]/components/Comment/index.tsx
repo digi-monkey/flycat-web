@@ -2,7 +2,7 @@ import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
 import { nonzero } from '../../util';
 import { RootState } from 'store/configureStore';
-import { CallWorker } from 'core/worker/callWorker';
+import { CallWorker } from 'core/worker/caller';
 import { newComments } from '../../[articleId].page';
 import { useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';

@@ -55,7 +55,9 @@ self.onconnect = (evt: MessageEvent) => {
           console.log('SUB_FILTER');
           const data = res.data;
           const subs = pool.subFilter(data);
+          console.log("subs.length: ", subs.length)
           subs.forEach(async sub => {
+            
             for await (const event of sub) {
               const msg: SubFilterResultMsg = {
                 event,
@@ -63,6 +65,7 @@ self.onconnect = (evt: MessageEvent) => {
                 relayUrl: sub.url,
                 portId: data.portId,
               };
+              console.log(msg);
               port.postMessage({
                 data: msg,
                 type: FromProducerMsgType.event,
@@ -82,6 +85,7 @@ self.onconnect = (evt: MessageEvent) => {
               const msg: PubEventResultMsg = {
                 isSuccess: result.isSuccess,
                 reason: result.reason,
+                relayUrl: result.relayUrl,
                 portId: data.portId,
                 eventId: data.event.id,
               };
