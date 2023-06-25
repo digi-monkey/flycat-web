@@ -1,5 +1,3 @@
-import {
-  WsEvent} from 'core/api/wsApi';
 import { randomSubId } from 'core/worker/util';
 import { isEventSubResponse, isFilterEqual } from 'core/nostr/util';
 import {
@@ -246,7 +244,7 @@ export class NodeWsApi {
     cb(challenge);
   }
 
-  handleEventSub(evt: any, callback?: (msg: WsEvent) => any) {
+  handleEventSub(evt: any, callback?: (msg: globalThis.Event) => any) {
     const msg: any = JSON.parse(evt.data);
     if (isEventSubResponse(msg)) {
       if (callback != null) {
