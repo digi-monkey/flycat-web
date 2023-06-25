@@ -1,4 +1,6 @@
-import { Relay } from "core/relay/type";
+import { EventId, Filter, SubscriptionId } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { Relay } from 'core/relay/type';
 
 export type WsConnectStatus = Map<string, boolean>;
 
@@ -26,7 +28,7 @@ export enum ToWorkerMessageType {
 }
 
 export interface SwitchRelays {
-  id: string,
+  id: string;
   relays: Relay[];
 }
 
@@ -68,3 +70,94 @@ export interface FromPostMsg {
   data: FromWorkerMessageData;
   type: FromWorkerMessageType;
 }
+
+//-----
+export type FromConsumerMsg =
+  | { type: FromConsumerMsgType.subFilter; data: SubFilterMsg }
+  | { type: FromConsumerMsgType.pubEvent; data: PubEventMsg }
+  | { type: FromConsumerMsgType.switchRelays; data: SwitchRelayMsg }
+  | { type: FromConsumerMsgType.pullRelayInfo; data: PullRelayInfoMsg }
+  | { type: FromConsumerMsgType.disconnect; data: DisconnectMsg }
+  | { type: FromConsumerMsgType.closePort; data: ClosePortMsg }
+
+export enum FromConsumerMsgType {
+  subFilter,
+  pubEvent,
+  switchRelays,
+  pullRelayInfo,
+  closePort,
+  disconnect
+}
+
+export interface SubFilterMsg {
+  portId: number;
+  filter: Filter;
+  callRelays: CallRelay;
+  subId?: SubscriptionId;
+}
+
+export interface PubEventMsg {
+  portId: number;
+  event: Event;
+  callRelays: CallRelay;
+}
+
+export interface SwitchRelayMsg {
+  portId: number;
+  switchRelays: SwitchRelays;
+}
+
+export interface PullRelayInfoMsg {
+  portId: number;
+}
+
+export interface DisconnectMsg {
+  portId: number;
+}
+
+export interface ClosePortMsg {
+  portId: number;
+}
+
+
+//----
+export type FromProducerMsg =
+  | { type: FromProducerMsgType.event; data: SubFilterResultMsg }
+  | { type: FromProducerMsgType.pubResult; data: PubEventResultMsg }
+  | { type: FromProducerMsgType.portId; data: PortIdMsg }
+  | {type: FromProducerMsgType.relayInfo, data: RelayInfoMsg }
+
+export enum FromProducerMsgType {
+  event,
+  pubResult,
+  portId,
+  relayInfo,
+  notice,
+  authChallenge
+}
+
+export interface SubFilterResultMsg {
+  event: Event;
+  subId: SubscriptionId;
+  relayUrl: string;
+  portId: number;
+}
+
+export interface PubEventResultMsg {
+  eventId: EventId;
+  isSuccess: boolean;
+  reason: string;
+  portId: number;
+}
+
+export interface PortIdMsg {
+  portId: number;
+}
+
+export interface RelayInfoMsg {
+  wsConnectStatus: WsConnectStatus;
+  id: string;
+  relays: Relay[];
+  portId: number;
+}
+

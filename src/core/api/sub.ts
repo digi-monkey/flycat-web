@@ -1,6 +1,7 @@
 import {
   AuthSubResponse,
   Challenge,
+  ClientRequestType,
   ErrorReason,
   EventId,
   EventPubResponse,
@@ -108,6 +109,7 @@ export function createSubscriptionEventStream(
     },
     unsubscribe() {
       observer = null;
+      webSocket.send(JSON.stringify([ClientRequestType.Close, id]));
       webSocket.removeEventListener('message', onMessage);
       webSocket.removeEventListener('error', onError);
     },

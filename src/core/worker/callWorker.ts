@@ -18,6 +18,7 @@ import {
   FromWorkerMessageData,
   FromWorkerMessageType,
   SwitchRelays,
+  FromProducerMsgType,
   ToPostMsg,
   ToWorkerMessageData,
   ToWorkerMessageType,
@@ -260,6 +261,8 @@ export class CallWorker {
     };
     this.worker.port.postMessage(msg);
   }
+
+  
 
   call(msg: ToPostMsg): CallResultHandler | undefined {
     if (

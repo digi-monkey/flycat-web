@@ -35,26 +35,48 @@ self.onconnect = (evt: MessageEvent) => {
   port.onmessage = (event: MessageEvent) => {
     const res: ToPostMsg = event.data;
     const data = res.data;
+    const type = res.type;
 
-    switch (res.type) {
+    switch (type) {
       case ToWorkerMessageType.SWITCH_RELAYS:
         console.log('SWITCH_RELAYS');
-        switchRelays(data.switchRelays!, data.portId);
+        // switchRelays(data.switchRelays!, data.portId);
+          pool.doSwitchRelays(data.switchRelays!);
         break;
 
       case ToWorkerMessageType.ADD_RELAY_URL:
         console.log('ADD_RELAY_URL');
-        addRelays(data.urls!, data.portId);
+        //addRelays(data.urls!, data.portId);
+        pool.doAddRelays(data.urls!);
         break;
 
       case ToWorkerMessageType.PULL_RELAY_STATUS:
-        console.log('PULL_RELAY_STATUS');
-        pullRelayStatus(data.portId);
+        {
+          console.log('PULL_RELAY_STATUS');
+        // pullRelayStatus(data.portId);
+        const msg: FromWorkerMessageData = {
+          wsConnectStatus: pool.wsConnectStatus,
+        };
+        port.postMessage({
+          data: msg,
+          type: FromWorkerMessageType.WS_CONN_STATUS,
+        });
+        }
+        
         break;
 
         case ToWorkerMessageType.GET_RELAY_GROUP_ID:
-          console.log('GET_RELAY_GROUP_ID');
-          pullRelayGroupId(data.portId);
+          {
+            console.log('GET_RELAY_GROUP_ID');
+          //pullRelayGroupId(data.portId);
+          const msg: FromWorkerMessageData = {
+            relayGroupId: pool.switchRelays.id
+          };
+          port.postMessage({
+            data: msg,
+            type: FromWorkerMessageType.RELAY_GROUP_ID,
+          });
+          }
           break;
 
       case ToWorkerMessageType.CALL_API:
@@ -65,9 +87,12 @@ self.onconnect = (evt: MessageEvent) => {
         });
         break;
 
+      
+
       case ToWorkerMessageType.DISCONNECT:
         console.log('DISCONNECT');
-        disconnect(data.portId);
+        //disconnect(data.portId);
+        pool.closeAll();
         break;
 
       case ToWorkerMessageType.CLOSE_PORT:

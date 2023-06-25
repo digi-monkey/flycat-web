@@ -7,6 +7,8 @@ import {
   CallRelayType,
   FromWorkerMessageData,
   FromWorkerMessageType,
+  PubEventMsg,
+  SubFilterMsg,
   SwitchRelays,
   ToWorkerMessageData,
   ToWorkerMessageType,
@@ -17,10 +19,10 @@ import { WS } from 'core/api/ws';
 export const workerEventEmitter = new WorkerEventEmitter();
 
 export class Pool {
-  private wsConnectStatus: WsConnectStatus = new Map();
-  private clients: WS[] = [];
+  private wsList: WS[] = [];
   private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
 
+  public wsConnectStatus: WsConnectStatus = new Map();
   public maxSub: number;
   public maxKeepAliveSub: number;
   public switchRelays: SwitchRelays;
@@ -42,11 +44,13 @@ export class Pool {
         `portSubs(only keep-alive): ${this.portSubs.size}`,
         this.portSubs,
       );
-      this.clients
+      this.wsList
         .filter(ws => ws.isConnected())
         .forEach(ws => {
           console.debug(
-            `${ws.url} subs: active ${ws.activeSubscriptions.getSize()}, pending ${
+            `${
+              ws.url
+            } subs: active ${ws.activeSubscriptions.getSize()}, pending ${
               ws.pendingSubscriptions.size
             }`,
           );
@@ -54,54 +58,56 @@ export class Pool {
     }, 10 * 1000);
   }
 
-  private closeAll(){
-    for(const ws of this.clients){
+  closeAll() {
+    for (const ws of this.wsList) {
       ws.close();
     }
-    this.clients = [];
+    this.wsList = [];
     this.wsConnectStatus.clear();
     this.sendWsConnectStatusUpdate();
   }
 
-  private setupWebSocketApis() {
-    this.switchRelays.relays.map(r => r.url).forEach(relayUrl => {
-      const onmessage = (event: MessageEvent) => {
-        const msg: FromWorkerMessageData = {
-          nostrData: event.data,
-          relayUrl,
+  setupWebSocketApis() {
+    this.switchRelays.relays
+      .map(r => r.url)
+      .forEach(relayUrl => {
+        const onmessage = (event: MessageEvent) => {
+          const msg: FromWorkerMessageData = {
+            nostrData: event.data,
+            relayUrl,
+          };
+          workerEventEmitter.emit(FromWorkerMessageType.NOSTR_DATA, msg);
         };
-        workerEventEmitter.emit(FromWorkerMessageType.NOSTR_DATA, msg);
-      };
-      
-      if (!this.wsConnectStatus.has(relayUrl)) {
-        const onOpen = _event => {
-          if (ws.isConnected() === true) {
-            this.wsConnectStatus.set(relayUrl, true);
-            console.log(`WebSocket connection to ${relayUrl} connected`);
-            this.sendWsConnectStatusUpdate();
-          }
-        }
-        const onerror = (event: globalThis.Event) => {
-          console.error(`WebSocket error: `, event);
-          this.wsConnectStatus.set(relayUrl, false);
-        };
-        const onclose = () => {
-          if (this.wsConnectStatus.get(relayUrl) === true) {
-            console.log(`WebSocket connection to ${relayUrl} closed`);
+
+        if (!this.wsConnectStatus.has(relayUrl)) {
+          const onOpen = _event => {
+            if (ws.isConnected() === true) {
+              this.wsConnectStatus.set(relayUrl, true);
+              console.log(`WebSocket connection to ${relayUrl} connected`);
+              this.sendWsConnectStatusUpdate();
+            }
+          };
+          const onerror = (event: globalThis.Event) => {
+            console.error(`WebSocket error: `, event);
             this.wsConnectStatus.set(relayUrl, false);
-            this.sendWsConnectStatusUpdate();
-          }
-        };
+          };
+          const onclose = () => {
+            if (this.wsConnectStatus.get(relayUrl) === true) {
+              console.log(`WebSocket connection to ${relayUrl} closed`);
+              this.wsConnectStatus.set(relayUrl, false);
+              this.sendWsConnectStatusUpdate();
+            }
+          };
 
-        const ws = new WS(relayUrl, this.maxSub, true);
-        ws.onOpen(onOpen);
-        ws.onError(onerror);
-        ws.addCloseListener(onclose);
+          const ws = new WS(relayUrl, this.maxSub, true);
+          ws.onOpen(onOpen);
+          ws.onError(onerror);
+          ws.addCloseListener(onclose);
 
-        this.wsConnectStatus.set(relayUrl, false);
-        this.clients.push(ws);
-      }
-    });
+          this.wsConnectStatus.set(relayUrl, false);
+          this.wsList.push(ws);
+        }
+      });
   }
 
   private listen() {
@@ -125,7 +131,7 @@ export class Pool {
               this.switchRelays.relays.push({
                 url,
                 read: true,
-                write: true
+                write: true,
               });
               this.setupWebSocketApis();
             }
@@ -161,7 +167,7 @@ export class Pool {
           return;
         }
 
-        this.clients
+        this.wsList
           .filter(ws => {
             switch (callRelayType) {
               case CallRelayType.all:
@@ -222,7 +228,7 @@ export class Pool {
     workerEventEmitter.on(
       ToWorkerMessageType.DISCONNECT,
       (_message: ToWorkerMessageData) => {
-        this.clients.forEach(ws => ws.close());
+        this.wsList.forEach(ws => ws.close());
       },
     );
 
@@ -233,14 +239,121 @@ export class Pool {
         const subIds = this.portSubs.get(portId);
         if (subIds && subIds.length > 0) {
           for (const id of subIds) {
-            this.clients
+            this.wsList
               .filter(ws => ws.isConnected())
+              // todo fix: can not close websocket since other port need them.
               .forEach(ws => ws.close());
           }
         }
         this.portSubs.delete(portId);
       },
     );
+  }
+
+  doSwitchRelays(switchRelays: SwitchRelays) {
+    this.closeAll();
+    this.switchRelays = switchRelays;
+    this.setupWebSocketApis();
+  }
+
+  doAddRelays(urls: string[]) {
+    urls.forEach(url => {
+      if (!this.wsConnectStatus.has(url)) {
+        this.switchRelays.relays.push({
+          url,
+          read: true,
+          write: true,
+        });
+        this.setupWebSocketApis();
+      }
+    });
+  }
+
+  subFilter(message: SubFilterMsg) {
+    const portId = message.portId;
+    const callRelayType = message.callRelays.type;
+    const urls = message.callRelays.data;
+    const subId = message.subId;
+    const filter = message.filter;
+
+    return this.wsList
+      .filter(ws => {
+        switch (callRelayType) {
+          case CallRelayType.all:
+            return true;
+
+          case CallRelayType.connected:
+            return ws.isConnected();
+
+          case CallRelayType.batch:
+            if (urls == null)
+              throw new Error('null callRelayUrls for CallRelayType.batch');
+            return urls.includes(ws.url);
+
+          case CallRelayType.single:
+            if (urls == null || urls.length !== 1)
+              throw new Error(
+                'callRelayUrls.length != 1 or is null for CallRelayType.single',
+              );
+            return urls[0] === ws.url;
+
+          default:
+            return ws.isConnected();
+        }
+      })
+      .map(ws => {
+            const filterSubId = newSubId(
+              message.portId,
+              subId || randomSubId(),
+            );
+            
+            const data = this.portSubs.get(portId);
+              if (data != null && !data.includes(filterSubId)) {
+                data.push(filterSubId);
+                this.portSubs.set(portId, data);
+              } else {
+                console.debug('create new portSub', portId);
+                this.portSubs.set(portId, [filterSubId]);
+              }
+
+            return ws.subFilter(filter, filterSubId);
+      });
+  }
+
+  pubEvent(message: PubEventMsg){
+    const portId = message.portId;
+    const callRelayType = message.callRelays.type;
+    const urls = message.callRelays.data;
+    const event = message.event; 
+
+    return this.wsList
+      .filter(ws => {
+        switch (callRelayType) {
+          case CallRelayType.all:
+            return true;
+
+          case CallRelayType.connected:
+            return ws.isConnected();
+
+          case CallRelayType.batch:
+            if (urls == null)
+              throw new Error('null callRelayUrls for CallRelayType.batch');
+            return urls.includes(ws.url);
+
+          case CallRelayType.single:
+            if (urls == null || urls.length !== 1)
+              throw new Error(
+                'callRelayUrls.length != 1 or is null for CallRelayType.single',
+              );
+            return urls[0] === ws.url;
+
+          default:
+            return ws.isConnected();
+        }
+      })
+      .map(ws => {
+        return ws.pubEvent(event);
+      });
   }
 
   private sendWsConnectStatusUpdate() {
@@ -252,14 +365,19 @@ export class Pool {
 
   private sendRelayGroupId() {
     const msg: FromWorkerMessageData = {
-      relayGroupId: this.switchRelays.id
+      relayGroupId: this.switchRelays.id,
     };
-    console.log("send relay group id: ", msg);
+    console.log('send relay group id: ', msg);
     workerEventEmitter.emit(FromWorkerMessageType.RELAY_GROUP_ID, msg);
   }
 }
 
-export const pool = new Pool({id: "default", relays: seedRelays.map(url => {return {url, read: true, write: true}})});
+export const pool = new Pool({
+  id: 'default',
+  relays: seedRelays.map(url => {
+    return { url, read: true, write: true };
+  }),
+});
 
 /*** helper functions */
 export const switchRelays = (relays: SwitchRelays, portId: number) => {
@@ -322,7 +440,7 @@ export const closePort = (portId: number) => {
 export const listenFromPool = async (
   onWsConnStatus?: (message: FromWorkerMessageData) => any,
   onNostrData?: (message: FromWorkerMessageData) => any,
-  onRelayGroupId?: (message: FromWorkerMessageData)=>any,
+  onRelayGroupId?: (message: FromWorkerMessageData) => any,
 ) => {
   if (!!onWsConnStatus) {
     workerEventEmitter.on(FromWorkerMessageType.WS_CONN_STATUS, onWsConnStatus);
