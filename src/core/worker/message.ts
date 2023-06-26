@@ -6,6 +6,7 @@ import {
   FromProducerMsgType,
   SubFilterResultMsg,
   PubEventResultMsg,
+  RelaySwitchAlertMsg,
 } from './type';
 
 // messaging between backend sharedWorker and frontpage caller
@@ -27,6 +28,22 @@ export const createPortOnMessageListener = ({
           console.log('SWITCH_RELAYS');
           const data = res.data;
           pool.doSwitchRelays(data.switchRelays!);
+
+          // post the alert to other ports
+          const msg: RelaySwitchAlertMsg = {
+            id: data.switchRelays.id,
+            relays: data.switchRelays.relays,
+            wsConnectStatus: pool.wsConnectStatus,
+            triggerByPortId: data.portId,
+          };
+          connectedPorts
+            .filter(p => p !== port && p != null)
+            .forEach(p => {
+              p?.postMessage({
+                data: msg,
+                type: FromProducerMsgType.relaySwitchedAlert,
+              });
+            });
         }
         break;
 

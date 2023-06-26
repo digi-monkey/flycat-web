@@ -21,6 +21,7 @@ import {
   SwitchRelayMsg,
   DisconnectMsg,
   PubEventMsg,
+  RelaySwitchAlertMsg,
 } from './type';
 import { Relay } from 'core/relay/type';
 import {
@@ -110,6 +111,38 @@ export class CallWorker {
       data: { portId: this.portId },
     };
     this.worker.port.postMessage(msg);
+  }
+
+  addRelaySwitchAlert(cb: (RelaySwitchedAlertMsg)=>any){
+    const listener = (event: MessageEvent)=>{
+      const res: FromProducerMsg = event.data;
+      switch (res.type) {
+        case FromProducerMsgType.relaySwitchedAlert:
+          const data = res.data;
+          cb(data);
+          break;
+      
+        default:
+          break;
+      }
+    };
+    this.worker.port.addEventListener("message", listener);
+  }
+
+  rmRelaySwitchAlert(cb: (RelaySwitchedAlertMsg)=>any){
+    const listener = (event: MessageEvent)=>{
+      const res: FromProducerMsg = event.data;
+      switch (res.type) {
+        case FromProducerMsgType.relaySwitchedAlert:
+          const data = res.data;
+          cb(data);
+          break;
+      
+        default:
+          break;
+      }
+    };
+    this.worker.port.removeEventListener("message", listener);
   }
 
   pullRelayInfo() {

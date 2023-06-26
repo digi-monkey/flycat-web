@@ -11,7 +11,11 @@ import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { SwitchRelays, WsConnectStatus } from 'core/worker/type';
+import {
+  RelaySwitchAlertMsg,
+  SwitchRelays,
+  WsConnectStatus,
+} from 'core/worker/type';
 import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';
@@ -109,6 +113,24 @@ export function RelaySelector({
     progressCb,
   );
 
+  // detect if other page switch the relay
+  worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
+    if(worker?._portId === data.triggerByPortId){
+      return;
+    }
+
+    if(worker?.relayGroupId === data.id){
+      return;
+    }
+
+    const id = data.id;
+    if (id === 'auto' || id === 'fastest') {
+      setSelectedValue([id]);
+    } else {
+      setSelectedValue(['global', id]);
+    }
+  });
+
   useEffect(() => {
     // new a default group for the forward-compatibility
     const defaultGroupId = 'default';
@@ -148,8 +170,9 @@ export function RelaySelector({
       return;
     if (worker == null) return;
 
-    if (worker.relayGroupId !== switchRelays?.id) {
-      worker?.switchRelays(switchRelays);
+    console.log("check: ", switchRelays.id, worker.relayGroupId);
+    if (worker.relayGroupId !== switchRelays.id) {
+      worker.switchRelays(switchRelays);
       worker.pullRelayInfo();
     }
   }, [switchRelays, worker?.relayGroupId]);
@@ -170,7 +193,7 @@ export function RelaySelector({
     setSelectedValue(value);
   };
 
-  //const 
+  //const
 
   return (
     <div className={styles.relaySelector}>
