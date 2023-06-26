@@ -1,9 +1,10 @@
 import { useMyPublicKey, useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventWithSeen } from 'pages/type';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { deserializeMetadata } from 'core/nostr/content';
 import { isEventPTag } from 'core/nostr/util';
 import {
+  EventMap,
   EventSetMetadataContent,
   EventTags,
   Filter,
@@ -20,12 +21,14 @@ export function useBookmarkListFeed({
   newConn,
   userMap,
   setUserMap,
+  setEventMap,
   maxMsgLength = 50,
 }: {
   worker?: CallWorker;
   newConn: string[];
   userMap: UserMap;
-  setUserMap: any;
+  setUserMap: Dispatch<SetStateAction<UserMap>>;
+  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
 	const myPublicKey = useReadonlyMyPublicKey();
@@ -55,6 +58,11 @@ export function useBookmarkListFeed({
         break;
 
       case WellKnownEventKind.text_note:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+        
         setFeed(oldArray => {
           if (
             oldArray.length > maxMsgLength &&

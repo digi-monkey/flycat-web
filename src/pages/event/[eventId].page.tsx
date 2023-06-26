@@ -1,4 +1,4 @@
-import { UserMap } from 'core/nostr/type';
+import { EventMap, UserMap } from 'core/nostr/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
@@ -8,33 +8,25 @@ import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import React, { useState, useEffect } from 'react';
-import { deserializeMetadata } from 'core/nostr/content';
-import { getEventIdsFromETags, isEventPTag } from 'core/nostr/util';
-import {
-  EventSetMetadataContent,
-  WellKnownEventKind,
-  PublicKey,
-  RelayUrl,
-  PetName
-} from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
-import PostItems from 'components/PostItems';
-import { Avatar, Segmented, Input } from 'antd';
-import styles from './index.module.scss';
+import { useState, useEffect } from 'react';
+import { getEventIdsFromETags } from 'core/nostr/util';
+import { PublicKey } from 'core/nostr/type';
+import { Segmented } from 'antd';
 import { TreeNode } from './tree';
 import { SubPostItem } from 'components/PostItems/PostContent';
 import { CommentInput } from './CommentInput';
+import { _handleEvent } from './util';
+import {
+  useSubReplyEvents,
+  useSubRootEvent,
+  useSubUserMetadata,
+} from './hooks';
 
-export type ContactList = Map<
-  PublicKey,
-  {
-    relayer: RelayUrl;
-    name: PetName;
-  }
->;
 
-export const EventPage = ({ isLoggedIn }) => {
+import styles from './index.module.scss';
+import PostItems from 'components/PostItems';
+
+export const EventPage = () => {
   const { t } = useTranslation();
   const { eventId } = useRouter().query as { eventId: string };
 
@@ -42,163 +34,42 @@ export const EventPage = ({ isLoggedIn }) => {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
-  const [sentMsgIds, setSentMsgIds] = useState<string[]>([]);
   const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
   const [threadTreeNodes, setThreadTreeNodes] = useState<
     TreeNode<EventWithSeen>[]
   >([]);
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
 
-  function handEvent(event: Event, relayUrl?: string) {
-    switch (event.kind) {
-      case WellKnownEventKind.set_metadata:
-        const metadata: EventSetMetadataContent = deserializeMetadata(
-          event.content,
-        );
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
+  const handleEvent = _handleEvent({
+    userMap,
+    setUserMap,
+    setEventMap,
+    eventId,
+    rootEvent,
+    setRootEvent,
+    setCommentList,
+    unknownPks,
+    setUnknownPks,
+  });
 
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
-          return newMap;
-        });
-        break;
-
-      case WellKnownEventKind.article_highlight:
-      case WellKnownEventKind.long_form:
-      case WellKnownEventKind.text_note:
-        {
-          if (event.id === eventId) {
-            if (rootEvent == null) {
-              setRootEvent({ ...event, ...{ seen: [relayUrl!] } });
-            } else {
-              if (!rootEvent.seen?.includes(relayUrl!)) {
-                rootEvent.seen?.push(relayUrl!);
-                setRootEvent(rootEvent);
-              }
-            }
-
-            return;
-          }
-
-          setCommentList(oldArray => {
-            const replyToEventIds = oldArray
-              .map(e => getEventIdsFromETags(e.tags))
-              .reduce((prev, current) => prev.concat(current), []);
-            const eTags = getEventIdsFromETags(event.tags);
-            if (
-              !oldArray.map(e => e.id).includes(event.id) &&
-              (replyToEventIds.includes(event.id) ||
-                eTags.includes(eventId) ||
-                event.id === eventId)
-            ) {
-              // only add un-duplicated and replyTo msg
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp in asc
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? 1 : -1,
-              );
-
-              // check if need to sub new user metadata
-              const newPks: PublicKey[] = [];
-              for (const t of event.tags) {
-                if (isEventPTag(t)) {
-                  const pk = t[1];
-                  if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
-                    newPks.push(pk);
-                  }
-                }
-              }
-              if (
-                userMap.get(event.pubkey) == null &&
-                !unknownPks.includes(event.pubkey)
-              ) {
-                newPks.push(event.pubkey);
-              }
-              if (newPks.length > 0) {
-                setUnknownPks([...unknownPks, ...newPks]);
-              }
-
-              return sortedItems;
-            } else {
-              const id = oldArray.findIndex(s => s.id === event.id);
-              if (id === -1) return oldArray;
-
-              if (!oldArray[id].seen?.includes(relayUrl!)) {
-                oldArray[id].seen?.push(relayUrl!);
-              }
-            }
-            return oldArray;
-          });
-        }
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  useEffect(() => {
-    worker?.subMsgByEventIds([eventId])?.iterating({ cb: handEvent });
-    worker?.subMsgByETags([eventId])?.iterating({ cb: handEvent });
-  }, [newConn]);
-
-  useEffect(() => {
-    if (myPublicKey.length > 0) {
-      worker?.subMetadata([myPublicKey])?.iterating({ cb: handEvent });
-    }
-  }, [myPublicKey, newConn]);
-
-  useEffect(() => {
-    if (unknownPks.length > 0) {
-      worker?.subMetadata(unknownPks)?.iterating({ cb: handEvent });
-    }
-  }, [unknownPks, newConn]);
-
-  useEffect(() => {
-    const msgIds = commentList.map(e => e.id);
-    if (msgIds.length > 0) {
-      worker?.subMsgByETags(msgIds)?.iterating({ cb: handEvent });
-    }
-  }, [commentList.length]);
-
-  useEffect(() => {
-    if (worker == null) return;
-
-    if (commentList.length === 0) {
-      worker.subMsgByETags([eventId])?.iterating({ cb: handEvent });
-    }
-  }, [worker, eventId]);
-
-  useEffect(() => {
-    if (!worker) return;
-
-    const msgIds = commentList.map(m => m.id);
-    const newIds = msgIds.filter(id => sentMsgIds.includes(id));
-    const pks = commentList
-      .filter(event => newIds.includes(event.id))
-      .map(event => event.pubkey);
-    worker.subMsgByETags(newIds)?.iterating({ cb: handEvent });
-    worker.subMetadata(pks)?.iterating({ cb: handEvent });
-    setSentMsgIds(prev => [...prev, ...newIds]);
-  }, [worker, commentList.length]);
+  useSubRootEvent({ newConn, eventId, worker, handleEvent });
+  useSubReplyEvents({ newConn, eventId, commentList, worker, handleEvent });
+  useSubUserMetadata({
+    rootEvent,
+    newConn,
+    myPublicKey,
+    unknownPks,
+    worker,
+    handleEvent,
+  });
 
   useEffect(() => {
     buildThreadNodes();
   }, [commentList.length]);
 
-  // todo: better tree algo 
+  // todo: better tree algo
   const buildThreadNodes = () => {
     const ids = threadTreeNodes.map(t => t.value.id);
     for (const comment of commentList) {
@@ -255,6 +126,7 @@ export const EventPage = ({ isLoggedIn }) => {
             <div>
               {rootEvent && (
                 <PostItems
+                  eventMap={eventMap}
                   msgList={[rootEvent]}
                   worker={worker!}
                   userMap={userMap}
@@ -271,20 +143,31 @@ export const EventPage = ({ isLoggedIn }) => {
               </div>
             </div>
 
-            {rootEvent && <CommentInput worker={worker!} replyTo={rootEvent} userMap={userMap} />}
-            
+            {rootEvent && (
+              <CommentInput
+                worker={worker!}
+                replyTo={rootEvent}
+                userMap={userMap}
+              />
+            )}
+
             {threadTreeNodes.map(n => (
               <div key={n.value.id}>
                 <PostItems
                   msgList={[{ ...n.value, ...{ seen: [''] } }]}
                   worker={worker!}
                   userMap={userMap}
+                  eventMap={eventMap}
                   relays={[]}
                   showLastReplyToEvent={false}
                 />
                 <div className={styles.subRepliesContainer}>
                   {n.children.map(c => (
-                    <SubPostItem key={c.value.id} event={c.value} userMap={userMap} />
+                    <SubPostItem
+                      key={c.value.id}
+                      event={c.value}
+                      userMap={userMap}
+                    />
                   ))}
                 </div>
                 <br />

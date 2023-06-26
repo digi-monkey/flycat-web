@@ -193,6 +193,12 @@ export interface EventSetMetadataContent {
   nip05: string;
 }
 
+export interface EventPubResult {
+  isSuccess: boolean;
+  reason?: string;
+  relayUrl: string;
+}
+
 export type UserMap = Map<
   PublicKey,
   EventSetMetadataContent & { created_at: number }
@@ -202,8 +208,16 @@ export type EventMap = Map<EventId, Event>;
 
 export type ContactList = { keys: PublicKey[]; created_at: number };
 
-export interface EventPubResult {
-  isSuccess: boolean;
-  reason?: string;
-  relayUrl: string;
+export type ContactListWithRelay = Map<
+  PublicKey,
+  {
+    relay: RelayUrl;
+    name: PetName;
+  }
+>;
+
+export interface ContactInfo {
+  created_at: number;
+  list: ContactListWithRelay;
+  keys: string[];
 }

@@ -1,7 +1,6 @@
 import { Paths } from 'constants/path';
-import { ContactList, EventMap, EventTags, UserMap } from 'core/nostr/type';
 import { connect } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { handleEvent } from './utils';
 import { EventWithSeen } from 'pages/type';
@@ -12,6 +11,7 @@ import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { ContactList, EventMap, UserMap } from 'core/nostr/type';
 import { useSubFollowingMsg, useSubContactList, useLoadMoreMsg, useLastReplyEvent } from './hooks';
 
 import Icon from 'components/Icon';

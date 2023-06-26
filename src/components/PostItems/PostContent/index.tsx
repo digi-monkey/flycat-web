@@ -1,9 +1,6 @@
-import { isEventSubResponse } from 'core/nostr/util';
 import {
   EventMap,
-  EventSubResponse,
   EventTags,
-  WellKnownEventKind
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
@@ -20,7 +17,6 @@ import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
-import { EventWithSeen } from 'pages/type';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -118,7 +114,9 @@ export const PostContent: React.FC<PostContentProp> = ({
           eventId: lastReply.id,
           relays: [lastReply.relay],
         });
-        if (replyToEvent) setLastReplyToEvent(replyToEvent);
+        if (replyToEvent) {
+          setLastReplyToEvent(replyToEvent);
+        }
       }
     }
   };

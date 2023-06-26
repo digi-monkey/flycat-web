@@ -236,12 +236,12 @@ export class CallWorker {
     return this.subFilter({ filter, customId, callRelay });
   }
 
-  subMsgByEventIds(eventIds: EventId[], customId?: string) {
+  subMsgByEventIds(eventIds: EventId[], customId?: string, callRelay?: CallRelay) {
     const filter: Filter = {
       ids: eventIds,
       limit: eventIds.length,
     };
-    return this.subFilter({ filter, customId });
+    return this.subFilter({ filter, customId, callRelay });
   }
 
   subMsgByETags(eventIds: EventId[], customId?: string, callRelay?: CallRelay) {

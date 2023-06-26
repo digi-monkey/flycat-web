@@ -1,6 +1,5 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { UserMap } from 'core/nostr/type';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
@@ -17,46 +16,35 @@ import {
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
-  RelayUrl,
-  PetName,
   EventTags,
-  EventContactListPTag
+  EventContactListPTag,
+  ContactInfo, UserMap, EventMap
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { Avatar, Button, Tabs } from 'antd';
+import { stringHasImageUrl } from 'utils/common';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-
-import newStyles from './index.module.scss';
+import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
-import { stringHasImageUrl } from 'utils/common';
 import Icon from 'components/Icon';
+import { useLastReplyEvent } from './hooks';
 
-export type ContactList = Map<
-  PublicKey,
-  {
-    relayer: RelayUrl;
-    name: PetName;
-  }
->;
-
-export interface ContactInfo {
-  created_at: number;
-  list: ContactList;
-  keys: string[];
-}
 
 type UserParams = {
   publicKey: PublicKey;
 };
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
+  const myPublicKey = useReadonlyMyPublicKey();
+
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
-  const myPublicKey = useReadonlyMyPublicKey();
+ 
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactInfo>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [articleMsgList, setArticleMsgList] = useState<Event[]>([]);
@@ -87,6 +75,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
       case WellKnownEventKind.text_note:
       case WellKnownEventKind.article_highlight:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+
         if (event.pubkey === publicKey) {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -184,6 +177,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         break;
 
       case WellKnownEventKind.long_form:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+
         setArticleMsgList(oldArray => {
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
@@ -270,6 +268,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     worker?.subMetadata(userContactList.keys)?.iterating({ cb: handleEvent });
   }, [worker, userContactList?.keys]);
 
+  useLastReplyEvent({
+    msgList,
+    worker,
+    userMap,
+    setUserMap,
+    setEventMap
+  });
+
   const followUser = async () => {
     if (signEvent == null) {
       Swal.fire({
@@ -294,7 +300,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             [
               EventTags.P,
               pk,
-              myContactList.list.get(pk)?.relayer ?? '',
+              myContactList.list.get(pk)?.relay ?? '',
               myContactList.list.get(pk)?.name ?? '',
             ] as EventContactListPTag,
         )
@@ -345,7 +351,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           [
             EventTags.P,
             pk,
-            myContactList.list.get(pk)?.relayer ?? '',
+            myContactList.list.get(pk)?.relay ?? '',
             myContactList.list.get(pk)?.name ?? '',
           ] as EventContactListPTag,
       );
@@ -385,6 +391,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             worker={worker!}
             userMap={userMap}
             relays={[]}
+            eventMap={eventMap}
           />
         </ul>
       ),
@@ -399,6 +406,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             worker={worker!}
             userMap={userMap}
             relays={[]}
+            eventMap={eventMap}
           />
         </ul>
       ),
@@ -417,6 +425,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             worker={worker!}
             userMap={userMap}
             relays={[]}
+            eventMap={eventMap}
           />
         </ul>
       ),
@@ -427,7 +436,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     <BaseLayout>
       <Left>
         {userMap.get(publicKey)?.banner && (
-          <div className={newStyles.banner}>
+          <div className={styles.banner}>
             <img src={userMap.get(publicKey)?.banner} alt="" />
           </div>
         )}
@@ -443,41 +452,41 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       </Left>
       <Right>
         <div>
-          <div className={newStyles.profile}>
-            <div className={newStyles.img}>
+          <div className={styles.profile}>
+            <div className={styles.img}>
               <Avatar
                 style={{ width: '100%', height: '100%' }}
                 src={userMap.get(publicKey)?.picture}
                 alt=""
               />
             </div>
-            <div className={newStyles.name}>{userMap.get(publicKey)?.name}</div>
-            <div className={newStyles.description}>
+            <div className={styles.name}>{userMap.get(publicKey)?.name}</div>
+            <div className={styles.description}>
               {userMap.get(publicKey)?.about}
             </div>
           </div>
         </div>
 
-        <div className={newStyles.calendar}>
+        <div className={styles.calendar}>
           <CommitCalendar pk={publicKey} />
         </div>
 
-        <div className={newStyles.btnGroup}>
+        <div className={styles.btnGroup}>
           <Button onClick={followOrUnfollowOnClick}>
             {isFollowed ? 'unfollow' : 'follow'}
           </Button>
-          <Icon type="icon-rss" className={newStyles.icon} />
-          <Icon type="icon-bolt" className={newStyles.icon} />
+          <Icon type="icon-rss" className={styles.icon} />
+          <Icon type="icon-bolt" className={styles.icon} />
         </div>
 
-        <div className={newStyles.following}>
-          <div className={newStyles.followingTitle}>Followings</div>
+        <div className={styles.following}>
+          <div className={styles.followingTitle}>Followings</div>
           <ul>
             {userContactList?.keys.slice(0, 5).map(key => (
-              <li key={key} className={newStyles.followingList}>
+              <li key={key} className={styles.followingList}>
                 <Avatar src={userMap.get(key)?.picture} alt="" />
                 <div>{userMap.get(key)?.name}</div>
-                <Icon type="icon-more-horizontal" className={newStyles.icon} />
+                <Icon type="icon-more-horizontal" className={styles.icon} />
               </li>
             ))}
           </ul>

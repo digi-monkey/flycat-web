@@ -4,16 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { Select } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
-import { UserMap } from 'core/nostr/type';
+import { EventMap, UserMap } from 'core/nostr/type';
 import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
 import { FilterOptions } from './filterOptions';
 import PostItems from 'components/PostItems';
+import { useLastReplyEvent } from './hooks/useLastReplyEvent';
 
 const Bookmark = () => {
   const { t } = useTranslation();
 
   const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [selectedValue, setSelectedValue] = useState<string>(
     FilterOptions[0].value,
   );
@@ -22,7 +24,8 @@ const Bookmark = () => {
     setSelectedValue(value);
   };
 
-  const feed = useBookmarkListFeed({ worker, newConn, userMap, setUserMap });
+  const feed = useBookmarkListFeed({ worker, newConn, userMap, setUserMap, setEventMap });
+  useLastReplyEvent({msgList: feed, worker, userMap, setUserMap, setEventMap});
 
   const renderContent = () => {
     const allowKinds: number[] = FilterOptions.filter(
@@ -33,6 +36,7 @@ const Bookmark = () => {
         msgList={feed.filter(f => allowKinds.includes(f.kind))}
         worker={worker!}
         userMap={userMap}
+        eventMap={eventMap}
         relays={[]}
       />
     );

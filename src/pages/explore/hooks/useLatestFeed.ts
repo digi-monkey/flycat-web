@@ -1,8 +1,9 @@
 import { EventWithSeen } from 'pages/type';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { deserializeMetadata } from 'core/nostr/content';
 import { isEventPTag } from 'core/nostr/util';
 import {
+  EventMap,
   EventSetMetadataContent,
   Filter,
   WellKnownEventKind
@@ -17,12 +18,14 @@ export function useLatestFeed({
   newConn,
   userMap,
   setUserMap,
+  setEventMap,
   maxMsgLength = 50,
 }: {
   worker?: CallWorker;
   newConn: string[];
   userMap: UserMap;
-  setUserMap: any;
+  setUserMap: Dispatch<SetStateAction<UserMap>>;
+  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
   const [feed, setFeed] = useState<EventWithSeen[]>([]);
@@ -50,6 +53,11 @@ export function useLatestFeed({
         break;
 
       case WellKnownEventKind.text_note:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+        
         setFeed(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
