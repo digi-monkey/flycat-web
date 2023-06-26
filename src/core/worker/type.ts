@@ -17,58 +17,9 @@ export enum CallRelayType {
   batch, // multiple specific relays in an array
 }
 
-export enum ToWorkerMessageType {
-  SWITCH_RELAYS = 'switchRelays',
-  ADD_RELAY_URL = 'addRelayUrl',
-  GET_RELAY_GROUP_ID = 'getRelayGroupId',
-  PULL_RELAY_STATUS = 'pullRelayStatus',
-  DISCONNECT = 'disconnect',
-  CALL_API = 'execApiMethod',
-  CLOSE_PORT = 'closePort',
-}
-
 export interface SwitchRelays {
   id: string;
   relays: Relay[];
-}
-
-export interface ToWorkerMessageData {
-  switchRelays?: SwitchRelays;
-  urls?: string[]; // addRelay calldata
-
-  // call api
-  callMethod?: string;
-  callData?: any[];
-  callRelayType?: CallRelayType;
-  callRelayUrls?: string[];
-
-  portId: number;
-}
-
-export enum FromWorkerMessageType {
-  PORT_ID = 'portId',
-  WS_CONN_STATUS = 'wsConnectStatus',
-  RELAY_GROUP_ID = 'relayGroupId',
-  NOSTR_DATA = 'nostrData',
-}
-
-export interface FromWorkerMessageData {
-  relayGroupId?: string;
-  wsConnectStatus?: WsConnectStatus;
-  nostrData?: any;
-  relayUrl?: string; // hint which relay the nostrData is coming from
-
-  portId?: number;
-}
-
-export interface ToPostMsg {
-  data: ToWorkerMessageData;
-  type: ToWorkerMessageType;
-}
-
-export interface FromPostMsg {
-  data: FromWorkerMessageData;
-  type: FromWorkerMessageType;
 }
 
 //-----
@@ -78,7 +29,7 @@ export type FromConsumerMsg =
   | { type: FromConsumerMsgType.switchRelays; data: SwitchRelayMsg }
   | { type: FromConsumerMsgType.pullRelayInfo; data: PullRelayInfoMsg }
   | { type: FromConsumerMsgType.disconnect; data: DisconnectMsg }
-  | { type: FromConsumerMsgType.closePort; data: ClosePortMsg }
+  | { type: FromConsumerMsgType.closePort; data: ClosePortMsg };
 
 export enum FromConsumerMsgType {
   subFilter,
@@ -86,7 +37,7 @@ export enum FromConsumerMsgType {
   switchRelays,
   pullRelayInfo,
   closePort,
-  disconnect
+  disconnect,
 }
 
 export interface SubFilterMsg {
@@ -119,13 +70,12 @@ export interface ClosePortMsg {
   portId: number;
 }
 
-
 //----
 export type FromProducerMsg =
   | { type: FromProducerMsgType.event; data: SubFilterResultMsg }
   | { type: FromProducerMsgType.pubResult; data: PubEventResultMsg }
   | { type: FromProducerMsgType.portId; data: PortIdMsg }
-  | {type: FromProducerMsgType.relayInfo, data: RelayInfoMsg }
+  | { type: FromProducerMsgType.relayInfo; data: RelayInfoMsg };
 
 export enum FromProducerMsgType {
   event,
@@ -133,7 +83,7 @@ export enum FromProducerMsgType {
   portId,
   relayInfo,
   notice,
-  authChallenge
+  authChallenge,
 }
 
 export interface SubFilterResultMsg {
@@ -161,4 +111,3 @@ export interface RelayInfoMsg {
   relays: Relay[];
   portId: number;
 }
-
