@@ -13,7 +13,6 @@ import { Event } from 'core/nostr/Event';
 
 export function handleEvent(
   worker,
-  isLoggedIn,
   userMap,
   myPublicKey,
   setUserMap,
@@ -57,24 +56,6 @@ export function handleEvent(
 
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
-
-            // check if need to sub new user metadata
-            const newPks: string[] = [];
-            for (const t of event.tags) {
-              if (isEventPTag(t)) {
-                const pk = t[1];
-                if (userMap.get(pk) == null) {
-                  newPks.push(pk);
-                }
-              }
-            }
-            if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
-                type: CallRelayType.single,
-                data: [relayUrl!],
-              });
-              sub?.iterating({ cb: handleEvent });
-            }
 
             // save event
             const newItems = [

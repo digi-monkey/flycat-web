@@ -64,7 +64,15 @@ export class WS {
     this.subscriptionFilters.set(subId, filter);
 
     this.processSubFilter(subId);
-    return createSubscriptionEventStream(this._ws, subId, (id:string)=>this.releaseActiveSubscription(id));
+
+    const onUnsubscribe = (id:string)=>{
+      if(this.pendingSubscriptions.has(id)){
+        this.pendingSubscriptions.removeItem(id);
+        return;
+      }
+      this.releaseActiveSubscription(id);
+    }
+    return createSubscriptionEventStream(this._ws, subId, onUnsubscribe);
   }
 
   subNotice() {

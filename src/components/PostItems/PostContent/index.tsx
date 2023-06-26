@@ -1,5 +1,6 @@
 import { isEventSubResponse } from 'core/nostr/util';
 import {
+  EventMap,
   EventSubResponse,
   EventTags,
   WellKnownEventKind
@@ -23,6 +24,7 @@ import { EventWithSeen } from 'pages/type';
 
 interface PostContentProp {
   ownerEvent: Event;
+  eventMap: EventMap;
   userMap: UserMap;
   worker: CallWorker;
   showLastReplyToEvent?: boolean;
@@ -30,6 +32,7 @@ interface PostContentProp {
 
 export const PostContent: React.FC<PostContentProp> = ({
   userMap,
+  eventMap,
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
@@ -67,7 +70,24 @@ export const PostContent: React.FC<PostContentProp> = ({
       }).pop();
       
     if (lastReply) {
-      const handler = worker.subMsgByEventIds([lastReply.id], "lastRelay"+lastReply.id)!;
+      /*
+      const event = await OneTimeWebSocketClient.fetchEvent({
+        eventId: lastReply.id,
+        relays: worker.relays.map(r=>r.url),
+      });
+      if(event){
+        setLastReplyToEvent(event);
+        return;
+      }
+      */
+
+      if(eventMap.get(lastReply.id)){
+        setLastReplyToEvent(eventMap.get(lastReply.id));
+        return;
+      }
+
+      /* 
+      const handler = worker.subMsgByEventIds([lastReply.id])!;
       const dataStream = handler.getIterator();
       let result: Event | undefined;
       for await (const data of dataStream) {
@@ -89,6 +109,8 @@ export const PostContent: React.FC<PostContentProp> = ({
         setLastReplyToEvent(result);
         return;
       }
+      */
+      
 
       // fallback
       if (lastReply.relay && lastReply.relay !== '') {

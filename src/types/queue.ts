@@ -17,6 +17,13 @@ export class Queue<T> {
     return this.items.shift();
   }
 
+  removeItem(item: T){
+    const index = this.items.indexOf(item);
+    if (index !== -1) {
+      this.items.splice(index, 1);
+    }
+  }
+
   isEmpty(): boolean {
     return this.items.length === 0;
   }

@@ -85,6 +85,7 @@ export function createSubscriptionEventStream(
   };
 
   const startTimeout = () => {
+    // todo: only when active subscription start this timeout
     timeoutId = setTimeout(() => {
       if (observer) {
         console.log("timeout!!", webSocket.url);

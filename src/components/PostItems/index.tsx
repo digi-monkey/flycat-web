@@ -1,6 +1,6 @@
 import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
-import { UserMap } from 'core/nostr/type';
+import { EventMap, UserMap } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
 
@@ -22,11 +22,12 @@ interface PostItemsProps {
   msgList: EventWithSeen[], 
   worker: CallWorker, 
   userMap: UserMap, 
+  eventMap: EventMap,
   relays: string[],
   showLastReplyToEvent?: boolean;
 }
 
-const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays, showLastReplyToEvent=true }) => {
+const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, eventMap, relays, showLastReplyToEvent=true }) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
   return <>
@@ -43,7 +44,7 @@ const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, relays,
             {
               Nip23.isBlogPost(msg) ? <PostArticle userAvatar={getUser(msg)?.picture || ''} userName={getUser(msg)?.name || ''} event={msg} /> : 
               Nip23.isBlogCommentMsg(msg) ? <>长文的评论</> : 
-              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker} showLastReplyToEvent={showLastReplyToEvent}/>
+              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker} eventMap={eventMap} showLastReplyToEvent={showLastReplyToEvent}/>
             }
             <PostReactions ownerEvent={msg} worker={worker} seen={[]} userMap={userMap} />
           </div>

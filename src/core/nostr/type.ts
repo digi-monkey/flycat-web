@@ -198,6 +198,10 @@ export type UserMap = Map<
   EventSetMetadataContent & { created_at: number }
 >;
 
+export type EventMap = Map<EventId, Event>;
+
+export type ContactList = { keys: PublicKey[]; created_at: number };
+
 export interface EventPubResult {
   isSuccess: boolean;
   reason?: string;
