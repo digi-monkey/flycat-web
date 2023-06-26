@@ -18,11 +18,13 @@ import {
   PublicKey,
   EventTags,
   EventContactListPTag,
-  ContactInfo, UserMap, EventMap
+  ContactInfo,
+  UserMap,
+  EventMap,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Tabs } from 'antd';
+import { Avatar, Button, Input, Tabs } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -30,7 +32,6 @@ import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import { useLastReplyEvent } from './hooks';
-
 
 type UserParams = {
   publicKey: PublicKey;
@@ -41,7 +42,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
- 
+
   const [msgList, setMsgList] = useState<Event[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
@@ -273,7 +274,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     worker,
     userMap,
     setUserMap,
-    setEventMap
+    setEventMap,
   });
 
   const followUser = async () => {
@@ -435,6 +436,24 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   return (
     <BaseLayout>
       <Left>
+        <div className={styles.pageTitle}>
+          <div className={styles.titleBox}>
+            <div className={styles.arrow}>
+              {' '}
+              <Icon
+                style={{ width: '24px', height: '24px' }}
+                type="icon-arrow-left"
+              ></Icon>{' '}
+            </div>
+            <div className={styles.title}>
+              {userMap.get(publicKey)?.name}&apos;s profile
+            </div>
+          </div>
+          <div>
+            <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+          </div>
+        </div>
+
         {userMap.get(publicKey)?.banner && (
           <div className={styles.banner}>
             <img src={userMap.get(publicKey)?.banner} alt="" />
@@ -484,14 +503,22 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <ul>
             {userContactList?.keys.slice(0, 5).map(key => (
               <li key={key} className={styles.followingList}>
-                <Avatar src={userMap.get(key)?.picture} alt="" />
-                <div>{userMap.get(key)?.name}</div>
-                <Icon type="icon-more-horizontal" className={styles.icon} />
+                <div className={styles.user}>
+                  <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
+                  <div>{userMap.get(key)?.name}</div>
+                </div>
+                <div>
+                  <Icon type="icon-more-horizontal" className={styles.icon} />
+                </div>
               </li>
             ))}
           </ul>
-          <div>
-            <Button onClick={()=>window.location.href = "/contact/"+publicKey}>View all {userContactList?.keys.length}</Button>
+          <div className={styles.viewBtnContainer}>
+            <Button
+              onClick={() => (window.location.href = '/contact/' + publicKey)}
+            >
+              View all {userContactList?.keys.length}
+            </Button>
           </div>
         </div>
       </Right>

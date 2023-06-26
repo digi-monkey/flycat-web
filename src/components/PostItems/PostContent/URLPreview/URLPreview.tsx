@@ -1,21 +1,34 @@
 import { UrlMetadata } from 'core/ogp';
+import { getBaseUrl, maxStrings } from 'utils/common';
 
-import Link from 'next/link';
 import styles from './index.module.scss';
 
 const URLPreview = ({ image, title, url, description }: UrlMetadata) => {
-  return <div className={styles.preview}>
-    {image && (
-      <div style={{ width: '100px', height: '100px', marginRight: '10px' }}>
-        <img src={image} alt={title} style={{ maxWidth: '100px', maxHeight: '100%' }} />
+  return (
+    <div
+      className={styles.preview}
+      onClick={() => {
+        window.open(url, "_blank");
+      }}
+    >
+      <div>
+        {<div className={styles.baseUrl}>{getBaseUrl(url!)}</div>}
+        {title && (
+          <div className={styles.siteTitle}>{maxStrings(title, 45)}</div>
+        )}
+        {description && (
+          <div className={styles.siteDescription}>
+            {maxStrings(description, 100)}
+          </div>
+        )}
       </div>
-    )}
-    <div>
-      {title && ( <span style={{ fontSize: '16px', marginBottom: '5px', display: 'block' }}>{title}</span> )}
-      {url && <Link href={url}>{url.slice(0, 100)}..</Link>}
-      {description && <p style={{ fontSize: '12px', color: 'gray' }}>{description.slice(0,100)}..</p>}
+      {image && (
+        <div className={styles.cover}>
+          <img src={image} alt={title} />
+        </div>
+      )}
     </div>
-  </div>
-}
+  );
+};
 
 export default URLPreview;

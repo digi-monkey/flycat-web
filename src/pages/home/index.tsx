@@ -21,6 +21,7 @@ import PubNoteTextarea from 'components/PubNoteTextarea';
 import PostItems from 'components/PostItems';
 
 import styles from './index.module.scss';
+import PageTitle from 'components/PageTitle';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -107,6 +108,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   return (
     <BaseLayout>
       <Left>
+        <PageTitle title={"Home"}/>
         <PubNoteTextarea />
         <div className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0

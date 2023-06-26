@@ -12,6 +12,7 @@
   .content{
     padding-left: calc(var(--padding) * 14);
     margin-top: var(--basePadding3);
-    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
   }
 }

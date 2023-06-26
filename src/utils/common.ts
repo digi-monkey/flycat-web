@@ -23,3 +23,9 @@ export function maxStrings(str: string, maxLen = 100) {
     return str;
   }
 }
+
+export function getBaseUrl(str: string){
+  const url = new URL(str);
+  const baseUrl = url.hostname;
+  return baseUrl;
+}

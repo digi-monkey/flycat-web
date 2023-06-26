@@ -7,6 +7,9 @@ import { useState } from 'react';
 import { EventMap, UserMap } from 'core/nostr/type';
 import { LatestFeed } from './latestFeed';
 import { BestLongFormFeed } from './bestLongFormFeed';
+import PageTitle from 'components/PageTitle';
+
+import styles from './index.module.scss';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -60,15 +63,15 @@ const Explore = () => {
   return (
     <BaseLayout>
       <Left>
-        <div>
-          <span style={{ fontWeight: 'bold' }}>Explore</span>
-          <span style={{ float: 'right' }}>
+        <div className={styles.header}>
+          <PageTitle title={'Explore'} />
+          <div>
             <Segmented
               value={selectedOption}
               onChange={handleOptionChange}
               options={['Latest', 'Hot', 'Best long-form']}
             />
-          </span>
+          </div>
         </div>
         <div>{renderContent()}</div>
       </Left>

@@ -2,8 +2,9 @@
   background: #f2f2f2;
   left: 56px;
   top: 0px;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: var(--basePadding3);
+  padding: var(--basePadding3);
+  margin: var(--basePadding3) 0px;
 
   .user {
     font-family: 'Noto Sans';
@@ -15,9 +16,16 @@
     &:hover{
       text-decoration: underline;
     }
+
+    .name{
+      padding-left: var(--basePadding3);
+    }
   }
   .content{
     cursor: pointer; 
+    white-space: pre-line;
+    word-wrap: break-word;
+    margin-top: var(--basePadding3);
   }
 }
 
@@ -29,5 +37,5 @@
 }
 
 .contentText {
-  white-space: pre-wrap;
+  white-space: pre-line;
 }

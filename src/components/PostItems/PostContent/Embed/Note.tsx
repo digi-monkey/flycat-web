@@ -12,7 +12,7 @@ export const Note = (note: NoteResult) => {
     return (
       <div className={styles.refNote}>
         <div>
-          <Avatar src={''} alt="picture" /> @
+          <Avatar src={''} alt="picture" /> 
           {shortifyPublicKey(note.noteEvent.pubkey)}
         </div>
         {note.noteEvent.content}

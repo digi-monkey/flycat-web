@@ -15,7 +15,9 @@ export function UrlPreview({ url }: PreviewProps) {
   useEffect(() => {
     async function fetchData() {
       try {
-        setData(await getUrlMetadata(url));
+        const data = await getUrlMetadata(url);
+        data.url = data.url || url;
+        setData(data);
       } catch (error) {
         console.error(error);
       }

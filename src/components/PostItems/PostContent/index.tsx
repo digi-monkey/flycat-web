@@ -66,47 +66,10 @@ export const PostContent: React.FC<PostContentProp> = ({
       }).pop();
       
     if (lastReply) {
-      /*
-      const event = await OneTimeWebSocketClient.fetchEvent({
-        eventId: lastReply.id,
-        relays: worker.relays.map(r=>r.url),
-      });
-      if(event){
-        setLastReplyToEvent(event);
-        return;
-      }
-      */
-
       if(eventMap.get(lastReply.id)){
         setLastReplyToEvent(eventMap.get(lastReply.id));
         return;
       }
-
-      /* 
-      const handler = worker.subMsgByEventIds([lastReply.id])!;
-      const dataStream = handler.getIterator();
-      let result: Event | undefined;
-      for await (const data of dataStream) {
-        const event = data.event;
-
-          if (event.kind !== WellKnownEventKind.text_note) continue;
-
-          if (!result) {
-            result = event;
-          }
-
-          if (result && result.created_at < event.created_at) {
-            result = event;
-          }
-      }
-      dataStream.unsubscribe();
-
-      if (result) {
-        setLastReplyToEvent(result);
-        return;
-      }
-      */
-      
 
       // fallback
       if (lastReply.relay && lastReply.relay !== '') {
@@ -149,8 +112,10 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
   return (
     <div className={styles.replyEvent}>
       <div className={styles.user} onClick={clickUserProfile}>
-        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" /> @
-        {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
+        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" />
+        <span className={styles.name}>
+          {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
+        </span>
       </div>
       <div className={styles.content} onClick={clickEventBody}>
         {event.content}
