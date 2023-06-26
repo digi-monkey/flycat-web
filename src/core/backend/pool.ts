@@ -1,4 +1,3 @@
-import { randomSubId } from 'core/worker/util';
 import { isEventSubResponse } from 'core/nostr/util';
 import { EventSubResponse, Filter } from 'core/nostr/type';
 import { NodeWsApi } from './api';
@@ -6,6 +5,7 @@ import { CallRelayType, WsConnectStatus } from 'core/worker/type';
 import { MessageEvent, ErrorEvent } from 'ws';
 import { NostrFilterMessage } from './types';
 import EventEmitter from 'events';
+import { randomSubId } from 'utils/common';
 
 export class WorkerEventEmitter extends EventEmitter {}
 

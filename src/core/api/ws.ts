@@ -1,4 +1,3 @@
-import { randomSubId } from '../worker/util';
 import {
   ClientRequestType,
   EventPubRequest,
@@ -15,6 +14,7 @@ import {
   createSubscriptionEventStream,
   createSubscriptionNoticeStream,
 } from './sub';
+import { randomSubId } from 'utils/common';
 
 export class WS {
   private _ws: WebSocket;

@@ -1,4 +1,3 @@
-import { randomSubId } from 'core/worker/util';
 import { isEventSubResponse, isFilterEqual } from 'core/nostr/util';
 import {
   AuthPubRequest,
@@ -20,6 +19,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import WebSocket, {MessageEvent, CloseEvent, OpenEvent, ErrorEvent} from 'ws';
+import { randomSubId } from 'utils/common';
 
 export interface NodeWsApiHandler {
   onMsgHandler?: (evt: MessageEvent) => any;

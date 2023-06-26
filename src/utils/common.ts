@@ -1,6 +1,12 @@
+import { generateRandomBytes } from 'core/crypto';
+import { HexStr } from 'types';
 import { v4 as uuidv4 } from 'uuid';
 
 export const getDraftId = () => uuidv4();
+
+export function randomSubId(size = 8): HexStr {
+  return generateRandomBytes(size);
+}
 
 export const stringHasImageUrl = (str) => {
   const imageUrlRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i;

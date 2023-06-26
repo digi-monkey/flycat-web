@@ -75,7 +75,11 @@ export type FromProducerMsg =
   | { type: FromProducerMsgType.event; data: SubFilterResultMsg }
   | { type: FromProducerMsgType.pubResult; data: PubEventResultMsg }
   | { type: FromProducerMsgType.portId; data: PortIdMsg }
-  | { type: FromProducerMsgType.relayInfo; data: RelayInfoMsg };
+  | { type: FromProducerMsgType.relayInfo; data: RelayInfoMsg }
+  | {
+      type: FromProducerMsgType.relaySwitchedAlert;
+      data: RelaySwitchedAlertMsg;
+    };
 
 export enum FromProducerMsgType {
   event,
@@ -84,6 +88,7 @@ export enum FromProducerMsgType {
   relayInfo,
   notice,
   authChallenge,
+  relaySwitchedAlert,
 }
 
 export interface SubFilterResultMsg {
@@ -110,4 +115,10 @@ export interface RelayInfoMsg {
   id: string;
   relays: Relay[];
   portId: number;
+}
+
+export interface RelaySwitchedAlertMsg {
+  id: string;
+  relays: Relay[];
+  triggerByPortId: number;
 }

@@ -1,4 +1,3 @@
-import { randomSubId } from 'core/worker/util';
 import {
   EventId,
   Filter,
@@ -29,6 +28,7 @@ import {
   createPubEventResultStream,
   createSubFilterResultStream,
 } from './sub';
+import { randomSubId } from 'utils/common';
 
 export type OnWsConnStatus = (wsConnStatus: WsConnectStatus) => any;
 

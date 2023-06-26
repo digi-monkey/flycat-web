@@ -80,7 +80,7 @@ export class Pool {
           ws.onError(onerror);
           ws.addCloseListener(onclose);
 
-          this.wsConnectStatus.set(relayUrl, false);
+          this.wsConnectStatus.set(relayUrl, ws.isConnected());
           this.wsList.push(ws);
         }
       });
