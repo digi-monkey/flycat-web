@@ -47,3 +47,8 @@ export function getFooterMenus() {
     label: 'Manage Relays..'
   }]
 }
+
+export function isFastestRelayOutdated(timestamp: number, threshold: number = 5 * 60 * 1000): boolean {
+  const currentTime = Date.now();
+  return currentTime - timestamp > threshold;
+}

@@ -96,6 +96,47 @@ export class ConnPool {
     await Promise.all(requestPromises);
     return results.filter(r => r!=null);
   }
+
+  private async benchmark(url: string, getTime: (p: {url: string, t?: number, isFailed: boolean})=>any, db: RelayPoolDatabase, progressCb?: (restCount: number) => any){
+    if(progressCb){
+      progressCb(this.activeConn.getSize() + this.pendingConn.size())
+    }
+
+    try {
+      const time = await wsConnectMilsec(url);
+      db.incrementSuccessCount(url);
+      getTime({url, t: time, isFailed: false});
+    } catch (error) {
+      console.debug('ws error: ', error);
+      db.incrementFailureCount(url);
+      getTime({url, isFailed: false});
+    } finally {
+      this.activeConn.removeItem(url);
+      const next = this.pendingConn.dequeue();
+      if(next){
+        this.activeConn.addItem(next);
+        await this.benchmark(next, getTime, db, progressCb);
+      }
+    }
+  }
+
+  public async benchmarkConcurrently(
+    progressCb?: (restCount: number) => any
+  ): Promise<{url: string, t?: number, isFailed: boolean}[]> {
+    const results: {url: string, t?: number, isFailed: boolean}[] = [];
+    const db = new RelayPoolDatabase();
+
+    const getTime = async (res: {url: string, t?: number, isFailed: boolean}) => {
+      results.push(res);
+    };
+
+    const requestPromises = this.activeConn.getItems().map(async url => {
+      await this.benchmark(url, getTime, db, progressCb);
+    });
+
+    await Promise.all(requestPromises);
+    return results.filter(r => r!=null);
+  }
 }
 
 function getTimeoutPromise(timeoutMs: number, msg: string) {
@@ -112,6 +153,33 @@ export function connectWebSocket(url: string, timeoutMs = 5000): Promise<WS> {
 
     socket._ws.onopen = () => {
       resolve(socket);
+    };
+
+    socket._ws.onerror = (error) => {
+      reject(error);
+    };
+
+    socket._ws.onclose = () => {
+      reject("closed!");
+    };
+
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+      reject("Connection timed out!");
+    }, timeoutMs);
+  });
+}
+
+export function wsConnectMilsec(url: string, timeoutMs = 5000): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const startTime = performance.now();
+    const socket = new WS(url,10,false);
+
+    socket._ws.onopen = () => {
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
+      resolve(executionTime);
+      socket.close();
     };
 
     socket._ws.onerror = (error) => {

@@ -84,6 +84,15 @@ export function RelaySelector({
     });
   };
 
+  const progressEnd = () => {
+    messageApi.open({
+      key: messageKey,
+      type: 'success',
+      content: `done!`,
+      duration: 1,
+    });
+  };
+
   useLoadSelectedStore(myPublicKey, setSelectedValue);
   useGetSwitchRelay(
     myPublicKey,
@@ -91,6 +100,7 @@ export function RelaySelector({
     selectedValue,
     setSwitchRelays,
     progressCb,
+    progressEnd
   );
 
   // detect if other page switch the relay

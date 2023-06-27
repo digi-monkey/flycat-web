@@ -72,56 +72,26 @@ export class RelayPool {
     return this.relays;
   }
 
-  static async benchmark(urls: string[]): Promise<BenchmarkResult> {
-    return new Promise(resolve => {
-      let completedCount = 0;
-      const results: BenchmarkResult = {};
+  static async benchmark(urls: string[], progressCb?: (rest:number)=>any): Promise<BenchmarkResult> {
+    const results: BenchmarkResult = {};
 
-      const checkBenchmarkCompletion = () => {
-        if (completedCount === urls.length) {
-          return resolve(results);
-        }
-      };
-
-      // todo: impl a queue to avoid resource insufficient
-      urls.forEach(url => {
-        const start = performance.now();
-        const socket = new WebSocket(url);
-
-        socket.onopen = () => {
-          completedCount++;
-          checkBenchmarkCompletion();
-
-          const delay = Math.round(performance.now() - start);
-          results[url] = {
-            benchmark: delay,
-            isFailed: false,
-          };
-          socket.close();
-        };
-
-        socket.onerror = () => {
-          completedCount++;
-          checkBenchmarkCompletion();
-
-          const delay = 10000000000000000;
-          results[url] = {
-            benchmark: delay,
-            isFailed: true,
-          };
-
-          socket.close();
-        };
-      });
-    });
+    const pool = new ConnPool();
+    pool.addConnections(urls);
+    const res = await pool.benchmarkConcurrently(progressCb);
+    for(const r of res){
+      results[r.url] = {benchmark: r.t || 100000000000, isFailed: r.isFailed}
+    }
+     return results;
   }
 
-  static async getFastest(urls: string[]) {
-    const benchmarkMap = await this.benchmark(urls);
-    console.log(benchmarkMap);
+  static async getFastest(urls: string[], progressCb?: (rest:number)=>any) {
+    const start = performance.now();
+    const benchmarkMap = await this.benchmark(urls, progressCb);
     const sorted = Object.entries(benchmarkMap).sort(
       (a, b) => a[1].benchmark - b[1].benchmark,
     );
+    const end = performance.now();
+    console.log("benchmark: ", sorted, "take time(seconds):", (end-start)/1000);
     return sorted[0];
   }
 

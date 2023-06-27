@@ -6,13 +6,15 @@ import { RelayPool } from 'core/relay/pool';
 import { SwitchRelays } from 'core/worker/type';
 import { RelayGroupMap } from 'core/relay/group/type';
 import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { isFastestRelayOutdated } from '../util';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
   groups: RelayGroupMap,
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
-  progressCb?: (restCount: number) => any
+  progressCb?: (restCount: number) => any,
+  progressEnd?: ()=>any
 ) {
   const store = new RelaySelectorStore();
 
@@ -36,6 +38,9 @@ export function useGetSwitchRelay(
         contactList.push(myPublicKey);
       }
       const relays = await relayPool.getAutoRelay(seeds, contactList, myPublicKey, progressCb);
+      if(progressEnd){
+        progressEnd();
+      }
 
       store.saveAutoRelayResult(
         myPublicKey,
@@ -57,19 +62,30 @@ export function useGetSwitchRelay(
     }
 
     if (mode === RelayMode.fastest) {
+      const savedResult = store.loadFastestRelayResult(myPublicKey);
+      if (savedResult && !isFastestRelayOutdated(savedResult.updated_at)) {
+        return {
+          id: mode,
+          relays: savedResult.relays,
+        };
+      }
+
       const relayPool = new RelayPool();
       const allRelays = await relayPool.getAllRelays();
-      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url));
+      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url), progressCb);
+      if(progressEnd){
+        progressEnd();
+      }
+
+      const relays = [{ url: fastest[0], read: true, write: true }];
+      store.saveFastestRelayResult(
+        myPublicKey,
+        relays
+      );
 
       return {
         id: mode,
-        relays: [
-          {
-            url: fastest[0],
-            read: true,
-            write: true,
-          },
-        ],
+        relays,
       };
     }
 
