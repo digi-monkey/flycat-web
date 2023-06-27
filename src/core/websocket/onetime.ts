@@ -7,7 +7,7 @@ import {
   EventPTag
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { ConnPool } from 'core/relay/connection/pool';
+import { ConnPool } from 'core/api/pool';
 import { WS } from 'core/api/ws';
 
 // the main websocket handler is in the shared-worker across all the pages(see worker/worker0.ts worker1.ts callWorker.ts)
@@ -20,10 +20,9 @@ export class OneTimeWebSocketClient {
     pubkey: PublicKey;
     relays: string[];
   }) {
-    const sub = new ConnPool();
-    sub.addConnections(relays);
-    const fn = async (conn: WebSocket) => {
-      const ws = new WS(conn);
+    const pool = new ConnPool();
+    pool.addConnections(relays);
+    const fn = async (ws: WS) => {
       const dataStream = ws.subFilter({
         kinds: [WellKnownEventKind.set_metadata],
         limit: 1,
@@ -37,9 +36,10 @@ export class OneTimeWebSocketClient {
           result = data;
         }
       }
+      dataStream.unsubscribe();
       return result;
     };
-    const results = (await sub.executeConcurrently(fn)) as Event[];
+    const results = (await pool.executeConcurrently(fn)) as Event[];
     if (results.length === 0) return null;
 
     const profileEvent = results.reduce((acc, curr) => {
@@ -63,10 +63,9 @@ export class OneTimeWebSocketClient {
     pubkey: PublicKey;
     relays: string[];
   }) {
-    const sub = new ConnPool();
-    sub.addConnections(relays);
-    const fn = async (conn: WebSocket) => {
-      const ws = new WS(conn);
+    const pool = new ConnPool();
+    pool.addConnections(relays);
+    const fn = async (ws: WS) => {
       const dataStream = ws.subFilter({
         kinds: [WellKnownEventKind.contact_list],
         limit: 1,
@@ -83,7 +82,7 @@ export class OneTimeWebSocketClient {
       dataStream.unsubscribe();
       return result;
     };
-    const results = (await sub.executeConcurrently(fn)) as Event[];
+    const results = (await pool.executeConcurrently(fn)) as Event[];
     if (results.length === 0) return null;
 
     const newestContactListEvent = results.reduce((acc, curr) => {
@@ -106,10 +105,9 @@ export class OneTimeWebSocketClient {
     eventId: string;
     relays: string[];
   }) {
-    const sub = new ConnPool();
-    sub.addConnections(relays);
-    const fn = async (conn: WebSocket) => {
-      const ws = new WS(conn);
+    const pool = new ConnPool();
+    pool.addConnections(relays);
+    const fn = async (ws: WS) => {
       const dataStream = ws.subFilter({
         ids: [eventId],
         limit: 1,
@@ -125,7 +123,7 @@ export class OneTimeWebSocketClient {
       dataStream.unsubscribe();
       return result;
     };
-    const results = (await sub.executeConcurrently(fn)) as Event[];
+    const results = (await pool.executeConcurrently(fn)) as Event[];
     if (results.length === 0) return null;
 
     const event = results.reduce((acc, curr) => {
@@ -150,10 +148,9 @@ export class OneTimeWebSocketClient {
     pubkey: PublicKey;
     relays: string[];
   }) {
-    const sub = new ConnPool();
-    sub.addConnections(relays);
-    const fn = async (conn: WebSocket) => {
-      const ws = new WS(conn);
+    const pool = new ConnPool();
+    pool.addConnections(relays);
+    const fn = async (ws: WS) => {
       const dataStream = ws.subFilter({
         kinds: [kind],
         '#d': [identifier],
@@ -171,7 +168,7 @@ export class OneTimeWebSocketClient {
       dataStream.unsubscribe();
       return result;
     };
-    const results = (await sub.executeConcurrently(fn)) as Event[];
+    const results = (await pool.executeConcurrently(fn)) as Event[];
     if (results.length === 0) return null;
 
     const event = results.reduce((acc, curr) => {

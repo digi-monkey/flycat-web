@@ -17,7 +17,7 @@ import {
 import { randomSubId } from 'utils/common';
 
 export class WS {
-  private _ws: WebSocket;
+  public _ws: WebSocket;
   public url: string;
   public maxSub: number;
   public reconnectIdleSecs: number;

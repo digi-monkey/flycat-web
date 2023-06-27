@@ -503,8 +503,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
         <div className={styles.following}>
           <div className={styles.followingTitle}>Followings</div>
-          <ul>
-            {userContactList?.keys.slice(0, 5).map(key => (
+          {userContactList?.keys.slice(0, 5).map(key => (
               <li key={key} className={styles.followingList}>
                 <div className={styles.user}>
                   <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
@@ -515,7 +514,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                 </div>
               </li>
             ))}
-          </ul>
           <div className={styles.viewBtnContainer}>
             <Button
               onClick={() => (window.location.href = '/contact/' + publicKey)}

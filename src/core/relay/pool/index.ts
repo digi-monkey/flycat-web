@@ -2,7 +2,7 @@ import { ImageProvider } from 'core/api/img';
 import { PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { Relay, RelayTracker } from '../type';
-import { ConnPool } from '../connection/pool';
+import { ConnPool } from '../../api/pool';
 import { WS } from '../../api/ws';
 import { PubkeyRelay } from '../auto/pubkey-relay';
 import { Assignment } from '../auto/assignment';
@@ -142,12 +142,11 @@ export class RelayPool {
     progressCb?: (restCount: number) => any,
   ) {
     const connPool = new ConnPool();
-    await connPool.addConnections(urls);
+    connPool.addConnections(urls);
 
     async function getRankData(
-      conn: WebSocket,
+      ws: WS,
     ): Promise<{ url: string; data: Event }[]> {
-      const ws = new WS(conn);
       const dataStream = ws.subFilter({
         kinds: [
           WellKnownEventKind.contact_list,
@@ -161,7 +160,7 @@ export class RelayPool {
       const result: { url: string; data: Event }[] = [];
 
       for await (const data of dataStream) {
-        result.push({ url: conn.url, data });
+        result.push({ url: ws.url, data });
       }
       dataStream.unsubscribe();
       return result;
@@ -248,9 +247,8 @@ export class RelayPool {
     connPool.addConnections(urls);
 
     async function getRelayList(
-      conn: WebSocket,
+      ws: WS,
     ): Promise<{ url: string; data: Event }[]> {
-      const ws = new WS(conn);
       const dataStream = ws.subFilter({
         kinds: [WellKnownEventKind.relay_list],
         limit: pubKeys.length,
@@ -259,7 +257,7 @@ export class RelayPool {
       const result: { url: string; data: Event }[] = [];
 
       for await (const data of dataStream) {
-        result.push({ url: conn.url, data });
+        result.push({ url: ws.url, data });
       }
       dataStream.unsubscribe();
       return result;
@@ -323,7 +321,7 @@ export class RelayPool {
     const bestRelay = (await db.pick(publicKey)).slice(0, 6).map(i => i.relay);
     console.log('bestRelays: ', bestRelay);
     console.log(relays.length, publicKey, contactList.length);
-    return [...bestRelay, ...pickRelays];
+    return filterDuplicateRelayUrl([...bestRelay, ...pickRelays]);
   }
 }
 
@@ -377,6 +375,23 @@ function filterDuplicateRelays(relays: Relay[]): Relay[] {
     const normalizedUrl = relay.url.endsWith('/')
       ? relay.url.slice(0, -1)
       : relay.url;
+    if (!urls.includes(normalizedUrl)) {
+      uniqueRelays.push(relay);
+      urls.push(normalizedUrl);
+    }
+  }
+
+  return uniqueRelays;
+}
+
+function filterDuplicateRelayUrl(relays: string[]): string[] {
+  const uniqueRelays: string[] = [];
+  const urls: string[] = [];
+
+  for (const relay of relays) {
+    const normalizedUrl = relay.endsWith('/')
+      ? relay.slice(0, -1)
+      : relay;
     if (!urls.includes(normalizedUrl)) {
       uniqueRelays.push(relay);
       urls.push(normalizedUrl);
