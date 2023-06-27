@@ -55,7 +55,6 @@ export function useSubFollowingMsg(
     if (!myPublicKey || myPublicKey.length === 0) return;
 
     const pks = myContactList.keys;
-    console.log('contact list length:', myContactList.keys.length);
 
     // subscribe myself msg too
     if (!pks.includes(myPublicKey)) pks.push(myPublicKey);

@@ -34,6 +34,11 @@
     }
   }
   .slot {
-    
+    .more {
+      width: 18px;
+      height: 18px;
+      color: var(--neutral-06);
+      cursor: pointer;
+    } 
   }
 }

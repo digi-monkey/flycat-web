@@ -5,53 +5,93 @@ import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
 
 import Icon from 'components/Icon';
-import styles from "./index.module.scss";
-import PostUser from "./PostUser";
+import styles from './index.module.scss';
+import PostUser from './PostUser';
 import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
 import { PostContent } from './PostContent';
+import { Nip18 } from 'core/nip/18';
+import PostRepost from './PostRepost';
 
 enum PostType {
-  Link = "link",
-  Article = "article",
-  Highlight = "highlight",
-  Reposted = "reposted",
+  Link = 'link',
+  Article = 'article',
+  Highlight = 'highlight',
+  Reposted = 'reposted',
 }
 
 interface PostItemsProps {
-  msgList: EventWithSeen[], 
-  worker: CallWorker, 
-  userMap: UserMap, 
-  eventMap: EventMap,
-  relays: string[],
+  msgList: EventWithSeen[];
+  worker: CallWorker;
+  userMap: UserMap;
+  eventMap: EventMap;
+  relays: string[];
   showLastReplyToEvent?: boolean;
 }
 
-const PostItems: React.FC<PostItemsProps> = ({ msgList, worker, userMap, eventMap, relays, showLastReplyToEvent=true }) => {
+const PostItems: React.FC<PostItemsProps> = ({
+  msgList,
+  worker,
+  userMap,
+  eventMap,
+  relays,
+  showLastReplyToEvent = true,
+}) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
-  return <>
-    { msgList.map((msg) => (
+  return (
+    <>
+      {msgList.map(msg => (
+        Nip18.isRepostEvent(msg) ? (
+          <PostRepost
+            event={msg}
+            userMap={userMap}
+            worker={worker}
+            eventMap={eventMap}
+            showLastReplyToEvent={showLastReplyToEvent}
+            key={msg.id}
+          />
+        ):
         <div className={styles.post} key={msg.id}>
-          <PostUser 
+          <PostUser
             publicKey={msg.pubkey}
             avatar={getUser(msg)?.picture || ''}
             name={getUser(msg)?.name}
             time={msg.created_at}
-            rightNodes={<Icon type='icon-more-vertical' className={styles.more} />}
+            event={msg}
           />
           <div className={styles.content}>
-            {
-              Nip23.isBlogPost(msg) ? <PostArticle userAvatar={getUser(msg)?.picture || ''} userName={getUser(msg)?.name || ''} event={msg} /> : 
-              Nip23.isBlogCommentMsg(msg) ? <>长文的评论</> : 
-              Nip9802.isBlogHighlightMsg(msg) ? <>HighlightMsg</> : <PostContent ownerEvent={msg} userMap={userMap} worker={worker} eventMap={eventMap} showLastReplyToEvent={showLastReplyToEvent}/>
-            }
-            <PostReactions ownerEvent={msg} worker={worker} seen={[]} userMap={userMap} />
+            {Nip23.isBlogPost(msg) ? (
+              <PostArticle
+                userAvatar={getUser(msg)?.picture || ''}
+                userName={getUser(msg)?.name || ''}
+                event={msg}
+                key={msg.id}
+              />
+            ) : Nip23.isBlogCommentMsg(msg) ? (
+              <>长文的评论</>
+            ) : Nip9802.isBlogHighlightMsg(msg) ? (
+              <>HighlightMsg</>
+            ) : (
+              <PostContent
+                ownerEvent={msg}
+                userMap={userMap}
+                worker={worker}
+                eventMap={eventMap}
+                showLastReplyToEvent={showLastReplyToEvent}
+              />
+            )}
+            <PostReactions
+              ownerEvent={msg}
+              worker={worker}
+              seen={[]}
+              userMap={userMap}
+            />
           </div>
-        </div> 
-      ))
-    }
-  </>;
-}
+        </div>
+      ))}
+    </>
+  );
+};
 
 export default PostItems;

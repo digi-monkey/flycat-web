@@ -261,6 +261,7 @@ export class CallWorker {
           WellKnownEventKind.text_note,
           WellKnownEventKind.article_highlight,
           WellKnownEventKind.long_form,
+          WellKnownEventKind.reposts,
         ],
       },
       ...overrides,

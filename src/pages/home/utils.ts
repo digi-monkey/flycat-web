@@ -46,6 +46,7 @@ export function handleEvent(
       case WellKnownEventKind.text_note:
       case WellKnownEventKind.article_highlight:
       case WellKnownEventKind.long_form:
+      case WellKnownEventKind.reposts:
         setMsgList(oldArray => {
           if (
             oldArray.length > maxMsgLength &&

@@ -33,5 +33,9 @@ export class Nip18 {
 		}
     return event;
   }
+
+  static isRepostEvent(repost: Event){
+    return repost.kind === this.kind;
+  }
 }
 

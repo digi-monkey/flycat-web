@@ -29,3 +29,7 @@ export function getBaseUrl(str: string){
   const baseUrl = url.hostname;
   return baseUrl;
 }
+
+export const copyToClipboard = async (text: string) => {
+  await navigator.clipboard.writeText(text);
+};

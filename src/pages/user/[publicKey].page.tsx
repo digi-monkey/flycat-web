@@ -75,6 +75,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         break;
 
       case WellKnownEventKind.text_note:
+      case WellKnownEventKind.reposts:
       case WellKnownEventKind.article_highlight:
         setEventMap(prev => {
           prev.set(event.id, event);
@@ -237,16 +238,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   useEffect(() => {
     // todo: validate publicKey
     if (publicKey && publicKey.length === 0) return;
-    if (newConn.length === 0) return;
 
     const pks = [publicKey];
     if (isLoggedIn && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
-    const callRelay: CallRelay = {
+    const callRelay: CallRelay = newConn.length > 0 ? {
       type: CallRelayType.batch,
       data: newConn,
+    } : {
+      type: CallRelayType.connected,
+      data: [],
     };
     worker
       ?.subContactList(pks, undefined, callRelay)
@@ -260,7 +263,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     worker
       ?.subNip23Posts({ pks: [publicKey], callRelay })
       ?.iterating({ cb: handleEvent });
-  }, [newConn]);
+  }, [newConn, publicKey]);
 
   useEffect(() => {
     if (!worker) return;
