@@ -6,7 +6,6 @@ import { RelayPool } from 'core/relay/pool';
 import { SwitchRelays } from 'core/worker/type';
 import { RelayGroupMap } from 'core/relay/group/type';
 import { OneTimeWebSocketClient } from 'core/websocket/onetime';
-import { CallWorker } from 'core/worker/caller';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
@@ -41,7 +40,7 @@ export function useGetSwitchRelay(
       store.saveAutoRelayResult(
         myPublicKey,
         relays.map(r => {
-          return { url: r, read: false, write: true };
+          return { url: r, read: true, write: true };
         }),
       );
 

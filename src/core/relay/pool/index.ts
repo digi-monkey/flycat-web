@@ -19,7 +19,7 @@ export class RelayPool {
   apiUrl = 'https://api.nostr.watch/v1/online';
   relays: Relay[] = [];
   seeds: string[] = seedRelays;
-  
+
   private api: ImageProvider;
   private db: RelayPoolDatabase;
 
@@ -56,7 +56,7 @@ export class RelayPool {
         }
       }
 
-      return relays;
+      return filterDuplicateRelays(relays);
     }
 
     if (relays.length === 0) {
@@ -66,10 +66,10 @@ export class RelayPool {
       }
     }
 
-    this.relays = relays.sort(
+    this.relays = filterDuplicateRelays(relays).sort(
       (a, b) => RelayTracker.success_rate(a) - RelayTracker.success_rate(b),
     );
-    return relays;
+    return this.relays;
   }
 
   static async benchmark(urls: string[]): Promise<BenchmarkResult> {
@@ -315,7 +315,11 @@ export class RelayPool {
     const pickRelays = await this.pickRelay(relays, contactList);
     console.log('pickRelays: ', pickRelays);
     const allRelays = await this.getAllRelays();
-    await this.getBestRelay(allRelays.map(r=>r.url), publicKey, progressCb);
+    await this.getBestRelay(
+      allRelays.map(r => r.url),
+      publicKey,
+      progressCb,
+    );
     const bestRelay = (await db.pick(publicKey)).slice(0, 6).map(i => i.relay);
     console.log('bestRelays: ', bestRelay);
     console.log(relays.length, publicKey, contactList.length);
@@ -363,4 +367,21 @@ function initPubkeyRelay(pubkey: string, relay: string) {
     score: 0,
   };
   return pubkeyRelay;
+}
+
+function filterDuplicateRelays(relays: Relay[]): Relay[] {
+  const uniqueRelays: Relay[] = [];
+  const urls: string[] = [];
+
+  for (const relay of relays) {
+    const normalizedUrl = relay.url.endsWith('/')
+      ? relay.url.slice(0, -1)
+      : relay.url;
+    if (!urls.includes(normalizedUrl)) {
+      uniqueRelays.push(relay);
+      urls.push(normalizedUrl);
+    }
+  }
+
+  return uniqueRelays;
 }

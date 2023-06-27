@@ -11,6 +11,7 @@ import { EventSetMetadataContent } from 'core/nostr/type';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import styles from './table.module.scss';
+import Icon from 'components/Icon';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -106,12 +107,12 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
     const outdatedRelays = currentRelays.filter(r =>
       RelayTracker.isOutdated(r.lastAttemptNip11Timestamp),
     );
-    if(outdatedRelays.length > 0){
+    if (outdatedRelays.length > 0) {
       message.loading(`update ${outdatedRelays.length} relays info..`);
       details = await Nip11.updateRelays(outdatedRelays);
       message.destroy();
     }
-    
+
     // save the updated relay info
     if (details.length > 0) {
       const db = new RelayPoolDatabase();
@@ -297,7 +298,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   return (
     <div>
-      {relays.length}
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
@@ -325,13 +325,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
           onCancel={handleCloseModal}
         />
       )}
-
-      <Button onClick={handleBenchmark} disabled={isBenchmarking}>
-        Start Benchmark
-      </Button>
-      <Button onClick={handleSort} disabled={!isBenchmarked}>
-        Sort
-      </Button>
     </div>
   );
 };

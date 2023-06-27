@@ -1,0 +1,82 @@
+.btnMenu {
+  display: flex;
+  justify-content: space-between;
+  width: auto;
+  padding: 13px 8px 13px 20px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--neutral-02);
+  border-top: 1px solid var(--neutral-02);
+  color: var(--primary-06, #598022);
+
+  /* Label */
+  font-size: 14px;
+  font-family: Noto Sans;
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-06);
+}
+
+.selectorMenu {
+  background-color: var(--neutral-01);
+}
+.selectorMenuItem {
+  :hover {
+    border-radius: 4px;
+    background: var(--primary-02, #ddeeba);
+  }
+}
+
+.menuText {
+  display: flex;
+  justify-content: space-between;
+  .name {
+    color: var(--neutral-09, #1e1e1e);
+
+    /* Label-bold */
+    font-size: 14px;
+    font-family: Noto Sans;
+    font-weight: 700;
+    line-height: 22px;
+  }
+  .num {
+    color: var(--neutral-06, #787878);
+    text-align: right;
+
+    /* Footnote */
+    font-size: 12px;
+    font-family: Noto Sans;
+    font-weight: 500;
+    line-height: 18px;
+  }
+}
+
+.rightHeader {
+  display: flex;
+  width: auto;
+  padding: 8px 20px;
+  justify-content: space-between;
+  align-items: center;
+
+  .selectedName {
+    color: var(--neutral-09, #1e1e1e);
+
+    /* Label-bold */
+    font-size: 14px;
+    font-family: Noto Sans;
+    font-weight: 700;
+    line-height: 22px;
+  }
+  .searchBar {
+    display: flex;
+    .input {
+      border-radius: 4px;
+      background: var(--neutral-white, #fff);
+    }
+  }
+}
