@@ -16,21 +16,21 @@ export interface BenchmarkResult {
 }
 
 export class RelayPool {
-  public apiUrl = 'https://api.nostr.watch/v1/online';
-  public relays: Relay[] = [];
-  public seedRelays: string[];
-
+  apiUrl = 'https://api.nostr.watch/v1/online';
+  relays: Relay[] = [];
+  seeds: string[] = seedRelays;
+  
   private api: ImageProvider;
   private db: RelayPoolDatabase;
 
   constructor(url?: string) {
     if (url) this.apiUrl = url;
+
     this.api = new ImageProvider(this.apiUrl);
     this.db = new RelayPoolDatabase();
-    this.seedRelays = seedRelays;
   }
 
-  private async fetchApi() {
+  private async fetchOnlineRelays() {
     const res: string[] = await this.api.httpRequest('');
     const relays = res.map(r => {
       return {
@@ -48,7 +48,7 @@ export class RelayPool {
 
     if (alwaysFetch) {
       const urls = relays.map(r => r.url);
-      const newRelays = await this.fetchApi();
+      const newRelays = await this.fetchOnlineRelays();
       for (const r of newRelays) {
         if (!urls.includes(r.url)) {
           this.db.save(r);
@@ -60,13 +60,15 @@ export class RelayPool {
     }
 
     if (relays.length === 0) {
-      relays = await this.fetchApi();
+      relays = await this.fetchOnlineRelays();
       for (const r of relays) {
         this.db.save(r);
       }
     }
 
-    this.relays = relays.sort((a,b)=> RelayTracker.success_rate(a) - RelayTracker.success_rate(b));
+    this.relays = relays.sort(
+      (a, b) => RelayTracker.success_rate(a) - RelayTracker.success_rate(b),
+    );
     return relays;
   }
 
@@ -134,7 +136,11 @@ export class RelayPool {
     return averageBenchmark;
   }
 
-  static async getBestRelay(urls: string[], pubkey: PublicKey, progressCb?: (restCount: number) => any) {
+  async getBestRelay(
+    urls: string[],
+    pubkey: PublicKey,
+    progressCb?: (restCount: number) => any,
+  ) {
     const connPool = new ConnPool();
     await connPool.addConnections(urls);
 
@@ -157,11 +163,16 @@ export class RelayPool {
       for await (const data of dataStream) {
         result.push({ url: conn.url, data });
       }
+      dataStream.unsubscribe();
       return result;
     }
 
     const timeoutMs = 5000;
-    const _results = await connPool.executeConcurrently(getRankData, timeoutMs, progressCb);
+    const _results = await connPool.executeConcurrently(
+      getRankData,
+      timeoutMs,
+      progressCb,
+    );
     const results = ([] as { url: string; data: Event }[]).concat(..._results);
 
     results
@@ -231,12 +242,11 @@ export class RelayPool {
     return sorted;
   }
 
-  static async pickRelay(relayUrls: string[], pubKeys: PublicKey[]) {
-    console.log("pick -->", relayUrls, relayUrls.length, pubKeys.length);
+  async pickRelay(urls: string[], pubKeys: PublicKey[]) {
+    console.log('pick -->', urls.length, pubKeys.length, this.seeds);
     const connPool = new ConnPool();
-    await connPool.addConnections(relayUrls);
+    connPool.addConnections(urls);
 
-  
     async function getRelayList(
       conn: WebSocket,
     ): Promise<{ url: string; data: Event }[]> {
@@ -251,6 +261,7 @@ export class RelayPool {
       for await (const data of dataStream) {
         result.push({ url: conn.url, data });
       }
+      dataStream.unsubscribe();
       return result;
     }
 
@@ -286,37 +297,59 @@ export class RelayPool {
       return lengthB - lengthA;
     });
 
-    console.log(map)
-    return getCoverNeededRelays(map) 
+    console.log(map);
+    return getCoverNeededRelays(map);
     //return sortedKeys.slice(0, 3);
   }
-}
 
-function getCoverNeededRelays(relayPubkeys: Map<string, string[]>){
-  // Assuming your relayPubkeys is a Map<string, string[]>
-const relayPubkeysArray = Array.from(relayPubkeys.entries());
+  async getAutoRelay(
+    relays: string[],
+    contactList: PublicKey[],
+    publicKey: PublicKey,
+    progressCb?: (restCount: number) => any,
+  ) {
+    if (contactList.includes(publicKey)) {
+      contactList.push(publicKey);
+    }
 
-// Sort relays by the number of pubkeys they cover in descending order
-relayPubkeysArray.sort(
-  ([, pubkeysA], [, pubkeysB]) => pubkeysB.length - pubkeysA.length
-);
-
-const selectedRelays = new Set();
-const coveredPubkeys = new Set();
-
-for (const [relay, pubkeys] of relayPubkeysArray) {
-  const uncoveredPubkeys = pubkeys.filter(pubkey => !coveredPubkeys.has(pubkey));
-  
-  if (uncoveredPubkeys.length > 0) {
-    selectedRelays.add(relay);
-    uncoveredPubkeys.forEach(pubkey => coveredPubkeys.add(pubkey));
+    const pickRelays = await this.pickRelay(relays, contactList);
+    console.log('pickRelays: ', pickRelays);
+    const allRelays = await this.getAllRelays();
+    await this.getBestRelay(allRelays.map(r=>r.url), publicKey, progressCb);
+    const bestRelay = (await db.pick(publicKey)).slice(0, 6).map(i => i.relay);
+    console.log('bestRelays: ', bestRelay);
+    console.log(relays.length, publicKey, contactList.length);
+    return [...bestRelay, ...pickRelays];
   }
 }
 
-const numRelays = selectedRelays.size;
-console.log(`You need ${numRelays} relays to cover all the pubkey lists.`);
-console.log(`Selected relays:`, selectedRelays);
-return Array.from(selectedRelays) as string[];
+function getCoverNeededRelays(relayPubkeys: Map<string, string[]>) {
+  // Assuming your relayPubkeys is a Map<string, string[]>
+  const relayPubkeysArray = Array.from(relayPubkeys.entries());
+
+  // Sort relays by the number of pubkeys they cover in descending order
+  relayPubkeysArray.sort(
+    ([, pubkeysA], [, pubkeysB]) => pubkeysB.length - pubkeysA.length,
+  );
+
+  const selectedRelays = new Set();
+  const coveredPubkeys = new Set();
+
+  for (const [relay, pubkeys] of relayPubkeysArray) {
+    const uncoveredPubkeys = pubkeys.filter(
+      pubkey => !coveredPubkeys.has(pubkey),
+    );
+
+    if (uncoveredPubkeys.length > 0) {
+      selectedRelays.add(relay);
+      uncoveredPubkeys.forEach(pubkey => coveredPubkeys.add(pubkey));
+    }
+  }
+
+  const numRelays = selectedRelays.size;
+  console.log(`You need ${numRelays} relays to cover all the pubkey lists.`);
+  console.log(`Selected relays:`, selectedRelays);
+  return Array.from(selectedRelays) as string[];
 }
 
 function initPubkeyRelay(pubkey: string, relay: string) {

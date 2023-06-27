@@ -36,8 +36,8 @@ export function RelayPoolManager() {
     if(contactList == null || contactList.length === 0)return alert("no contactlist");
 
     
-
-      const relays = await RelayPool.pickRelay(seedRelays, contactList);
+    const relayPool = new RelayPool();
+      const relays = await relayPool.pickRelay(seedRelays, contactList);
       console.log("pick relays!", relays);
   }
 

@@ -10,8 +10,10 @@ export class ConnPool {
   }
 
   // Add a new WebSocket connection URL to the pool
-  async addConnections(urls: string[]) {
-    this.urls = urls;
+  addConnections(urls: string[]) {
+    // note: since the executeConcurrently will modify the urls(splice), 
+    // the original urls must be copied instead of passing. 
+    this.urls = [...this.urls, ...urls];
   }
 
   public async executeConcurrently<T>(

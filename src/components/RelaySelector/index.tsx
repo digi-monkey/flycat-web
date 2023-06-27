@@ -75,24 +75,6 @@ export function RelaySelector({
     },
   ];
 
-  const progressBegin = () => {
-    messageApi.open({
-      key: messageKey,
-      type: 'loading',
-      content: 'start auto-select...',
-      duration: 0,
-    });
-  };
-
-  const progressEnd = () => {
-    messageApi.open({
-      key: messageKey,
-      type: 'success',
-      content: 'Loaded!',
-      duration: 1,
-    });
-  };
-
   const progressCb = (restCount: number) => {
     messageApi.open({
       key: messageKey,
@@ -108,8 +90,6 @@ export function RelaySelector({
     relayGroupMap,
     selectedValue,
     setSwitchRelays,
-    progressBegin,
-    progressEnd,
     progressCb,
   );
 

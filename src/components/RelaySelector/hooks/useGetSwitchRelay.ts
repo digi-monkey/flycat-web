@@ -6,14 +6,13 @@ import { RelayPool } from 'core/relay/pool';
 import { SwitchRelays } from 'core/worker/type';
 import { RelayGroupMap } from 'core/relay/group/type';
 import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { CallWorker } from 'core/worker/caller';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
   groups: RelayGroupMap,
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
-	progressBeginCb?: ()=>any,
-	progressEndCb?: ()=>any,
   progressCb?: (restCount: number) => any
 ) {
   const store = new RelaySelectorStore();
@@ -32,24 +31,13 @@ export function useGetSwitchRelay(
       }
 
       const relayPool = new RelayPool();
-
-      let contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: relayPool.seedRelays});
-      if(contactList == null){
-        contactList = [myPublicKey];
+      const seeds =  relayPool.seeds;
+      const contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: ['wss://relay.nostr.band']}) || [];
+      if(!contactList.includes(myPublicKey)){
+        contactList.push(myPublicKey);
       }
-      const allRelays = (await relayPool.getAllRelays()).map(r => r.url);
-      await RelayPool.getBestRelay(allRelays, myPublicKey, progressCb);
-      const bestRelay = (await db.pick(myPublicKey)).slice(0, 6).map(i => i.relay);
+      const relays = await relayPool.getAutoRelay(seeds, contactList, myPublicKey, progressCb);
 
-      const pickRelays = await RelayPool.pickRelay(
-        relayPool.seedRelays,
-        contactList,
-      );
-
-      const relays = [...bestRelay, ...pickRelays];
-      console.log("bestRelay: ", bestRelay, "pick nip-65 relays: ", pickRelays);
-      
-     // const relays = (await db.a(myPublicKey)).slice(0, 6).map(i => i.relay);
       store.saveAutoRelayResult(
         myPublicKey,
         relays.map(r => {
@@ -120,15 +108,8 @@ export function useGetSwitchRelay(
         store.saveSelectedGroupId(myPublicKey, selectedGroup);
       }
 
-			if(progressBeginCb){
-				progressBeginCb();
-			}
 			// a very time-consuming operation
       const switchRelays = await getSwitchRelay(selectedValue);
-
-		  if(progressEndCb){
-				progressEndCb();
-			}	
 
 			// return the result
       cb(switchRelays);

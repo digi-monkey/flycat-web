@@ -75,7 +75,6 @@ export class OneTimeWebSocketClient {
       let result: Event | null = null;
 
       for await (const data of dataStream) {
-        console.log(data);
         if (!result) result = data;
         if (result && result.created_at < data.created_at) {
           result = data;
@@ -94,7 +93,6 @@ export class OneTimeWebSocketClient {
         return acc;
       }
     }, results[0]);
-    console.log("result", results, newestContactListEvent)
 
 		if(newestContactListEvent == null)return null;
 		
