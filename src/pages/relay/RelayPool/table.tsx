@@ -1,5 +1,5 @@
 import { EllipsisOutlined } from '@ant-design/icons';
-import { Avatar, Button, Table, Badge } from 'antd';
+import { Avatar, Button, Table, Badge, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { Nip11 } from 'core/nip/11';
@@ -102,9 +102,16 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       (currentPage - 1) * 10,
       currentPage * 10,
     );
-    const details = await Nip11.updateRelays(
-      currentRelays.filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp)),
+    let details: Relay[] = [];
+    const outdatedRelays = currentRelays.filter(r =>
+      RelayTracker.isOutdated(r.lastAttemptNip11Timestamp),
     );
+    if(outdatedRelays.length > 0){
+      message.loading(`update ${outdatedRelays.length} relays info..`);
+      details = await Nip11.updateRelays(outdatedRelays);
+      message.destroy();
+    }
+    
     // save the updated relay info
     if (details.length > 0) {
       const db = new RelayPoolDatabase();
@@ -162,7 +169,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       title: 'Url',
       dataIndex: 'url',
       key: 'url',
-      render: (url: string) => url.split("wss://")
+      render: (url: string) => url.split('wss://'),
     },
     {
       title: 'Status',

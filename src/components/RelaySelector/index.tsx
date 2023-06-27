@@ -193,8 +193,6 @@ export function RelaySelector({
     setSelectedValue(value);
   };
 
-  //const
-
   return (
     <div className={styles.relaySelector}>
       {contextHolder}

@@ -199,7 +199,6 @@ export class CallWorker {
       callRelay,
       subId,
     };
-    console.log("sub: ", this._workerId, data);
     const msg: FromConsumerMsg = {
       type: FromConsumerMsgType.subFilter,
       data,
@@ -222,7 +221,6 @@ export class CallWorker {
               new Promise<IteratorResult<any>>((resolve) =>
                 setTimeout(() => {
                   resolve({ done: true } as any);
-                  console.log("timeout! itering..");
                 }, TIMEOUT_DURATION)
               )
             ]);
@@ -239,7 +237,6 @@ export class CallWorker {
             }
           }
           
-          console.log("unscribe from iterting...");
           iterator.unsubscribe();
         })();
         

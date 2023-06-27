@@ -112,7 +112,7 @@ export class RelayPoolDatabase implements RelayPoolDB {
 
   incrementSuccessCount(url: string) {
     const relay = this.load(url);
-		console.log(url, "incrementSuccessCount, relay:", relay)
+		//console.log(url, "incrementSuccessCount, relay:", relay)
     if (relay) {
       relay.successCount = (relay.successCount ?? 0) + 1;
       this.save(relay);
@@ -121,7 +121,7 @@ export class RelayPoolDatabase implements RelayPoolDB {
 
   incrementFailureCount(url: string) {
     const relay = this.load(url);
-		console.log(url, "incrementFailureCount, relay:", relay)
+		//console.log(url, "incrementFailureCount, relay:", relay)
     if (relay) {
       relay.failureCount = (relay.failureCount ?? 0) + 1;
       this.save(relay);
