@@ -73,6 +73,7 @@ const PostContent = ({
         </div>
       </div>
 
+      <div className={styles.articleText}>
       <ReactMarkdown
         components={{
           img: ({ node, ...props }) => (
@@ -82,6 +83,7 @@ const PostContent = ({
       >
         {content ?? ''}
       </ReactMarkdown>
+      </div> 
 
       <div className={styles.postTags}>
         {article?.hashTags?.flat(Infinity).map((t, key) => (

@@ -17,7 +17,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   EventSetMetadataContent,
   EventTags,
-  WellKnownEventKind
+  WellKnownEventKind,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import {
@@ -182,7 +182,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       articleIds: [articleId as string],
     });
     worker
-      ?.subFilter({filter, customId: 'article-data', callRelay})
+      ?.subFilter({ filter, customId: 'article-data', callRelay })
       ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
 
@@ -190,7 +190,10 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     if (article == null) return;
 
     worker
-      ?.subFilter({filter: Nip23.toPullCommentFilter(article), customId: 'article-data'})
+      ?.subFilter({
+        filter: Nip23.toPullCommentFilter(article),
+        customId: 'article-data',
+      })
       ?.iterating({ cb: handleEvent });
   }, [article]);
 
@@ -288,8 +291,6 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
               seen={[]}
             />
 
-            <hr />
-
             <div className={styles.info}>
               <div className={styles.author}>
                 <div className={styles.picture}>
@@ -301,14 +302,16 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                   </Link>
                 </div>
 
-                <div className={styles.name}>
-                  <Link href={Paths.user + publicKey}>
-                    {userMap.get(publicKey)?.name}
-                  </Link>
+                <div
+                  className={styles.name}
+                  onClick={() => window.open(Paths.user + publicKey, 'blank')}
+                >
+                  {userMap.get(publicKey)?.name}
                 </div>
 
-                <div>
+                <div className={styles.btnContainer}>
                   <Button
+                    className={styles.btn}
                     onClick={async () => {
                       const lnUrl =
                         userMap.get(publicKey)?.lud06 ||
@@ -322,12 +325,10 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                     }}
                   >
                     <Icon
-                      style={{ width: '15px', height: '15px' }}
+                      style={{ width: '18px', height: '18px' }}
                       type="icon-bolt"
                     />
-                    <span style={{ marginLeft: '5px' }}>
-                      {'like the author'}
-                    </span>
+                    <span>{'Zap the author'}</span>
                   </Button>
                 </div>
               </div>
