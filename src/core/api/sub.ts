@@ -214,6 +214,7 @@ export function createSubscriptionNoticeStream(
   return subscription;
 }
 
+// todo: pass the timeout result too before observer(true)
 export function createPublishEventResultStream(
   webSocket: WebSocket,
   eventId: string,

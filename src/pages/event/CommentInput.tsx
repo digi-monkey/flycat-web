@@ -1,4 +1,4 @@
-import { Avatar, Button, Input, Popover, Tooltip, message } from 'antd';
+import { Avatar, Button, Input, Popover, Tooltip } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { UserMap } from 'core/nostr/type';
 import { connect, useSelector } from 'react-redux';
@@ -16,12 +16,14 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { handleFileSelect } from 'components/PubNoteTextarea/util';
 import { useRouter } from 'next/router';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 import classNames from 'classnames';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+
 
 export interface CommentInputProp {
   userMap: UserMap;
@@ -48,7 +50,6 @@ export const CommentInput: React.FC<CommentInputProp> = ({
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
-  const [messageApi, contextHolder] = message.useMessage();
 
   const submitComment = async () => {
     if (signEvent == null) return;
@@ -78,16 +79,7 @@ export const CommentInput: React.FC<CommentInputProp> = ({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    for await (const h of handler) {
-      messageApi.open({
-        type: h.isSuccess ? 'success' : 'error',
-        content: `event post to ${h.relayUrl} ${
-          h.isSuccess ? 'success' : 'failed, reason: ' + h.reason
-        }`,
-        duration: 10,
-      });
-    }
-    handler.unsubscribe();
+    noticePubEventResult(handler); 
     setInputText('');
   };
 
@@ -119,7 +111,6 @@ export const CommentInput: React.FC<CommentInputProp> = ({
           onFocus={() => setIsInputFocus(true)}
         />
       </div>
-      {contextHolder}
       {attachImgs.length > 0 && (
         <div className={styles.imgs}>
           {attachImgs.map((url, key) => (
