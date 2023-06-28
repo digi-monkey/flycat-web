@@ -1,28 +1,27 @@
 import { Avatar, Button, Input, Popover, Tooltip, message } from 'antd';
-import styles from './index.module.scss';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { UserMap } from 'core/nostr/type';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { worker } from 'cluster';
 import {
   WellKnownEventKind,
   EventTags,
   EventETag,
   EventPTag,
 } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { useRef, useState } from 'react';
-import Icon from 'components/Icon';
 import { useTranslation } from 'react-i18next';
 import { handleFileSelect } from 'components/PubNoteTextarea/util';
+import { useRouter } from 'next/router';
+
+import classNames from 'classnames';
+import styles from './index.module.scss';
+import Icon from 'components/Icon';
 import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import { useRouter } from 'next/router';
-import classNames from 'classnames';
 
 export interface CommentInputProp {
   userMap: UserMap;

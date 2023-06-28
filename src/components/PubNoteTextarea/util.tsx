@@ -3,6 +3,7 @@ import { CallWorker } from 'core/worker/caller';
 import { ImageProvider, compressImage} from 'core/api/img';
 import { WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {
@@ -118,6 +119,7 @@ export async function onSubmitText(
   myPublicKey: string,
   worker: CallWorker | undefined,
 ) {
+  if(!worker)return alert('worker is null');
   if (signEvent == null) return alert('no sign method!');
 
   const rawEvent = new RawEvent(
@@ -127,5 +129,6 @@ export async function onSubmitText(
     text,
   );
   const event = await signEvent(rawEvent);
-  worker?.pubEvent(event);
+  const handler = worker.pubEvent(event);
+  noticePubEventResult(handler);
 }

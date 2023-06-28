@@ -1,0 +1,11 @@
+.item {
+  display: flex;
+  justify-content: space-between;
+
+  .success {
+    color: var(--red-02);
+  }
+  .failed {
+    color: var(--primary-06);
+  }
+}
