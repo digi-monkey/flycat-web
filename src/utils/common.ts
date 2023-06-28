@@ -8,6 +8,10 @@ export function randomSubId(size = 8): HexStr {
   return generateRandomBytes(size);
 }
 
+export function getRandomIndex(array: any[]) {
+  return Math.floor(Math.random() * array.length);
+}
+
 export const stringHasImageUrl = (str) => {
   const imageUrlRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i;
   return str.split(' ').some((word) => imageUrlRegex.test(word));

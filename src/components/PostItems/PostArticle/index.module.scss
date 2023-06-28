@@ -1,10 +1,11 @@
-.article{
+.article {
   position: relative;
   border-radius: var(--basePadding3);
   overflow: hidden;
   cursor: pointer;
-
-  >img{
+  border-radius: 12px;
+  
+  > img {
     position: absolute;
     top: 0;
     left: 0;
@@ -13,7 +14,7 @@
     aspect-ratio: 16/9;
   }
 
-  .content{
+  .content {
     aspect-ratio: 16/9;
     position: relative;
     width: 100%;
@@ -21,9 +22,9 @@
     top: 0;
     left: 0;
     z-index: 2;
-    background-color: rgba(30, 30, 30, 0.6);
+    background: var(--overlay-02, rgba(30, 30, 30, 0.35));
 
-    .tag{
+    .tag {
       width: 83px;
       height: 24px;
       display: flex;
@@ -37,19 +38,19 @@
       background-color: var(--primary-03);
       @include font-footnote;
 
-      svg{
+      svg {
         width: 18px;
         height: 18px;
         color: var(--neutral-09);
       }
 
-      span{
+      span {
         margin-left: var(--padding);
         color: var(--neutral-09);
       }
     }
 
-    .info{
+    .info {
       position: absolute;
       width: 100%;
       bottom: 0;
@@ -57,29 +58,34 @@
       z-index: 3;
       box-sizing: border-box;
 
-      .user{
-        :global{
-          .ant-avatar{
+      .user {
+        :global {
+          .ant-avatar {
             width: 24px;
             height: 24px;
             margin-right: var(--basePadding2);
           }
         }
 
-        .name{
+        .name {
           @include font-subheader2;
           color: var(--neutral-white);
         }
       }
 
-      .title{
+      .title {
         @include font-header3;
         color: var(--neutral-white);
       }
 
-      .summary{
-        color: var(--neutral-03);
-        margin: 0;
+      .summary {
+        color: var(--neutral-02, #ededed);
+
+        /* Label */
+        font-size: 14px;
+        font-family: Noto Sans;
+        font-weight: 500;
+        line-height: 22px;
       }
     }
   }
