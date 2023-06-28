@@ -197,3 +197,15 @@
   width: 24px;
   height: 24px;
 }
+
+.benchmarkItem{
+  display: flex;
+  justify-content: space-between;
+
+  .failed{
+    color: var(--red-05);
+  }
+  .success{
+    color: var(--primary-05);
+  }
+}

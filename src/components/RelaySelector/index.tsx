@@ -20,6 +20,8 @@ import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
+import { ConnPool } from 'core/api/pool';
+import { style } from '@mui/system';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -100,16 +102,16 @@ export function RelaySelector({
     selectedValue,
     setSwitchRelays,
     progressCb,
-    progressEnd
+    progressEnd,
   );
 
   // detect if other page switch the relay
   worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
-    if(worker?._portId === data.triggerByPortId){
+    if (worker?._portId === data.triggerByPortId) {
       return;
     }
 
-    if(worker?.relayGroupId === data.id){
+    if (worker?.relayGroupId === data.id) {
       return;
     }
 
@@ -160,7 +162,7 @@ export function RelaySelector({
       return;
     if (worker == null) return;
 
-    console.log("check: ", switchRelays.id, worker.relayGroupId);
+    console.log('check: ', switchRelays.id, worker.relayGroupId);
     if (worker.relayGroupId !== switchRelays.id) {
       worker.switchRelays(switchRelays);
       worker.pullRelayInfo();
@@ -170,7 +172,8 @@ export function RelaySelector({
   const onChange = (value: string[] | any) => {
     if (!Array.isArray(value)) return;
     if (value[0] === RelayModeSelectMenus.displayBenchmark) {
-      // TODO
+      displayBenchmark();
+      return;
     }
     if (value[0] === RelayModeSelectMenus.aboutRelayMode) {
       setOpenAbout(true);
@@ -181,6 +184,37 @@ export function RelaySelector({
       return;
     }
     setSelectedValue(value);
+  };
+
+  const displayBenchmark = async () => {
+    const currentRelays = switchRelays?.relays;
+    if (currentRelays) {
+      const pool = new ConnPool();
+      pool.addConnections(currentRelays.map(r => r.url));
+      const benchmark = await pool.benchmarkConcurrently(progressCb);
+      progressEnd();
+      Modal.info({
+        title: 'current relays benchmark',
+        content: (
+          <>
+            {benchmark.map(b => (
+              <li key={b.url} className={styles.benchmarkItem}>
+                <span>{b.url}</span>
+                <span>
+                  {b.isFailed || b.t == null ? (
+                    <span className={styles.failed}>failed</span>
+                  ) : (
+                    <span className={styles.success}>
+                      {Math.round(b.t!) + " ms"}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </>
+        ),
+      });
+    }
   };
 
   return (
