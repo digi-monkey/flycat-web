@@ -125,9 +125,12 @@ export function useBestLongFormFeed({
   const getFeed = async (conns: string[]) => {
     if (!worker) return;
 
-    const callRelay = {
+    const callRelay = newConn.length > 0 ? {
       type: CallRelayType.batch,
       data: conns,
+    }: {
+      type: CallRelayType.connected,
+      data: [],
     };
     const limit = 50;
     const filter: Filter = {

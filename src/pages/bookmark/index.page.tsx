@@ -9,6 +9,8 @@ import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
 import { FilterOptions } from './filterOptions';
 import PostItems from 'components/PostItems';
 import { useLastReplyEvent } from './hooks/useLastReplyEvent';
+import PageTitle from 'components/PageTitle';
+import styles from "./index.module.scss";
 
 const Bookmark = () => {
   const { t } = useTranslation();
@@ -46,14 +48,14 @@ const Bookmark = () => {
     <BaseLayout>
       <Left>
         <div>
-          <div style={{ fontWeight: 'bold' }}>Bookmark</div>
-          <div>
+          <PageTitle title='Bookmark' />
+          <div className={styles.selectBox}>
             <Select
-              style={{ width: '200px' }}
               defaultValue={FilterOptions[0].value}
               options={FilterOptions}
               value={selectedValue}
               onChange={handleSelectChange}
+              className={styles.select}
             />
           </div>
         </div>

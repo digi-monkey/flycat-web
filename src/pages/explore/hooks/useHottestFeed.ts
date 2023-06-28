@@ -122,9 +122,12 @@ export function useHottestFeed({
     if (!worker) return;
 
     const pks: string[] = [];
-    const callRelay = {
+    const callRelay = newConn.length > 0 ? {
       type: CallRelayType.batch,
       data: conns,
+    }: {
+      type: CallRelayType.connected,
+      data: [],
     };
     const limit = 50;
     const sub = worker.subMsg(pks, undefined, callRelay, { limit })!;

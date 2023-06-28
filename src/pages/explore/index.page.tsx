@@ -10,6 +10,7 @@ import { BestLongFormFeed } from './bestLongFormFeed';
 import PageTitle from 'components/PageTitle';
 
 import styles from './index.module.scss';
+import { HotestFeed } from './hotestFeed';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ const Explore = () => {
       );
     } else if (selectedOption === 'Hot') {
       return (
-        <LatestFeed
+        <HotestFeed
           worker={worker!}
           newConn={newConn}
           userMap={userMap}
@@ -75,7 +76,7 @@ const Explore = () => {
         </div>
         <div>{renderContent()}</div>
       </Left>
-      <Right>right</Right>
+      <Right></Right>
     </BaseLayout>
   );
 };
