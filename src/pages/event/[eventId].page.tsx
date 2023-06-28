@@ -14,14 +14,13 @@ import { PublicKey } from 'core/nostr/type';
 import { Segmented } from 'antd';
 import { TreeNode } from './tree';
 import { SubPostItem } from 'components/PostItems/PostContent';
-import { CommentInput } from './CommentInput';
+import CommentInput from './CommentInput';
 import { _handleEvent } from './util';
 import {
   useSubReplyEvents,
   useSubRootEvent,
   useSubUserMetadata,
 } from './hooks';
-
 
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
@@ -120,36 +119,43 @@ export const EventPage = () => {
     <BaseLayout>
       <Left>
         <div>
-          <h3>{t('thread.title')}</h3>
+          <div className={styles.pageTitle}>
+            <div className={styles.title}>{t('thread.title')}</div>
+          </div>
 
           <div>
             <div>
               {rootEvent && (
-                <PostItems
-                  eventMap={eventMap}
-                  msgList={[rootEvent]}
-                  worker={worker!}
-                  userMap={userMap}
-                  relays={relayUrls}
-                />
+                <>
+                  <PostItems
+                    eventMap={eventMap}
+                    msgList={[rootEvent]}
+                    worker={worker!}
+                    userMap={userMap}
+                    relays={relayUrls}
+                  />
+
+                  <div className={styles.repliesHeader}>
+                    <div className={styles.header}>
+                      <div className={styles.title}>
+                        Replies{`(${commentList.length})`}
+                      </div>
+                      <div>
+                        <Segmented
+                          className={styles.tab}
+                          options={['recent', 'hot', 'zapest']}
+                        />
+                      </div>
+                    </div>
+                    <CommentInput
+                      worker={worker!}
+                      replyTo={rootEvent}
+                      userMap={userMap}
+                    />
+                  </div>
+                </>
               )}
             </div>
-            <div className={styles.repliesHeader}>
-              <div className={styles.title}>
-                Replies{`(${commentList.length})`}
-              </div>
-              <div className={styles.tab}>
-                <Segmented options={['recent', 'hot', 'zapest']} />
-              </div>
-            </div>
-
-            {rootEvent && (
-              <CommentInput
-                worker={worker!}
-                replyTo={rootEvent}
-                userMap={userMap}
-              />
-            )}
 
             {threadTreeNodes.map(n => (
               <div key={n.value.id}>

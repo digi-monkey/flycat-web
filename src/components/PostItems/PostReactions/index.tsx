@@ -7,12 +7,8 @@ import { useSelector } from 'react-redux';
 import {
   EventTags,
   EventZTag,
-  WellKnownEventKind,
-  EventETag,
-  EventPTag
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { RawEvent } from 'core/nostr/RawEvent';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { Nip18 } from 'core/nip/18';
 import { Nip51 } from 'core/nip/51';
@@ -119,17 +115,17 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   return (
     <ul className={styles.reactions}>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={"repost"}>
           <Icon onClick={repost} type="icon-repost" className={styles.upload} />
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={"zap"}>
           <Icon onClick={zap} type="icon-bolt" className={styles.upload} />
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={"comment"}>
           <Icon
             onClick={comment}
             type="icon-comment"
@@ -138,7 +134,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={"bookmark"}>
           <Icon
             style={{ cursor: isBookmarking ? 'not-allowed' : 'pointer' }}
             onClick={bookmark}

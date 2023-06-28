@@ -21,7 +21,6 @@ import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import { ConnPool } from 'core/api/pool';
-import { style } from '@mui/system';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
