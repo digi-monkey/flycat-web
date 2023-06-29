@@ -68,8 +68,6 @@ const PostItems: React.FC<PostItemsProps> = ({
                 event={msg}
                 key={msg.id}
               />
-            ) : Nip23.isBlogCommentMsg(msg) ? (
-              <>长文的评论</>
             ) : Nip9802.isBlogHighlightMsg(msg) ? (
               <>HighlightMsg</>
             ) : (

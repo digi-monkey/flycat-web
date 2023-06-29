@@ -1,7 +1,4 @@
-import {
-  EventMap,
-  EventTags,
-} from 'core/nostr/type';
+import { EventMap, EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
@@ -17,6 +14,8 @@ import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
+import { Nip23 } from 'core/nip/23';
+import PostArticle from '../PostArticle';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -63,10 +62,11 @@ export const PostContent: React.FC<PostContentProp> = ({
       .filter(t => t[0] === EventTags.E)
       .map(t => {
         return { id: t[1], relay: t[2] };
-      }).pop();
-      
+      })
+      .pop();
+
     if (lastReply) {
-      if(eventMap.get(lastReply.id)){
+      if (eventMap.get(lastReply.id)) {
         setLastReplyToEvent(eventMap.get(lastReply.id));
         return;
       }
@@ -109,7 +109,15 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
   const clickEventBody = () => {
     window.location.href = `/event/${event.id}`;
   };
-  return (
+
+  return Nip23.isBlogPost(event) ? (
+    <PostArticle
+      userAvatar={userMap.get(event.pubkey)?.picture || ''}
+      userName={userMap.get(event.pubkey)?.name || ''}
+      event={event}
+      key={event.id}
+    />
+  ) : (
     <div className={styles.replyEvent}>
       <div className={styles.user} onClick={clickUserProfile}>
         <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" />

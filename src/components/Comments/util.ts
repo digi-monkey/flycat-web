@@ -1,3 +1,4 @@
+import { Nip23 } from 'core/nip/23';
 import { Event } from 'core/nostr/Event';
 import { deserializeMetadata } from 'core/nostr/content';
 import {
@@ -7,8 +8,9 @@ import {
   UserMap,
   EventId,
 	EventMap,
+  EventTags,
 } from 'core/nostr/type';
-import { getEventIdsFromETags, isEventPTag } from 'core/nostr/util';
+import { getEventAddrFromATags, getEventDTagId, getEventIdsFromETags, isEventPTag } from 'core/nostr/util';
 import { EventWithSeen } from 'pages/type';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -16,12 +18,12 @@ export function _handleEvent({
   userMap,
   setUserMap,
 	setEventMap,
-  eventId,
+  rootEvent,
   setCommentList,
   unknownPks,
   setUnknownPks,
 }: {
-  eventId: EventId;
+  rootEvent: Event; 
   userMap: UserMap;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
 	setEventMap: Dispatch<SetStateAction<EventMap>>;
@@ -58,58 +60,120 @@ export function _handleEvent({
 						return prev;
 					});
 
-          setCommentList(oldArray => {
-            const replyToEventIds = oldArray
-              .map(e => getEventIdsFromETags(e.tags))
-              .reduce((prev, current) => prev.concat(current), []);
-            const eTags = getEventIdsFromETags(event.tags);
-            if (
-              !oldArray.map(e => e.id).includes(event.id) &&
-              (replyToEventIds.includes(event.id) ||
-                eTags.includes(eventId) ||
-                event.id === eventId)
-            ) {
-              // only add un-duplicated and replyTo msg
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp in asc
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? 1 : -1,
-              );
-
-              // check if need to sub new user metadata
-              const newPks: PublicKey[] = [];
-              for (const t of event.tags) {
-                if (isEventPTag(t)) {
-                  const pk = t[1];
-                  if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
-                    newPks.push(pk);
+          if(rootEvent.kind === WellKnownEventKind.text_note){
+            setCommentList(oldArray => {
+              const replyToEventIds = oldArray
+                .map(e => getEventIdsFromETags(e.tags))
+                .reduce((prev, current) => prev.concat(current), []);
+              const eTags = getEventIdsFromETags(event.tags);
+              if (
+                !oldArray.map(e => e.id).includes(event.id) &&
+                (replyToEventIds.includes(event.id) ||
+                  eTags.includes(rootEvent.id) ||
+                  event.id === rootEvent.id)
+              ) {
+                // only add un-duplicated and replyTo msg
+                const newItems = [
+                  ...oldArray,
+                  { ...event, ...{ seen: [relayUrl!] } },
+                ];
+                // sort by timestamp in asc
+                const sortedItems = newItems.sort((a, b) =>
+                  a.created_at >= b.created_at ? 1 : -1,
+                );
+  
+                // check if need to sub new user metadata
+                const newPks: PublicKey[] = [];
+                for (const t of event.tags) {
+                  if (isEventPTag(t)) {
+                    const pk = t[1];
+                    if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
+                      newPks.push(pk);
+                    }
                   }
                 }
+                if (
+                  userMap.get(event.pubkey) == null &&
+                  !unknownPks.includes(event.pubkey)
+                ) {
+                  newPks.push(event.pubkey);
+                }
+                if (newPks.length > 0) {
+                  setUnknownPks([...unknownPks, ...newPks]);
+                }
+  
+                return sortedItems;
+              } else {
+                const id = oldArray.findIndex(s => s.id === event.id);
+                if (id === -1) return oldArray;
+  
+                if (!oldArray[id].seen?.includes(relayUrl!)) {
+                  oldArray[id].seen?.push(relayUrl!);
+                }
               }
+              return oldArray;
+            });
+          }
+
+          if(rootEvent.kind === WellKnownEventKind.long_form){
+            setCommentList(oldArray => {
+              const replyToEventIds = oldArray
+                .map(e => getEventIdsFromETags(e.tags))
+                .reduce((prev, current) => prev.concat(current), []);
+              const eTags = getEventIdsFromETags(event.tags);
+              const aTags = getEventAddrFromATags(event.tags);
+              const articleId = getEventDTagId(rootEvent.tags);
+              const addr = Nip23.getAddr(rootEvent.pubkey, articleId!);
               if (
-                userMap.get(event.pubkey) == null &&
-                !unknownPks.includes(event.pubkey)
+                !oldArray.map(e => e.id).includes(event.id) &&
+                (replyToEventIds.includes(event.id) ||
+                  eTags.includes(rootEvent.id) ||
+                  aTags.includes(addr)
+                )
               ) {
-                newPks.push(event.pubkey);
+                // only add un-duplicated and replyTo msg
+                const newItems = [
+                  ...oldArray,
+                  { ...event, ...{ seen: [relayUrl!] } },
+                ];
+                // sort by timestamp in asc
+                const sortedItems = newItems.sort((a, b) =>
+                  a.created_at >= b.created_at ? 1 : -1,
+                );
+  
+                // check if need to sub new user metadata
+                const newPks: PublicKey[] = [];
+                for (const t of event.tags) {
+                  if (isEventPTag(t)) {
+                    const pk = t[1];
+                    if (userMap.get(pk) == null && !unknownPks.includes(pk)) {
+                      newPks.push(pk);
+                    }
+                  }
+                }
+                if (
+                  userMap.get(event.pubkey) == null &&
+                  !unknownPks.includes(event.pubkey)
+                ) {
+                  newPks.push(event.pubkey);
+                }
+                if (newPks.length > 0) {
+                  setUnknownPks([...unknownPks, ...newPks]);
+                }
+  
+                return sortedItems;
+              } 
+              else {
+                const id = oldArray.findIndex(s => s.id === event.id);
+                if (id === -1) return oldArray;
+  
+                if (!oldArray[id].seen?.includes(relayUrl!)) {
+                  oldArray[id].seen?.push(relayUrl!);
+                }
               }
-              if (newPks.length > 0) {
-                setUnknownPks([...unknownPks, ...newPks]);
-              }
-
-              return sortedItems;
-            } else {
-              const id = oldArray.findIndex(s => s.id === event.id);
-              if (id === -1) return oldArray;
-
-              if (!oldArray[id].seen?.includes(relayUrl!)) {
-                oldArray[id].seen?.push(relayUrl!);
-              }
-            }
-            return oldArray;
-          });
+              return oldArray;
+            });
+          }
         }
         break;
 

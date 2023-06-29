@@ -308,6 +308,24 @@ export class Nip23 {
     };
   }
 
+  static toPullCommentFilterFromEvent(event: Event): Filter{
+    if(event.kind !== this.kind){
+      throw new Error(`${event.kind} is not a long-form kind!`);
+    }
+    
+    const id: string | undefined = event.tags
+      .filter(t => t[0] === EventTags.D)
+      .map(t => t[1])[0];
+      if(id == null)throw new Error("missing event addr id");
+  
+    const addr = this.getAddr(event.pubkey, id);
+    
+    return {
+      kinds: [WellKnownEventKind.text_note],
+      '#a': [EventTags.A, addr]
+    };
+  }
+
   static isCommentEvent(event: Event, article: Article): boolean {
     const eTags = event.tags.filter(
       t => t[0] === EventTags.E && t[1] === article.pubKey,

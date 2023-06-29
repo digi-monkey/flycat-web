@@ -1,5 +1,5 @@
 import { Event } from './Event';
-import { Filter, RelayResponseType, EventSubReachEndResponse, EventSubResponse, EventETag, EventTags, EventPTag, EventId } from './type';
+import { Filter, RelayResponseType, EventSubReachEndResponse, EventSubResponse, EventETag, EventTags, EventPTag, EventId, EventATag, Naddr } from './type';
 
 const isObject = object => object != null && typeof object === 'object';
 
@@ -76,6 +76,14 @@ export function isEventPTag(data: any[]): data is EventPTag {
   );
 }
 
+export function isEventATag(data: any[]): data is EventATag {
+  return (
+    Array.isArray(data) &&
+    data[0] === EventTags.A &&
+    typeof data[1] === 'string'
+  );
+}
+
 export const getLastPubKeyFromPTags = (tags: any[]) => {
   const pks = tags.filter(t => isEventPTag(t)).map(t => t[1]);
   if (pks.length > 0) {
@@ -95,3 +103,5 @@ export const getLastEventIdFromETags = (tags: any[]) => {
 };
 
 export const getEventIdsFromETags = (tags: any[]) => tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
+export const getEventAddrFromATags = (tags: any[]) => tags.filter(t => isEventATag(t)).map(t => t[1] as Naddr );
+export const getEventDTagId = (tags: any[]) => tags.filter(t => t[0] === EventTags.D).map(t => t[1] as (string | null))[0];

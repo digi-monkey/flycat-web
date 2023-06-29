@@ -1,39 +1,21 @@
-import { ThinHr } from 'components/ThinHr';
 import { UserMap } from 'core/nostr/type';
-import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
-import { useSelector } from 'react-redux';
 import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
-import { ImageUploader } from 'components/ImageUploader';
 import { callSubFilter } from 'core/backend/sub';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'core/nip/23';
 import { Nip08, RenderFlag } from 'core/nip/08';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  EventSetMetadataContent,
-  EventTags,
-  WellKnownEventKind,
-} from 'core/nostr/type';
+import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import {
-  dontLikeComment,
-  findNodeById,
-  parseLikeData,
-  replyComments,
-  toTimeString,
-} from './util';
+import { toTimeString } from './util';
 
 import styles from './index.module.scss';
 import Head from 'next/head';
-import Swal from 'sweetalert2/dist/sweetalert2.js';
-import Comment from './components/Comment';
-import PostContent from './components/PostContent';
-import ReplyDialog from './components/ReplyDialog';
+import PostContent from './PostContent';
 import PostReactions from 'components/PostItems/PostReactions';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
@@ -42,76 +24,21 @@ import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
 import Comments from 'components/Comments';
 
-const { TextArea } = Input;
-
 type UserParams = {
   publicKey: string;
   articleId: string;
 };
-export interface newComments extends Event {
-  replys: object;
-  likes: object;
-  isLike: boolean;
-}
 
 export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
-  const myPublicKey = useReadonlyMyPublicKey();
   const { publicKey } = query;
   const articleId = decodeURIComponent(query.articleId);
   const { worker, newConn } = useCallWorker();
 
-  const signEvent = useSelector(
-    (state: RootState) => state.loginReducer.signEvent,
-  );
-
-  const [image, setImage] = useState('');
-  const [replyId, setReplyId] = useState('');
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [article, setArticle] = useState<Article>();
-  const [comments, setComments] = useState<newComments[]>([]);
-  const [replyComment, setReplyComment] = useState<newComments>();
-  const [replyDialog, setReplyDialog] = useState(false);
-  const [inputComment, setInputComment] = useState('');
   const [articleEvent, setArticleEvent] = useState<Event>();
-
-  const handleCommentSubmit = async () => {
-    if (signEvent == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'sign method not found',
-      });
-      return;
-    }
-    if (article == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'article is not loaded',
-      });
-      return;
-    }
-    if (worker == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'worker is null',
-      });
-      return;
-    }
-
-    let content = inputComment;
-    if (image) content = (content + '\n' + image).trim();
-
-    const rawEvent = Nip23.commentToArticle(content, article);
-    const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
-    setInputComment('');
-    setImage('');
-    Swal.fire({
-      icon: 'success',
-      text: t('comment.success'),
-    });
-  };
 
   function handleEvent(event: Event, relayUrl?: string) {
     if (event.kind === WellKnownEventKind.set_metadata) {
@@ -147,85 +74,35 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       });
       return;
     }
-
-    if (event.kind === WellKnownEventKind.text_note) {
-      setComments(prev => {
-        if (!prev.map(p => p.id).includes(event.id)) {
-          worker
-            ?.subMsgByETags([event.id])
-            ?.iterating({ cb: replyComments(event) });
-
-          return [...prev, event].sort((a, b) =>
-            a.created_at >= b.created_at ? 1 : -1,
-          ) as newComments[];
-        }
-
-        return prev;
-      });
-
-      return;
-    }
   }
 
   useEffect(() => {
     if (newConn.length === 0) return;
+    if (!worker) return;
 
-    const callRelay = {
-      type: CallRelayType.batch,
-      data: newConn,
-    };
+    const callRelay =
+      newConn.length > 0
+        ? {
+            type: CallRelayType.batch,
+            data: newConn,
+          }
+        : {
+            type: CallRelayType.connected,
+            data: [],
+          };
 
     worker
-      ?.subMetadata([publicKey as string], undefined, callRelay)
-      ?.iterating({ cb: handleEvent });
+      .subMetadata([publicKey as string], undefined, callRelay)
+      .iterating({ cb: handleEvent });
+      
     const filter = Nip23.filter({
       authors: [publicKey as string],
       articleIds: [articleId as string],
     });
     worker
-      ?.subFilter({ filter, customId: 'article-data', callRelay })
-      ?.iterating({ cb: handleEvent });
+      .subFilter({ filter, customId: 'article-data', callRelay })
+      .iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
-
-  useEffect(() => {
-    if (article == null) return;
-
-    worker
-      ?.subFilter({
-        filter: Nip23.toPullCommentFilter(article),
-        customId: 'article-data',
-      })
-      ?.iterating({ cb: handleEvent });
-  }, [article]);
-
-  useEffect(() => {
-    if (!replyId.length || !Object.keys(replyComment || {}).length) return;
-
-    const target = findNodeById(replyComment, replyId);
-    if (!target) return;
-
-    setReplyDialog(true);
-    setReplyComment(target);
-
-    if (target.replys) {
-      const ids = Object.keys(target.replys);
-      worker?.subMsgByETags(ids)?.iterating({
-        cb: event => {
-          const tagIds = event.tags
-            .filter(t => t[0] === EventTags.E)
-            .map(t => t[1] as string);
-          for (const id of ids) {
-            if (tagIds.includes(id)) {
-              if (target.replys[id].replys)
-                target.replys[id].replys[event.id] = event;
-              else target.replys[id].replys = { [event.id]: event };
-            }
-          }
-          setReplyComment({ ...replyComment, ...target });
-        },
-      });
-    }
-  }, [replyId]);
 
   const content = useMemo(() => {
     if (articleEvent == null) return;
@@ -335,8 +212,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
               </div>
             </div>
 
-{articleEvent && <Comments rootEvent={articleEvent}/>}
-              
+            {articleEvent && <Comments rootEvent={articleEvent} />}
           </div>
         </Left>
         <Right></Right>

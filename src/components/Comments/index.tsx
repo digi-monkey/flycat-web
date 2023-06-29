@@ -35,7 +35,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
     userMap,
     setUserMap,
     setEventMap,
-    eventId: rootEvent.id,
+    rootEvent,
     setCommentList,
     unknownPks,
     setUnknownPks,
@@ -43,7 +43,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
 
   useSubReplyEvents({
     newConn,
-    eventId: rootEvent.id,
+    rootEvent,
     commentList,
     worker,
     handleEvent,
