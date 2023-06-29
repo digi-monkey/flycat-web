@@ -55,7 +55,7 @@ NavMenus[3],
   id: MenuId.drafts,
   icon: <Icon type="icon-Draft" />,
   title: 'nav.menu.drafts',
-  link: Paths.explore
+  link: Paths.draft
 }, {
   id: MenuId.settings,
   icon: <Icon type="icon-Gear" />,

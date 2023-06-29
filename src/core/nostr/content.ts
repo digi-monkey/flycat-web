@@ -1,8 +1,7 @@
 import { isValidPublicKey } from 'utils/validator';
-
+import { isOnlyWhitespaceString, maxStrings } from 'utils/common';
 import { EventSetMetadataContent, PublicKey } from './type';
 import DOMPurify from 'dompurify';
-import { maxStrings } from 'utils/common';
 
 export function deserializeMetadata(content: string): EventSetMetadataContent {
   const metadata: EventSetMetadataContent = JSON.parse(content);
@@ -94,6 +93,8 @@ export function normalizeContent(text: string): {
       node.setAttribute('rel', 'noopener');
     }
   });
+
+  modifiedText = isOnlyWhitespaceString(modifiedText) ? "" : modifiedText;
 
   return {
     lnUrls,

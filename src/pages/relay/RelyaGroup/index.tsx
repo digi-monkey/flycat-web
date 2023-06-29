@@ -130,7 +130,7 @@ export const RelayGroup: React.FC = () => {
               Create new group
             </Menu.Item>
             <Menu.Item
-              icon={<Icon type="icon-plus" className={styles.icon} />}
+              icon={<Icon type="icon-repost" className={styles.icon} />}
               key={'re-gen-auto-relay'}
               onClick={autoRelays}
               className={styles.btnMenu}

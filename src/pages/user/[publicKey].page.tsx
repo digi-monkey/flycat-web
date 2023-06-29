@@ -244,13 +244,16 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       pks.push(myPublicKey);
     }
 
-    const callRelay: CallRelay = newConn.length > 0 ? {
-      type: CallRelayType.batch,
-      data: newConn,
-    } : {
-      type: CallRelayType.connected,
-      data: [],
-    };
+    const callRelay: CallRelay =
+      newConn.length > 0
+        ? {
+            type: CallRelayType.batch,
+            data: newConn,
+          }
+        : {
+            type: CallRelayType.connected,
+            data: [],
+          };
     worker
       ?.subContactList(pks, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
@@ -504,16 +507,16 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <div className={styles.following}>
           <div className={styles.followingTitle}>Followings</div>
           {userContactList?.keys.slice(0, 5).map(key => (
-              <li key={key} className={styles.followingList}>
-                <div className={styles.user}>
-                  <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
-                  <div>{userMap.get(key)?.name}</div>
-                </div>
-                <div>
-                  <Icon type="icon-more-horizontal" className={styles.icon} />
-                </div>
-              </li>
-            ))}
+            <li key={key} className={styles.followingList}>
+              <div className={styles.user}>
+                <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
+                <div>{userMap.get(key)?.name}</div>
+              </div>
+              <div>
+                <Icon type="icon-more-horizontal" className={styles.icon} />
+              </div>
+            </li>
+          ))}
           <div className={styles.viewBtnContainer}>
             <Button
               onClick={() => (window.location.href = '/contact/' + publicKey)}

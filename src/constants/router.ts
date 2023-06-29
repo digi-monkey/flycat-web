@@ -23,6 +23,10 @@ const Pages = {
     name: 'edit',
     path: '/edit/'
   },
+  draft: {
+    name: 'draft',
+    path: '/draft'
+  },
   user: {
     name: 'user',
     path: '/user/'

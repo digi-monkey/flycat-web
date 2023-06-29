@@ -21,6 +21,7 @@ import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
 import { RelaySelector } from 'components/RelaySelector';
+import { getDraftId } from 'utils/common';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
@@ -84,7 +85,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                   summary,
                   content,
                   hashTags,
-                  did: articleId || did,
+                  did: did || getDraftId(),
                   updated_at: Math.floor(Date.now() / 1000),
                 });
                 setSaveToast(true);
@@ -185,6 +186,15 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           </Modal>
         </div>
       </div>
+      {toast && (
+        <Alert banner={true} message={t('blogWrite.tipsy.restore')} type="success" closable />
+      )}
+      {saveToast && (
+        <Alert banner={true} type="success" message={t('blogWrite.tipsy.success.save')} closable />
+      )}
+      {publishedToast && (
+        <Alert banner={true} type="success" message={t('blogWrite.tipsy.success.publish')} closable />
+      )}
       <div className={styles.main}>
         <div className={styles.title}>
           <Input
@@ -200,16 +210,6 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           className={styles.editor}
         />
       </div>
-
-      {toast && (
-        <Alert message={t('blogWrite.tipsy.restore')} type="success" closable />
-      )}
-      {saveToast && (
-        <Alert type="success" message={t('blogWrite.tipsy.success.save')} />
-      )}
-      {publishedToast && (
-        <Alert type="success" message={t('blogWrite.tipsy.success.publish')} />
-      )}
     </div>
   );
 }

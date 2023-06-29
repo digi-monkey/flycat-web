@@ -37,3 +37,7 @@ export function getBaseUrl(str: string){
 export const copyToClipboard = async (text: string) => {
   await navigator.clipboard.writeText(text);
 };
+
+export function isOnlyWhitespaceString(str: string): boolean {
+  return /^\s*$/.test(str);
+}
