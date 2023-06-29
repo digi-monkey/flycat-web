@@ -5,25 +5,6 @@ import { useEffect } from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'core/worker/type';
 
-export function useSubRootEvent({
-  eventId,
-  worker,
-  handleEvent,
-	newConn
-}: {
-  eventId: EventId;
-  worker?: CallWorker;
-  handleEvent: (event: Event, relayUrl?: string) => any;
-	newConn: string[]
-}) {
-  useEffect(() => {
-    if (!worker) return;
-
-		const callRelay = {type: CallRelayType.batch, data: newConn};
-    worker.subMsgByEventIds([eventId], undefined, callRelay).iterating({ cb: handleEvent });
-  }, [eventId, worker, newConn]);
-}
-
 export function useSubReplyEvents({
   eventId,
   commentList,

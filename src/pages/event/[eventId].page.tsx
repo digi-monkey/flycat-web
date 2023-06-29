@@ -5,113 +5,77 @@ import { useCallWorker } from 'hooks/useWorker';
 import { EventWithSeen } from 'pages/type';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { useState, useEffect } from 'react';
-import { getEventIdsFromETags } from 'core/nostr/util';
-import { PublicKey } from 'core/nostr/type';
-import { Segmented } from 'antd';
-import { TreeNode } from './tree';
-import { SubPostItem } from 'components/PostItems/PostContent';
-import CommentInput from './CommentInput';
+import { getLastEventIdFromETags } from 'core/nostr/util';
 import { _handleEvent } from './util';
-import {
-  useSubReplyEvents,
-  useSubRootEvent,
-  useSubUserMetadata,
-} from './hooks';
+import { CallRelayType } from 'core/worker/type';
 
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
+import Comments from 'components/Comments';
+import PageTitle from 'components/PageTitle';
 
 export const EventPage = () => {
   const { t } = useTranslation();
   const { eventId } = useRouter().query as { eventId: string };
 
-  const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
-  const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
-  const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
-  const [threadTreeNodes, setThreadTreeNodes] = useState<
-    TreeNode<EventWithSeen>[]
-  >([]);
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
 
   const handleEvent = _handleEvent({
-    userMap,
     setUserMap,
-    setEventMap,
     eventId,
-    rootEvent,
     setRootEvent,
-    setCommentList,
-    unknownPks,
-    setUnknownPks,
-  });
-
-  useSubRootEvent({ newConn, eventId, worker, handleEvent });
-  useSubReplyEvents({ newConn, eventId, commentList, worker, handleEvent });
-  useSubUserMetadata({
-    rootEvent,
-    newConn,
-    myPublicKey,
-    unknownPks,
-    worker,
-    handleEvent,
+    setEventMap,
   });
 
   useEffect(() => {
-    buildThreadNodes();
-  }, [commentList.length]);
+    if (!worker) return;
 
-  // todo: better tree algo
-  const buildThreadNodes = () => {
-    const ids = threadTreeNodes.map(t => t.value.id);
-    for (const comment of commentList) {
-      if (!ids.includes(comment.id)) {
-        const node = new TreeNode(comment);
-        const parentIds = getEventIdsFromETags(comment.tags);
-        for (const id of parentIds) {
-          if (ids.includes(id)) {
-            const parentNodes = threadTreeNodes.filter(n => n.value.id === id);
-            {
-              for (const parent of parentNodes) {
-                if (
-                  !parent.children.map(n => n.value.id).includes(node.value.id)
-                ) {
-                  parent.addChild(node);
-                }
-              }
-            }
-          }
-        }
-        threadTreeNodes.push(node);
-      }
-    }
+    const callRelay =
+      newConn.length > 0
+        ? { type: CallRelayType.batch, data: newConn }
+        : { type: CallRelayType.connected, data: [] };
+    worker
+      .subMsgByEventIds([eventId], undefined, callRelay)
+      .iterating({ cb: handleEvent });
+  }, [eventId, worker, newConn]);
 
-    const newThreadTreeNodes = truncateThreadNodes(threadTreeNodes);
-    setThreadTreeNodes(newThreadTreeNodes);
-  };
-  const truncateThreadNodes = (threadTreeNodes: TreeNode<EventWithSeen>[]) => {
-    let newThreadNodes: TreeNode<EventWithSeen>[] = threadTreeNodes;
-    for (const node of threadTreeNodes) {
-      const ids = node.children.map(n => n.value.id);
-      for (const otherNode of threadTreeNodes.filter(
-        n => n.value.id !== node.value.id,
-      )) {
-        if (ids.includes(otherNode.value.id)) {
-          newThreadNodes = newThreadNodes.filter(
-            n => n.value.id !== otherNode.value.id,
-          );
-        }
-      }
+  useEffect(() => {
+    if (!rootEvent) return;
+    if (!worker) return;
+
+    const lastId = getLastEventIdFromETags(rootEvent.tags);
+    if (lastId) {
+      const callRelay =
+        newConn.length > 0
+          ? { type: CallRelayType.batch, data: newConn }
+          : { type: CallRelayType.connected, data: [] };
+      worker
+        .subMsgByEventIds([lastId], undefined, callRelay)
+        .iterating({ cb: handleEvent });
     }
-    return newThreadNodes;
-  };
+  }, [rootEvent?.id, newConn, worker]);
+
+  useEffect(() => {
+    if (!worker) return;
+
+    const pks = Array.from(eventMap.values()).map(e => e.pubkey);
+    if (pks.length > 0) {
+      const callRelay =
+        newConn.length > 0
+          ? { type: CallRelayType.batch, data: newConn }
+          : { type: CallRelayType.connected, data: [] };
+      worker
+        .subMetadata(pks, undefined, callRelay)
+        .iterating({ cb: handleEvent });
+    }
+  }, [eventMap.size, worker]);
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
@@ -119,68 +83,22 @@ export const EventPage = () => {
     <BaseLayout>
       <Left>
         <div>
-          <div className={styles.pageTitle}>
-            <div className={styles.title}>{t('thread.title')}</div>
-          </div>
+          <PageTitle title={t('thread.title')} />
 
-          <div>
-            <div>
-              {rootEvent && (
-                <>
-                  <PostItems
-                    eventMap={eventMap}
-                    msgList={[rootEvent]}
-                    worker={worker!}
-                    userMap={userMap}
-                    relays={relayUrls}
-                  />
+          {rootEvent && (
+            <>
+              <PostItems
+                eventMap={eventMap}
+                msgList={[rootEvent]}
+                worker={worker!}
+                userMap={userMap}
+                relays={relayUrls}
+                showLastReplyToEvent={true}
+              />
 
-                  <div className={styles.repliesHeader}>
-                    <div className={styles.header}>
-                      <div className={styles.title}>
-                        Replies{`(${commentList.length})`}
-                      </div>
-                      <div>
-                        <Segmented
-                          className={styles.tab}
-                          options={['recent', 'hot', 'zapest']}
-                        />
-                      </div>
-                    </div>
-                    <CommentInput
-                      worker={worker!}
-                      replyTo={rootEvent}
-                      userMap={userMap}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            {threadTreeNodes.map(n => (
-              <div key={n.value.id}>
-                <PostItems
-                  msgList={[{ ...n.value, ...{ seen: [''] } }]}
-                  worker={worker!}
-                  userMap={userMap}
-                  eventMap={eventMap}
-                  relays={[]}
-                  showLastReplyToEvent={false}
-                />
-                <div className={styles.subRepliesContainer}>
-                  {n.children.map(c => (
-                    <SubPostItem
-                      key={c.value.id}
-                      event={c.value}
-                      userMap={userMap}
-                    />
-                  ))}
-                </div>
-                <br />
-                <br />
-              </div>
-            ))}
-          </div>
+              <Comments rootEvent={rootEvent} />
+            </>
+          )}
         </div>
       </Left>
       <Right></Right>

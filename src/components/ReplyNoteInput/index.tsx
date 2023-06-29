@@ -25,14 +25,14 @@ import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
 
-export interface CommentInputProp {
+export interface ReplyEventInputProp {
   userMap: UserMap;
   replyTo: EventWithSeen;
   worker: CallWorker;
 
   isLoggedIn: boolean;
 }
-export const CommentInput: React.FC<CommentInputProp> = ({
+export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   worker,
   userMap,
   replyTo,
@@ -183,4 +183,4 @@ const mapStateToProps = state => ({
   isLoggedIn: state.loginReducer.isLoggedIn,
 });
 
-export default connect(mapStateToProps)(CommentInput);
+export default connect(mapStateToProps)(ReplyEventInput);

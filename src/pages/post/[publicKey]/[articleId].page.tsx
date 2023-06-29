@@ -40,6 +40,7 @@ import { Paths } from 'constants/path';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
+import Comments from 'components/Comments';
 
 const { TextArea } = Input;
 
@@ -334,59 +335,8 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
               </div>
             </div>
 
-            <div className={styles.comment}>
-              <div className={styles.commentPanel}>
-                <TextArea
-                  className={styles.textarea}
-                  placeholder={t('comment.placeholder') as string}
-                  value={inputComment}
-                  onChange={e => setInputComment(e.target.value)}
-                />
-                {image && (
-                  <div className={styles.image}>
-                    <img src={image} alt="replyImage" />
-                    <Icon type="icon-image" onClick={() => setImage('')} />
-                  </div>
-                )}
-                <div className={styles.footer}>
-                  <div className={styles.icons}>
-                    <ImageUploader onImgUrls={url => setImage(url[0])} />
-                  </div>
-                  <Button
-                    disabled={!inputComment.length}
-                    size="large"
-                    onClick={handleCommentSubmit}
-                  >
-                    {t('articleRead.submit')}
-                  </Button>
-                </div>
-              </div>
-              <ThinHr></ThinHr>
-              <Comment
-                comments={comments}
-                worker={worker}
-                userMap={userMap}
-                setReplyId={setReplyId}
-                setReplyComment={setReplyComment}
-                notLike={eventId =>
-                  dontLikeComment(worker, signEvent, eventId, myPublicKey)
-                }
-                like={comment =>
-                  parseLikeData(comment, worker, signEvent, myPublicKey)
-                }
-              />
-              <ReplyDialog
-                open={replyDialog}
-                onClose={() => {
-                  setReplyId('');
-                  setReplyDialog(false);
-                }}
-                comment={replyComment}
-                userMap={userMap}
-                worker={worker}
-                t={t}
-              />
-            </div>
+{articleEvent && <Comments rootEvent={articleEvent}/>}
+              
           </div>
         </Left>
         <Right></Right>

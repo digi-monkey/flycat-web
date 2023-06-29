@@ -1,0 +1,150 @@
+import { Segmented } from 'antd';
+import ReplyEventInput from 'components/ReplyNoteInput';
+import { EventWithSeen } from 'pages/type';
+import { useCallWorker } from 'hooks/useWorker';
+
+import styles from './index.module.scss';
+import { UserMap, EventMap, PublicKey } from 'core/nostr/type';
+import { useEffect, useState } from 'react';
+import { TreeNode } from './tree';
+import { useSubReplyEvents, useSubUserMetadata } from './hooks';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { _handleEvent } from './util';
+import { getEventIdsFromETags } from 'core/nostr/util';
+import { SubPostItem } from 'components/PostItems/PostContent';
+import PostItems from 'components/PostItems';
+
+export interface CommentsProps {
+  rootEvent: EventWithSeen;
+}
+
+const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
+  const myPublicKey = useReadonlyMyPublicKey();
+
+  const { worker, newConn } = useCallWorker();
+  const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
+  const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
+  const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
+
+  const [threadTreeNodes, setThreadTreeNodes] = useState<
+    TreeNode<EventWithSeen>[]
+  >([]);
+
+  const handleEvent = _handleEvent({
+    userMap,
+    setUserMap,
+    setEventMap,
+    eventId: rootEvent.id,
+    setCommentList,
+    unknownPks,
+    setUnknownPks,
+  });
+
+  useSubReplyEvents({
+    newConn,
+    eventId: rootEvent.id,
+    commentList,
+    worker,
+    handleEvent,
+  });
+  useSubUserMetadata({
+    rootEvent,
+    newConn,
+    myPublicKey,
+    unknownPks,
+    worker,
+    handleEvent,
+  });
+
+  useEffect(() => {
+    buildThreadNodes();
+  }, [commentList]);
+
+  // todo: better tree algo
+  const buildThreadNodes = () => {
+    const ids = threadTreeNodes.map(t => t.value.id);
+    for (const comment of commentList) {
+      if (!ids.includes(comment.id)) {
+        const node = new TreeNode(comment);
+        const parentIds = getEventIdsFromETags(comment.tags);
+        for (const id of parentIds) {
+          if (ids.includes(id)) {
+            const parentNodes = threadTreeNodes.filter(n => n.value.id === id);
+            {
+              for (const parent of parentNodes) {
+                if (
+                  !parent.children.map(n => n.value.id).includes(node.value.id)
+                ) {
+                  parent.addChild(node);
+                }
+              }
+            }
+          }
+        }
+        threadTreeNodes.push(node);
+      }
+    }
+
+    const newThreadTreeNodes = truncateThreadNodes(threadTreeNodes);
+    setThreadTreeNodes(newThreadTreeNodes);
+  };
+  const truncateThreadNodes = (threadTreeNodes: TreeNode<EventWithSeen>[]) => {
+    let newThreadNodes: TreeNode<EventWithSeen>[] = threadTreeNodes;
+    for (const node of threadTreeNodes) {
+      const ids = node.children.map(n => n.value.id);
+      for (const otherNode of threadTreeNodes.filter(
+        n => n.value.id !== node.value.id,
+      )) {
+        if (ids.includes(otherNode.value.id)) {
+          newThreadNodes = newThreadNodes.filter(
+            n => n.value.id !== otherNode.value.id,
+          );
+        }
+      }
+    }
+    return newThreadNodes;
+  };
+
+  return (
+    <>
+      <div className={styles.repliesHeader}>
+        <div className={styles.header}>
+          <div className={styles.title}>Replies{`(${commentList.length})`}</div>
+          <div>
+            <Segmented
+              className={styles.tab}
+              options={['recent', 'hot', 'zapest']}
+            />
+          </div>
+        </div>
+        <ReplyEventInput
+          worker={worker!}
+          replyTo={rootEvent}
+          userMap={userMap}
+        />
+      </div>
+      {threadTreeNodes.map(n => (
+        <div key={n.value.id}>
+          <PostItems
+            msgList={[{ ...n.value, ...{ seen: [''] } }]}
+            worker={worker!}
+            userMap={userMap}
+            eventMap={eventMap}
+            relays={[]}
+            showLastReplyToEvent={false}
+          />
+          <div className={styles.subRepliesContainer}>
+            {n.children.map(c => (
+              <SubPostItem key={c.value.id} event={c.value} userMap={userMap} />
+            ))}
+          </div>
+          <br />
+          <br />
+        </div>
+      ))}
+    </>
+  );
+};
+
+export default Comments;

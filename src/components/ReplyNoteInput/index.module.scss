@@ -1,0 +1,119 @@
+.replyBox {
+  width: 100%;
+  .replyInput {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+
+    .input {
+      display: flex;
+      padding: 8px 12px;
+      align-items: center;
+      gap: 4px;
+      flex: 1 0 0;
+
+      font-size: 14px;
+      font-family: Noto Sans;
+      line-height: 24px;
+
+      border-radius: 8px;
+      background: var(--neutral-white, #fff);
+      color: var(--neutral-06, #787878);
+
+      &.focus {
+        background: var(--neutral-white);
+        border: 1px solid var(--primary-06);
+
+        /* halo */
+        box-shadow: 0px 0px 2px 1px rgba(89, 128, 34, 0.16);
+      }
+    }
+  }
+
+  .btn {
+    height: 0;
+    transition: height 0.3s ease;
+    overflow: hidden;
+    margin-left: 50px;
+
+    &.focus {
+      height: 45px;
+    }
+
+    .container {
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: inherit;
+
+      .icons {
+        input {
+          display: none;
+        }
+
+        .upload,
+        .emoji {
+          width: 24px;
+          height: 24px;
+          margin-right: 20px;
+          fill: var(--primary-06);
+          vertical-align: middle;
+        }
+
+        .upload {
+          cursor: pointer;
+        }
+
+        > a {
+          display: inline-block;
+
+          svg {
+            vertical-align: middle;
+          }
+        }
+      }
+
+      > button {
+        height: 24px;
+        padding: 0 var(--basePadding4);
+      }
+    }
+  }
+
+  .imgs {
+    padding: 16px 0 0;
+    margin-left: 50px;
+
+    .imgItem {
+      display: inline-block;
+      margin-right: 16px;
+      margin-bottom: 10px;
+      vertical-align: bottom;
+      line-height: 0;
+      position: relative;
+
+      img {
+        font-size: 0;
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--neutral-03);
+        padding: 1px;
+        border-radius: var(--baseBorderRadius4);
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+        background-color: var(--neutral-03);
+        border-radius: 50%;
+        position: absolute;
+        right: -8px;
+        top: -8px;
+        z-index: 1;
+        cursor: pointer;
+      }
+    }
+  }
+}
