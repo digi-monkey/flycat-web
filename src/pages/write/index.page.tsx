@@ -13,14 +13,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { getPublishedUrl, publish, setLocalSave } from './util';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
-import {
-  Alert,
-  Button,
-  Grid,
-  OutlinedInput,
-  Popover,
-  Snackbar,
-} from '@mui/material';
+import { Alert, Button, Input, Modal } from 'antd';
 
 import Link from 'next/link';
 import styles from './index.module.scss';
@@ -57,6 +50,8 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const [publishedToast, setPublishedToast] = useState(false);
   const [predefineHashTags, setPredefineHashTags] = useState<TagObj[]>([]);
 
+  const [openPublishModal, setOpenPublishModal] = useState(false);
+
   useWorker(setUserMap, setArticle, setIsRestore);
   useRestoreArticle(setArticle, setToast, isRestore);
   useArticle(
@@ -80,9 +75,6 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
         <div className={styles.btnGroup}>
           {!articleId && (
             <Button
-              variant="contained"
-              color="secondary"
-              size="small"
               disabled={title === '' && content === ''}
               onClick={() => {
                 setLocalSave({
@@ -104,26 +96,45 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           )}
           <Button
             disabled={title === '' && content === ''}
-            onClick={event => setAnchorEl(event.currentTarget)}
-            variant="contained"
-            color="primary"
-            size="small"
-            aria-describedby={Boolean(anchorEl) ? 'simple-popover' : undefined}
+            onClick={() => setOpenPublishModal(true)}
           >
             {t('blogWrite.btn.publish')}
           </Button>
-          <Popover
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            onClose={() => setAnchorEl(null)}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            className={styles.prePublish}
+
+          <Modal
+            title="Publish settings"
+            open={openPublishModal}
+            onOk={() =>
+              publish(
+                {
+                  did: articleId || did,
+                  title,
+                  slug,
+                  image,
+                  summary,
+                  content,
+                  hashTags,
+                },
+                dirs,
+                signEvent,
+                worker,
+                router,
+                setPublishedToast,
+                getPublishedUrl(publicKey, articleId, myPublicKey, slug),
+              )
+            }
+            onCancel={() => setOpenPublishModal(false)}
+            okText={t('blogWrite.btn.publish')}
+            cancelText={t('blogWrite.btn.cancel')}
           >
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
+            <div className={styles.prePublish}>
+              <div>
+                Select Relays
+                <RelaySelector className={styles.publishRelay} />
+              </div>
+
+              <div>
                 {t('blogWrite.form.coverImage')}
-              </Grid>
-              <Grid item xs={9}>
                 <div className={styles.image}>
                   {image ? (
                     <img src={image} alt="head image" />
@@ -131,105 +142,58 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                     <ImageUploader onImgUrls={url => setImage(url[0])} />
                   )}
                 </div>
-              </Grid>
-              <Grid item xs={3}>
+              </div>
+
+              <div>
                 {t('blogWrite.form.summary')}
-              </Grid>
-              <Grid item xs={9}>
-                <OutlinedInput
-                  size="small"
+                <Input
                   value={summary}
                   onChange={event => setSummary(event.target.value)}
                   placeholder={`${t('blogWrite.form.summary')}`}
-                  fullWidth
-                ></OutlinedInput>
-              </Grid>
-              <Grid item xs={3}>
+                />
+              </div>
+
+              <div>
                 {t('blogWrite.form.slug')}
-              </Grid>
-              <Grid item xs={9}>
-                <OutlinedInput
+                <Input
                   size="small"
                   value={slug}
                   onChange={event => setSlug(event.target.value)}
                   placeholder={`${t('blogWrite.form.slugPlaceholder')}`}
-                  fullWidth
-                ></OutlinedInput>
-              </Grid>
-              <Grid item xs={3}>
+                />
+              </div>
+
+              <div>
                 {t('blogWrite.form.dir')}
-              </Grid>
-              <Grid item xs={9}>
-                <OutlinedInput
+                <Input
                   size="small"
                   value={dirs}
                   onChange={event => setDirs(event.target.value)}
                   placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
-                  fullWidth
-                ></OutlinedInput>
-              </Grid>
-              <Grid item xs={3}>
+                />
+              </div>
+
+              <div>
                 {t('blogWrite.form.tag')}
-              </Grid>
-              <Grid item xs={9}>
                 <div className={styles.tags}>
                   <HashTags
                     predefineTags={predefineHashTags}
                     callback={tags => setHashTags(tags.map(t => t.id))}
                   />
                 </div>
-              </Grid>
-              <Grid item xs={6} alignItems="center">
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  onClick={() => setAnchorEl(null)}
-                >
-                  {t('blogWrite.btn.cancel')}
-                </Button>
-              </Grid>
-              <Grid item xs={6} alignItems="center">
-                <Button
-                  onClick={() =>
-                    publish(
-                      {
-                        did: articleId || did,
-                        title,
-                        slug,
-                        image,
-                        summary,
-                        content,
-                        hashTags,
-                      },
-                      dirs,
-                      signEvent,
-                      worker,
-                      router,
-                      setPublishedToast,
-                      getPublishedUrl(publicKey, articleId, myPublicKey, slug),
-                    )
-                  }
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                >
-                  {t('blogWrite.btn.publish')}
-                </Button>
-              </Grid>
-            </Grid>
-          </Popover>
+              </div>
+            </div>
+          </Modal>
         </div>
       </div>
       <div className={styles.main}>
         <div className={styles.title}>
-          <OutlinedInput
-            autoFocus
-            fullWidth
+          <Input
             placeholder={`${t('blogWrite.main.titlePlaceholder')}`}
             value={title}
             onChange={event => setTitle(event.target.value)}
-          ></OutlinedInput>
+            bordered={false}
+          />
         </div>
         <MdEditor
           value={content}
@@ -237,39 +201,16 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           className={styles.editor}
         />
       </div>
-      <Snackbar
-        open={toast}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={4000}
-        onClose={() => setToast(false)}
-      >
-        <Alert severity="success">{t('blogWrite.tipsy.restore')}</Alert>
-      </Snackbar>
-      <Snackbar
-        open={saveToast}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={4000}
-        onClose={() => setSaveToast(false)}
-      >
-        <Alert severity="success">{t('blogWrite.tipsy.success.save')}</Alert>
-      </Snackbar>
-      <Snackbar
-        open={publishedToast}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={4000}
-        onClose={() => setPublishedToast(false)}
-      >
-        <Alert severity="success">{t('blogWrite.tipsy.success.publish')}</Alert>
-      </Snackbar>
+
+      {toast && (
+        <Alert message={t('blogWrite.tipsy.restore')} type="success" closable />
+      )}
+      {saveToast && (
+        <Alert type="success" message={t('blogWrite.tipsy.success.save')} />
+      )}
+      {publishedToast && (
+        <Alert type="success" message={t('blogWrite.tipsy.success.publish')} />
+      )}
     </div>
   );
 }

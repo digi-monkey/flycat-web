@@ -21,10 +21,12 @@ import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import { ConnPool } from 'core/api/pool';
+import classNames from 'classnames';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
   newConnCallback?: (conns: string[]) => any;
+  className?: string;
 }
 
 export interface Option {
@@ -36,6 +38,7 @@ export interface Option {
 export function RelaySelector({
   wsStatusCallback,
   newConnCallback,
+  className
 }: RelaySelectorProps) {
   const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
@@ -217,7 +220,7 @@ export function RelaySelector({
   };
 
   return (
-    <div className={styles.relaySelector}>
+    <div className={classNames(styles.relaySelector, className)}>
       {contextHolder}
       <Cascader
         defaultValue={['global', 'default']}
