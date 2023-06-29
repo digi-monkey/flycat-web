@@ -3,6 +3,8 @@ import { LOCAL_SAVE_KEY } from 'constants/common';
 import { Nip23, DirTags, Nip23ArticleMetaTags } from 'core/nip/23';
 import { Event } from 'core/nostr/Event';
 import { WellKnownEventKind, EventSetMetadataContent } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 export const handleEvent = (publicKey, setUserMap, setArticle) => {
   return function handleEvent(event: Event, relayUrl?: string) {
@@ -86,7 +88,7 @@ export const publish = async (
   articleParams,
   dir,
   signEvent,
-  worker,
+  worker: CallWorker,
   router,
   setPublishedToast,
   pathname,
@@ -108,13 +110,16 @@ export const publish = async (
   }
 
   const event = await signEvent(rawEvent);
-  worker?.pubEvent(event);
+  const handler = worker.pubEvent(event);
   setPublishedToast(true);
   delLocalSave(articleParams.did);
-  setTimeout(() => router.push({ pathname }), 1500);
+
+	noticePubEventResult(handler);
+
+  setTimeout(() => router.push({ pathname }), 6500);
 };
 
 export const getPublishedUrl = (publicKey, articleId, myPublicKey, slug) =>
-  publicKey && articleId
-    ? `${Paths.post + myPublicKey}/${encodeURIComponent(slug)}`
+  publicKey && (articleId || slug)
+    ? `${Paths.post + myPublicKey}/${encodeURIComponent(slug || articleId)}`
     : `${Paths.post}/${myPublicKey}/`;

@@ -44,7 +44,6 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [content, setContent] = useState<string>('');
   const [hashTags, setHashTags] = useState<string[]>([]);
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [saveToast, setSaveToast] = useState(false);
   const [isRestore, setIsRestore] = useState(false);
   const [publishedToast, setPublishedToast] = useState(false);
@@ -117,7 +116,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                 },
                 dirs,
                 signEvent,
-                worker,
+                worker!,
                 router,
                 setPublishedToast,
                 getPublishedUrl(publicKey, articleId, myPublicKey, slug),

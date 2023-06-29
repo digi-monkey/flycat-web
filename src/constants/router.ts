@@ -17,11 +17,11 @@ const Pages = {
   },
   write: {
     name: 'write',
-    path: '/blog/write'
+    path: '/write'
   },
   edit: {
-    name: 'blog_edit',
-    path: '/blog/edit/'
+    name: 'edit',
+    path: '/edit/'
   },
   user: {
     name: 'user',
