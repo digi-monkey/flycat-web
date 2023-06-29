@@ -27,6 +27,7 @@ import styles from './index.module.scss';
 import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
+import { RelaySelector } from 'components/RelaySelector';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
@@ -231,7 +232,6 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           ></OutlinedInput>
         </div>
         <MdEditor
-         // style={{}}
           value={content}
           onText={setContent}
           className={styles.editor}

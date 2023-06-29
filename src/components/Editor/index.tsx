@@ -25,7 +25,6 @@ export function MdEditor(Props) {
 
   return (
     <ReactMdEditor
-      style={{ maxWidth: '100%', width: "630px", minHeight: '700px', height: '100%' }}
       renderHTML={text => mdParser.render(text)}
       onChange={({ html, text }) => Props.onText(text)}
       onImageUpload={onImageUpload}
