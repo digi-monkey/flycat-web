@@ -94,7 +94,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     worker
       .subMetadata([publicKey as string], undefined, callRelay)
       .iterating({ cb: handleEvent });
-      
+
     const filter = Nip23.filter({
       authors: [publicKey as string],
       articleIds: [articleId as string],
@@ -152,68 +152,74 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       </Head>
       <BaseLayout silent={true}>
         <Left>
-          <div className={styles.post}>
-            <PostContent
-              article={article}
-              publicKey={publicKey}
-              userMap={userMap}
-              articleId={articleId}
-              content={content}
-              t={t}
-            />
+          <>
+            <div className={styles.post}>
+              <PostContent
+                article={article}
+                publicKey={publicKey}
+                userMap={userMap}
+                articleId={articleId}
+                content={content}
+                t={t}
+              />
 
-            <PostReactions
-              worker={worker!}
-              ownerEvent={articleEvent!}
-              userMap={userMap}
-              seen={[]}
-            />
+              <PostReactions
+                worker={worker!}
+                ownerEvent={articleEvent!}
+                userMap={userMap}
+                seen={[]}
+              />
 
-            <div className={styles.info}>
-              <div className={styles.author}>
-                <div className={styles.picture}>
-                  <Link href={Paths.user + publicKey}>
-                    <img
-                      src={userMap.get(publicKey)?.picture}
-                      alt={userMap.get(publicKey)?.name}
-                    />
-                  </Link>
-                </div>
+              <div className={styles.info}>
+                <div className={styles.author}>
+                  <div className={styles.picture}>
+                    <Link href={Paths.user + publicKey}>
+                      <img
+                        src={userMap.get(publicKey)?.picture}
+                        alt={userMap.get(publicKey)?.name}
+                      />
+                    </Link>
+                  </div>
 
-                <div
-                  className={styles.name}
-                  onClick={() => window.open(Paths.user + publicKey, 'blank')}
-                >
-                  {userMap.get(publicKey)?.name}
-                </div>
-
-                <div className={styles.btnContainer}>
-                  <Button
-                    className={styles.btn}
-                    onClick={async () => {
-                      const lnUrl =
-                        userMap.get(publicKey)?.lud06 ||
-                        userMap.get(publicKey)?.lud16;
-                      if (lnUrl == null) {
-                        return alert(
-                          'no ln url, please tell the author to set up one.',
-                        );
-                      }
-                      await payLnUrlInWebLn(lnUrl);
-                    }}
+                  <div
+                    className={styles.name}
+                    onClick={() => window.open(Paths.user + publicKey, 'blank')}
                   >
-                    <Icon
-                      style={{ width: '18px', height: '18px' }}
-                      type="icon-bolt"
-                    />
-                    <span>{'Zap the author'}</span>
-                  </Button>
+                    {userMap.get(publicKey)?.name}
+                  </div>
+
+                  <div className={styles.btnContainer}>
+                    <Button
+                      className={styles.btn}
+                      onClick={async () => {
+                        const lnUrl =
+                          userMap.get(publicKey)?.lud06 ||
+                          userMap.get(publicKey)?.lud16;
+                        if (lnUrl == null) {
+                          return alert(
+                            'no ln url, please tell the author to set up one.',
+                          );
+                        }
+                        await payLnUrlInWebLn(lnUrl);
+                      }}
+                    >
+                      <Icon
+                        style={{ width: '18px', height: '18px' }}
+                        type="icon-bolt"
+                      />
+                      <span>{'Zap the author'}</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {articleEvent && <Comments rootEvent={articleEvent} />}
-          </div>
+            {articleEvent && (
+              <Comments
+                rootEvent={articleEvent}
+                className={styles.commentContainer}
+              />
+            )}
+          </>
         </Left>
         <Right></Right>
       </BaseLayout>

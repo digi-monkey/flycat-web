@@ -13,12 +13,14 @@ import { _handleEvent } from './util';
 import { getEventIdsFromETags } from 'core/nostr/util';
 import { SubPostItem } from 'components/PostItems/PostContent';
 import PostItems from 'components/PostItems';
+import classNames from 'classnames';
 
 export interface CommentsProps {
   rootEvent: EventWithSeen;
+  className?: string;
 }
 
-const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
+const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
   const myPublicKey = useReadonlyMyPublicKey();
 
   const { worker, newConn } = useCallWorker();
@@ -107,8 +109,8 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
   };
 
   return (
-    <>
-      <div className={styles.repliesHeader}>
+    <div className={classNames(className)}>
+      <div className={classNames(styles.repliesHeader)}>
         <div className={styles.header}>
           <div className={styles.title}>Replies{`(${commentList.length})`}</div>
           <div>
@@ -143,7 +145,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent }) => {
           <br />
         </div>
       ))}
-    </>
+    </div>
   );
 };
 

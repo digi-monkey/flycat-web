@@ -1,79 +1,5 @@
 .post {
   padding: var(--basePadding5);
-
-  .comment {
-    width: 100%;
-    min-height: 100px;
-    height: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    border-radius: 5px;
-
-    .commentPanel {
-      .image {
-        position: relative;
-        margin: 10px 0;
-
-        img {
-          max-width: 100%;
-          border-radius: 10px;
-        }
-
-        svg {
-          position: absolute;
-          right: 10px;
-          top: 10px;
-          z-index: 1;
-          cursor: pointer;
-
-          &:hover {
-            path {
-              fill: gray;
-            }
-          }
-        }
-      }
-
-      .footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-left: 10px;
-        margin-bottom: 20px;
-
-        .icons {
-          svg:hover {
-            cursor: pointer;
-            path {
-              fill: rgb(141, 197, 63);
-            }
-          }
-        }
-
-        :global {
-          .MuiButtonBase-root {
-            border-radius: 50px;
-            color: white;
-          }
-        }
-      }
-
-      :global {
-        .MuiTextField-root {
-          width: 100%;
-          padding: 5px;
-          background-color: #fff;
-          border-radius: 5px;
-        }
-
-        .MuiButton-root {
-          display: flex;
-          margin: 30px 0 30px auto;
-          color: #fff;
-        }
-      }
-    }
-  }
 }
 
 .info {
@@ -166,4 +92,8 @@
       }
     }
   }
+}
+
+.commentContainer{
+  background-color: var(--post-bg);
 }
