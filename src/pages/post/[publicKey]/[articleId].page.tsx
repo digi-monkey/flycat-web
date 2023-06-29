@@ -152,7 +152,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       </Head>
       <BaseLayout silent={true}>
         <Left>
-          <>
+          <div className={styles.postContainer}>
             <div className={styles.post}>
               <PostContent
                 article={article}
@@ -219,7 +219,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                 className={styles.commentContainer}
               />
             )}
-          </>
+          </div>
         </Left>
         <Right></Right>
       </BaseLayout>
