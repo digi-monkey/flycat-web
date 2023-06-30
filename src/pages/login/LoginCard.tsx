@@ -17,8 +17,7 @@ import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'core/nip/19';
 import {isDotBitName} from "core/dotbit";
 
 import styles from './index.module.scss';
-import Swal from 'sweetalert2/dist/sweetalert2.js';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -41,6 +40,8 @@ const LoginCard = ({
   const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
   const [createdNewPublicKey, setCreatedNewPublicKey] = useState<string>();
   const [readonlyInputValue, setReadonlyInputValue] = useState<string>('');
+  
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [showPrivateKeyInput, setShowPrivateKeyInput] =
     useState<boolean>(false);
@@ -56,10 +57,7 @@ const LoginCard = ({
     }
 
     if (!window.nostr) {
-      Swal.fire({
-        icon: 'error',
-        text: 'window.nostr not found! did you install the Nip07 wallet extension?',
-      });
+      messageApi.error('window.nostr not found! did you install the Nip07 wallet extension?', 3);
       return;
     }
 
@@ -99,30 +97,21 @@ const LoginCard = ({
 
   const signWithPublicKey = async (pubKey: string) => {
     if (typeof pubKey !== 'string') {
-      Swal.fire({
-        icon: 'error',
-        text: 'typeof pubKey !== "string"',
-      });
+      messageApi.error('typeof pubKey !== "string"', 3);
       return;
     }
 
     if (pubKey.startsWith(Nip19DataPrefix.Npubkey)) {
       const res = Nip19.decode(pubKey);
       if (res.type !== Nip19DataType.Npubkey) {
-        Swal.fire({
-          icon: 'error',
-          text: 'bech32 encoded publickey decoded err',
-        });
+        messageApi.error('bech32 encoded publickey decoded err', 3);
         return;
       }
       pubKey = res.data;
     }
 
     if (pubKey.length !== 64) {
-      Swal.fire({
-        icon: 'error',
-        text: 'only support 32 bytes hex publicKey now, wrong length',
-      });
+      messageApi.error('only support 32 bytes hex publicKey now, wrong length', 3);
       return;
     }
 
@@ -154,20 +143,14 @@ const LoginCard = ({
     if (privKey.startsWith(Nip19DataPrefix.Nprivkey)) {
       const res = Nip19.decode(privKey);
       if (res.type !== Nip19DataType.Nprivkey) {
-        Swal.fire({
-          icon: 'error',
-          text: 'bech32 encoded privkey decoded err',
-        });
+        messageApi.error('bech32 encoded privkey decoded err', 3);
         return;
       }
       privKey = res.data;
     }
 
     if (privKey.length !== 64) {
-      Swal.fire({
-        icon: 'error',
-        text: 'only support 32 bytes hex private key now, wrong length',
-      });
+      messageApi.error('only support 32 bytes hex private key now, wrong length', 3);
       return;
     }
 
@@ -182,10 +165,7 @@ const LoginCard = ({
 
   const onMetamaskSignInSubmit = (username, password) => {
     if (typeof window.ethereum === 'undefined') {
-      Swal.fire({
-        icon: 'error',
-        text: 'window.ethereum not found! did you install the metamask?',
-      });
+      messageApi.error('window.ethereum not found! did you install the metamask?', 3);
       return;
     }
 
@@ -216,6 +196,7 @@ const LoginCard = ({
 
   const LoggedInUI = (
     <div>
+      {contextHolder}
       <div className={styles.title}>{t('loginForm.welcome')}</div>
       <div className={styles.line}>{t('loginForm.signedInFrom')} {mode}</div>
       <div className={styles.line}>

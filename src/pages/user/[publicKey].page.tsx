@@ -29,7 +29,6 @@ import { stringHasImageUrl } from 'utils/common';
 import { useLastReplyEvent } from './hooks';
 import { Followings } from './followings';
 
-import Swal from 'sweetalert2/dist/sweetalert2.js';
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
@@ -53,7 +52,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [messageApi, contextHolder] = message.useMessage();
 
   const { worker, newConn } = useCallWorker();
-  
 
   function handleEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {
@@ -326,7 +324,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     );
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
-    messageApi.success('done, refresh page please!', 3); 
+    messageApi.success('done, refresh page please!', 3);
   };
   const _unfollowUser = async (publicKey: string) => {
     if (signEvent == null) {
@@ -366,7 +364,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
-    messageApi.success('done, refresh page please!', 3); 
+    messageApi.success('done, refresh page please!', 3);
   };
   const buildFollowUnfollow = (publicKey: string) => {
     const isFollowed =
@@ -381,7 +379,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           action: () => _followUser(publicKey),
         };
   };
-  const followOrUnfollow = buildFollowUnfollow(publicKey); 
+  const followOrUnfollow = buildFollowUnfollow(publicKey);
 
   const tabItems = [
     {
@@ -493,13 +491,20 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <CommitCalendar pk={publicKey} />
         </div>
 
-        <div className={styles.btnGroup}>
-          <Button onClick={followOrUnfollow.action}>
-            {followOrUnfollow.label}
-          </Button>
-          <Icon type="icon-rss" className={styles.icon} />
-          <Icon type="icon-bolt" className={styles.icon} />
-        </div>
+        {myPublicKey === publicKey ? (
+          <div className={styles.btnGroup}>
+            <Button onClick={() => {window.open(Paths.setting)}}>Edit profile</Button>
+            <Icon type="icon-Gear" className={styles.icon} />
+          </div>
+        ) : (
+          <div className={styles.btnGroup}>
+            <Button onClick={followOrUnfollow.action}>
+              {followOrUnfollow.label}
+            </Button>
+            <Icon type="icon-rss" className={styles.icon} />
+            <Icon type="icon-bolt" className={styles.icon} />
+          </div>
+        )}
 
         <Followings
           buildFollowUnfollow={buildFollowUnfollow}
