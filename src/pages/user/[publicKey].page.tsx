@@ -493,8 +493,20 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
         {myPublicKey === publicKey ? (
           <div className={styles.btnGroup}>
-            <Button onClick={() => {window.open(Paths.setting)}}>Edit profile</Button>
-            <Icon type="icon-Gear" className={styles.icon} />
+            <Button
+              onClick={() => {
+                window.open(Paths.setting);
+              }}
+            >
+              Edit profile
+            </Button>
+            <Icon
+              type="icon-Gear"
+              className={styles.icon}
+              onClick={() => {
+                window.open(Paths.setting + '?tabKey=preference');
+              }}
+            />
           </div>
         ) : (
           <div className={styles.btnGroup}>
