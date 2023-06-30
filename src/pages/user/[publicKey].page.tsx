@@ -24,14 +24,15 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Input, Tabs } from 'antd';
+import { Avatar, Button, Input, Tabs, message } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
+import { useLastReplyEvent } from './hooks';
+import { Followings } from './followings';
 
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
-import { useLastReplyEvent } from './hooks';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -49,8 +50,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [myContactList, setMyContactList] = useState<ContactInfo>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [articleMsgList, setArticleMsgList] = useState<Event[]>([]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const { worker, newConn } = useCallWorker();
+  
 
   function handleEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {
@@ -283,12 +286,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     setEventMap,
   });
 
-  const followUser = async () => {
+  const _followUser = async (publicKey: string) => {
     if (signEvent == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'no sign method!',
-      });
+      messageApi.error('no sign method!', 3);
       return;
     }
 
@@ -315,10 +315,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     tags.push([EventTags.P, publicKey, '', '']);
 
     if (tags.length != pks.length + 1) {
-      Swal.fire({
-        icon: 'error',
-        text: 'something went wrong with contact list',
-      });
+      messageApi.error('something went wrong with contact list', 3);
       return;
     }
 
@@ -329,17 +326,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     );
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
-    Swal.fire({
-      icon: 'success',
-      text: 'done, refresh page please!',
-    });
+    messageApi.success('done, refresh page please!', 3); 
   };
-  const unfollowUser = async () => {
+  const _unfollowUser = async (publicKey: string) => {
     if (signEvent == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'no sign method!',
-      });
+      messageApi.error('no sign method!', 3);
       return;
     }
     if (!myContactList) return;
@@ -363,10 +354,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           ] as EventContactListPTag,
       );
     if (tags.length != pks.length - 1) {
-      Swal.fire({
-        icon: 'error',
-        text: 'something went wrong with contact list',
-      });
+      messageApi.error('something went wrong with contact list', 3);
       return;
     }
 
@@ -378,14 +366,22 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
-    Swal.fire({
-      icon: 'success',
-      text: 'done, refresh page please!',
-    });
+    messageApi.success('done, refresh page please!', 3); 
   };
-  const isFollowed =
-    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
-  const followOrUnfollowOnClick = isFollowed ? unfollowUser : followUser;
+  const buildFollowUnfollow = (publicKey: string) => {
+    const isFollowed =
+      isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
+    return isFollowed
+      ? {
+          label: 'unfollow',
+          action: () => _unfollowUser(publicKey),
+        }
+      : {
+          label: 'follow',
+          action: () => _followUser(publicKey),
+        };
+  };
+  const followOrUnfollow = buildFollowUnfollow(publicKey); 
 
   const tabItems = [
     {
@@ -442,6 +438,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   return (
     <BaseLayout>
       <Left>
+        {contextHolder}
         <div className={styles.pageTitle}>
           <div className={styles.titleBox}>
             <div className={styles.arrow}>
@@ -497,34 +494,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         </div>
 
         <div className={styles.btnGroup}>
-          <Button onClick={followOrUnfollowOnClick}>
-            {isFollowed ? 'unfollow' : 'follow'}
+          <Button onClick={followOrUnfollow.action}>
+            {followOrUnfollow.label}
           </Button>
           <Icon type="icon-rss" className={styles.icon} />
           <Icon type="icon-bolt" className={styles.icon} />
         </div>
 
-        <div className={styles.following}>
-          <div className={styles.followingTitle}>Followings</div>
-          {userContactList?.keys.slice(0, 5).map(key => (
-            <li key={key} className={styles.followingList}>
-              <div className={styles.user}>
-                <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
-                <div>{userMap.get(key)?.name}</div>
-              </div>
-              <div>
-                <Icon type="icon-more-horizontal" className={styles.icon} />
-              </div>
-            </li>
-          ))}
-          <div className={styles.viewBtnContainer}>
-            <Button
-              onClick={() => (window.location.href = '/contact/' + publicKey)}
-            >
-              View all {userContactList?.keys.length}
-            </Button>
-          </div>
-        </div>
+        <Followings
+          buildFollowUnfollow={buildFollowUnfollow}
+          pks={userContactList?.keys || []}
+          userMap={userMap}
+        />
       </Right>
     </BaseLayout>
   );
