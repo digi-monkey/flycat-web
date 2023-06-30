@@ -1,6 +1,5 @@
 import { Paths } from 'constants/path';
 import Icon from 'components/Icon';
-import { getDraftId } from 'utils/common';
 import { message } from 'antd';
 
 export enum MenuId {

@@ -1,23 +1,19 @@
-import { ThinHr } from '../../components/ThinHr';
 import { connect } from 'react-redux';
 import { useState } from 'react';
-import { CopyText } from 'components/CopyText/CopyText';
 import { useTranslation } from 'next-i18next';
 import { walletConnector } from 'core/evm/wagmi/connectors';
 import { isWalletConnected } from 'core/evm/wagmi/helper';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { connect as wagmiConnect } from '@wagmi/core';
 import { getPublicKey, randomKeyPair } from 'core/crypto';
 import { EvmSignInMode, EvmSignInPopup } from './Popup';
 import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { isNip05DomainName } from 'core/nip/05';
-import { getPrivateKeyFromMetamaskSignIn } from 'core/evm/metamask';
-import { getPrivateKeyFromWalletConnectSignIn } from 'core/evm/walletConnect';
 import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'core/nip/19';
-import {isDotBitName} from "core/dotbit";
+import { isDotBitName } from 'core/dotbit';
+import { Button, Divider, Input, message } from 'antd';
 
 import styles from './index.module.scss';
-import { Button, message } from 'antd';
+import PageTitle from 'components/PageTitle';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -29,18 +25,14 @@ export interface LoginFormProps {
 
 const LoginCard = ({
   isLoggedIn,
-  mode,
-  evmUsername,
   doLogin,
-  doLogout,
 }: LoginFormProps) => {
   const { t } = useTranslation();
-  const myPublicKey = useReadonlyMyPublicKey();
 
   const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
   const [createdNewPublicKey, setCreatedNewPublicKey] = useState<string>();
   const [readonlyInputValue, setReadonlyInputValue] = useState<string>('');
-  
+
   const [messageApi, contextHolder] = message.useMessage();
 
   const [showPrivateKeyInput, setShowPrivateKeyInput] =
@@ -57,7 +49,10 @@ const LoginCard = ({
     }
 
     if (!window.nostr) {
-      messageApi.error('window.nostr not found! did you install the Nip07 wallet extension?', 3);
+      messageApi.error(
+        'window.nostr not found! did you install the Nip07 wallet extension?',
+        3,
+      );
       return;
     }
 
@@ -70,7 +65,7 @@ const LoginCard = ({
   const signWithEthWallet = async () => setShowMetamaskSignInPopup(true);
 
   const signWithWalletConnect = async () => {
-    if(!isWalletConnected()){
+    if (!isWalletConnected()) {
       await wagmiConnect({
         connector: walletConnector,
       });
@@ -111,7 +106,10 @@ const LoginCard = ({
     }
 
     if (pubKey.length !== 64) {
-      messageApi.error('only support 32 bytes hex publicKey now, wrong length', 3);
+      messageApi.error(
+        'only support 32 bytes hex publicKey now, wrong length',
+        3,
+      );
       return;
     }
 
@@ -150,7 +148,10 @@ const LoginCard = ({
     }
 
     if (privKey.length !== 64) {
-      messageApi.error('only support 32 bytes hex private key now, wrong length', 3);
+      messageApi.error(
+        'only support 32 bytes hex private key now, wrong length',
+        3,
+      );
       return;
     }
 
@@ -165,7 +166,10 @@ const LoginCard = ({
 
   const onMetamaskSignInSubmit = (username, password) => {
     if (typeof window.ethereum === 'undefined') {
-      messageApi.error('window.ethereum not found! did you install the metamask?', 3);
+      messageApi.error(
+        'window.ethereum not found! did you install the metamask?',
+        3,
+      );
       return;
     }
 
@@ -194,189 +198,108 @@ const LoginCard = ({
     setPrivKeyInputValue(data.privKey);
   };
 
-  const LoggedInUI = (
-    <div>
-      {contextHolder}
-      <div className={styles.title}>{t('loginForm.welcome')}</div>
-      <div className={styles.line}>{t('loginForm.signedInFrom')} {mode}</div>
-      <div className={styles.line}>
-        {myPublicKey && (
-          <CopyText
-            name={t('loginForm.copyPubKey')}
-            textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
-          />
-        )}
-      </div>
-      <div className={styles.line}>
-        {(mode === LoginMode.metamask || mode === LoginMode.walletConnect) && (
-          <CopyText
-            name={t('loginForm.copyPrivKey')}
-            getTextToCopy={async () => {
-              if (evmUsername == null) {
-                // todo: how do we use custom ux instead of window.prompt to get user input here?
-                evmUsername =
-                  window.prompt('Your Evm sign-in username: ', 'nostr') ||
-                  undefined;
-                if (evmUsername == null) {
-                  const errMsg =
-                    "Evm sign-in username not found, can't generate public key";
-                  alert(errMsg);
-                  throw new Error(errMsg);
-                }
-              }
-
-              if (mode === LoginMode.metamask) {
-                const privKey = await getPrivateKeyFromMetamaskSignIn(
-                  evmUsername,
-                );
-                if (privKey == null) throw new Error('unable to get privKey');
-                return Nip19.encode(privKey, Nip19DataType.Nprivkey);
-              } else {
-                const privKey = await getPrivateKeyFromWalletConnectSignIn(
-                  evmUsername,
-                );
-                if (privKey == null) throw new Error('unable to get privKey');
-                return Nip19.encode(privKey, Nip19DataType.Nprivkey);
-              }
-            }}
-          />
-        )}
-      </div>
-      <div className={styles.buttonBox}>
-        <Button
-          // color="success"
-          // variant="contained"
-          onClick={doLogout}
-          className={styles.button}
-        >
-          {t('loginForm.signOut')}
-        </Button>
-      </div>
-    </div>
-  );
-
   const notLoggedInUI = (
     <div>
-      <div className={styles.loginArea}>
-        <div className={styles.title}>{t('loginForm.title')}</div>
-        <div className={styles.buttonBox}>
-          <Button
-            className={`${styles.button} ${styles.alby}`}
-            onClick={signWithNip07Wallet}
-          >
-            <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
-            {t('loginForm.signWithNip07')}
-          </Button>
-        </div>
+      {contextHolder}
+      <PageTitle title={isLoggedIn ? 'Sign Out' : 'Sign In'} />
+      <div className={styles.signPanel}>
+        <Button className={styles.button} onClick={signWithNip07Wallet}>
+          <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
+          {t('loginForm.signWithNip07')}
+        </Button>
 
-        <div className={styles.buttonBox}>
-          <Button
-            className={`${styles.button} ${styles.metamask}`}
-            onClick={signWithEthWallet}
-          >
-            <img className={styles.icon} src="./icon/metamask-fox.svg" />
-            {t('loginForm.signWithMetamask')}
-          </Button>
-          {showMetamaskSignInPopup && (
-            <EvmSignInPopup
-              isOpen={showMetamaskSignInPopup}
-              onClose={() => setShowMetamaskSignInPopup(false)}
-              mode={EvmSignInMode.metamask}
-              onSubmit={onMetamaskSignInSubmit}
-            />
-          )}
-        </div>
+        <Button className={styles.button} onClick={signWithEthWallet}>
+          <img className={styles.icon} src="./icon/metamask-fox.svg" />
+          {t('loginForm.signWithMetamask')}
+        </Button>
+        {showMetamaskSignInPopup && (
+          <EvmSignInPopup
+            isOpen={showMetamaskSignInPopup}
+            onClose={() => setShowMetamaskSignInPopup(false)}
+            mode={EvmSignInMode.metamask}
+            onSubmit={onMetamaskSignInSubmit}
+          />
+        )}
 
-        <div className={styles.buttonBox}>
-          <Button
-            className={`${styles.button} ${styles.walletConnect}`}
-            onClick={signWithWalletConnect}
-          >
-            <img className={styles.icon} src="./icon/wallet-connect-logo.svg" />
-            {t('loginForm.signWithWalletConnect')}
-          </Button>
-          {showWalletSignInPopup && (
-            <EvmSignInPopup
-              isOpen={showWalletSignInPopup}
-              onClose={() => setShowWalletSignInPopup(false)}
-              mode={EvmSignInMode.walletConnect}
-              onSubmit={onWalletConnectSignInSubmit}
-            />
-          )}
-        </div>
-      </div>
+        <Button className={styles.button} onClick={signWithWalletConnect}>
+          <img className={styles.icon} src="./icon/wallet-connect-logo.svg" />
+          {t('loginForm.signWithWalletConnect')}
+        </Button>
+        {showWalletSignInPopup && (
+          <EvmSignInPopup
+            isOpen={showWalletSignInPopup}
+            onClose={() => setShowWalletSignInPopup(false)}
+            mode={EvmSignInMode.walletConnect}
+            onSubmit={onWalletConnectSignInSubmit}
+          />
+        )}
 
-      <ThinHr />
+        <Divider orientation="left">{t('loginForm.readonlyMode')}</Divider>
 
-      <div className={styles.buttonBox}>
-        <div className={styles.readonlyModeTitle}>
-          {t('loginForm.readonlyMode')}
-        </div>
         <div className={styles.inputWithSubmitButton}>
-          <input
+          <Input
             type="text"
             placeholder={'publicKey/nip05DomainName/.bit'}
             name="dotbitDomainName"
-            className={`${styles.input} ${styles.noframe}`}
+            bordered={false}
             value={readonlyInputValue}
             onChange={event => setReadonlyInputValue(event.target.value)}
           />
-          <button
-            className={`${styles.submitButton}`}
-            onClick={signWithReadonly}
-          >
+          <Button type="link" onClick={signWithReadonly}>
             {t('loginForm.signIn')}
-          </button>
+          </Button>
         </div>
-      </div>
 
-      <ThinHr />
-      <div className={styles.buttonBox}>
-        <a href="#" onClick={() => setShowPrivateKeyInput(prev => !prev)}>
-          {t('loginForm.signInWithPrivKeyTitle')} {'(dangerous)'} {'-->'}
-        </a>
-      </div>
+        <Divider orientation="left">
+          <a
+            className={styles.discourageLinkBtn}
+            href="#"
+            onClick={() => setShowPrivateKeyInput(prev => !prev)}
+          >
+            {t('loginForm.signInWithPrivKeyTitle')} {'(dangerous)'} {'-->'}
+          </a>
+        </Divider>
 
-      {showPrivateKeyInput && (
-        <div className={styles.buttonBox}>
-          {createdNewPublicKey && (
-            <small>{t('loginForm.backUpPrivKeyHint')}</small>
-          )}
-          <div className={styles.inputWithSubmitButton}>
-            <input
-              type="text"
-              placeholder={t('loginForm.privKey') || ''}
-              name="privateKey"
-              className={`${styles.input} ${styles.noframe}`}
-              value={privKeyInputValue}
-              onChange={event => setPrivKeyInputValue(event.target.value)}
-            />
-            <button
-              onClick={signWithPrivateKey}
-              className={`${styles.submitButton}`}
-            >
-              {t('loginForm.signIn')}
-            </button>
+        <div></div>
+
+        {showPrivateKeyInput && (
+          <div className={styles.buttonBox}>
+            {createdNewPublicKey && (
+              <small>{t('loginForm.backUpPrivKeyHint')}</small>
+            )}
+            <div className={styles.inputWithSubmitButton}>
+              <Input
+                type="text"
+                placeholder={t('loginForm.privKey') || ''}
+                name="privateKey"
+                bordered={false}
+                className={`${styles.input}`}
+                value={privKeyInputValue}
+                onChange={event => setPrivKeyInputValue(event.target.value)}
+              />
+              <Button onClick={signWithPrivateKey} type="link">
+                {t('loginForm.signIn')}
+              </Button>
+            </div>
+
+            <div>
+              <Button type="link" onClick={genNewKeyPair}>
+                {t('loginForm.genNewKey')}
+              </Button>
+            </div>
           </div>
-
-          <div>
-            <button
-              type="button"
-              onClick={genNewKeyPair}
-              style={{
-                border: 'none',
-                background: 'none',
-              }}
-            >
-              {t('loginForm.genNewKey')}
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 
-  return isLoggedIn ? LoggedInUI : notLoggedInUI;
+  const alreadyLoggedIn = (
+    <div className={styles.signPanel}>
+      {contextHolder}you are already sign-in!
+    </div>
+  );
+
+  return isLoggedIn ? alreadyLoggedIn : notLoggedInUI;
 };
 
 const logout = () => ({

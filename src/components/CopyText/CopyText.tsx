@@ -6,7 +6,7 @@ export interface CopyTextProps {
   getTextToCopy?: () => Promise<string>;
   successMsg?: string;
   failedMsg?: string;
-  alertLastMilsecs?: number;
+  alertLastSecs?: number;
 }
 
 export const CopyText = ({
@@ -15,7 +15,7 @@ export const CopyText = ({
   getTextToCopy,
   successMsg,
   failedMsg,
-  alertLastMilsecs = 5000,
+  alertLastSecs = 5,
 }: CopyTextProps) => {
 
   const copy = async (text: string) => {
@@ -54,11 +54,11 @@ export const CopyText = ({
             await copy(text);
           } catch (error: any) {
             console.error("copy failed: ", error.message);
-            message.error(failedMsg || 'Failed to copied to clipboard!', alertLastMilsecs);
+            message.error(failedMsg || 'Failed to copied to clipboard!', alertLastSecs);
             return;
           }
 
-          message.success(successMsg || 'Text copied to clipboard!', alertLastMilsecs);
+          message.success(successMsg || 'Text copied to clipboard!', alertLastSecs);
         }}
       >
         {name}

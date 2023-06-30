@@ -23,6 +23,7 @@ import styles from './index.module.scss';
 import Preference from './preference';
 import About from './about';
 import { useRouter } from 'next/router';
+import Key from './key';
 
 const { TextArea } = Input;
 
@@ -39,8 +40,8 @@ interface FormData {
 export const EditProfilePage = ({ commitId }) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const tabKey = router.query.tabKey as (string | undefined) || "account";
-  const handleTabChange = (key) => {
+  const tabKey = (router.query.tabKey as string | undefined) || 'account';
+  const handleTabChange = key => {
     router.push(`?tabKey=${key}`); // Update the query parameter in the URL when the tab changes
   };
 
@@ -231,6 +232,11 @@ export const EditProfilePage = ({ commitId }) => {
       ),
     },
     {
+      label: 'Keys',
+      key: 'keys',
+      children: <Key />,
+    },
+    {
       label: `Preference`,
       key: 'preference',
       children: (
@@ -250,7 +256,12 @@ export const EditProfilePage = ({ commitId }) => {
     <BaseLayout>
       <Left>
         <PageTitle title="Settings" />
-        <Tabs centered items={items} activeKey={tabKey} onChange={handleTabChange} />
+        <Tabs
+          centered
+          items={items}
+          activeKey={tabKey}
+          onChange={handleTabChange}
+        />
       </Left>
       <Right></Right>
     </BaseLayout>
