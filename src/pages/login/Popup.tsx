@@ -2,10 +2,10 @@ import { HexStr } from 'types';
 import { chainList } from '../../constants/chainList';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
-import { Button, Dialog, DialogContent } from '@mui/material';
 import { getAccount, getNetwork } from '@wagmi/core';
 
 import styles from './index.module.scss';
+import { Input, Modal } from 'antd';
 
 export enum EvmSignInMode {
   metamask = 'metamask',
@@ -90,8 +90,15 @@ export const EvmSignInPopup = ({ isOpen, onClose, onSubmit, mode }: Props) => {
   }, []);
 
   return (
-    <Dialog className={styles.popupDialog} open={isOpen} onClose={onClose}>
-      <DialogContent>
+    <Modal 
+      className={styles.popupDialog} 
+      open={isOpen} 
+      onCancel={onClose} 
+      onOk={handleSubmit}
+      okText={t('evmSignIn.submit')}
+      okButtonProps={{disabled: username.length === 0}}
+    >
+      <>
         <div className={styles.title}>{t('evmSignIn.title')}</div>
         <div className={styles.popupIntroduce}>{t('evmSignIn.introduce')} <a href="/post/45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a/why-sign-in-from-eth-wallet">{"How EVM nostr sub-account works"}</a> </div>
         <div className={styles.popupTip}>{t('evmSignIn.tip')}</div>
@@ -123,14 +130,14 @@ export const EvmSignInPopup = ({ isOpen, onClose, onSubmit, mode }: Props) => {
 
         <div className={styles.popupLabel}>{t('evmSignIn.usernameAndPw')}</div>
         <div>
-          <input
+          <Input
             className={styles.popupInput}
             type="text"
             placeholder={t('evmSignIn.username')!}
             value={username}
             onChange={handleUsernameChange}
           />
-          <input
+          <Input
             className={styles.popupInput}
             type="text"
             placeholder={t('evmSignIn.password')!}
@@ -138,10 +145,7 @@ export const EvmSignInPopup = ({ isOpen, onClose, onSubmit, mode }: Props) => {
             onChange={handlePasswordChange}
           />
         </div>
-        <Button className={styles.popupButton} onClick={handleSubmit} disabled={username.length === 0}>
-          {t('evmSignIn.submit')}
-        </Button>
-      </DialogContent>
-    </Dialog>
+      </>
+    </Modal>
   );
 };
