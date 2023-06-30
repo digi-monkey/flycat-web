@@ -1,7 +1,7 @@
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
 import { RootState } from 'store/configureStore';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useMatchPad } from 'hooks/useMediaQuery';
 import { MenuItemType } from 'antd/es/menu/hooks/useItems';
 import { UserOutlined } from '@ant-design/icons';
@@ -19,10 +19,18 @@ import dynamic from 'next/dynamic';
 
 const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setOpenWrite: Dispatch<SetStateAction<boolean>> }) => {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const isPad = useMatchPad();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
+
+  const doLogout = () => {
+    dispatch({
+      type: 'LOGOUT',
+    });
+    window.location.href = Paths.login;
+  }
   
   const userMenus = UserMenus.reduce((result, item) => {
     if (!item || item.id === MenuId.bookmarks) return result;
@@ -31,7 +39,7 @@ const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setO
       icon: item?.icon,
       key: item?.id,
       label: t(item?.title),
-      onClick: () => navClick(item, myPublicKey, router, isLoggedIn, t),
+      onClick: () => item.id === MenuId.signOut ? doLogout() : navClick(item, myPublicKey, router, isLoggedIn, t),
     });
     return result;
   }, [] as MenuItemType[]);
