@@ -14,6 +14,7 @@ import { Button, Divider, Input, message } from 'antd';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
+import { Paths } from 'constants/path';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -23,10 +24,7 @@ export interface LoginFormProps {
   doLogout;
 }
 
-const LoginCard = ({
-  isLoggedIn,
-  doLogin,
-}: LoginFormProps) => {
+const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
   const { t } = useTranslation();
 
   const [privKeyInputValue, setPrivKeyInputValue] = useState<string>('');
@@ -315,7 +313,12 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  doLogin: (request: LoginRequest) => dispatch(login(request)),
+  doLogin: (request: LoginRequest) =>
+    dispatch(login(request))
+      .then(() => (window.location.href = Paths.home))
+      .catch(error => {
+        message.error(error.message, 5);
+      }),
   doLogout: () => dispatch(logout()),
 });
 
