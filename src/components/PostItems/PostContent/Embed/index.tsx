@@ -16,6 +16,7 @@ import { Note } from './Note';
 import { Nprofile } from './Nprofile';
 import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
+import { UserMap } from 'core/nostr/type';
 
 export const transformRefEmbed = (
   content: string,
@@ -34,25 +35,26 @@ export const transformRefEmbed = (
     nprofiles?: NprofileResult[];
     nrelays?: NrelayResult[];
   },
+  userMap: UserMap
 ) => {
   let refTexts: string[] = [];
   let refComponents: any[] = [];
 
   if (npubs) {
     refTexts = refTexts.concat(npubs.map(n => n.key));
-    refComponents = refComponents.concat(npubs.map(n => Npub(n)));
+    refComponents = refComponents.concat(npubs.map(n => Npub(n, userMap)));
   }
   if (nevents) {
     refTexts = refTexts.concat(nevents.map(n => n.key));
-    refComponents = refComponents.concat(nevents.map(n => Nevent(n)));
+    refComponents = refComponents.concat(nevents.map(n => Nevent(n, userMap)));
   }
   if (notes) {
     refTexts = refTexts.concat(notes.map(n => n.key));
-    refComponents = refComponents.concat(notes.map(n => Note(n)));
+    refComponents = refComponents.concat(notes.map(n => Note(n, userMap)));
   }
   if (nprofiles) {
     refTexts = refTexts.concat(nprofiles.map(n => n.key));
-    refComponents = refComponents.concat(nprofiles.map(n => Nprofile(n)));
+    refComponents = refComponents.concat(nprofiles.map(n => Nprofile(n, userMap)));
   }
   if (naddrs) {
     refTexts = refTexts.concat(naddrs.map(n => n.key));

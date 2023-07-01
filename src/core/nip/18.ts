@@ -4,6 +4,7 @@ import { RawEvent } from 'core/nostr/RawEvent';
 import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 import { EventWithSeen } from 'pages/type';
 import { toSeenEvent } from 'core/nostr/util';
+import { isValidJSONStr } from 'utils/validator';
 
 export class Nip18 {
   public static kind = WellKnownEventKind.reposts;
@@ -36,7 +37,11 @@ export class Nip18 {
     }
 
     if (reposts.content.length > 0) {
-      return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
+      if(isValidJSONStr(reposts)){
+        return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
+      }
+      
+      console.debug(`invalid event json string`, reposts.content);
     }
 
     let event = await OneTimeWebSocketClient.fetchEvent({
