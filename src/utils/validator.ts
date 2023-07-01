@@ -36,7 +36,6 @@ export function isEmptyStr(text?: string) {
   return text == null || text.length === 0;
 }
 
-
 export function isEqualMaps(map1: Map<string, any>, map2: Map<string, any>) {
   let testVal;
   if (map1.size !== map2.size) {
@@ -52,4 +51,14 @@ export function isEqualMaps(map1: Map<string, any>, map2: Map<string, any>) {
     }
   }
   return true;
+}
+
+export function isValidJSONStr(str: any) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (error: any) {
+    console.debug(error.message);
+    return false;
+  }
 }
