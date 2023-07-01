@@ -76,10 +76,8 @@ const PostUser: React.FC<PostUserProps> = ({
       key: '3',
       onClick: () => {
         Modal.success({
-          title: "Seen on Relays",
-          content: event.seen?.map(r => (
-            <p key={r}>{r}</p>
-          )),
+          title: 'Seen on Relays',
+          content: event.seen?.map(r => <p key={r}>{r}</p>),
         });
       },
     },
@@ -92,12 +90,14 @@ const PostUser: React.FC<PostUserProps> = ({
       })}
     >
       <div className={styles.user}>
-        <Avatar src={avatar} alt="picture" />
+        <Link href={`${Paths.user + publicKey}`}>
+          <Avatar src={avatar} alt="picture" />
+        </Link>
         <div className={styles.info}>
           {typeof name === 'string' ? (
             <Link href={`${Paths.user + publicKey}`}>{name}</Link>
           ) : (
-            name
+            <Link href={`${Paths.user + publicKey}`}>{'...'}</Link>
           )}
           {!child && (
             <p>
