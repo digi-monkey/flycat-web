@@ -9,7 +9,7 @@ export async function extractEmbedRef(
   const npubs = await Nip21.transformNpub(content, userMap, relayUrls);
   const nprofiles = await Nip21.transformNprofile(content, userMap, relayUrls);
   const notes = await Nip21.transformNote(content, relayUrls);
-  const nevents = await Nip21.transformNevent(content, userMap);
+  const nevents = await Nip21.transformNevent(content);
   const naddrs = await Nip21.transformNaddr(content, relayUrls);
   const nrelays = await Nip21.transformNrelay(content);
 

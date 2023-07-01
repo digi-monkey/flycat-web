@@ -191,7 +191,7 @@ export class Nip21 {
     return results;
   }
 
-  static async transformNevent(content: string, userMap: UserMap) {
+  static async transformNevent(content: string) {
     const results: NeventResult[] = [];
 
     const match = /nostr:nevent\S*\b/g.exec(content);

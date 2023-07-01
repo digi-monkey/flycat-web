@@ -1,4 +1,4 @@
-import { EventMap, EventTags } from 'core/nostr/type';
+import { EventId, EventMap, EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
@@ -35,27 +35,48 @@ export const PostContent: React.FC<PostContentProp> = ({
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
   const [relayUrls, setRelayUrls] = useState<string[]>([]);
+  const [embedRef, setEmbedRef] = useState<any>();
   const [contentComponents, setContentComponents] = useState<any[]>([]);
   const [lastReplyToEvent, setLastReplyToEvent] = useState<Event>();
-
-  const { modifiedText } = normalizeContent(msgEvent.content);
+  const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
 
   useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
     setRelayUrls(r.map(r => r.url));
   });
 
   useEffect(() => {
+    extractFromContent();
+  }, [msgEvent.content, relayUrls]);
+
+  useEffect(()=>{
+    if(!embedRef)return;
+
     transformContent();
+  }, [embedRef, userMap])
+
+  useEffect(()=>{
     if (showLastReplyToEvent) {
       buildLastReplyEvent();
     }
-  }, [modifiedText, userMap, relayUrls]);
+  }, [msgEvent.content]);
+
+  useEffect(()=>{
+    if(lastReplyToEventId && eventMap.get(lastReplyToEventId)){
+      setLastReplyToEvent(eventMap.get(lastReplyToEventId));
+    }
+  }, [eventMap, lastReplyToEventId])
 
   const transformContent = async () => {
-    const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
-    const result = transformRefEmbed(modifiedText, ref);
+    const { modifiedText } = normalizeContent(msgEvent.content);
+    const result = transformRefEmbed(modifiedText, embedRef, userMap);
     setContentComponents(result);
   };
+
+  const extractFromContent = async () => {
+    const { modifiedText } = normalizeContent(msgEvent.content);
+    const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
+    setEmbedRef(ref);
+  }
 
   const buildLastReplyEvent = async () => {
     const lastReply = msgEvent.tags
@@ -66,6 +87,8 @@ export const PostContent: React.FC<PostContentProp> = ({
       .pop();
 
     if (lastReply) {
+      setLastReplyToEventId(lastReply.id);
+
       if (eventMap.get(lastReply.id)) {
         setLastReplyToEvent(eventMap.get(lastReply.id));
         return;
