@@ -11,6 +11,7 @@ import PostReactions from '../PostReactions';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
 import Icon from 'components/Icon';
+import { toUnSeenEvent } from 'core/nostr/util';
 
 export interface PostRepostProp {
   event: Event;
@@ -27,7 +28,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
   eventMap,
   showLastReplyToEvent,
 }) => {
-  const [msg, setMsg] = useState<Event>();
+  const [msg, setMsg] = useState<EventWithSeen>();
 
   const getRepostTargetEvent = async () => {
     const msg = await Nip18.getRepostTargetEvent(
@@ -61,7 +62,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
             avatar={getUser(msg)?.picture || ''}
             name={getUser(msg)?.name}
             time={msg.created_at}
-	    event={msg}
+	          event={msg}
           />
           <div className={styles.content}>
             <PostContent
@@ -72,9 +73,9 @@ const PostRepost: React.FC<PostRepostProp> = ({
               showLastReplyToEvent={showLastReplyToEvent}
             />
             <PostReactions
-              ownerEvent={msg}
+              ownerEvent={toUnSeenEvent(msg)}
               worker={worker}
-              seen={[]}
+              seen={msg.seen!}
               userMap={userMap}
             />
           </div>

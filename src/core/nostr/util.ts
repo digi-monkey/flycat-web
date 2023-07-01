@@ -1,3 +1,4 @@
+import { EventWithSeen } from 'pages/type';
 import { Event } from './Event';
 import { Filter, RelayResponseType, EventSubReachEndResponse, EventSubResponse, EventETag, EventTags, EventPTag, EventId, EventATag, Naddr } from './type';
 
@@ -105,3 +106,28 @@ export const getLastEventIdFromETags = (tags: any[]) => {
 export const getEventIdsFromETags = (tags: any[]) => tags.filter(t => isEventETag(t)).map(t => t[1] as EventId);
 export const getEventAddrFromATags = (tags: any[]) => tags.filter(t => isEventATag(t)).map(t => t[1] as Naddr );
 export const getEventDTagId = (tags: any[]) => tags.filter(t => t[0] === EventTags.D).map(t => t[1] as (string | null))[0];
+
+export function toUnSeenEvent(event: EventWithSeen): Event{
+  return {
+    id: event.id,
+    kind: event.kind,
+    content: event.content,
+    created_at: event.created_at,
+    pubkey: event.pubkey,
+    sig: event.sig,
+    tags: event.tags
+  }
+}
+
+export function toSeenEvent(event: Event, relays: string[]): EventWithSeen{
+  return {
+    id: event.id,
+    kind: event.kind,
+    content: event.content,
+    created_at: event.created_at,
+    pubkey: event.pubkey,
+    sig: event.sig,
+    tags: event.tags,
+    seen: relays
+  }
+}
