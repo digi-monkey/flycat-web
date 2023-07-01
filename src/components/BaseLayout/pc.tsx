@@ -8,7 +8,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import { Avatar, Button, Dropdown } from 'antd';
+import { Avatar, Badge, Button, Dropdown } from 'antd';
 import { Dispatch, SetStateAction } from 'react';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';
 
@@ -16,6 +16,7 @@ import Link from 'next/link';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
+import { useNotification } from 'hooks/useNotification';
 
 const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setOpenWrite: Dispatch<SetStateAction<boolean>> }) => {
   const { t } = useTranslation();
@@ -24,7 +25,7 @@ const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setO
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
-
+  const isNewUnread = useNotification();
   const doLogout = () => {
     dispatch({
       type: 'LOGOUT',
@@ -72,7 +73,8 @@ const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setO
               key={key} 
               className={router.pathname === item.link ? styles.active : ''}
               onClick={() => navClick(item, myPublicKey, router, isLoggedIn, t)}
-            >{ item.icon }<span>{ t(item.title) }</span></li>
+            >{ item.icon }{item.id === MenuId.notifications && isNewUnread ? <Badge dot><span>{ t(item.title) }</span></Badge> : <span>{ t(item.title) }</span>}
+            </li>
           )
         )}
       </ul>

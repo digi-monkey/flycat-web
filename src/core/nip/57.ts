@@ -2,11 +2,13 @@ import {
   EventSetMetadataContent,
   EventZTag,
   PublicKey,
-  WellKnownEventKind
+  WellKnownEventKind,
 } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { bech32Decode } from 'core/crypto';
 import fetch from 'cross-fetch';
+import { Event } from 'core/nostr/Event';
+import { decode } from 'core/lighting/bolt11';
 
 export class Nip57 {
   public static kind_request = WellKnownEventKind.zap_request;
@@ -28,20 +30,17 @@ export class Nip57 {
     a?: string;
   }): RawEvent {
     const relaysTag = ['relays'];
-		for(const r of relays){
-			relaysTag.push(r);
-		}
-		
-    const tags = [
-      relaysTag,
-      ['p', receipt],
-    ];
-		if(amount){
-			tags.push(['amount', amount]);
-		}
-		if(lnurl){
-			tags.push(['lnurl', lnurl]);
-		}
+    for (const r of relays) {
+      relaysTag.push(r);
+    }
+
+    const tags = [relaysTag, ['p', receipt]];
+    if (amount) {
+      tags.push(['amount', amount]);
+    }
+    if (lnurl) {
+      tags.push(['lnurl', lnurl]);
+    }
     if (e) {
       tags.push(['e', e]);
     }
@@ -154,5 +153,35 @@ export class Nip57 {
     }
 
     return null;
+  }
+
+  static parseZapReceiptInfo(zapReceiptEvent: Event) {
+    if (zapReceiptEvent.kind !== this.kind_receipt)
+      throw new Error('invalid zap receipt kind ' + zapReceiptEvent.kind);
+
+    const bolt11 = zapReceiptEvent.tags
+      .filter(t => t[0] === 'bolt11')
+      .map(t => t[1])[0];
+    try {
+      const description: Event = JSON.parse(
+        zapReceiptEvent.tags
+          .filter(t => t[0] === 'description')
+          .map(t => t[1])[0],
+      );
+
+      const res = decode(bolt11);
+      return {
+        ...res,
+        ...{
+          sender: description.pubkey,
+          wallet: zapReceiptEvent.pubkey,
+          created_at: zapReceiptEvent.created_at,
+          description: description,
+        },
+      };
+    } catch (err: any) {
+      console.debug('failed', bolt11, err.message);
+      return null;
+    }
   }
 }

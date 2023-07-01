@@ -386,49 +386,43 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       label: `all`,
       key: 'all',
       children: (
-        <ul>
-          <PostItems
-            msgList={msgList}
-            worker={worker!}
-            userMap={userMap}
-            relays={[]}
-            eventMap={eventMap}
-          />
-        </ul>
+        <PostItems
+          msgList={msgList}
+          worker={worker!}
+          userMap={userMap}
+          relays={[]}
+          eventMap={eventMap}
+        />
       ),
     },
     {
       label: `long-form`,
       key: 'longForm',
       children: (
-        <ul>
-          <PostItems
-            msgList={articleMsgList}
-            worker={worker!}
-            userMap={userMap}
-            relays={[]}
-            eventMap={eventMap}
-          />
-        </ul>
+        <PostItems
+          msgList={articleMsgList}
+          worker={worker!}
+          userMap={userMap}
+          relays={[]}
+          eventMap={eventMap}
+        />
       ),
     },
     {
       label: `media`,
       key: 'media',
       children: (
-        <ul>
-          <PostItems
-            msgList={msgList.filter(
-              e =>
-                e.kind === WellKnownEventKind.text_note &&
-                stringHasImageUrl(e.content),
-            )}
-            worker={worker!}
-            userMap={userMap}
-            relays={[]}
-            eventMap={eventMap}
-          />
-        </ul>
+        <PostItems
+          msgList={msgList.filter(
+            e =>
+              e.kind === WellKnownEventKind.text_note &&
+              stringHasImageUrl(e.content),
+          )}
+          worker={worker!}
+          userMap={userMap}
+          relays={[]}
+          eventMap={eventMap}
+        />
       ),
     },
   ];

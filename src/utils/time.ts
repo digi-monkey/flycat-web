@@ -48,7 +48,26 @@ export function calculateReadTime(article: string): string {
     if (remainingMinutes === 0) {
       return `${readTimeHours} hour${readTimeHours > 1 ? 's' : ''}`;
     } else {
-      return `${readTimeHours} hour${readTimeHours > 1 ? 's' : ''} ${remainingMinutes} minutes`;
+      return `${readTimeHours} hour${
+        readTimeHours > 1 ? 's' : ''
+      } ${remainingMinutes} minutes`;
     }
+  }
+}
+
+export function timeSince(timestamp: number) {
+  const currentTime = Date.now() / 1000;
+  const timeDifference = currentTime - timestamp;
+
+  if (timeDifference < 60) {
+    return `${Math.floor(timeDifference)} seconds`;
+  } else if (timeDifference < 3600) {
+    return `${Math.floor(timeDifference / 60)} minutes}`;
+  } else if (timeDifference < 86400) {
+    return `${Math.floor(timeDifference / 3600)} hours`;
+  } else if (timeDifference < 2592000) {
+    return `${Math.floor(timeDifference / 86400)} days`;
+  } else {
+    return `${Math.floor(timeDifference / 2592000)} month`;
   }
 }
