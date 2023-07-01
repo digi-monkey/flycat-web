@@ -13,14 +13,16 @@ export function useNotification() {
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn } = useCallWorker();
   function handleEvent(event: Event, relayUrl?: string) {
-    //if (!notifyKinds.includes(event.kind)) return;
     const lastReadTime = get();
-    //if (lastReadTime && event.created_at <= lastReadTime) return;
+    if (!notifyKinds.includes(event.kind)) return;
+    if (lastReadTime && event.created_at <= lastReadTime) return;
+    if (myPublicKey === event.pubkey) return;
+
     setEventIds(oldArray => {
       if (!oldArray.includes(event.id)) {
         // do not add duplicated msg
 
-        const newItems = [...oldArray, event.id ];
+        const newItems = [...oldArray, event.id];
         return newItems;
       }
 
@@ -53,7 +55,7 @@ export function useNotification() {
           since,
           limit: 1, // reduce data since we are only need to know true or false
         },
-        customId: "useNotification",
+        customId: 'useNotification',
         callRelay,
       })
       .iterating({ cb: handleEvent });
