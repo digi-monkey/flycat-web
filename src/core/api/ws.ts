@@ -52,7 +52,6 @@ export class WS {
     }
   }
 
-  // todo: change to async and get pub response
   pubEvent(event: Event) {
     const data: EventPubRequest = [ClientRequestType.PubEvent, event];
     this._send(JSON.stringify(data));

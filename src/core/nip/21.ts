@@ -10,7 +10,7 @@ import {
   Nip19ShareableDataType,
 } from './19';
 import { UserMap } from 'core/nostr/type';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 
 export interface NpubResult {
   key: string;

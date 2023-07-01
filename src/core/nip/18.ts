@@ -1,7 +1,7 @@
 import { EventTags, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 import { EventWithSeen } from 'pages/type';
 import { toSeenEvent } from 'core/nostr/util';
 import { isValidJSONStr } from 'utils/validator';

@@ -5,7 +5,7 @@ import { RelaySelectorStore } from '../store';
 import { RelayPool } from 'core/relay/pool';
 import { SwitchRelays } from 'core/worker/type';
 import { RelayGroupMap } from 'core/relay/group/type';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 import { isFastestRelayOutdated } from '../util';
 
 export function useGetSwitchRelay(

@@ -16,6 +16,8 @@ export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
   unsubscribe(): void;
   id: string;
   url: string;
+  isEose: ()=>boolean;
+  isIdleTimeout: ()=>boolean;
 }
 
 export interface SubscriptionNoticeStream
@@ -37,10 +39,13 @@ export function createSubscriptionEventStream(
   webSocket: WebSocket,
   id: string,
   unsubscribeCb?: (id: string) => any,
-  timeoutSecs?: number
+  timeoutMs = 3000
 ): SubscriptionEventStream {
   let observer: ((done: boolean, value?: Event) => void) | null;
-  let timeoutId: ReturnType<typeof setTimeout> | null;
+  let isFirstObservation = true;
+  let timeout: number | null = null;
+  let isEose = false;
+  let isIdleTimeout = false; // todo: there should a total timeout too, but it needs to start after subscription is entered the active subs pool
 
   const onMessage = event => {
     const msg: RelayResponse = JSON.parse(event.data);
@@ -59,6 +64,11 @@ export function createSubscriptionEventStream(
         const subId = msg[1];
         const event = msg[2];
         if (subId === id && observer) {
+          if (isFirstObservation) {
+            isFirstObservation = false;
+          } else {
+            clearTimeout(timeout!); // Clear the previous timeout
+          }
           observer(false, event);
         }
         break;
@@ -67,6 +77,7 @@ export function createSubscriptionEventStream(
       case RelayResponseType.SubReachEnd: {
         const subId = msg[1];
         if (subId === id && observer) {
+          isEose = true;
           observer(true);
         }
         break;
@@ -84,43 +95,45 @@ export function createSubscriptionEventStream(
     }
   };
 
-  const startTimeout = () => {
-    // todo: only when active subscription start this timeout
-    timeoutId = setTimeout(() => {
-      if (observer) {
-        console.log("timeout!!", webSocket.url);
-        observer(true);
-      }
-    }, (timeoutSecs || 2)*1000);
-  };
-
-  const removeTimeout = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = null;
-    }
-  };
-
   webSocket.addEventListener('message', onMessage);
   webSocket.addEventListener('error', onError);
 
   const subscription: SubscriptionEventStream = {
     next() {
       return new Promise<IteratorResult<Event>>((resolve: any, reject) => {
+        if (isFirstObservation) {
+          observer = (done: boolean, value?: Event) => {
+            if (done === true) {
+              clearTimeout(timeout!); // Clear the timeout if the first observation is done
+              resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
+              return;
+            }
+            isFirstObservation = false;
+            resolve({ value, done: false });
+          };
+        }else{
+        timeout = setTimeout(() => {
+          if (observer) {
+            isIdleTimeout = true;
+            observer(true);
+          } // Trigger the observer with 'done: true' if timeout occurs
+        }, timeoutMs); // Set the desired timeout value (in milliseconds)
+
         observer = (done: boolean, value?: Event) => {
-          removeTimeout();
+          if (timeout) {
+            clearTimeout(timeout);
+          }
           if (done === true) {
             resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
             return;
           }
           resolve({ value, done: false });
-          startTimeout();
         };
+      }
       });
     },
     return(): Promise<IteratorResult<Event>> {
       return new Promise<IteratorResult<Event>>(resolve => {
-        removeTimeout();
         resolve({ value: undefined as any, done: true });
       });
     },
@@ -131,8 +144,8 @@ export function createSubscriptionEventStream(
       return this;
     },
     unsubscribe() {
-      removeTimeout();
       observer = null;
+      timeout = null;
       webSocket.send(JSON.stringify([ClientRequestType.Close, id]));
       webSocket.removeEventListener('message', onMessage);
       webSocket.removeEventListener('error', onError);
@@ -142,6 +155,8 @@ export function createSubscriptionEventStream(
     },
     id: id,
     url: webSocket.url,
+    isEose: ()=>{return isEose},
+    isIdleTimeout: ()=>{return isIdleTimeout},
   };
 
   return subscription;

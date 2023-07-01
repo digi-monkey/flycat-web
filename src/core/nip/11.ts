@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { Relay, RelayAccessType } from 'core/relay/type';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 
 export interface RelayLimitation {
   max_message_length?: number;

@@ -79,7 +79,8 @@ export type FromProducerMsg =
   | {
       type: FromProducerMsgType.relaySwitchedAlert;
       data: RelaySwitchAlertMsg;
-    };
+    }
+  | { type: FromProducerMsgType.subEnd; data: SubEndMsg };
 
 export enum FromProducerMsgType {
   event,
@@ -89,6 +90,7 @@ export enum FromProducerMsgType {
   notice,
   authChallenge,
   relaySwitchedAlert,
+  subEnd,
 }
 
 export interface SubFilterResultMsg {
@@ -122,4 +124,11 @@ export interface RelaySwitchAlertMsg {
   relays: Relay[];
   wsConnectStatus: WsConnectStatus;
   triggerByPortId: number;
+}
+
+export interface SubEndMsg {
+  id: string;
+  portId: number;
+  eoseRelays: string[];
+  idleTimeoutRelays: string[];
 }
