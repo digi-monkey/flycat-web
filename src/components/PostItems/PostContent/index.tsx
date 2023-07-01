@@ -48,23 +48,23 @@ export const PostContent: React.FC<PostContentProp> = ({
     extractFromContent();
   }, [msgEvent.content, relayUrls]);
 
-  useEffect(()=>{
-    if(!embedRef)return;
+  useEffect(() => {
+    if (!embedRef) return;
 
     transformContent();
-  }, [embedRef, userMap])
+  }, [embedRef, userMap]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (showLastReplyToEvent) {
       buildLastReplyEvent();
     }
   }, [msgEvent.content]);
 
-  useEffect(()=>{
-    if(lastReplyToEventId && eventMap.get(lastReplyToEventId)){
+  useEffect(() => {
+    if (lastReplyToEventId && eventMap.get(lastReplyToEventId)) {
       setLastReplyToEvent(eventMap.get(lastReplyToEventId));
     }
-  }, [eventMap, lastReplyToEventId])
+  }, [eventMap, lastReplyToEventId]);
 
   const transformContent = async () => {
     const { modifiedText } = normalizeContent(msgEvent.content);
@@ -76,7 +76,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     const { modifiedText } = normalizeContent(msgEvent.content);
     const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
     setEmbedRef(ref);
-  }
+  };
 
   const buildLastReplyEvent = async () => {
     const lastReply = msgEvent.tags
@@ -148,8 +148,10 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
           {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
         </span>
       </div>
-      <div className={styles.content} onClick={clickEventBody}>
-        {event.content}
+      <div className={styles.content}>
+        <div className={styles.event} onClick={clickEventBody}>
+          {event.content}
+        </div>
         <MediaPreviews content={event.content} />
       </div>
     </div>
