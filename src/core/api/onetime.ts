@@ -3,7 +3,6 @@ import {
   WellKnownEventKind,
   EventSetMetadataContent,
   EventTags,
-  EventETag,
   EventPTag
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';

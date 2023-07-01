@@ -8,7 +8,7 @@ import { Relay } from 'core/relay/type';
 import RelayGroupTable from './table';
 import { newRelay } from 'core/relay/util';
 import { RelayPool } from 'core/relay/pool';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 import Icon from 'components/Icon';
 import { FolderOutlined } from '@ant-design/icons';
 import styles from './index.module.scss';

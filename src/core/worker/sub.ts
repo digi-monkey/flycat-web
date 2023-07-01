@@ -2,6 +2,7 @@ import {
   FromProducerMsg,
   FromProducerMsgType,
   PubEventResultMsg,
+  SubEndMsg,
   SubFilterResultMsg,
 } from './type';
 import { EventId } from 'core/nostr/type';
@@ -10,6 +11,7 @@ export interface SubFilterResultStream
   extends AsyncIterableIterator<SubFilterResultMsg> {
   unsubscribe(): void;
   id: string;
+  getSubEndMsg: () => SubEndMsg | null;
 }
 
 export function createSubFilterResultStream(
@@ -20,23 +22,36 @@ export function createSubFilterResultStream(
   let observer: ((done: boolean, value?: SubFilterResultMsg) => void) | null;
   let isFirstObservation = true;
   let timeout: number | null = null;
+  let subEndMsg: SubEndMsg | null = null;
 
   const onMessage = (e: MessageEvent) => {
     const res: FromProducerMsg = e.data;
     const type = res.type;
     switch (type) {
-      case FromProducerMsgType.event: {
-        const data = res.data;
-        if (data.subId === subId && observer) {
-          if (isFirstObservation) {
-            isFirstObservation = false;
-          } else {
-            clearTimeout(timeout!); // Clear the previous timeout
+      case FromProducerMsgType.event:
+        {
+          const data = res.data;
+          if (data.subId === subId && observer) {
+            if (isFirstObservation) {
+              isFirstObservation = false;
+            } else {
+              clearTimeout(timeout!); // Clear the previous timeout
+            }
+            observer(false, data);
           }
-          observer(false, data);
         }
         break;
-      }
+
+      case FromProducerMsgType.subEnd:
+        {
+          const data = res.data;
+          if (data.id === subId && observer) {
+            subEndMsg = data;
+            observer(true);
+          }
+        }
+        break;
+
       default:
         break;
     }
@@ -103,6 +118,9 @@ export function createSubFilterResultStream(
       port.removeEventListener('error', onError);
     },
     id: subId,
+    getSubEndMsg: () => {
+      return subEndMsg;
+    },
   };
 
   return subscription;

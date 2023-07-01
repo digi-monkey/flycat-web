@@ -9,7 +9,7 @@ import { Relay } from 'core/relay/type';
 import { extractEmbedRef } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
 import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';

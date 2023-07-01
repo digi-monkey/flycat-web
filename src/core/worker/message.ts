@@ -4,9 +4,9 @@ import {
   FromConsumerMsgType,
   RelayInfoMsg,
   FromProducerMsgType,
-  SubFilterResultMsg,
   PubEventResultMsg,
   RelaySwitchAlertMsg,
+  SubEndMsg,
 } from './type';
 
 // messaging between backend sharedWorker and frontpage caller
@@ -70,20 +70,48 @@ export const createPortOnMessageListener = ({
           console.log('SUB_FILTER');
           const data = res.data;
           const subs = pool.subFilter(data);
-          subs.forEach(async sub => {
-            for await (const event of sub) {
-              const msg: SubFilterResultMsg = {
-                event,
-                subId: sub.id,
-                relayUrl: sub.url,
-                portId: data.portId,
-              };
-              port.postMessage({
-                data: msg,
-                type: FromProducerMsgType.event,
-              });
-            }
-            sub.unsubscribe();
+
+          const promises = subs.map(
+            sub =>
+              new Promise(async resolve => {
+                for await (const event of sub) {
+                  const msg = {
+                    event,
+                    subId: sub.id,
+                    relayUrl: sub.url,
+                    portId: data.portId,
+                  };
+                  port.postMessage({
+                    data: msg,
+                    type: FromProducerMsgType.event,
+                  });
+                }
+                sub.unsubscribe();
+                resolve({
+                  url: sub.url,
+                  isEose: sub.isEose,
+                  isIdleTimeout: sub.isIdleTimeout,
+                });
+              }),
+          ) as Promise<{
+            url: string;
+            isEose: () => boolean;
+            isIdleTimeout: () => boolean;
+          }>[];
+
+          Promise.all(promises).then(res => {
+            const msg: SubEndMsg = {
+              id: data.subId,
+              portId: data.portId,
+              eoseRelays: res.filter(r => r.isEose()).map(r => r.url),
+              idleTimeoutRelays: res
+                .filter(r => r.isIdleTimeout())
+                .map(r => r.url),
+            };
+            port.postMessage({
+              data: msg,
+              type: FromProducerMsgType.subEnd,
+            });
           });
         }
         break;
