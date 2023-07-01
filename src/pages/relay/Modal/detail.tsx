@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 
 export interface RelayDetailModalProp {
   relay: Relay;

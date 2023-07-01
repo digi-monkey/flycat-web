@@ -1,0 +1,23 @@
+.root {
+  display: flex;
+  width: auto;
+  padding: 16px 20px;
+  align-items: baseline;
+  justify-content: space-between;
+
+  .title {
+    display: flex;
+    width: auto;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+
+    color: var(--neutral-09);
+
+    /* Subheader1-bold */
+    font-size: 16px;
+    font-family: Poppins;
+    font-weight: 600;
+    line-height: 24px;
+  }
+}

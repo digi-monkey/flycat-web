@@ -1,6 +1,5 @@
 import '../window';
 import "styles/global.scss";
-import 'sweetalert2/src/sweetalert2.scss';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { wrapper } from 'store/configureStore';

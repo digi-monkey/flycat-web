@@ -5,6 +5,8 @@
   top: 0px;
   border-radius: 12px;
   padding: 12px;
+  margin: var(--basePadding3) 0px;
+  overflow-wrap: anywhere;
 
   .user {
     font-family: 'Noto Sans';

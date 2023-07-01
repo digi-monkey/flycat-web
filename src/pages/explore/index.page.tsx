@@ -1,18 +1,23 @@
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
 import { Segmented } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
-import { UserMap } from 'service/type';
+import { EventMap, UserMap } from 'core/nostr/type';
 import { LatestFeed } from './latestFeed';
 import { BestLongFormFeed } from './bestLongFormFeed';
+import PageTitle from 'components/PageTitle';
+
+import styles from './index.module.scss';
+import { HotestFeed } from './hotestFeed';
 
 const Explore = () => {
   const { t } = useTranslation();
 
   const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [selectedOption, setSelectedOption] = useState('Latest');
 
   const handleOptionChange = option => {
@@ -27,15 +32,19 @@ const Explore = () => {
           newConn={newConn}
           userMap={userMap}
           setUserMap={setUserMap}
+          eventMap={eventMap}
+          setEventMap={setEventMap}
         />
       );
     } else if (selectedOption === 'Hot') {
       return (
-        <LatestFeed
+        <HotestFeed
           worker={worker!}
           newConn={newConn}
           userMap={userMap}
           setUserMap={setUserMap}
+          eventMap={eventMap}
+          setEventMap={setEventMap}
         />
       );
     } else if (selectedOption === 'Best long-form') {
@@ -45,6 +54,8 @@ const Explore = () => {
           newConn={newConn}
           userMap={userMap}
           setUserMap={setUserMap}
+          eventMap={eventMap}
+          setEventMap={setEventMap}
         />
       );
     }
@@ -53,19 +64,19 @@ const Explore = () => {
   return (
     <BaseLayout>
       <Left>
-        <div>
-          <span style={{ fontWeight: 'bold' }}>Explore</span>
-          <span style={{ float: 'right' }}>
+        <div className={styles.header}>
+          <PageTitle title={'Explore'} />
+          <div>
             <Segmented
               value={selectedOption}
               onChange={handleOptionChange}
               options={['Latest', 'Hot', 'Best long-form']}
             />
-          </span>
+          </div>
         </div>
         <div>{renderContent()}</div>
       </Left>
-      <Right>right</Right>
+      <Right></Right>
     </BaseLayout>
   );
 };

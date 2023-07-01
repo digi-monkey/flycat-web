@@ -1,31 +1,34 @@
 import { useMyPublicKey, useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventWithSeen } from 'pages/type';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { deserializeMetadata } from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
 import {
-  Event,
+  EventMap,
   EventSetMetadataContent,
   EventTags,
   Filter,
-  WellKnownEventKind,
-  deserializeMetadata,
-  isEventPTag,
-} from 'service/api';
-import { Nip51 } from 'service/nip/51';
-import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
+  WellKnownEventKind
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { Nip51 } from 'core/nip/51';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
+import { CallRelayType } from 'core/worker/type';
 
 export function useBookmarkListFeed({
   worker,
   newConn,
   userMap,
   setUserMap,
+  setEventMap,
   maxMsgLength = 50,
 }: {
   worker?: CallWorker;
   newConn: string[];
   userMap: UserMap;
-  setUserMap: any;
+  setUserMap: Dispatch<SetStateAction<UserMap>>;
+  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
 	const myPublicKey = useReadonlyMyPublicKey();
@@ -55,6 +58,11 @@ export function useBookmarkListFeed({
         break;
 
       case WellKnownEventKind.text_note:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+        
         setFeed(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
@@ -80,7 +88,7 @@ export function useBookmarkListFeed({
               }
             }
             if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
+              const sub = worker?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               });
@@ -143,7 +151,7 @@ export function useBookmarkListFeed({
       kinds: [WellKnownEventKind.bookmark_list],
 			'#d': [Nip51.publicNoteBookmarkIdentifier]
     }
-    const sub = worker.subFilter(filter, undefined, undefined, callRelay)!;
+    const sub = worker.subFilter({filter, callRelay})!;
 
     sub.iterating({ cb: handleEvent });
   };
@@ -156,7 +164,7 @@ export function useBookmarkListFeed({
 		if(!bookmarkEvent)return;
 
 		const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
-		worker?.subFilter({ids: events})?.iterating({cb: handleEvent});
+		worker?.subFilter({filter: {ids: events}})?.iterating({cb: handleEvent});
 	}, [bookmarkEvent]);
 
   return feed;

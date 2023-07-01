@@ -1,6 +1,6 @@
-import { PublicKey } from 'service/api';
+import { PublicKey } from 'core/nostr/type';
 import { RelayMode, toRelayMode } from './type';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 
 export class RelaySelectorStore {
   storePrefix = 'relay-selector';
@@ -8,6 +8,7 @@ export class RelaySelectorStore {
   modePrefix = 'selected-mode';
 
 	autoRelayResultPrefix = 'auto-relay-result';
+  fastestRelayResultPrefix = 'fastest-relay-result';
 
 	/**********************/
   getSelectedGroupIdSaveKey(pubKey: PublicKey) {
@@ -56,11 +57,36 @@ export class RelaySelectorStore {
     return null;
   }
 
+  getFastestRelayResultSaveKey(pubKey: PublicKey) {
+    return `${this.storePrefix}:${this.fastestRelayResultPrefix}:${pubKey}`;
+  }
+
+  saveFastestRelayResult(pubKey: PublicKey, relays: Relay[]) {
+    const result = {relays, updated_at: Date.now()};
+		const serializedResult = this.serializeFastestRelayResult(result);
+    localStorage.setItem(this.getFastestRelayResultSaveKey(pubKey), serializedResult);
+  }
+
+  loadFastestRelayResult(pubKey: PublicKey) {
+    const serializedResult = localStorage.getItem(this.getFastestRelayResultSaveKey(pubKey));
+    if (serializedResult) return this.deserializeFastestRelayResult(serializedResult); 
+    return null;
+  }
+
+  //------
 	private serializeAutoRelayResult(relays: Relay[]): string{
 		return JSON.stringify(relays);
 	}
 
 	private deserializeAutoRelayResult(relays: string): Relay[]{
 		return JSON.parse(relays);
+	}
+
+  private serializeFastestRelayResult(res: {relays: Relay[], updated_at: number}): string{
+		return JSON.stringify(res);
+	}
+
+	private deserializeFastestRelayResult(res: string): {relays: Relay[], updated_at: number}{
+		return JSON.parse(res);
 	}
 }

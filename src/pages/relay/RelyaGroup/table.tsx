@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Table } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import { Relay } from 'service/relay/type';
-import { Nip11 } from 'service/nip/11';
-import { isRelayOutdate } from 'service/relay/util';
+import { useEffect, useState } from 'react';
+import { Table, message } from 'antd';
+import { Relay, RelayTracker } from 'core/relay/type';
+import { Nip11 } from 'core/nip/11';
 import { SingleItemAction } from '../Action/singleItem';
 import { MultipleItemsAction } from '../Action/multipleItems';
+import { RelayPoolDatabase } from 'core/relay/pool/db';
+
+import type { ColumnsType } from 'antd/es/table';
 
 export type RelayTableItem = Relay & { key: string };
 
@@ -26,16 +27,35 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
   }, [relays]);
 
   const updateRelayData = async (relays: Relay[]) => {
-    const details = await Nip11.getRelays(
-      relays.filter(r => isRelayOutdate(r)).map(r => r.url),
-    );
-    const newRelays = relays.map(r => {
-      if (details.map(d => d.url).includes(r.url)) {
-        return details.filter(d => d.url === r.url)[0]!;
-      } else {
+    const db = new RelayPoolDatabase();
+    const relaysFromDb = relays.map(r => {
+      const relay = db.load(r.url);
+      if (relay == null) {
         return r;
       }
+      return relay;
     });
+    const outdatedRelays = relaysFromDb
+      .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
+      .map(r => r!.url);
+
+    let newRelays: Relay[] = relaysFromDb;
+    if (outdatedRelays.length > 0) {
+      message.loading(`update ${outdatedRelays.length} relays info..`);
+      const details = await Nip11.getRelays(outdatedRelays);
+      newRelays = relaysFromDb.map(r => {
+        if (details.map(d => d.url).includes(r.url)) {
+          return details.filter(d => d.url === r.url)[0]!;
+        } else {
+          return r;
+        }
+      });
+      message.destroy();
+    }
+
+    if (newRelays.length > 0) {
+      db.saveAll(newRelays);
+    }
 
     // todo: save relay update value
     setData(

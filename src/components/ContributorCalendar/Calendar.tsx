@@ -1,8 +1,9 @@
 import { useCallWorker } from 'hooks/useWorker';
 import React, { useEffect, useState } from 'react';
 import Calendar from 'react-github-contribution-calendar';
-import { Event, WellKnownEventKind } from 'service/api';
-import { CallRelayType } from 'service/worker/type';
+import { WellKnownEventKind } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { CallRelayType } from 'core/worker/type';
 
 const panelColors = ['#EEEEEE', '#D6E685', '#8CC665', '#44A340', '#1E6823'];
 const panelAttributes = { rx: 6, ry: 6 };
@@ -55,7 +56,6 @@ export function CommitCalendar({ pk }: { pk: string }) {
     worker
       ?.subMsg(
         [pk],
-        undefined,
         undefined,
         {
           type: CallRelayType.batch,

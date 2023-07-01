@@ -1,7 +1,7 @@
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
-import { RelayGroup } from 'service/relay/group';
-import { RelayGroupMap } from 'service/relay/group/type';
+import { RelayGroup } from 'core/relay/group';
+import { RelayGroupMap } from 'core/relay/group/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
@@ -11,15 +11,22 @@ import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { SwitchRelays, WsConnectStatus } from 'service/worker/type';
+import {
+  RelaySwitchAlertMsg,
+  SwitchRelays,
+  WsConnectStatus,
+} from 'core/worker/type';
 import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
+import { ConnPool } from 'core/api/pool';
+import classNames from 'classnames';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
   newConnCallback?: (conns: string[]) => any;
+  className?: string;
 }
 
 export interface Option {
@@ -31,6 +38,7 @@ export interface Option {
 export function RelaySelector({
   wsStatusCallback,
   newConnCallback,
+  className
 }: RelaySelectorProps) {
   const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
@@ -71,24 +79,6 @@ export function RelaySelector({
     },
   ];
 
-  const progressBegin = () => {
-    messageApi.open({
-      key: messageKey,
-      type: 'loading',
-      content: 'start auto-select...',
-      duration: 0,
-    });
-  };
-
-  const progressEnd = () => {
-    messageApi.open({
-      key: messageKey,
-      type: 'success',
-      content: 'Loaded!',
-      duration: 1,
-    });
-  };
-
   const progressCb = (restCount: number) => {
     messageApi.open({
       key: messageKey,
@@ -98,16 +88,42 @@ export function RelaySelector({
     });
   };
 
+  const progressEnd = () => {
+    messageApi.open({
+      key: messageKey,
+      type: 'success',
+      content: `done!`,
+      duration: 1,
+    });
+  };
+
   useLoadSelectedStore(myPublicKey, setSelectedValue);
   useGetSwitchRelay(
     myPublicKey,
     relayGroupMap,
     selectedValue,
     setSwitchRelays,
-    progressBegin,
-    progressEnd,
     progressCb,
+    progressEnd,
   );
+
+  // detect if other page switch the relay
+  worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
+    if (worker?._portId === data.triggerByPortId) {
+      return;
+    }
+
+    if (worker?.relayGroupId === data.id) {
+      return;
+    }
+
+    const id = data.id;
+    if (id === 'auto' || id === 'fastest') {
+      setSelectedValue([id]);
+    } else {
+      setSelectedValue(['global', id]);
+    }
+  });
 
   useEffect(() => {
     // new a default group for the forward-compatibility
@@ -148,16 +164,18 @@ export function RelaySelector({
       return;
     if (worker == null) return;
 
-    if (worker.relayGroupId !== switchRelays?.id) {
-      worker?.switchRelays(switchRelays);
-      worker?.pullRelayGroupId();
+    console.log('check: ', switchRelays.id, worker.relayGroupId);
+    if (worker.relayGroupId !== switchRelays.id) {
+      worker.switchRelays(switchRelays);
+      worker.pullRelayInfo();
     }
   }, [switchRelays, worker?.relayGroupId]);
 
   const onChange = (value: string[] | any) => {
     if (!Array.isArray(value)) return;
     if (value[0] === RelayModeSelectMenus.displayBenchmark) {
-      // TODO
+      displayBenchmark();
+      return;
     }
     if (value[0] === RelayModeSelectMenus.aboutRelayMode) {
       setOpenAbout(true);
@@ -170,10 +188,39 @@ export function RelaySelector({
     setSelectedValue(value);
   };
 
-  //const 
+  const displayBenchmark = async () => {
+    const currentRelays = switchRelays?.relays;
+    if (currentRelays) {
+      const pool = new ConnPool();
+      pool.addConnections(currentRelays.map(r => r.url));
+      const benchmark = await pool.benchmarkConcurrently(progressCb);
+      progressEnd();
+      Modal.info({
+        title: 'current relays benchmark',
+        content: (
+          <>
+            {benchmark.map(b => (
+              <li key={b.url} className={styles.benchmarkItem}>
+                <span>{b.url}</span>
+                <span>
+                  {b.isFailed || b.t == null ? (
+                    <span className={styles.failed}>failed</span>
+                  ) : (
+                    <span className={styles.success}>
+                      {Math.round(b.t!) + " ms"}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </>
+        ),
+      });
+    }
+  };
 
   return (
-    <div className={styles.relaySelector}>
+    <div className={classNames(styles.relaySelector, className)}>
       {contextHolder}
       <Cascader
         defaultValue={['global', 'default']}

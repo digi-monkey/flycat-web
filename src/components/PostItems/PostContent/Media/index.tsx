@@ -1,5 +1,5 @@
-import { normalizeContent } from 'service/helper';
-import { UrlPreview } from 'components/URLPreview';
+import { normalizeContent } from 'core/nostr/content';
+import { UrlPreview } from 'components/PostItems/PostContent/URLPreview';
 import { LightingInvoice, LnUrlInvoice } from './LightingInvoice';
 import { AudioPreview } from './AudioPreview';
 import { ImagePreview } from './ImagePreview';

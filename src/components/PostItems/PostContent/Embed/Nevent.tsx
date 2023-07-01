@@ -1,6 +1,6 @@
-import { NeventResult } from 'service/nip/21';
+import { NeventResult } from 'core/nip/21';
 import { Avatar } from 'antd';
-import { shortPublicKey } from 'service/helper';
+import { shortifyPublicKey } from 'core/nostr/content';
 import { MediaPreviews } from '../Media';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
@@ -13,7 +13,7 @@ export const Nevent = (nevent: NeventResult) => {
       <div className={styles.refNote}>
         <div>
           <Avatar src={''} alt="picture" /> @
-          {shortPublicKey(nevent.noteEvent.pubkey)}
+          {shortifyPublicKey(nevent.noteEvent.pubkey)}
         </div>
         {nevent.noteEvent.content}
         <MediaPreviews content={nevent.noteEvent.content} />

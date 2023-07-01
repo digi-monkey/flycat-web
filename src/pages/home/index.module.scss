@@ -1,37 +1,37 @@
-.home{
-
+.home {
+  margin-top: var(--basePadding4);
   @include for-pad-desktop {
-    &.noData{
+    &.noData {
       margin-top: 120px;
     }
   }
 
-  .tipsy{
-    h1{
+  .tipsy {
+    h1 {
       text-align: center;
       @include font-header3;
       margin-bottom: 20px;
     }
-    p{
+    p {
       text-align: center;
       @include font-body;
       color: var(--neutral-06);
     }
   }
 
-  .login{
+  .login {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     margin-top: 32px;
 
-    button{
+    button {
       width: 285px;
       height: 44px;
     }
 
-    .explore{
+    .explore {
       margin-top: 16px;
       @include font-label;
       cursor: pointer;
@@ -39,9 +39,8 @@
     }
   }
 
-  .msgList{
-    & + button{
-      
+  .msgList {
+    & + button {
     }
   }
 }
@@ -69,27 +68,27 @@
 //   }
 // }
 
-.rightPanel{
+.rightPanel {
   //padding-left: var(--basePadding5);
 
   :global {
-    .ant-input-affix-wrapper{
+    .ant-input-affix-wrapper {
       margin: var(--basePadding4) 0;
       height: 40px;
       border-radius: 50px;
 
-      &:hover{
+      &:hover {
         border: none;
         border-inline-end: none;
         box-shadow: none;
       }
 
       &,
-      input{
+      input {
         background-color: var(--neutral-02);
       }
 
-      svg{
+      svg {
         width: 24px;
         height: 24px;
 
@@ -103,16 +102,16 @@
   .trending {
     margin-bottom: var(--basePadding8);
 
-    h2{
+    h2 {
       @include font-subheader2;
     }
   }
 
   .flycat {
-    .item{
+    .item {
       display: flex;
       align-items: flex-start;
-      
+
       p {
         white-space: nowrap;
         overflow: hidden;
@@ -121,43 +120,44 @@
         margin-bottom: var(--basePadding3);
       }
 
-      span{
+      span {
         white-space: normal;
         display: inline-block;
         margin-left: var(--basePadding3);
         border-radius: var(--baseBorderRadius2);
         background-color: var(--primary-06);
         color: var(--neutral-white);
-        padding:0 var(--padding);
+        padding: 0 var(--padding);
         @include font-footnote;
       }
     }
 
-    >a{
+    > a {
       margin-bottom: var(--basePadding3);
       color: var(--primary-06);
       text-decoration: none;
     }
   }
 
-  .friends{
-    .friend{
+  .friends {
+    .friend {
       display: flex;
       margin-bottom: var(--basePadding3);
 
-      >span{
+      > span {
         width: 24px;
         height: 24px;
         flex: none;
       }
 
-      .friendInfo{
+      .friendInfo {
         margin-left: var(--basePadding2);
-        h3,p{
+        h3,
+        p {
           margin: 0;
         }
 
-        h3{
+        h3 {
           @include font-label-bold;
           color: var(--neutral-09);
           white-space: nowrap;
@@ -165,7 +165,7 @@
           text-overflow: ellipsis;
         }
 
-        p{
+        p {
           @include font-footnote;
           color: var(--neutral-06);
           display: -webkit-box;
@@ -176,29 +176,29 @@
         }
       }
 
-      .follow{
+      .follow {
         height: 24px;
         padding: {
           top: 0;
           bottom: 0;
-        };
+        }
 
-        span{
+        span {
           @include font-footnote;
         }
       }
     }
   }
 
-  .trending{
+  .trending {
     display: flex;
     flex-direction: column;
 
-    h2{
+    h2 {
       margin-top: 0;
     }
 
-    a{
+    a {
       margin-bottom: var(--basePadding2);
       text-decoration: none;
       @include font-label;

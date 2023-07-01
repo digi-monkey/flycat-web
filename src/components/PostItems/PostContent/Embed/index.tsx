@@ -8,7 +8,7 @@ import {
   NoteResult,
   NrelayResult,
   NaddrResult,
-} from 'service/nip/21';
+} from 'core/nip/21';
 
 import { Naddr } from './Naddr';
 import { Nevent } from './Nevent';

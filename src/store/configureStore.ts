@@ -1,7 +1,7 @@
 import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
 
-import { RawEvent } from 'service/api';
+import { RawEvent } from 'core/nostr/RawEvent';
 import { relayReducer } from './relayReducer';
 import { createReducer } from './reducers';
 import { createWrapper } from "next-redux-wrapper";
@@ -19,8 +19,8 @@ import {
   Signer,
   GetPublicKey
 } from './loginReducer';
-import { createWalletConnectGetPublicKey, createWalletConnectSignEvent} from 'service/evm/walletConnect';
-import { createMetamaskSignEvent, createMetamaskGetPublicKey } from 'service/evm/metamask';
+import { createWalletConnectGetPublicKey, createWalletConnectSignEvent} from 'core/evm/walletConnect';
+import { createMetamaskSignEvent, createMetamaskGetPublicKey } from 'core/evm/metamask';
 
 // Define the shape of your store state
 export interface RootState {

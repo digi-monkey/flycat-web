@@ -1,16 +1,17 @@
 import { EllipsisOutlined } from '@ant-design/icons';
-import { Avatar, Button, Table, Badge } from 'antd';
+import { Avatar, Button, Table, Badge, message } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { shortPublicKey } from 'service/helper';
-import { Nip11 } from 'service/nip/11';
-import { Relay, RelayTracker } from 'service/relay/type';
+import { shortifyPublicKey } from 'core/nostr/content';
+import { Nip11 } from 'core/nip/11';
+import { Relay, RelayTracker } from 'core/relay/type';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
-import { EventSetMetadataContent } from 'service/api';
-import { RelayPoolDatabase } from 'service/relay/pool/db';
+import { EventSetMetadataContent } from 'core/nostr/type';
+import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import styles from './table.module.scss';
+import Icon from 'components/Icon';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -102,9 +103,16 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       (currentPage - 1) * 10,
       currentPage * 10,
     );
-    const details = await Nip11.updateRelays(
-      currentRelays.filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp)),
+    let details: Relay[] = [];
+    const outdatedRelays = currentRelays.filter(r =>
+      RelayTracker.isOutdated(r.lastAttemptNip11Timestamp),
     );
+    if (outdatedRelays.length > 0) {
+      message.loading(`update ${outdatedRelays.length} relays info..`);
+      details = await Nip11.updateRelays(outdatedRelays);
+      message.destroy();
+    }
+
     // save the updated relay info
     if (details.length > 0) {
       const db = new RelayPoolDatabase();
@@ -162,7 +170,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       title: 'Url',
       dataIndex: 'url',
       key: 'url',
-      render: (url: string) => url.split("wss://")
+      render: (url: string) => url.split('wss://'),
     },
     {
       title: 'Status',
@@ -252,7 +260,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
           </>
         ) : (
           <>
-            <Avatar alt="picture" /> {shortPublicKey(record.operator)}
+            <Avatar alt="picture" /> {shortifyPublicKey(record.operator)}
           </>
         ),
     },
@@ -290,7 +298,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   return (
     <div>
-      {relays.length}
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
@@ -318,13 +325,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
           onCancel={handleCloseModal}
         />
       )}
-
-      <Button onClick={handleBenchmark} disabled={isBenchmarking}>
-        Start Benchmark
-      </Button>
-      <Button onClick={handleSort} disabled={!isBenchmarked}>
-        Sort
-      </Button>
     </div>
   );
 };

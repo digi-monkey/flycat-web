@@ -1,5 +1,4 @@
 import { Paths } from 'constants/path';
-import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -11,24 +10,18 @@ import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
-import { useSubMsg, useSubMetaDataAndContactList, useLoadMoreMsg } from './hooks';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { ContactList, EventMap, UserMap } from 'core/nostr/type';
+import { useSubFollowingMsg, useSubContactList, useLoadMoreMsg, useLastReplyEvent } from './hooks';
 
-import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import classNames from 'classnames';
-import PubNoteTextarea from 'components/layout/PubNoteTextarea';
+import PubNoteTextarea from 'components/PubNoteTextarea';
 import PostItems from 'components/PostItems';
 
-export type ContactList = Map<
-  PublicKey,
-  {
-    relayer: RelayUrl;
-    name: PetName;
-  }
->;
+import styles from './index.module.scss';
+import PageTitle from 'components/PageTitle';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -43,16 +36,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const router = useRouter();
   const myPublicKey = useMyPublicKey();
 
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
-  const [myContactList, setMyContactList] = useState<{ keys: PublicKey[]; created_at: number }>();
+  const [myContactList, setMyContactList] = useState<ContactList>();
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
   const _handleEvent = handleEvent(
     worker,
-    isLoggedIn,
     userMap,
     myPublicKey,
     setUserMap,
@@ -60,16 +53,15 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     setMyContactList,
   );
 
-  useSubMetaDataAndContactList(
+  useSubContactList(
     myPublicKey,
     newConn,
-    isLoggedIn,
     worker,
     _handleEvent,
   );
-  useSubMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
+  useSubFollowingMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
+  useLastReplyEvent({msgList, worker, userMap, setUserMap, setEventMap});
   useLoadMoreMsg({
-    isLoggedIn,
     myContactList,
     myPublicKey,
     msgList,
@@ -116,6 +108,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   return (
     <BaseLayout>
       <Left>
+        <PageTitle title={"Home"}/>
         <PubNoteTextarea />
         <div className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0
@@ -136,7 +129,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           ) : (
             <>
               <div className={styles.msgList}>
-                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} />
+                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} eventMap={eventMap} showLastReplyToEvent={true} />
               </div>
               <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>{t('home.loadMoreBtn')}</Button>
             </>

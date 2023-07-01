@@ -1,5 +1,5 @@
-import { Event } from "service/api";
-import { Nip19 } from 'service/nip/19';
+import { Event } from 'core/nostr/Event';
+import { Nip19 } from 'core/nip/19';
 
 export enum ContentType {
   text = "text",

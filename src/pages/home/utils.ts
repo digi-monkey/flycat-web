@@ -1,19 +1,18 @@
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
+import { CallWorker } from 'core/worker/caller';
+import { CallRelayType } from 'core/worker/type';
+import { deserializeMetadata } from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
 import {
-  Event,
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
   EventTags,
-  EventContactListPTag,
-  isEventPTag,
-  deserializeMetadata,
-} from 'service/api';
+  EventContactListPTag
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 
 export function handleEvent(
   worker,
-  isLoggedIn,
   userMap,
   myPublicKey,
   setUserMap,
@@ -47,6 +46,7 @@ export function handleEvent(
       case WellKnownEventKind.text_note:
       case WellKnownEventKind.article_highlight:
       case WellKnownEventKind.long_form:
+      case WellKnownEventKind.reposts:
         setMsgList(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
@@ -57,24 +57,6 @@ export function handleEvent(
 
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
-
-            // check if need to sub new user metadata
-            const newPks: string[] = [];
-            for (const t of event.tags) {
-              if (isEventPTag(t)) {
-                const pk = t[1];
-                if (userMap.get(pk) == null) {
-                  newPks.push(pk);
-                }
-              }
-            }
-            if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
-                type: CallRelayType.single,
-                data: [relayUrl!],
-              });
-              sub?.iterating({ cb: handleEvent });
-            }
 
             // save event
             const newItems = [
@@ -151,7 +133,7 @@ export function refreshMsg({
       data: [],
     };
 
-    const subMsg = worker?.subMsg(pks, false, 'homeRefreshMsg', callRelay);
+    const subMsg = worker?.subMsg(pks, 'homeRefreshMsg', callRelay);
     subMsg?.iterating({
       cb: handleEvent,
     });

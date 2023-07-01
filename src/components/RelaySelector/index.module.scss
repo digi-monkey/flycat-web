@@ -4,7 +4,7 @@
   padding: 0 var(--basePadding4); 
   margin: {
     top: var(--basePadding4);
-    bottom: var(--basePadding4);
+    //bottom: var(--basePadding4);
   };
 
   :global {
@@ -196,4 +196,16 @@
 .modalCoseIcons{
   width: 24px;
   height: 24px;
+}
+
+.benchmarkItem{
+  display: flex;
+  justify-content: space-between;
+
+  .failed{
+    color: var(--red-05);
+  }
+  .success{
+    color: var(--primary-05);
+  }
 }

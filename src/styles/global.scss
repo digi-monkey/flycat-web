@@ -1,9 +1,9 @@
-@import "./reset.scss";
-@import "./react-tags-input.scss";
-@import "./mui.scss";
-@import "./mixin.scss";
+@import './reset.scss';
+@import './react-tags-input.scss';
+@import './mui.scss';
+@import './mixin.scss';
 
-:root{
+:root {
   // breakpoint
   --bp-xs: 320px;
   --bp-sm: 375px;
@@ -13,66 +13,73 @@
   --bp-xxl: 1440px;
 
   // color
-  --primary-09: #183F00;
-  --primary-08: #2E5203;
-  --primary-07: #44661B;
+  --primary-09: #183f00;
+  --primary-08: #2e5203;
+  --primary-07: #44661b;
   --primary-06: #598022;
-  --primary-05: #739F36;
-  --primary-04: #98C354;
-  --primary-03: #C0E085;
-  --primary-02: #DDEEBA;
-  --primary-01: #FBFFF0;
+  --primary-05: #739f36;
+  --primary-04: #98c354;
+  --primary-03: #c0e085;
+  --primary-02: #ddeeba;
+  --primary-01: #fbfff0;
 
-  --neutral-09: #1E1E1E;
-  --neutral-08: #4B4B4B;
+  --neutral-09: #1e1e1e;
+  --neutral-08: #4b4b4b;
   --neutral-07: #626262;
   --neutral-06: #787878;
-  --neutral-05: #8E8E8E;
-  --neutral-04: #BCBCBC;
-  --neutral-03: #D2D2D2;
-  --neutral-02: #EDEDED;
-  --neutral-01: #F9F9F9;
-  --neutral-white: #FFFFFF;
+  --neutral-05: #8e8e8e;
+  --neutral-04: #bcbcbc;
+  --neutral-03: #d2d2d2;
+  --neutral-02: #ededed;
+  --neutral-01: #f9f9f9;
+  --neutral-white: #ffffff;
 
   --red-09: #400002;
   --red-08: #530707;
   --red-07: #661417;
   --red-06: #802226;
-  --red-05: #9E3F3F;
-  --red-04: #C25B5B;
-  --red-03: #DB8784;
-  --red-02: #FFD7D6;
-  --red-01: #FFF6F5;
+  --red-05: #9e3f3f;
+  --red-04: #c25b5b;
+  --red-03: #db8784;
+  --red-02: #ffd7d6;
+  --red-01: #fff6f5;
 
   --blue-09: #001840;
-  --blue-08: #0A2653;
-  --blue-07: #1B3866;
+  --blue-08: #0a2653;
+  --blue-07: #1b3866;
   --blue-06: #224680;
-  --blue-05: #365E9F;
-  --blue-04: #547FC3;
-  --blue-03: #86A8E0;
-  --blue-02: #BACEEE;
-  --blue-01: #F4F8FF;
+  --blue-05: #365e9f;
+  --blue-04: #547fc3;
+  --blue-03: #86a8e0;
+  --blue-02: #baceee;
+  --blue-01: #f4f8ff;
 
-  --yellow-09: #4E2C00;
+  --yellow-09: #4e2c00;
   --yellow-08: #593505;
-  --yellow-07: #7A5008;
-  --yellow-06: #8F6511;
-  --yellow-05: #BD8C1A;
-  --yellow-04: #EBBC3E;
-  --yellow-03: #FFE58F;
-  --yellow-02: #FCF3C4;
-  --yellow-01: #FFFCED;
+  --yellow-07: #7a5008;
+  --yellow-06: #8f6511;
+  --yellow-05: #bd8c1a;
+  --yellow-04: #ebbc3e;
+  --yellow-03: #ffe58f;
+  --yellow-02: #fcf3c4;
+  --yellow-01: #fffced;
 
   --hover-color: rgba(30, 30, 30, 0.04);
   --overlay-color: rgba(30, 30, 30, 0.6);
-  --popup-bg: #F7FAF5;
+  --popup-bg: #f7faf5;
+  --post-bg: #F2F2F2;
 
+  --cover-05: #E3BBEA;
+  --cover-04: #ABD1EB;
+  --cover-03: #C0E085;
+  --cover-02: #FFD09A;
+  --cover-01: #F18B8E;
+  
   --container: 100vw;
   --gapWidth: 20px;
   --mobileHeaderHeight: 32px; // calc(44px + 32px);
   --mobileFooterHeight: 60px;
-  
+
   --padding: 4px;
   --basePadding2: calc(var(--padding) * 2);
   --basePadding3: calc(var(--padding) * 3);
@@ -83,6 +90,8 @@
   --basePadding8: calc(var(--padding) * 8);
   --basePadding9: calc(var(--padding) * 9);
   --basePadding10: calc(var(--padding) * 10);
+  --basePadding11: calc(var(--padding) * 11);
+  --basePadding12: calc(var(--padding) * 12);
 
   --baseBorderRadius2: 2px;
   --baseBorderRadius4: 4px;
@@ -106,7 +115,7 @@
   margin-right: auto;
   margin-left: auto;
 
-  >nav{
+  > nav {
     height: 100%;
     border-right: 1px solid var(--neutral-02);
 
@@ -117,7 +126,7 @@
     }
   }
 
-  >main{
+  > main {
     grid-column: span 9;
 
     @include for-pad {

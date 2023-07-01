@@ -1,5 +1,58 @@
+.pageTitle {
+  display: flex;
+  width: auto;
+  padding: 16px 20px;
+  justify-content: space-between;
+  align-items: center;
+
+  .titleBox {
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-start;
+
+    .arrow {
+      margin-right: var(--basePadding2);
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .title {
+      color: var(--neutral-09, #1e1e1e);
+
+      /* Subheader1-bold */
+      font-size: 16px;
+      font-family: Poppins;
+      font-weight: 600;
+      line-height: 24px;
+    }
+  }
+
+  :global {
+    .ant-input-affix-wrapper {
+      margin: var(--basePadding4) 0;
+
+      border-radius: 20px;
+      border: 1px solid var(--neutral-02, #ededed);
+      background: var(--hover-01);
+
+      &,
+      input {
+        background-color: var(--neutral-02);
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+
+        fill: var(--neutral-06);
+      }
+    }
+  }
+}
+
 .banner {
-  width:auto;
+  width: auto;
   padding: 0px var(--basePadding5);
   height: 157px;
 
@@ -41,21 +94,29 @@
 }
 
 .btnGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
   margin-top: 12px;
-  height: 50px;
 }
 
 .icon {
   width: 24px;
   height: 24px;
   cursor: pointer;
-  margin-left: 16px;
 }
 
 .followingList {
-  margin-bottom: 14px;
+  margin-top: 12px;
   display: flex;
   justify-content: space-between;
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
 }
 
 .followingTitle {
@@ -64,4 +125,8 @@
   font-weight: 600;
   font-size: 16px;
   line-height: 24px;
+}
+
+.viewBtnContainer{
+  margin-top: var(--basePadding3);
 }

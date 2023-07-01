@@ -1,28 +1,22 @@
-import { Spin, Tooltip } from 'antd';
+import { Spin, Tooltip, message } from 'antd';
 import { useTranslation } from 'next-i18next';
-import { fetchPublicBookmarkListEvent } from 'components/ReactionBtnGroup/util';
+import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions/util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Event,
-  EventTags,
-  EventZTag,
-  RawEvent,
-  WellKnownEventKind,
-  EventETag,
-  EventPTag,
-} from 'service/api';
-import { payLnUrlInWebLn } from 'service/lighting/lighting';
-import { Nip18 } from 'service/nip/18';
-import { Nip51 } from 'service/nip/51';
-import { Nip57 } from 'service/nip/57';
-import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
+import { EventTags, EventZTag } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
+import { Nip18 } from 'core/nip/18';
+import { Nip51 } from 'core/nip/51';
+import { Nip57 } from 'core/nip/57';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -43,15 +37,18 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
-
+  const [messageApi, contextHolder] = message.useMessage();
   const [isBookmarking, setIsBookMarking] = useState(false);
 
   const repost = async () => {
     if (signEvent == null) return;
+    if (seen[0] == null)
+      return messageApi.error('repost required seen relay, not found!');
+
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
-    worker.pubEvent(event);
-    alert('published!');
+    const handler = worker.pubEvent(event);
+    noticePubEventResult(handler);
   };
 
   const zap = async () => {
@@ -98,8 +95,9 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   };
 
   const bookmark = async () => {
-    setIsBookMarking(true);
     if (signEvent == null) return;
+
+    setIsBookMarking(true);
 
     const result = await fetchPublicBookmarkListEvent(myPublicKey, worker);
     const eventIds = result
@@ -118,18 +116,19 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 
   return (
     <ul className={styles.reactions}>
+      {contextHolder}
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={'repost'}>
           <Icon onClick={repost} type="icon-repost" className={styles.upload} />
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={'zap'}>
           <Icon onClick={zap} type="icon-bolt" className={styles.upload} />
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={'comment'}>
           <Icon
             onClick={comment}
             type="icon-comment"
@@ -138,7 +137,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
         </Tooltip>
       </li>
       <li>
-        <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
+        <Tooltip placement="top" title={'bookmark'}>
           <Icon
             style={{ cursor: isBookmarking ? 'not-allowed' : 'pointer' }}
             onClick={bookmark}

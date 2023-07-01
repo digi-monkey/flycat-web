@@ -1,8 +1,8 @@
 import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { seedRelays } from "service/relay/pool/seed";
-import { Relay } from "service/relay/type";
+import { seedRelays } from "core/relay/pool/seed";
+import { Relay } from "core/relay/type";
 import { RootState } from "store/configureStore";
 
 export function useDefaultGroup(){

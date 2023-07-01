@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import { Input, List, Checkbox } from 'antd';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

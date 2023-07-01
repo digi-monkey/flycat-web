@@ -1,15 +1,16 @@
 import { EventWithSeen } from 'pages/type';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { deserializeMetadata } from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
 import {
-  Event,
+  EventMap,
   EventSetMetadataContent,
-  WellKnownEventKind,
-  deserializeMetadata,
-  isEventPTag,
-} from 'service/api';
-import { UserMap } from 'service/type';
-import { CallWorker } from 'service/worker/callWorker';
-import { CallRelayType } from 'service/worker/type';
+  WellKnownEventKind
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { UserMap } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
+import { CallRelayType } from 'core/worker/type';
 
 // todo: get reactive data and sort by hot
 export function useHottestFeed({
@@ -17,12 +18,14 @@ export function useHottestFeed({
   newConn,
   userMap,
   setUserMap,
+  setEventMap,
   maxMsgLength = 50,
 }: {
   worker?: CallWorker;
   newConn: string[];
   userMap: UserMap;
-  setUserMap: any;
+  setUserMap: Dispatch<SetStateAction<UserMap>>;
+  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
   const [feed, setFeed] = useState<EventWithSeen[]>([]);
@@ -50,6 +53,11 @@ export function useHottestFeed({
         break;
 
       case WellKnownEventKind.text_note:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        })
+
         setFeed(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
@@ -72,7 +80,7 @@ export function useHottestFeed({
               }
             }
             if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, false, undefined, {
+              const sub = worker?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               });
@@ -114,12 +122,15 @@ export function useHottestFeed({
     if (!worker) return;
 
     const pks: string[] = [];
-    const callRelay = {
+    const callRelay = newConn.length > 0 ? {
       type: CallRelayType.batch,
       data: conns,
+    }: {
+      type: CallRelayType.connected,
+      data: [],
     };
     const limit = 50;
-    const sub = worker.subMsg(pks, undefined, undefined, callRelay, { limit })!;
+    const sub = worker.subMsg(pks, undefined, callRelay, { limit })!;
 
     sub.iterating({ cb: handleEvent });
   };

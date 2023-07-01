@@ -8,4 +8,50 @@
   overflow-y: scroll;
 }
 
+.pageTitle {
+  display: flex;
+  width: auto;
+  padding: 16px 20px;
+  justify-content: space-between;
+  align-items: center;
 
+  .title {
+    color: var(--text-01);
+
+    /* Subheader1-bold */
+    font-size: 16px;
+    font-family: Poppins;
+    font-weight: 600;
+    line-height: 24px;
+  }
+  .btn {
+    color: var(--primary-06);
+
+    /* Label */
+    font-size: 14px;
+    font-family: Noto Sans;
+    font-weight: 500;
+    line-height: 22px;
+  }
+}
+
+.header {
+  display: flex;
+  width: 975px;
+  padding: 16px 20px;
+  align-items: flex-start;
+  gap: 12px;
+  .icon {
+    width: 24px;
+    height: 24px;
+  }
+  .title {
+    color: var(--neutral-09, #1e1e1e);
+
+    /* Subheader1-bold */
+    font-size: 16px;
+    font-family: Poppins;
+    font-weight: 600;
+    line-height: 24px;
+  }
+}

@@ -1,11 +1,12 @@
 import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left } from 'components/layout/BaseLayout';
+import { BaseLayout, Left } from 'components/BaseLayout';
 import { RelayPoolManager } from './RelayPool';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';
-import "./index.module.scss";
+import styles from './index.module.scss';
+import Icon from 'components/Icon';
 
 export interface RelayMenuProp {
   showRelayPool: boolean;
@@ -17,24 +18,16 @@ export const RelayMenu: React.FC<RelayMenuProp> = ({
   setShowRelayPool,
 }) => {
   return showRelayPool ? (
-    <div
-      style={{ marginBottom: '20px' }}
-      onClick={() => setShowRelayPool(false)}
-    >
-      <span>
-        <ArrowLeftOutlined />{' '}
-      </span>
-      <span> Browser all relays</span>
-    </div>
+    <div className={styles.header} onClick={() => setShowRelayPool(false)}>
+        <Icon type="icon-arrow-left" className={styles.icon} />
+        <div className={styles.title}>Browse all relays</div>
+      </div>
   ) : (
-    <div style={{ marginBottom: '20px' }}>
-      <span>Relays</span>
-      <span style={{ float: 'right' }}>
-        {' '}
-        <span onClick={() => setShowRelayPool(true)}>
-          Explore 500+ relays
-        </span>{' '}
-      </span>
+    <div className={styles.pageTitle}>
+      <div className={styles.title}>Relays</div>
+      <div className={styles.btn} onClick={() => setShowRelayPool(true)}>
+        Explore 500+ relays
+      </div>
     </div>
   );
 };

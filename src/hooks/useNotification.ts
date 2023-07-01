@@ -1,34 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Event, WellKnownEventKind } from 'service/api';
-import { get } from 'service/last-notify';
-import { CallRelayType } from 'service/worker/type';
+import { Event } from 'core/nostr/Event';
+import { fetchSince, get } from 'core/last-notify';
+import { CallRelayType } from 'core/worker/type';
 import { useReadonlyMyPublicKey } from './useMyPublicKey';
 import { useCallWorker } from './useWorker';
+import { notifyKinds } from 'pages/notification/kinds';
+import { EventId } from 'core/nostr/type';
 
 export function useNotification() {
-  const [notes, setNotes] = useState<Event[]>([]);
+  const [eventIds, setEventIds] = useState<EventId[]>([]);
 
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn } = useCallWorker();
   function handleEvent(event: Event, relayUrl?: string) {
-    if (
-      event.kind !== WellKnownEventKind.like &&
-      event.kind !== WellKnownEventKind.text_note
-    )
-      return;
     const lastReadTime = get();
-    if (event.created_at <= lastReadTime) return;
+    if (!notifyKinds.includes(event.kind)) return;
+    if (lastReadTime && event.created_at <= lastReadTime) return;
+    if (myPublicKey === event.pubkey) return;
 
-    setNotes(oldArray => {
-      if (!oldArray.map(e => e.id).includes(event.id)) {
+    setEventIds(oldArray => {
+      if (!oldArray.includes(event.id)) {
         // do not add duplicated msg
 
-        const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
-        // sort by timestamp
-        const sortedItems = newItems.sort((a, b) =>
-          a.created_at >= b.created_at ? -1 : 1,
-        );
-        return sortedItems;
+        const newItems = [...oldArray, event.id];
+        return newItems;
       }
 
       return oldArray;
@@ -37,22 +32,34 @@ export function useNotification() {
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
     if (newConn.length === 0) return;
-    if (worker?.portId == null) return;
+    if (!worker || worker?.portId == null) return;
 
-    const lastReadTime = get();
+    const callRelay =
+      newConn.length === 0
+        ? {
+            type: CallRelayType.connected,
+            data: [],
+          }
+        : {
+            type: CallRelayType.batch,
+            data: newConn,
+          };
+
+    const lastReadTime = get() || fetchSince;
     const since = lastReadTime + 1; // exclude the last read msg itself
     worker
-      ?.subMsgByPTags({
-        publicKeys: [myPublicKey],
-        since,
-        callRelay: {
-          type: CallRelayType.batch,
-          data: newConn,
+      .subFilter({
+        filter: {
+          '#p': [myPublicKey],
+          kinds: notifyKinds,
+          since,
+          limit: 1, // reduce data since we are only need to know true or false
         },
         customId: 'useNotification',
+        callRelay,
       })
-      ?.iterating({ cb: handleEvent });
-  }, [newConn, myPublicKey]);
+      .iterating({ cb: handleEvent });
+  }, [newConn, myPublicKey, worker]);
 
-  return notes.length;
+  return eventIds.length > 0;
 }

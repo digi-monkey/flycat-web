@@ -1,4 +1,4 @@
-import { WellKnownEventKind } from 'service/api';
+import { WellKnownEventKind } from 'core/nostr/type';
 
 export const FilterOptions = [
   {

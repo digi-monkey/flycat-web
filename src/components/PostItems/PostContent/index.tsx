@@ -1,28 +1,25 @@
-import {
-  Event,
-  EventSubResponse,
-  EventTags,
-  WellKnownEventKind,
-  isEventSubResponse,
-} from 'service/api';
-import { UserMap } from 'service/type';
+import { EventMap, EventTags } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import { extractEmbedRef } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { OneTimeWebSocketClient } from 'core/websocket/onetime';
 import styles from './index.module.scss';
 import { Avatar } from 'antd';
-import { normalizeContent, shortPublicKey } from 'service/helper';
-import { CallWorker } from 'service/worker/callWorker';
-import { EventWithSeen } from 'pages/type';
+import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
+import { CallWorker } from 'core/worker/caller';
+import { Nip23 } from 'core/nip/23';
+import PostArticle from '../PostArticle';
 
 interface PostContentProp {
   ownerEvent: Event;
+  eventMap: EventMap;
   userMap: UserMap;
   worker: CallWorker;
   showLastReplyToEvent?: boolean;
@@ -30,6 +27,7 @@ interface PostContentProp {
 
 export const PostContent: React.FC<PostContentProp> = ({
   userMap,
+  eventMap,
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
@@ -64,31 +62,12 @@ export const PostContent: React.FC<PostContentProp> = ({
       .filter(t => t[0] === EventTags.E)
       .map(t => {
         return { id: t[1], relay: t[2] };
-      }).pop();
-      
+      })
+      .pop();
+
     if (lastReply) {
-      const handler = worker.subMsgByEventIds([lastReply.id])!;
-      const dataStream = handler.getIterator();
-      let result: Event | undefined;
-      for await (const data of dataStream) {
-        const msg = JSON.parse(data.nostrData);
-        if (isEventSubResponse(msg)) {
-          const event = (msg as EventSubResponse)[2];
-
-          if (event.kind !== WellKnownEventKind.text_note) continue;
-
-          if (!result) {
-            result = event;
-          }
-
-          if (result && result.created_at < event.created_at) {
-            result = event;
-          }
-        }
-      }
-
-      if (result) {
-        setLastReplyToEvent(result);
+      if (eventMap.get(lastReply.id)) {
+        setLastReplyToEvent(eventMap.get(lastReply.id));
         return;
       }
 
@@ -98,7 +77,9 @@ export const PostContent: React.FC<PostContentProp> = ({
           eventId: lastReply.id,
           relays: [lastReply.relay],
         });
-        if (replyToEvent) setLastReplyToEvent(replyToEvent);
+        if (replyToEvent) {
+          setLastReplyToEvent(replyToEvent);
+        }
       }
     }
   };
@@ -128,11 +109,21 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
   const clickEventBody = () => {
     window.location.href = `/event/${event.id}`;
   };
-  return (
+
+  return Nip23.isBlogPost(event) ? (
+    <PostArticle
+      userAvatar={userMap.get(event.pubkey)?.picture || ''}
+      userName={userMap.get(event.pubkey)?.name || ''}
+      event={event}
+      key={event.id}
+    />
+  ) : (
     <div className={styles.replyEvent}>
       <div className={styles.user} onClick={clickUserProfile}>
-        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" /> @
-        {userMap.get(event.pubkey)?.name || shortPublicKey(event.pubkey)}
+        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" />
+        <span className={styles.name}>
+          {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
+        </span>
       </div>
       <div className={styles.content} onClick={clickEventBody}>
         {event.content}

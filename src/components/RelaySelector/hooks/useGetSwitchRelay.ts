@@ -1,20 +1,20 @@
 import { useEffect } from 'react';
-import { db } from 'service/relay/auto';
+import { db } from 'core/relay/auto';
 import { RelayMode, toRelayMode } from '../type';
 import { RelaySelectorStore } from '../store';
-import { RelayPool } from 'service/relay/pool';
-import { SwitchRelays } from 'service/worker/type';
-import { RelayGroupMap } from 'service/relay/group/type';
-import { OneTimeWebSocketClient } from 'service/websocket/onetime';
+import { RelayPool } from 'core/relay/pool';
+import { SwitchRelays } from 'core/worker/type';
+import { RelayGroupMap } from 'core/relay/group/type';
+import { OneTimeWebSocketClient } from 'core/websocket/onetime';
+import { isFastestRelayOutdated } from '../util';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
   groups: RelayGroupMap,
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
-	progressBeginCb?: ()=>any,
-	progressEndCb?: ()=>any,
-  progressCb?: (restCount: number) => any
+  progressCb?: (restCount: number) => any,
+  progressEnd?: ()=>any
 ) {
   const store = new RelaySelectorStore();
 
@@ -32,28 +32,20 @@ export function useGetSwitchRelay(
       }
 
       const relayPool = new RelayPool();
-
-      let contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: relayPool.seedRelays});
-      if(contactList == null){
-        contactList = [myPublicKey];
+      const seeds =  relayPool.seeds;
+      const contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: ['wss://relay.nostr.band']}) || [];
+      if(!contactList.includes(myPublicKey)){
+        contactList.push(myPublicKey);
       }
-      const allRelays = (await relayPool.getAllRelays()).map(r => r.url);
-      await RelayPool.getBestRelay(allRelays, myPublicKey, progressCb);
-      const bestRelay = (await db.pick(myPublicKey)).slice(0, 6).map(i => i.relay);
+      const relays = await relayPool.getAutoRelay(seeds, contactList, myPublicKey, progressCb);
+      if(progressEnd){
+        progressEnd();
+      }
 
-      const pickRelays = await RelayPool.pickRelay(
-        relayPool.seedRelays,
-        contactList,
-      );
-
-      const relays = [...bestRelay, ...pickRelays];
-      console.log("bestRelay: ", bestRelay, "pick nip-65 relays: ", pickRelays);
-      
-     // const relays = (await db.a(myPublicKey)).slice(0, 6).map(i => i.relay);
       store.saveAutoRelayResult(
         myPublicKey,
         relays.map(r => {
-          return { url: r, read: false, write: true };
+          return { url: r, read: true, write: true };
         }),
       );
 
@@ -70,19 +62,30 @@ export function useGetSwitchRelay(
     }
 
     if (mode === RelayMode.fastest) {
+      const savedResult = store.loadFastestRelayResult(myPublicKey);
+      if (savedResult && !isFastestRelayOutdated(savedResult.updated_at)) {
+        return {
+          id: mode,
+          relays: savedResult.relays,
+        };
+      }
+
       const relayPool = new RelayPool();
       const allRelays = await relayPool.getAllRelays();
-      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url));
+      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url), progressCb);
+      if(progressEnd){
+        progressEnd();
+      }
+
+      const relays = [{ url: fastest[0], read: true, write: true }];
+      store.saveFastestRelayResult(
+        myPublicKey,
+        relays
+      );
 
       return {
         id: mode,
-        relays: [
-          {
-            url: fastest[0],
-            read: true,
-            write: true,
-          },
-        ],
+        relays,
       };
     }
 
@@ -120,15 +123,8 @@ export function useGetSwitchRelay(
         store.saveSelectedGroupId(myPublicKey, selectedGroup);
       }
 
-			if(progressBeginCb){
-				progressBeginCb();
-			}
 			// a very time-consuming operation
       const switchRelays = await getSwitchRelay(selectedValue);
-
-		  if(progressEndCb){
-				progressEndCb();
-			}	
 
 			// return the result
       cb(switchRelays);

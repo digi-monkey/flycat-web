@@ -1,4 +1,4 @@
-import { Relay } from 'service/relay/type';
+import { Relay } from 'core/relay/type';
 import styles from './index.module.scss';
 import { Button } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';

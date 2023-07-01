@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { equalMaps } from 'service/helper';
-import { CallWorker } from 'service/worker/callWorker';
-import { FromWorkerMessageData, WsConnectStatus } from 'service/worker/type';
+import { CallWorker } from 'core/worker/caller';
+import { WsConnectStatus } from 'core/worker/type';
+import { isEqualMaps } from 'utils/validator';
 
 export type OnMsgHandler = (this, nostrData: any, relayUrl?: string) => any;
 
@@ -16,19 +16,16 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
-  const [relayGroupId, setRelayGroupId] = useState<string>();
   const [worker, setWorker] = useState<CallWorker>();
 
   useEffect(() => {
-    const worker = new CallWorker((message: FromWorkerMessageData) => {
-      if (message.wsConnectStatus) {
-        if (equalMaps(wsConnectStatus, message.wsConnectStatus)) {
-          // no changed
-          console.debug('[wsConnectStatus] same, not updating');
-          return;
-        }
-
-        const data = Array.from(message.wsConnectStatus.entries());
+    const worker = new CallWorker((newWsConnectStatus: WsConnectStatus) => {
+      if (isEqualMaps(wsConnectStatus, newWsConnectStatus)) {
+        // no changed
+        console.debug('[wsConnectStatus] same, not updating');
+        return;
+      }
+      const data = Array.from(newWsConnectStatus.entries());
         setWsConnectStatus(prev => {
           const newMap = new Map(prev);
           for (const d of data) {
@@ -43,15 +40,13 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
 
           return newMap;
         });
-      }
     }, workerAliasName || 'unnamedCallWorker');
     setWorker(worker);
-    worker.pullWsConnectStatus();
-    worker.pullRelayGroupId();
+    worker.pullRelayInfo();
   }, []);
 
   useEffect(() => {
-    if (equalMaps(lastWsConnectStatus, wsConnectStatus)) {
+    if (isEqualMaps(lastWsConnectStatus, wsConnectStatus)) {
       return;
     }
 

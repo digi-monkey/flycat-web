@@ -9,11 +9,15 @@ body {
   scroll-behavior: smooth;
 }
 
-.swal2-container{
+.swal2-container {
   z-index: 10000 !important;
 }
 
-// antd 
+// antd
 .ant-btn-primary:disabled {
   border: none;
+}
+
+.ant-menu .ant-menu-item {
+  border-radius: 0px;
 }
