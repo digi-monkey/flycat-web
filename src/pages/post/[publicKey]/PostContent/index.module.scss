@@ -100,6 +100,7 @@
 
   .articleText {
     margin-bottom: var(--basePadding12);
+    word-wrap: break-word;
   }
 
   .info {
@@ -216,6 +217,7 @@
     margin: 10px 5px;
     background-color: var(--neutral-02);
     border-radius: 5px;
+    overflow: scroll;
   }
 
   .articleImg {
