@@ -36,6 +36,10 @@
       height: 56px;
       border-radius: 50px;
       cursor: pointer;
+      span{
+        @include font-subheader1;
+        color: var(--neutral-09);
+      }
       padding: {
         left: var(--basePadding5);
         right: var(--basePadding5);
@@ -135,6 +139,9 @@
         height: 24px;
       }
     }
+  }
+  li{
+    @include font-label;
   }
 }
 
