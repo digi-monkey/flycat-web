@@ -37,7 +37,7 @@ export class Nip18 {
     }
 
     if (reposts.content.length > 0) {
-      if(isValidJSONStr(reposts)){
+      if(isValidJSONStr(reposts.content)){
         return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
       }
       

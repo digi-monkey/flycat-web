@@ -53,7 +53,7 @@ export function isEqualMaps(map1: Map<string, any>, map2: Map<string, any>) {
   return true;
 }
 
-export function isValidJSONStr(str: any) {
+export function isValidJSONStr(str: string) {
   try {
     JSON.parse(str);
     return true;
