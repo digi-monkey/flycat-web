@@ -33,6 +33,7 @@ import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
+import { EventWithSeen } from 'pages/type';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -44,12 +45,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
 
-  const [msgList, setMsgList] = useState<Event[]>([]);
+  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactInfo>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
-  const [articleMsgList, setArticleMsgList] = useState<Event[]>([]);
+  const [articleMsgList, setArticleMsgList] = useState<EventWithSeen[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   const { worker, newConn } = useCallWorker();
@@ -88,12 +89,24 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
-              const newItems = [...oldArray, event];
+  
+              // save event
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
               // sort by timestamp
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
               );
               return sortedItems;
+            } else {
+              const id = oldArray.findIndex(s => s.id === event.id);
+              if (id === -1) return oldArray;
+  
+              if (!oldArray[id].seen?.includes(relayUrl!)) {
+                oldArray[id].seen?.push(relayUrl!);
+              }
             }
             return oldArray;
           });
@@ -189,12 +202,22 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         setArticleMsgList(oldArray => {
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
-            const newItems = [...oldArray, event];
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
             // sort by timestamp
             const sortedItems = newItems.sort((a, b) =>
               a.created_at >= b.created_at ? -1 : 1,
             );
             return sortedItems;
+          }else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
+            }
           }
           return oldArray;
         });
@@ -202,12 +225,24 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         setMsgList(oldArray => {
           if (!oldArray.map(e => e.id).includes(event.id)) {
             // do not add duplicated msg
-            const newItems = [...oldArray, event];
+
+            // save event
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
             // sort by timestamp
             const sortedItems = newItems.sort((a, b) =>
               a.created_at >= b.created_at ? -1 : 1,
             );
             return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
+            }
           }
           return oldArray;
         });
