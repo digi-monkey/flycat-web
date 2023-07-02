@@ -1,4 +1,4 @@
-import { Segmented } from 'antd';
+import { Divider, Segmented, Tag } from 'antd';
 import ReplyEventInput from 'components/ReplyNoteInput';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
@@ -28,6 +28,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
+  const [commentOrder, setCommentOrder] = useState<string>('recent');
 
   const [threadTreeNodes, setThreadTreeNodes] = useState<
     TreeNode<EventWithSeen>[]
@@ -117,6 +118,8 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
             <Segmented
               className={styles.tab}
               options={['recent', 'hot', 'zapest']}
+              onChange={val => setCommentOrder(val as string)}
+              value={commentOrder}
             />
           </div>
         </div>
@@ -126,25 +129,36 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
           userMap={userMap}
         />
       </div>
-      {threadTreeNodes.map(n => (
-        <div key={n.value.id}>
-          <PostItems
-            msgList={[{ ...n.value, ...{ seen: [''] } }]}
-            worker={worker!}
-            userMap={userMap}
-            eventMap={eventMap}
-            relays={[]}
-            showLastReplyToEvent={false}
-          />
-          <div className={styles.subRepliesContainer}>
-            {n.children.map(c => (
-              <SubPostItem key={c.value.id} event={c.value} userMap={userMap} />
-            ))}
+      {commentOrder === 'recent' &&
+        threadTreeNodes.map(n => (
+          <div key={n.value.id}>
+            <PostItems
+              msgList={[{ ...n.value, ...{ seen: [''] } }]}
+              worker={worker!}
+              userMap={userMap}
+              eventMap={eventMap}
+              relays={[]}
+              showLastReplyToEvent={false}
+            />
+            <div className={styles.subRepliesContainer}>
+              {n.children.map(c => (
+                <SubPostItem
+                  key={c.value.id}
+                  event={c.value}
+                  userMap={userMap}
+                />
+              ))}
+            </div>
+            <br />
+            <br />
           </div>
-          <br />
-          <br />
-        </div>
-      ))}
+        ))}
+
+      {commentOrder !== 'recent' && (
+        <Divider orientation="left">
+          <Tag color="error">Feature Under Construction 🚧</Tag>
+        </Divider>
+      )}
     </div>
   );
 };

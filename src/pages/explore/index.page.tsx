@@ -1,7 +1,7 @@
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
-import { Segmented } from 'antd';
+import { Divider, Segmented, Tag } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
 import { EventMap, UserMap } from 'core/nostr/type';
@@ -38,6 +38,10 @@ const Explore = () => {
       );
     } else if (selectedOption === 'Hot') {
       return (
+        <Divider orientation="left">
+          <Tag color="error">Page Under Construction 🚧</Tag>
+        </Divider>
+        /*
         <HotestFeed
           worker={worker!}
           newConn={newConn}
@@ -46,8 +50,10 @@ const Explore = () => {
           eventMap={eventMap}
           setEventMap={setEventMap}
         />
+        */
       );
-    } else if (selectedOption === 'Best long-form') {
+    } else if (selectedOption === 'long-form') {
+      //todo: not best yet
       return (
         <BestLongFormFeed
           worker={worker!}
@@ -70,7 +76,7 @@ const Explore = () => {
             <Segmented
               value={selectedOption}
               onChange={handleOptionChange}
-              options={['Latest', 'Hot', 'Best long-form']}
+              options={['Latest', 'Hot', 'long-form']}
             />
           </div>
         </div>

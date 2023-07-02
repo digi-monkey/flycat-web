@@ -3,8 +3,9 @@ import { Divider, List, Select, Slider, Switch, Tag } from 'antd';
 export default function Preference() {
   return (
     <List size="large">
-	
-	<Divider  orientation="left"><Tag color="error">Page Under Construction 🚧</Tag></Divider>
+      <Divider orientation="left">
+        <Tag color="error">Page Under Construction 🚧</Tag>
+      </Divider>
 
       <Divider orientation="left">Notification</Divider>
 
@@ -48,7 +49,7 @@ export default function Preference() {
         Image Uploader{' '}
         <Select
           defaultValue="nostr.build"
-	  style={{width: "150px"}}
+          style={{ width: '150px' }}
           options={[
             { value: 'nostr.build', label: 'nostr.build' },
             { value: 'nostrimg.com', label: 'nostrimg.com/' },
@@ -56,7 +57,9 @@ export default function Preference() {
           ]}
         />
       </List.Item>
-	  <br /><br /><br />
+      <br />
+      <br />
+      <br />
     </List>
   );
 }

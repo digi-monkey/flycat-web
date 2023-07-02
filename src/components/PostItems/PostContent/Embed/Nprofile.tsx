@@ -12,7 +12,7 @@ export const Nprofile = (nprofile: NprofileResult, userMap: UserMap) => {
     return (
       <span>
       <a
-        href={i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey}
+        href={Paths.user + nprofile.decodedMetadata.pubkey}
         target="_blank"
         className={styles.hoverLink}
       >
