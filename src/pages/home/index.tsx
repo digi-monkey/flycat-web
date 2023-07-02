@@ -17,6 +17,8 @@ import {
   useSubContactList,
   useLoadMoreMsg,
   useLastReplyEvent,
+  useTrendingFollowings,
+  useSuggestedFollowings,
 } from './hooks';
 
 import Icon from 'components/Icon';
@@ -27,6 +29,11 @@ import PostItems from 'components/PostItems';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
+import {
+  SuggestedProfiles,
+  TrendingProfiles,
+  parseMetadata,
+} from 'core/api/band';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,6 +53,11 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [myContactList, setMyContactList] = useState<ContactList>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [trendingProfiles, setTrendingFollowings] =
+    useState<TrendingProfiles>();
+  const [suggestedProfiles, setSuggestedFollowings] =
+    useState<SuggestedProfiles>();
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
@@ -72,6 +84,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     setMyContactList,
     loadMoreCount,
   });
+  useSuggestedFollowings({ myPublicKey, setSuggestedFollowings });
+  useTrendingFollowings({ setTrendingFollowings });
 
   // right test data
   const updates = [
@@ -113,20 +127,23 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         <PageTitle title={'Home'} />
         <PubNoteTextarea />
         <div className={styles.reloadFeedBtn}>
-        <Button
-          type="link"
-          block
-          onClick={() =>
-            refreshMsg({
-              myContactList,
-              myPublicKey,
-              worker,
-              handleEvent: _handleEvent,
-            })
-          }
-        >
-         Refresh timeline 
-        </Button>
+          <Button
+            loading={isRefreshing}
+            type="link"
+            block
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refreshMsg({
+                myContactList,
+                myPublicKey,
+                worker,
+                handleEvent: _handleEvent,
+              });
+              setIsRefreshing(false);
+            }}
+          >
+            Refresh timeline
+          </Button>
         </div>
         <div
           className={classNames(styles.home, {
@@ -200,19 +217,59 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
-          <div className={styles.friends}>
-            <h2>Friends of friends</h2>
-            {friends.map((item, key) => (
-              <div className={styles.friend} key={key}>
-                <Avatar src={item.avatar} />
-                <div className={styles.friendInfo}>
-                  <h3>{item.name}</h3>
-                  <p>{item.desc}</p>
-                </div>
-                <Button className={styles.follow}>Follow</Button>
-              </div>
-            ))}
-          </div>
+          {isLoggedIn ? (
+            <div className={styles.friends}>
+              <h2>Suggested Followings</h2>
+              {suggestedProfiles?.profiles.map((value, key) => {
+                const item = parseMetadata(value.profile.content);
+                return (
+                  <div className={styles.friend} key={key}>
+                    <div className={styles.info}>
+                      <Avatar src={item?.picture} />
+                      <div className={styles.friendInfo}>
+                        <h3>{item?.name}</h3>
+                        <p>{item?.about}</p>
+                      </div>
+                    </div>
+                    <Button
+                      className={styles.follow}
+                      onClick={() =>
+                        window.open('/user/' + value.pubkey, 'blank')
+                      }
+                    >
+                      View
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={styles.friends}>
+              <h2>Trending of Followings</h2>
+              {trendingProfiles?.profiles.map((value, key) => {
+                const item = parseMetadata(value.profile.content);
+                return (
+                  <div className={styles.friend} key={key}>
+                    <div className={styles.info}>
+                      <Avatar src={item?.picture} />
+                      <div className={styles.friendInfo}>
+                        <h3>{item?.name}</h3>
+                        <p>{item?.about}</p>
+                      </div>
+                    </div>
+                    <Button
+                      className={styles.follow}
+                      onClick={() =>
+                        window.open('/user/' + value.pubkey, 'blank')
+                      }
+                    >
+                      View
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
             {trending.map((item, key) => (

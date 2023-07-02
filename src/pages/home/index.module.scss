@@ -133,8 +133,15 @@
   }
 
   .friends {
+    max-height: 400px;
+    overflow-x: auto;
+    overflow-y: scroll;
+
     .friend {
       display: flex;
+      justify-content: space-between;
+      width: auto;
+      overflow-x: auto;
       margin-bottom: var(--basePadding3);
 
       > span {
@@ -143,7 +150,13 @@
         flex: none;
       }
 
+      .info {
+        display: flex;
+        justify-content: flex-start;
+      }
+
       .friendInfo {
+        width: 100%;
         margin-left: var(--basePadding2);
         h3,
         p {
@@ -156,6 +169,7 @@
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          max-width: 120px;
         }
 
         p {
@@ -166,6 +180,7 @@
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
+          max-width: 120px;
         }
       }
 
