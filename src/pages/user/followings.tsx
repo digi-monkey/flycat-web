@@ -99,7 +99,7 @@ export const Followings: React.FC<FollowingsProp> = ({
               onClick={() => window.open(Paths.user + `/${key}`, 'blank')}
             >
               <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
-              <div>{userMap.get(key)?.name}</div>
+              <div>{userMap.get(key)?.name || "..."}</div>
             </div>
             <div>
               <Dropdown

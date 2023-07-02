@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
-import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
+import { CommitCalendar } from 'components/CommitCalendar';
 import { useState, useEffect } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -364,7 +364,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
-    messageApi.success('done, refresh page please!', 3);
+    messageApi.success('done, refresh page please! sorry will fix soon', 3);
   };
   const buildFollowUnfollow = (publicKey: string) => {
     const isFollowed =
@@ -504,7 +504,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </div>
         ) : (
           <div className={styles.btnGroup}>
-            <Button onClick={followOrUnfollow.action}>
+            <Button type="primary" onClick={followOrUnfollow.action}>
               {followOrUnfollow.label}
             </Button>
             <Icon type="icon-rss" className={styles.icon} />

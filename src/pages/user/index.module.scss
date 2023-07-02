@@ -95,9 +95,14 @@
 
 .btnGroup {
   display: flex;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
   gap: 16px;
   margin-top: 12px;
+
+  .follow{
+
+  }
 }
 
 .icon {

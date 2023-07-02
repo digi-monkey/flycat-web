@@ -36,13 +36,6 @@ export class Nip18 {
     const targetEventId = eTag[1];
     const relay = eTag[2];
 
-    // some bad event have no relay even if it is required
-    if (relay == null) {
-      console.error(
-        `bad repost event: relay is required in the e tag. event id: ${reposts.id}`,
-      );
-    }
-
     if (reposts.content.length > 0) {
       if (isValidJSONStr(reposts.content)) {
         return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
@@ -51,13 +44,24 @@ export class Nip18 {
       console.debug(`invalid event json string`, reposts.content);
     }
 
-    let event = await OneTimeWebSocketClient.fetchEvent({
-      eventId: targetEventId,
-      relays: [relay],
-    });
-    if (event != null) {
-      return toSeenEvent(event, [relay]);
+    // some bad event have no relay even if it is required
+    if (relay == null || relay === '') {
+      console.error(
+        `bad repost event: relay missing from e tag. event id: ${reposts.id}`,
+      );
     }
+    
+    let event: Event | null = null;
+    if(relay !== '' && relay != null){
+      event = await OneTimeWebSocketClient.fetchEvent({
+        eventId: targetEventId,
+        relays: [relay],
+      });
+      if (event != null) {
+        return toSeenEvent(event, [relay]);
+      }
+    }
+
     if (event == null && fallbackRelays) {
       event = await OneTimeWebSocketClient.fetchEvent({
         eventId: targetEventId,
