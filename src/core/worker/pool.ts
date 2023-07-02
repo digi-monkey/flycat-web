@@ -10,7 +10,7 @@ import { WS } from 'core/api/ws';
 
 export class Pool {
   private wsList: WS[] = [];
-  private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to keep-alive subIds
+  private portSubs: Map<number, SubscriptionId[]> = new Map(); // portId to subIds
 
   public wsConnectStatus: WsConnectStatus = new Map();
   public onWsConnectStatusChange: (wsConnectStatus: WsConnectStatus)=>any; 
@@ -48,6 +48,24 @@ export class Pool {
     }
     this.wsList = [];
     this.wsConnectStatus.clear();
+  }
+
+  closePort(portId: number){
+    const subs = this.portSubs.get(portId);
+    if(subs == null)return;
+
+    this.portSubs.delete(portId);
+
+    this.wsList.forEach(ws => {
+      for(const sub of subs){
+        ws.pendingSubscriptions.removeItem(sub);
+      }
+      
+      for(const sub of subs){
+        ws.releaseActiveSubscription(sub);
+        // todo send close to the relay need to tell if it is eos or not
+      }
+    })
   }
 
   setupWebSocketApis() {
@@ -138,7 +156,6 @@ export class Pool {
   }
 
   pubEvent(message: PubEventMsg) {
-    const portId = message.portId;
     const callRelayType = message.callRelay.type;
     const urls = message.callRelay.data;
     const event = message.event;

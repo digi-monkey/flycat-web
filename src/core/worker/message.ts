@@ -149,10 +149,10 @@ export const createPortOnMessageListener = ({
 
       case FromConsumerMsgType.closePort:
         {
+          console.log('CLOSE_PORT', res.data.portId);
           const data = res.data;
           connectedPorts[data.portId] = null;
-          //todo
-          // closePort(data.portId);
+          pool.closePort(data.portId);
         }
         break;
 
