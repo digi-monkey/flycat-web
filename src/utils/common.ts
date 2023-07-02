@@ -41,3 +41,16 @@ export const copyToClipboard = async (text: string) => {
 export function isOnlyWhitespaceString(str: string): boolean {
   return /^\s*$/.test(str);
 }
+
+export function displayTwoDigitNumber(num: number): string {
+  if (num < 10) {
+    return `0${num}`;
+  } else {
+    return num.toString();
+  }
+}
+
+export function normalizeWsUrl(url: string): string {
+  const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+  return normalizedUrl;
+}

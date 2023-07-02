@@ -5,7 +5,7 @@
   padding: 13px 8px 13px 20px;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid var(--neutral-02);
+
   border-top: 1px solid var(--neutral-02);
   color: var(--primary-06, #598022);
 
@@ -56,12 +56,22 @@
   }
 }
 
+.table {
+  background-color: var(--neutral-white, #fff);
+  min-height: 500px;
+  :global {
+    .ant-table-thead {
+      background-color: var(--neutral-white, #fff);
+    }
+  }
+}
 .rightHeader {
   display: flex;
   width: auto;
   padding: 8px 20px;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--neutral-white, #fff);
 
   .selectedName {
     color: var(--neutral-09, #1e1e1e);
@@ -76,7 +86,10 @@
     display: flex;
     .input {
       border-radius: 4px;
-      background: var(--neutral-white, #fff);
+      padding: 4px 12px;
+      button {
+        padding: 0px;
+      }
     }
   }
 }

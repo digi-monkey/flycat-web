@@ -30,6 +30,7 @@ import {
   createSubFilterResultStream,
 } from './sub';
 import { randomSubId } from 'utils/common';
+import { Nip65 } from 'core/nip/65';
 
 export type OnWsConnStatus = (wsConnStatus: WsConnectStatus) => any;
 
@@ -116,36 +117,36 @@ export class CallWorker {
     this.worker.port.postMessage(msg);
   }
 
-  addRelaySwitchAlert(cb: (RelaySwitchedAlertMsg)=>any){
-    const listener = (event: MessageEvent)=>{
+  addRelaySwitchAlert(cb: (RelaySwitchedAlertMsg) => any) {
+    const listener = (event: MessageEvent) => {
       const res: FromProducerMsg = event.data;
       switch (res.type) {
         case FromProducerMsgType.relaySwitchedAlert:
           const data = res.data;
           cb(data);
           break;
-      
+
         default:
           break;
       }
     };
-    this.worker.port.addEventListener("message", listener);
+    this.worker.port.addEventListener('message', listener);
   }
 
-  rmRelaySwitchAlert(cb: (RelaySwitchedAlertMsg)=>any){
-    const listener = (event: MessageEvent)=>{
+  rmRelaySwitchAlert(cb: (RelaySwitchedAlertMsg) => any) {
+    const listener = (event: MessageEvent) => {
       const res: FromProducerMsg = event.data;
       switch (res.type) {
         case FromProducerMsgType.relaySwitchedAlert:
           const data = res.data;
           cb(data);
           break;
-      
+
         default:
           break;
       }
     };
-    this.worker.port.removeEventListener("message", listener);
+    this.worker.port.removeEventListener('message', listener);
   }
 
   pullRelayInfo() {
@@ -214,22 +215,22 @@ export class CallWorker {
       getIterator: () => {
         return stream;
       },
-      iterating: async({ cb, onDone }) => {
+      iterating: async ({ cb, onDone }) => {
         const iterator = stream;
         (async () => {
-          const TIMEOUT_DURATION = 2000;// 2 seconds;
+          const TIMEOUT_DURATION = 2000; // 2 seconds;
           while (true) {
             const resultPromise = Promise.race([
               iterator?.next(),
-              new Promise<IteratorResult<any>>((resolve) =>
+              new Promise<IteratorResult<any>>(resolve =>
                 setTimeout(() => {
                   resolve({ done: true } as any);
-                }, TIMEOUT_DURATION)
-              )
+                }, TIMEOUT_DURATION),
+              ),
             ]);
-        
+
             const result = await resultPromise;
-        
+
             if (result?.done) {
               if (onDone) onDone();
               break;
@@ -239,10 +240,9 @@ export class CallWorker {
               cb(res.event, res.relayUrl);
             }
           }
-          
+
           iterator.unsubscribe();
         })();
-        
       },
     };
   }
@@ -270,7 +270,11 @@ export class CallWorker {
     return this.subFilter({ filter, customId, callRelay });
   }
 
-  subMsgByEventIds(eventIds: EventId[], customId?: string, callRelay?: CallRelay) {
+  subMsgByEventIds(
+    eventIds: EventId[],
+    customId?: string,
+    callRelay?: CallRelay,
+  ) {
     const filter: Filter = {
       ids: eventIds,
       limit: eventIds.length,
@@ -383,6 +387,21 @@ export class CallWorker {
         limit: limit || 50,
       },
     });
+    return this.subFilter({ filter, customId, callRelay });
+  }
+
+  subNip65RelayList({
+    pks,
+    customId,
+    callRelay,
+    limit,
+  }: {
+    pks: PublicKey[];
+    customId?: string;
+    callRelay?: { type: CallRelayType; data: string[] };
+    limit?: number;
+  }) {
+    const filter = Nip65.createFilter({ pks, limit });
     return this.subFilter({ filter, customId, callRelay });
   }
 
