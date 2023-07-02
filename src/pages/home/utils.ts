@@ -111,7 +111,7 @@ export function handleEvent(
   };
 }
 
-export function refreshMsg({
+export async function refreshMsg({
   myContactList,
   myPublicKey,
   worker,
@@ -122,6 +122,8 @@ export function refreshMsg({
   worker?: CallWorker;
   handleEvent: (event: Event, relayUrl?: string | undefined) => void;
 }) {
+  if(!worker)return;
+
   const pks = myContactList?.keys || [];
   // subscribe myself msg too
   if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0)
@@ -133,9 +135,9 @@ export function refreshMsg({
       data: [],
     };
 
-    const subMsg = worker?.subMsg(pks, 'homeRefreshMsg', callRelay);
-    subMsg?.iterating({
-      cb: handleEvent,
-    });
+    const subMsg = worker.subMsg(pks, 'homeRefreshMsg', callRelay);
+    for await(const data of subMsg.getIterator()){
+      handleEvent(data.event, data.relayUrl);
+    }
   }
 }

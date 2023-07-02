@@ -46,6 +46,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [myContactList, setMyContactList] = useState<ContactList>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
@@ -114,15 +115,20 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         <PubNoteTextarea />
         <div className={styles.reloadFeedBtn}>
         <Button
+          loading={isRefreshing}
           type="link"
           block
-          onClick={() =>
-            refreshMsg({
-              myContactList,
-              myPublicKey,
-              worker,
-              handleEvent: _handleEvent,
-            })
+          onClick={async () =>
+            {
+              setIsRefreshing(true);
+              await refreshMsg({
+                myContactList,
+                myPublicKey,
+                worker,
+                handleEvent: _handleEvent,
+              })
+              setIsRefreshing(false);
+            }
           }
         >
          Refresh timeline 
