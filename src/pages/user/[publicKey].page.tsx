@@ -284,6 +284,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     setEventMap,
   });
 
+  const relayUrls = worker?.relays.map(r => r.url) || [];
+
   const _followUser = async (publicKey: string) => {
     if (signEvent == null) {
       messageApi.error('no sign method!', 3);
@@ -403,7 +405,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           msgList={articleMsgList}
           worker={worker!}
           userMap={userMap}
-          relays={[]}
+          relays={relayUrls}
           eventMap={eventMap}
         />
       ),
@@ -420,7 +422,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           )}
           worker={worker!}
           userMap={userMap}
-          relays={[]}
+          relays={relayUrls}
           eventMap={eventMap}
         />
       ),
