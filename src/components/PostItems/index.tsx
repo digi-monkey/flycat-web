@@ -12,6 +12,7 @@ import { PostContent } from './PostContent';
 import { Nip18 } from 'core/nip/18';
 import PostRepost from './PostRepost';
 import { toUnSeenEvent } from 'core/nostr/util';
+import PostArticleComment from './PostArticleComment';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -60,6 +61,15 @@ const PostItems: React.FC<PostItemsProps> = ({
                   userName={getUser(msg)?.name || ''}
                   event={msg}
                   key={msg.id}
+                />
+              ) : Nip23.isBlogCommentMsg(msg) ? (
+                <PostArticleComment
+                  userMap={userMap}
+                  eventMap={eventMap}
+                  event={msg}
+                  worker={worker}
+                  key={msg.id}
+                  showReplyArticle={showLastReplyToEvent}
                 />
               ) : Nip9802.isBlogHighlightMsg(msg) ? (
                 <>HighlightMsg</>

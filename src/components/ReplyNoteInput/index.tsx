@@ -23,7 +23,7 @@ import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-
+import { Nip23 } from 'core/nip/23';
 
 export interface ReplyEventInputProp {
   userMap: UserMap;
@@ -64,6 +64,16 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
 
     const relays = replyTo.seen;
     const relay = relays ? relays[0] : '';
+
+    if (Nip23.isBlogPost(replyTo)) {
+      const rawEvent = Nip23.commentToArticleEvent(inputText, replyTo);
+      const event = await signEvent(rawEvent);
+      const handler = worker.pubEvent(event);
+      noticePubEventResult(handler);
+      setInputText('');
+      return;
+    }
+
     const tags = [
       [EventTags.E, replyTo.id, relay] as EventETag,
       [EventTags.P, replyTo.pubkey, relay] as EventPTag,
@@ -79,7 +89,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler); 
+    noticePubEventResult(handler);
     setInputText('');
   };
 

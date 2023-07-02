@@ -102,7 +102,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     worker
       .subFilter({ filter, customId: 'article-data', callRelay })
       .iterating({ cb: handleEvent });
-  }, [newConn, publicKey]);
+  }, [worker, newConn, publicKey]);
 
   const content = useMemo(() => {
     if (articleEvent == null) return;
