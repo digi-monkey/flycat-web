@@ -16,6 +16,11 @@ import { handleEvent } from './utils';
 import { UserMap } from 'core/nostr/type';
 import { deserializeMetadata } from 'core/nostr/content';
 import { Nip23 } from 'core/nip/23';
+import {
+  NostrBandProvider,
+  SuggestedProfiles,
+  TrendingProfiles,
+} from 'core/api/band';
 
 export function useSubContactList(
   myPublicKey: PublicKey,
@@ -175,7 +180,11 @@ export function useLastReplyEvent({
     const articleReplies = msgList
       .map(msgEvent => {
         const lastReply = msgEvent.tags
-          .filter(t => t[0] === EventTags.A && t[1].split(':')[0] === WellKnownEventKind.long_form.toString())
+          .filter(
+            t =>
+              t[0] === EventTags.A &&
+              t[1].split(':')[0] === WellKnownEventKind.long_form.toString(),
+          )
           .map(t => Nip23.addrToPkAndId(t[1]))
           .pop();
         if (lastReply) {
@@ -185,7 +194,6 @@ export function useLastReplyEvent({
       })
       .filter(r => r != null)
       .map(r => r!);
-
 
     const newIds = replies.filter(id => !subEvent.includes(id));
 
@@ -227,14 +235,14 @@ export function useLastReplyEvent({
           });
         },
       });
-    
-      if(articleReplies.length >0){
-        console.log("a replie: ", articleReplies)
-        worker
+
+    if (articleReplies.length > 0) {
+      console.log('a replie: ', articleReplies);
+      worker
         .subFilter({
           filter: {
-            "#d": articleReplies.map(a => a.articleId),
-            authors: articleReplies.map(a => a.pubkey)
+            '#d': articleReplies.map(a => a.articleId),
+            authors: articleReplies.map(a => a.pubkey),
           },
           customId: 'last-replies-long-form',
         })
@@ -247,13 +255,13 @@ export function useLastReplyEvent({
                 // the new data is outdated
                 return newMap;
               }
-  
+
               newMap.set(event.id, event);
               return newMap;
             });
           },
         });
-      }
+    }
 
     worker
       .subFilter({
@@ -293,4 +301,34 @@ export function useLastReplyEvent({
     subEvent.push(...newIds);
     subPks.push(...newPks);
   }, [msgList.length]);
+}
+
+export function useSuggestedFollowings({
+  myPublicKey,
+  setSuggestedFollowings,
+}: {
+  myPublicKey: PublicKey;
+  setSuggestedFollowings: Dispatch<SetStateAction<SuggestedProfiles | undefined>>;
+}) {
+  useEffect(() => {
+    if(myPublicKey == null || myPublicKey === "")return;
+
+    const provider = new NostrBandProvider();
+    provider.suggestFollowings(myPublicKey).then(data => {
+      setSuggestedFollowings(data);
+    });
+  }, [myPublicKey]);
+}
+
+export function useTrendingFollowings({
+  setTrendingFollowings,
+}: {
+  setTrendingFollowings: Dispatch<SetStateAction<TrendingProfiles | undefined>>;
+}) {
+  useEffect(() => {
+    const provider = new NostrBandProvider();
+    provider.trendingFollowings().then(data => {
+      setTrendingFollowings(data);
+    });
+  }, []);
 }

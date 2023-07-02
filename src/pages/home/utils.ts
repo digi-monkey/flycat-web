@@ -135,9 +135,10 @@ export async function refreshMsg({
       data: [],
     };
 
-    const subMsg = worker.subMsg(pks, 'homeRefreshMsg', callRelay);
-    for await(const data of subMsg.getIterator()){
+    const subMsg = worker.subMsg(pks, 'homeRefreshMsg', callRelay).getIterator();
+    for await(const data of subMsg){
       handleEvent(data.event, data.relayUrl);
     }
+    subMsg.unsubscribe();
   }
 }
