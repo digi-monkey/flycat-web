@@ -84,7 +84,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     const lastReply = msgEvent.tags
       .filter(t => t[0] === EventTags.E)
       .map(t => {
-        return { id: t[1], relay: t[2] };
+        return { id: t[1], relay: t[2].split(",")[0] };
       })
       .pop();
 
