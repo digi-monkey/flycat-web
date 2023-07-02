@@ -11,11 +11,13 @@ import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
-import { Avatar } from 'antd';
-import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
+import { Avatar, Button } from 'antd';
+import { normalizeContent, shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
 import { Nip23 } from 'core/nip/23';
 import PostArticle from '../PostArticle';
+import Link from 'next/link';
+import { Paths } from 'constants/path';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -107,12 +109,32 @@ export const PostContent: React.FC<PostContentProp> = ({
     }
   };
 
+  const tryReloadLastReplyEvent = () => {
+    if (!lastReplyToEventId) return;
+
+    worker.subMsgByEventIds([lastReplyToEventId]).iterating({
+      cb: (event, url) => {
+        setLastReplyToEvent({ ...event, ...{ seen: [url!] } });
+      },
+    });
+  };
+
   return (
     <div>
       <div>{contentComponents}</div>
 
       {showLastReplyToEvent && lastReplyToEvent && (
         <SubPostItem userMap={userMap} event={lastReplyToEvent} />
+      )}
+      {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
+        <div className={styles.replyEvent}>
+          <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
+            event@{shortifyEventId(lastReplyToEventId)}
+          </Link>
+          <Button onClick={tryReloadLastReplyEvent} type="link">
+            try reload
+          </Button>
+        </div>
       )}
 
       <MediaPreviews content={msgEvent.content} />

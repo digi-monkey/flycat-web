@@ -21,6 +21,13 @@ export class Nip18 {
     return event;
   }
 
+  static getTargetEventIdRelay(reposts: Event) {
+    const eTag: string[] = reposts.tags.filter(t => t[0] === EventTags.E)[0];
+    const targetEventId = eTag[1];
+    const relay = eTag[2] as string | null; // some data are broken protocol
+    return { id: targetEventId, relay };
+  }
+
   static async getRepostTargetEvent(
     reposts: Event,
     fallbackRelays?: string[],
@@ -37,10 +44,10 @@ export class Nip18 {
     }
 
     if (reposts.content.length > 0) {
-      if(isValidJSONStr(reposts.content)){
+      if (isValidJSONStr(reposts.content)) {
         return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
       }
-      
+
       console.debug(`invalid event json string`, reposts.content);
     }
 
