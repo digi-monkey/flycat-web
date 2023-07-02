@@ -39,6 +39,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
     );
     if (msg) {
       setTargetMsg(msg);
+      return;
     }
   };
 
@@ -46,14 +47,26 @@ const PostRepost: React.FC<PostRepostProp> = ({
     getRepostTargetEvent();
   }, [event]);
 
+  useEffect(() => {
+    if (targetEvent == null) {
+      const info = Nip18.getTargetEventIdRelay(event);
+      const target = eventMap.get(info.id);
+      if (target) {
+        setTargetMsg(target);
+      }
+    }
+  }, [eventMap]);
+
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
   const tryReload = () => {
     const info = Nip18.getTargetEventIdRelay(event);
-    worker.subMsgByEventIds([info.id]).iterating({cb: (event, url)=>{
-      setTargetMsg({...event, ...{seen: [url!]}});
-    }})
-  }
+    worker.subMsgByEventIds([info.id]).iterating({
+      cb: (event, url) => {
+        setTargetMsg({ ...event, ...{ seen: [url!] } });
+      },
+    });
+  };
 
   return (
     <div className={styles.post} key={event.id}>
@@ -71,7 +84,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
             avatar={getUser(targetEvent)?.picture || ''}
             name={getUser(targetEvent)?.name}
             time={targetEvent.created_at}
-	          event={targetEvent}
+            event={targetEvent}
           />
           <div className={styles.content}>
             <PostContent
@@ -91,8 +104,12 @@ const PostRepost: React.FC<PostRepostProp> = ({
         </>
       ) : (
         <div className={styles.content}>
-          <Link href={`${Paths.event + '/' + event.id}`}>event@{shortifyEventId(Nip18.getTargetEventIdRelay(event).id)}</Link>
-          <Button onClick={tryReload} type='link'>try reload</Button>
+          <Link href={`${Paths.event + '/' + event.id}`}>
+            event@{shortifyEventId(Nip18.getTargetEventIdRelay(event).id)}
+          </Link>
+          <Button onClick={tryReload} type="link">
+            try reload
+          </Button>
         </div>
       )}
     </div>
