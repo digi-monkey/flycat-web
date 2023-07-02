@@ -112,6 +112,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       <Left>
         <PageTitle title={'Home'} />
         <PubNoteTextarea />
+        <div className={styles.reloadFeedBtn}>
         <Button
           type="link"
           block
@@ -124,8 +125,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             })
           }
         >
-         {t('home.refreshBtn')} 
+         Refresh timeline 
         </Button>
+        </div>
         <div
           className={classNames(styles.home, {
             [styles.noData]: msgList.length === 0,

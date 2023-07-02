@@ -24,7 +24,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Input, Tabs, message } from 'antd';
+import { Avatar, Button, Input, Tabs, Tooltip, message } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
 import { useLastReplyEvent } from './hooks';
 import { Followings } from './followings';
@@ -32,6 +32,7 @@ import { Followings } from './followings';
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -509,8 +510,30 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             <Button type="primary" onClick={followOrUnfollow.action}>
               {followOrUnfollow.label}
             </Button>
-            <Icon type="icon-rss" className={styles.icon} />
-            <Icon type="icon-bolt" className={styles.icon} />
+            <Tooltip title={`Article RSS URL`}>
+              <Icon
+                type="icon-rss"
+                className={styles.icon}
+                onClick={()=>window.open('/api/rss/' + publicKey, "blank")}
+              />
+            </Tooltip>
+            <Tooltip title={`Zap The User`}>
+              <Icon
+                type="icon-bolt"
+                className={styles.icon}
+                onClick={async () => {
+                  const lnUrl =
+                    userMap.get(publicKey)?.lud06 ||
+                    userMap.get(publicKey)?.lud16;
+                  if (lnUrl == null) {
+                    return alert(
+                      'no ln url, please tell the author to set up one.',
+                    );
+                  }
+                  await payLnUrlInWebLn(lnUrl);
+                }}
+              />
+            </Tooltip>
           </div>
         )}
 
