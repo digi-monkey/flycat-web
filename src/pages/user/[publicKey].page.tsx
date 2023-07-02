@@ -10,7 +10,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { CallRelay, CallRelayType } from 'core/worker/type';
-import { deserializeMetadata } from 'core/nostr/content';
+import { deserializeMetadata, shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
 import { isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
@@ -479,7 +479,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               ></Icon>{' '}
             </div>
             <div className={styles.title}>
-              {userMap.get(publicKey)?.name}&apos;s profile
+              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}&apos;s profile
             </div>
           </div>
           <div>
@@ -512,7 +512,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                 alt=""
               />
             </div>
-            <div className={styles.name}>{userMap.get(publicKey)?.name}</div>
+            <div className={styles.name}>{userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}</div>
             <div className={styles.description}>
               {userMap.get(publicKey)?.about}
             </div>

@@ -17,6 +17,7 @@ import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
 import { useNotification } from 'hooks/useNotification';
+import { shortifyPublicKey } from 'core/nostr/content';
 
 const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setOpenWrite: Dispatch<SetStateAction<boolean>> }) => {
   const { t } = useTranslation();
@@ -63,7 +64,7 @@ const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setO
           >
             <div className={styles.user} onClick={() => isLoggedIn ? null : router.push({ pathname: Paths.login })}>
               { user ? <Avatar src={user.picture} /> : <Avatar icon={<UserOutlined />} /> }
-              <h1>{ user ? user.display_name || user.name : t('nav.menu.signIn')}</h1>
+              <h1>{ isLoggedIn ?  user?.name || shortifyPublicKey(myPublicKey) : t('nav.menu.signIn')}</h1>
             </div>
           </Dropdown>
           }
