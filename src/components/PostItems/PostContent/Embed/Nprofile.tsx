@@ -16,7 +16,7 @@ export const Nprofile = (nprofile: NprofileResult, userMap: UserMap) => {
         target="_blank"
         className={styles.hoverLink}
       >
-        @{nprofile.profile.name}
+        @{nprofile.profile.name || shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
       </a>
       <div className={styles.refProfile}>
         <div className={styles.user}>

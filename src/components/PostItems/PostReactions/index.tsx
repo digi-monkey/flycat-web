@@ -1,4 +1,4 @@
-import { Spin, Tooltip, message } from 'antd';
+import { Tooltip, message } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions/util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -13,10 +13,10 @@ import { Nip57 } from 'core/nip/57';
 import { UserMap } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
-import { noticePubEventResult } from 'components/PubEventNotice';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -86,7 +86,10 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     if (data.pr) {
       payLnUrlInWebLn(data.pr);
     } else {
-      alert(data);
+      messageApi.error(
+        `something seems wrong with the zap endpoint response data`,
+      );
+      console.debug(`invalid zapEndpoint response data`, data);
     }
   };
 
@@ -96,6 +99,8 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 
   const bookmark = async () => {
     if (signEvent == null) return;
+    if (!worker == null) return;
+    if (isBookmarking) return messageApi.error("already execute bookmarking..");
 
     setIsBookMarking(true);
 
@@ -105,13 +110,13 @@ const PostReactions: React.FC<PostReactionsProp> = ({
       : [];
     eventIds.push(ownerEvent.id);
 
-    console.log(result, eventIds);
+    console.debug('bookmarking..', result, eventIds);
     const rawEvent = await Nip51.createPublicNoteBookmarkList(eventIds);
     const event = await signEvent(rawEvent);
 
-    worker?.pubEvent(event);
+    const handler = worker.pubEvent(event);
+    noticePubEventResult(handler);
     setIsBookMarking(false);
-    alert('published!');
   };
 
   return (
@@ -144,7 +149,6 @@ const PostReactions: React.FC<PostReactionsProp> = ({
             type="icon-bookmark"
             className={styles.upload}
           />
-          {isBookmarking && <Spin />}
         </Tooltip>
       </li>
     </ul>

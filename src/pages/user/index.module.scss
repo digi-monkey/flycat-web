@@ -87,6 +87,7 @@
     font-size: 14px;
     line-height: 24px;
     color: var(--neutral-06);
+    word-wrap: break-word;
   }
 }
 .calendar {
@@ -95,9 +96,14 @@
 
 .btnGroup {
   display: flex;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
   gap: 16px;
   margin-top: 12px;
+
+  .follow{
+
+  }
 }
 
 .icon {

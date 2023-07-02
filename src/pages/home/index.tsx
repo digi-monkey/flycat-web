@@ -2,7 +2,7 @@ import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { handleEvent } from './utils';
+import { handleEvent, refreshMsg } from './utils';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
@@ -12,7 +12,12 @@ import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Avatar, Button, Input } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { ContactList, EventMap, UserMap } from 'core/nostr/type';
-import { useSubFollowingMsg, useSubContactList, useLoadMoreMsg, useLastReplyEvent } from './hooks';
+import {
+  useSubFollowingMsg,
+  useSubContactList,
+  useLoadMoreMsg,
+  useLastReplyEvent,
+} from './hooks';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
@@ -53,14 +58,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     setMyContactList,
   );
 
-  useSubContactList(
-    myPublicKey,
-    newConn,
-    worker,
-    _handleEvent,
-  );
+  useSubContactList(myPublicKey, newConn, worker, _handleEvent);
   useSubFollowingMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
-  useLastReplyEvent({msgList, worker, userMap, setUserMap, setEventMap});
+  useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
   useLoadMoreMsg({
     myContactList,
     myPublicKey,
@@ -82,93 +82,144 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     {
       content: '[4.12] ogp on blog post',
       isNew: false,
-    }
+    },
   ];
   const friends = [
     {
       id: '1',
       name: 'ElectronicMonkey',
       desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
-      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+      avatar:
+        'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
     },
     {
       id: '2',
       name: 'ElectronicMonkey',
       desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
-      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-    }
+      avatar:
+        'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+    },
   ];
   const trending = [
     { tag: 'Nostr', url: Paths.home },
     { tag: 'Nip', url: Paths.home },
     { tag: 'Bitcoin', url: Paths.home },
-    { tag: 'Zapping', url: Paths.home }
-  ]
+    { tag: 'Zapping', url: Paths.home },
+  ];
 
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={"Home"}/>
+        <PageTitle title={'Home'} />
         <PubNoteTextarea />
-        <div className={classNames(styles.home, {
-          [styles.noData]: msgList.length === 0
-        })}>
-          {(msgList.length === 0 || !isLoggedIn) ? (
+        <div className={styles.reloadFeedBtn}>
+        <Button
+          type="link"
+          block
+          onClick={() =>
+            refreshMsg({
+              myContactList,
+              myPublicKey,
+              worker,
+              handleEvent: _handleEvent,
+            })
+          }
+        >
+         Refresh timeline 
+        </Button>
+        </div>
+        <div
+          className={classNames(styles.home, {
+            [styles.noData]: msgList.length === 0,
+          })}
+        >
+          {msgList.length === 0 || !isLoggedIn ? (
             <>
               <div className={styles.tipsy}>
                 <h1>Share Your Thoughts with The Community</h1>
-                <p>Only your notes and the ones you follow will show up here. Publish your ideas and discover what others are sharing!</p>
+                <p>
+                  Only your notes and the ones you follow will show up here.
+                  Publish your ideas and discover what others are sharing!
+                </p>
               </div>
               {!isLoggedIn && (
                 <div className={styles.login}>
-                  <Button type='primary' onClick={() => router.push(Paths.login)}>{t('nav.menu.signIn')}</Button>
-                  <span onClick={() => router.push(Paths.login)} className={styles.explore}>Explore as a guest</span>
+                  <Button
+                    type="primary"
+                    onClick={() => router.push(Paths.login)}
+                  >
+                    {t('nav.menu.signIn')}
+                  </Button>
+                  <span
+                    onClick={() => router.push(Paths.login)}
+                    className={styles.explore}
+                  >
+                    Explore as a guest
+                  </span>
                 </div>
               )}
             </>
           ) : (
             <>
               <div className={styles.msgList}>
-                <PostItems msgList={msgList} worker={worker!} userMap={userMap} relays={relayUrls} eventMap={eventMap} showLastReplyToEvent={true} />
+                <PostItems
+                  msgList={msgList}
+                  worker={worker!}
+                  userMap={userMap}
+                  relays={relayUrls}
+                  eventMap={eventMap}
+                  showLastReplyToEvent={true}
+                />
               </div>
-              <Button block onClick={() => setLoadMoreCount(prev => prev + 1)}>{t('home.loadMoreBtn')}</Button>
+              <Button
+                type="link"
+                block
+                onClick={() => setLoadMoreCount(prev => prev + 1)}
+              >
+                {t('home.loadMoreBtn')}
+              </Button>
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
             </>
           )}
         </div>
       </Left>
       <Right>
         <div className={styles.rightPanel}>
-          <Input placeholder="Search" prefix={<Icon type='icon-search' />} />
+          <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
           <div className={styles.flycat}>
             <h2>Flycat updates</h2>
-            {
-              updates.map((item, key) => (
-                <div className={styles.item} key={key}>
-                  <p>{item.content}</p>
-                  { item.isNew && <span>New</span> }
-                </div>
-              ))
-            }
+            {updates.map((item, key) => (
+              <div className={styles.item} key={key}>
+                <p>{item.content}</p>
+                {item.isNew && <span>New</span>}
+              </div>
+            ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
           <div className={styles.friends}>
             <h2>Friends of friends</h2>
-            {
-              friends.map((item, key) => (
-                <div className={styles.friend} key={key}>
-                  <Avatar src={item.avatar} />
-                  <div className={styles.friendInfo}>
-                    <h3>{item.name}</h3>
-                    <p>{item.desc}</p>
-                  </div>
-                  <Button className={styles.follow}>Follow</Button>
+            {friends.map((item, key) => (
+              <div className={styles.friend} key={key}>
+                <Avatar src={item.avatar} />
+                <div className={styles.friendInfo}>
+                  <h3>{item.name}</h3>
+                  <p>{item.desc}</p>
                 </div>
-              ))
-            }
+                <Button className={styles.follow}>Follow</Button>
+              </div>
+            ))}
           </div>
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
-            { trending.map((item, key) => <Link href={item.url} key={key}>#{item.tag}</Link>) }
+            {trending.map((item, key) => (
+              <Link href={item.url} key={key}>
+                #{item.tag}
+              </Link>
+            ))}
           </div>
         </div>
       </Right>

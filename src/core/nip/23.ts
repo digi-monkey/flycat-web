@@ -5,11 +5,12 @@ import {
   Filter,
   PublicKey,
   Tags,
-  WellKnownEventKind
+  WellKnownEventKind,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { generateRandomBytes } from 'core/crypto';
+import { EventWithSeen } from 'pages/type';
 
 export enum Nip23ArticleMetaTags {
   title = 'title',
@@ -301,6 +302,14 @@ export class Nip23 {
     return event;
   }
 
+  static commentToArticleEvent(
+    content: string,
+    articleEvent: EventWithSeen,
+  ): RawEvent {
+    const article = this.toArticle(articleEvent);
+    return this.commentToArticle(content, article);
+  }
+
   static toPullCommentFilter(article: Article): Filter {
     return {
       kinds: [WellKnownEventKind.text_note],
@@ -308,27 +317,34 @@ export class Nip23 {
     };
   }
 
-  static toPullCommentFilterFromEvent(event: Event): Filter{
-    if(event.kind !== this.kind){
+  static toPullCommentFilterFromEvent(event: Event): Filter {
+    if (event.kind !== this.kind) {
       throw new Error(`${event.kind} is not a long-form kind!`);
     }
-    
+
     const id: string | undefined = event.tags
       .filter(t => t[0] === EventTags.D)
       .map(t => t[1])[0];
-      if(id == null)throw new Error("missing event addr id");
-  
+    if (id == null) throw new Error('missing event addr id');
+
     const addr = this.getAddr(event.pubkey, id);
-    
+
     return {
       kinds: [WellKnownEventKind.text_note],
-      '#a': [EventTags.A, addr]
+      '#a': [EventTags.A, addr],
     };
+  }
+
+  static getATag(event: Event){
+    if(!this.isBlogCommentMsg(event)){
+      throw new Error("invalid blog comment msg");
+    }
+    return event.tags.filter(t => t[0] === EventTags.A)[0] as EventATag;
   }
 
   static isCommentEvent(event: Event, article: Article): boolean {
     const eTags = event.tags.filter(
-      t => t[0] === EventTags.E && t[1] === article.pubKey,
+      t => t[0] === EventTags.E && t[1] === article.eventId,
     );
     const aTags = event.tags.filter(t => t === this.toAddr(article));
     return eTags.length > 0 || aTags.length > 0;
@@ -339,12 +355,12 @@ export class Nip23 {
     return `/post/${list[1]}/${list[2]}`;
   }
 
-  static addrToPkAndId(addr: string){
+  static addrToPkAndId(addr: string) {
     const list = addr.split(':');
-    return {pubkey: list[1], articleId: list[2]};
+    return { pubkey: list[1], articleId: list[2] };
   }
 
-  static getAddr(authorPk: string, articleId: string){
+  static getAddr(authorPk: string, articleId: string) {
     return `${this.kind}:${authorPk}:${articleId}`;
   }
 

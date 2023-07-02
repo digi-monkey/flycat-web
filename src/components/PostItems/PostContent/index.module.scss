@@ -13,19 +13,21 @@
     font-size: 16px;
     line-height: 24px;
     cursor: pointer;
-    &:hover{
+    &:hover {
       text-decoration: underline;
     }
 
-    .name{
+    .name {
       padding-left: var(--basePadding3);
     }
   }
-  .content{
-    cursor: pointer; 
-    white-space: pre-line;
-    word-wrap: break-word;
+  .content {
     margin-top: var(--basePadding3);
+    .event {
+      cursor: pointer;
+      white-space: pre-line;
+      word-wrap: break-word;
+    }
   }
 }
 

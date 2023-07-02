@@ -1,7 +1,7 @@
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
-import { Select } from 'antd';
+import { Empty, Select } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
 import { useState } from 'react';
 import { EventMap, UserMap } from 'core/nostr/type';
@@ -33,14 +33,17 @@ const Bookmark = () => {
     const allowKinds: number[] = FilterOptions.filter(
       opt => opt.value === selectedValue,
     ).map(opt => opt.kinds)[0];
+
+    const selectFeed = feed.filter(f => allowKinds.includes(f.kind));
     return (
+      selectFeed.length > 0 ?
       <PostItems
-        msgList={feed.filter(f => allowKinds.includes(f.kind))}
+        msgList={selectFeed}
         worker={worker!}
         userMap={userMap}
         eventMap={eventMap}
         relays={[]}
-      />
+      /> : <Empty />
     );
   };
 
@@ -61,7 +64,7 @@ const Bookmark = () => {
         </div>
         <div>{renderContent()}</div>
       </Left>
-      <Right>right</Right>
+      <Right></Right>
     </BaseLayout>
   );
 };

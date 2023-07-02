@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { Paths } from 'constants/path';
 import Icon from 'components/Icon';
 import { toUnSeenEvent } from 'core/nostr/util';
+import { Button } from 'antd';
+import { shortifyEventId } from 'core/nostr/content';
 
 export interface PostRepostProp {
   event: Event;
@@ -28,7 +30,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
   eventMap,
   showLastReplyToEvent,
 }) => {
-  const [msg, setMsg] = useState<EventWithSeen>();
+  const [targetEvent, setTargetMsg] = useState<EventWithSeen>();
 
   const getRepostTargetEvent = async () => {
     const msg = await Nip18.getRepostTargetEvent(
@@ -36,7 +38,8 @@ const PostRepost: React.FC<PostRepostProp> = ({
       worker.relays.map(r => r.url),
     );
     if (msg) {
-      setMsg(msg);
+      setTargetMsg(msg);
+      return;
     }
   };
 
@@ -44,7 +47,26 @@ const PostRepost: React.FC<PostRepostProp> = ({
     getRepostTargetEvent();
   }, [event]);
 
+  useEffect(() => {
+    if (targetEvent == null) {
+      const info = Nip18.getTargetEventIdRelay(event);
+      const target = eventMap.get(info.id);
+      if (target) {
+        setTargetMsg(target);
+      }
+    }
+  }, [eventMap]);
+
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
+
+  const tryReload = () => {
+    const info = Nip18.getTargetEventIdRelay(event);
+    worker.subMsgByEventIds([info.id]).iterating({
+      cb: (event, url) => {
+        setTargetMsg({ ...event, ...{ seen: [url!] } });
+      },
+    });
+  };
 
   return (
     <div className={styles.post} key={event.id}>
@@ -55,36 +77,39 @@ const PostRepost: React.FC<PostRepostProp> = ({
         </Link>
         just repost
       </div>
-      {msg ? (
+      {targetEvent ? (
         <>
           <PostUser
-            publicKey={msg.pubkey}
-            avatar={getUser(msg)?.picture || ''}
-            name={getUser(msg)?.name}
-            time={msg.created_at}
-	          event={msg}
+            publicKey={targetEvent.pubkey}
+            avatar={getUser(targetEvent)?.picture || ''}
+            name={getUser(targetEvent)?.name}
+            time={targetEvent.created_at}
+            event={targetEvent}
           />
           <div className={styles.content}>
             <PostContent
-              ownerEvent={msg}
+              ownerEvent={targetEvent}
               userMap={userMap}
               worker={worker}
               eventMap={eventMap}
               showLastReplyToEvent={showLastReplyToEvent}
             />
             <PostReactions
-              ownerEvent={toUnSeenEvent(msg)}
+              ownerEvent={toUnSeenEvent(targetEvent)}
               worker={worker}
-              seen={msg.seen!}
+              seen={targetEvent.seen!}
               userMap={userMap}
             />
           </div>
         </>
       ) : (
         <div className={styles.content}>
-          <p>
-            <Link href={`${Paths.event + '/' + event.id}`}>event@{event.id}</Link>
-          </p>
+          <Link href={`${Paths.event + '/' + event.id}`}>
+            event@{shortifyEventId(Nip18.getTargetEventIdRelay(event).id)}
+          </Link>
+          <Button onClick={tryReload} type="link">
+            try reload
+          </Button>
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ import { CallWorker } from 'core/worker/caller';
 import { handleEvent } from './utils';
 import { UserMap } from 'core/nostr/type';
 import { deserializeMetadata } from 'core/nostr/content';
+import { Nip23 } from 'core/nip/23';
 
 export function useSubContactList(
   myPublicKey: PublicKey,
@@ -171,6 +172,21 @@ export function useLastReplyEvent({
       .filter(r => r != null)
       .map(r => r!);
 
+    const articleReplies = msgList
+      .map(msgEvent => {
+        const lastReply = msgEvent.tags
+          .filter(t => t[0] === EventTags.A && t[1].split(':')[0] === WellKnownEventKind.long_form.toString())
+          .map(t => Nip23.addrToPkAndId(t[1]))
+          .pop();
+        if (lastReply) {
+          return lastReply;
+        }
+        return null;
+      })
+      .filter(r => r != null)
+      .map(r => r!);
+
+
     const newIds = replies.filter(id => !subEvent.includes(id));
 
     const userPks = msgList
@@ -211,6 +227,33 @@ export function useLastReplyEvent({
           });
         },
       });
+    
+      if(articleReplies.length >0){
+        console.log("a replie: ", articleReplies)
+        worker
+        .subFilter({
+          filter: {
+            "#d": articleReplies.map(a => a.articleId),
+            authors: articleReplies.map(a => a.pubkey)
+          },
+          customId: 'last-replies-long-form',
+        })
+        .iterating({
+          cb: event => {
+            setEventMap(prev => {
+              const newMap = new Map(prev);
+              const oldData = newMap.get(event.id);
+              if (oldData && oldData.created_at > event.created_at) {
+                // the new data is outdated
+                return newMap;
+              }
+  
+              newMap.set(event.id, event);
+              return newMap;
+            });
+          },
+        });
+      }
 
     worker
       .subFilter({

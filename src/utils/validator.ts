@@ -4,6 +4,12 @@ export function isValidPublicKey(key: any): boolean {
   );
 }
 
+export function isValidEventId(key: any): boolean {
+  return (
+    typeof key === 'string' && key.length === 64 && /^[0-9a-fA-F]+$/.test(key)
+  );
+}
+
 export function isValidWssUrl(url: string): boolean {
   if (!url.startsWith('wss://') && !url.startsWith('ws://')) {
     return false;

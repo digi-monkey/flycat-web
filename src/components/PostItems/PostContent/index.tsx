@@ -11,11 +11,13 @@ import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
-import { Avatar } from 'antd';
-import { normalizeContent, shortifyPublicKey } from 'core/nostr/content';
+import { Avatar, Button } from 'antd';
+import { normalizeContent, shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
 import { Nip23 } from 'core/nip/23';
 import PostArticle from '../PostArticle';
+import Link from 'next/link';
+import { Paths } from 'constants/path';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -48,23 +50,23 @@ export const PostContent: React.FC<PostContentProp> = ({
     extractFromContent();
   }, [msgEvent.content, relayUrls]);
 
-  useEffect(()=>{
-    if(!embedRef)return;
+  useEffect(() => {
+    if (!embedRef) return;
 
     transformContent();
-  }, [embedRef, userMap])
+  }, [embedRef, userMap]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (showLastReplyToEvent) {
       buildLastReplyEvent();
     }
   }, [msgEvent.content]);
 
-  useEffect(()=>{
-    if(lastReplyToEventId && eventMap.get(lastReplyToEventId)){
+  useEffect(() => {
+    if (lastReplyToEventId && eventMap.get(lastReplyToEventId)) {
       setLastReplyToEvent(eventMap.get(lastReplyToEventId));
     }
-  }, [eventMap, lastReplyToEventId])
+  }, [eventMap, lastReplyToEventId]);
 
   const transformContent = async () => {
     const { modifiedText } = normalizeContent(msgEvent.content);
@@ -76,13 +78,13 @@ export const PostContent: React.FC<PostContentProp> = ({
     const { modifiedText } = normalizeContent(msgEvent.content);
     const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
     setEmbedRef(ref);
-  }
+  };
 
   const buildLastReplyEvent = async () => {
     const lastReply = msgEvent.tags
       .filter(t => t[0] === EventTags.E)
       .map(t => {
-        return { id: t[1], relay: t[2] };
+        return { id: t[1], relay: t[2]?.split(",")[0] };
       })
       .pop();
 
@@ -107,12 +109,32 @@ export const PostContent: React.FC<PostContentProp> = ({
     }
   };
 
+  const tryReloadLastReplyEvent = () => {
+    if (!lastReplyToEventId) return;
+
+    worker.subMsgByEventIds([lastReplyToEventId]).iterating({
+      cb: (event, url) => {
+        setLastReplyToEvent({ ...event, ...{ seen: [url!] } });
+      },
+    });
+  };
+
   return (
     <div>
       <div>{contentComponents}</div>
 
       {showLastReplyToEvent && lastReplyToEvent && (
         <SubPostItem userMap={userMap} event={lastReplyToEvent} />
+      )}
+      {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
+        <div className={styles.replyEvent}>
+          <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
+            event@{shortifyEventId(lastReplyToEventId)}
+          </Link>
+          <Button onClick={tryReloadLastReplyEvent} type="link">
+            try reload
+          </Button>
+        </div>
       )}
 
       <MediaPreviews content={msgEvent.content} />
@@ -148,8 +170,10 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
           {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
         </span>
       </div>
-      <div className={styles.content} onClick={clickEventBody}>
-        {event.content}
+      <div className={styles.content}>
+        <div className={styles.event} onClick={clickEventBody}>
+          {event.content}
+        </div>
         <MediaPreviews content={event.content} />
       </div>
     </div>

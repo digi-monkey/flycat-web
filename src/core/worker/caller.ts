@@ -99,6 +99,9 @@ export class CallWorker {
     window.addEventListener('beforeunload', function () {
       that.closePort();
     });
+    window.addEventListener('unload', function () {
+      that.closePort();
+    });
   }
 
   get portId(): number {

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
-import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
+import { CommitCalendar } from 'components/CommitCalendar';
 import { useState, useEffect } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -24,7 +24,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Input, Tabs, message } from 'antd';
+import { Avatar, Button, Input, Tabs, Tooltip, message } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
 import { useLastReplyEvent } from './hooks';
 import { Followings } from './followings';
@@ -32,6 +32,7 @@ import { Followings } from './followings';
 import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -284,6 +285,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     setEventMap,
   });
 
+  const relayUrls = worker?.relays.map(r => r.url) || [];
+
   const _followUser = async (publicKey: string) => {
     if (signEvent == null) {
       messageApi.error('no sign method!', 3);
@@ -364,7 +367,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     worker?.pubEvent(event);
 
-    messageApi.success('done, refresh page please!', 3);
+    messageApi.success('done, refresh page please! sorry will fix soon', 3);
   };
   const buildFollowUnfollow = (publicKey: string) => {
     const isFollowed =
@@ -403,7 +406,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           msgList={articleMsgList}
           worker={worker!}
           userMap={userMap}
-          relays={[]}
+          relays={relayUrls}
           eventMap={eventMap}
         />
       ),
@@ -420,7 +423,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           )}
           worker={worker!}
           userMap={userMap}
-          relays={[]}
+          relays={relayUrls}
           eventMap={eventMap}
         />
       ),
@@ -504,11 +507,33 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </div>
         ) : (
           <div className={styles.btnGroup}>
-            <Button onClick={followOrUnfollow.action}>
+            <Button type="primary" onClick={followOrUnfollow.action}>
               {followOrUnfollow.label}
             </Button>
-            <Icon type="icon-rss" className={styles.icon} />
-            <Icon type="icon-bolt" className={styles.icon} />
+            <Tooltip title={`Article RSS URL`}>
+              <Icon
+                type="icon-rss"
+                className={styles.icon}
+                onClick={()=>window.open('/api/rss/' + publicKey, "blank")}
+              />
+            </Tooltip>
+            <Tooltip title={`Zap The User`}>
+              <Icon
+                type="icon-bolt"
+                className={styles.icon}
+                onClick={async () => {
+                  const lnUrl =
+                    userMap.get(publicKey)?.lud06 ||
+                    userMap.get(publicKey)?.lud16;
+                  if (lnUrl == null) {
+                    return alert(
+                      'no ln url, please tell the author to set up one.',
+                    );
+                  }
+                  await payLnUrlInWebLn(lnUrl);
+                }}
+              />
+            </Tooltip>
           </div>
         )}
 

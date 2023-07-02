@@ -3,6 +3,19 @@ import { PubEventResultStream } from 'core/worker/sub';
 import styles from './index.module.scss';
 
 export async function noticePubEventResult(handler: PubEventResultStream) {
+  let secondsPassed = 0;
+  const instance = Modal.success({
+    title: 'Publishing Events..',
+    content: `wait for ${secondsPassed} second..`,
+  });
+
+  const timer = setInterval(() => {
+    secondsPassed += 1;
+    instance.update({
+      content: `wait for ${secondsPassed} second..`,
+    });
+  }, 1000);
+
   const result: React.JSX.Element[] = [];
   for await (const h of handler) {
     const item = (
@@ -17,13 +30,14 @@ export async function noticePubEventResult(handler: PubEventResultStream) {
     result.push(item);
   }
   handler.unsubscribe();
-  Modal.info({
-    title: 'Publish Event Result',
-    content: (
-      <div>
-        <div className={styles.eventId}>event: {handler.eventId}</div>
-        <div>{result}</div>
-      </div>
-    ),
+
+  //close the waiting
+  clearInterval(timer);
+  instance.update({
+    title: 'Published Event',
+    content: <div>
+    <div className={styles.eventId}>event: {handler.eventId}</div>
+    <div>{result}</div>
+  </div>,
   });
 }

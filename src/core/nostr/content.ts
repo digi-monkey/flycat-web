@@ -1,4 +1,4 @@
-import { isValidPublicKey } from 'utils/validator';
+import { isValidEventId, isValidPublicKey } from 'utils/validator';
 import { isOnlyWhitespaceString, maxStrings } from 'utils/common';
 import { EventSetMetadataContent, PublicKey } from './type';
 import DOMPurify from 'dompurify';
@@ -151,4 +151,18 @@ export const shortifyPublicKey = (key: PublicKey | undefined) => {
   }
 
   return 'Anonymous';
+};
+
+export const shortifyEventId = (key: PublicKey | undefined) => {
+  if (key && isValidEventId(key)) {
+    return key.slice(0, 3) + '..' + key.slice(key.length - 3);
+  }
+  if(typeof key === "string" && key.length < 8){
+    return key;
+  }
+  if(typeof key === "string" && key.length > 8){
+    return key.slice(0, 3) + '..' + key.slice(key.length - 3);
+  }
+
+  return 'Unknown-Event-Id';
 };
