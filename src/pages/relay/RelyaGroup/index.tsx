@@ -9,17 +9,16 @@ import {
   Menu,
   Modal,
   Row,
-  Space,
   Tooltip,
   message,
 } from 'antd';
-import { useRelayGroup } from '../hooks/useRelayGroup';
 import { useDefaultGroup } from '../hooks/useDefaultGroup';
 import { Relay } from 'core/relay/type';
 import { Event } from 'core/nostr/Event';
 import RelayGroupTable from './table';
 import { newRelay } from 'core/relay/util';
 import { RelayPool } from 'core/relay/pool';
+import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import Icon from 'components/Icon';
 import { FolderOutlined, QuestionCircleOutlined } from '@ant-design/icons';
@@ -35,13 +34,30 @@ import Link from 'next/link';
 export const RelayGroup: React.FC = () => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
-  const defaultGroups = useDefaultGroup();
-  const groups = useRelayGroup(myPublicKey, defaultGroups);
+  const defaultGroup = useDefaultGroup();
   const { worker, newConn } = useCallWorker();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const [inputWsUrl, setInputWsUrl] = useState<string>();
-  const [messageApi, contextHolder] = message.useMessage();
+  const [groups, setGroups] = useState<RelayGroupClass>();
+
+  useEffect(() => {
+    const groups = new RelayGroupClass(myPublicKey);
+    const defaultGroupId = 'default';
+    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
+      groups.setGroup(defaultGroupId, defaultGroup);
+    }
+    setGroups(groups);
+  }, [myPublicKey, defaultGroup]);
+
+  const updateGroupClassState = (oldGroups: RelayGroupClass) => {
+    setGroups(_prev => {
+      const newClass = new RelayGroupClass(myPublicKey);
+      newClass.reInitGroups(oldGroups.map);
+      return newClass;
+    });
+  };
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -63,6 +79,8 @@ export const RelayGroup: React.FC = () => {
     if (inputWsUrl && selectedGroupId) {
       // todo: validate wss url
       groups?.addNewRelayToGroup(selectedGroupId, newRelay(inputWsUrl));
+      updateGroupClassState(groups!);
+      setInputWsUrl('');
     }
   };
 
@@ -119,6 +137,7 @@ export const RelayGroup: React.FC = () => {
 
     const relays: Relay[] = [];
     groups?.setGroup(groupId, relays);
+    updateGroupClassState(groups!);
   };
 
   const autoRelays = async () => {
@@ -261,8 +280,6 @@ export const RelayGroup: React.FC = () => {
                   </div>
                 </Menu.Item>
               ))}
-
-            
           </Menu>
         </Col>
         <Col span={18}>
