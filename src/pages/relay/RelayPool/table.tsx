@@ -1,6 +1,6 @@
 import { EllipsisOutlined } from '@ant-design/icons';
-import { Avatar, Button, Table, Badge, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Avatar, Table, Badge, message } from 'antd';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { Nip11 } from 'core/nip/11';
 import { Relay, RelayTracker } from 'core/relay/type';
@@ -9,12 +9,14 @@ import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
+import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 
 import styles from './table.module.scss';
-import Icon from 'components/Icon';
 
 interface RelayPoolTableProp {
   relays: Relay[];
+  groups: RelayGroupClass | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
 }
 
 interface BenchmarkResult {
@@ -25,12 +27,9 @@ interface BenchmarkResult {
 
 export type RelayTableItem = Relay & { key: string };
 
-const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
+const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays, groups, setGroups }) => {
   const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
-  const [isBenchmarking, setIsBenchmarking] = useState(false);
-  const [isBenchmarked, setIsBenchmarked] = useState(false);
-  const [isSorted, setIsSorted] = useState(false);
 
   useEffect(() => {
     setResults(
@@ -39,60 +38,6 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       }),
     );
   }, [urls]);
-
-  const handleBenchmark = () => {
-    setResults([]);
-    setIsBenchmarking(true);
-
-    let completedCount = 0;
-
-    const checkBenchmarkCompletion = () => {
-      if (completedCount === urls.length) {
-        setIsBenchmarking(false);
-        setIsBenchmarked(true);
-      }
-    };
-
-    urls.forEach((url, index) => {
-      const start = performance.now();
-      const socket = new WebSocket(url);
-
-      socket.onopen = () => {
-        completedCount++;
-        checkBenchmarkCompletion();
-
-        const delay = Math.round(performance.now() - start);
-        setResults(prevResults => {
-          const updatedResults = [...prevResults];
-          updatedResults[index] = { url, delay, isFailed: false };
-          return updatedResults;
-        });
-        socket.close();
-      };
-
-      socket.onerror = () => {
-        completedCount++;
-        checkBenchmarkCompletion();
-
-        const delay = 10000000000000000;
-        setResults(prevResults => {
-          const updatedResults = [...prevResults];
-          updatedResults[index] = { url, delay, isFailed: true };
-          return updatedResults;
-        });
-        socket.close();
-      };
-    });
-  };
-
-  const handleSort = () => {
-    setResults(prevResults =>
-      [...prevResults].sort((a, b) =>
-        a.delay !== null && b.delay !== null ? a.delay - b.delay : -1,
-      ),
-    );
-    setIsSorted(true);
-  };
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [data, setData] = useState<RelayTableItem[]>([]);
@@ -298,6 +243,12 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
 
   return (
     <div>
+      <MultipleItemsPoolAction
+        open={selectedRelays.length > 0}
+        relays={selectedRelays}
+        groups={groups}
+        setGroups={setGroups}
+      />
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
@@ -306,17 +257,13 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
             console.log('Selected Rows:', selectedRows);
             setSelectedRelays(selectedRows);
           },
-          // You can customize other selection properties here if needed
         }}
         columns={columns}
         rowClassName={rowClassName}
         dataSource={data}
         pagination={paginationConfig}
       />
-      <MultipleItemsPoolAction
-        open={selectedRelays.length > 0}
-        relays={selectedRelays}
-      />
+      
 
       {selectedRowData && (
         <RelayDetailModal

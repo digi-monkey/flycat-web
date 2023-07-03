@@ -45,11 +45,11 @@ export class ConnPool {
     try {
       const ws = await connectWebSocket(url);  
       await fnWithTimeout(ws);
-      db.incrementSuccessCount(url);
+      //db.incrementSuccessCount(url);
       ws.close();
     } catch (error) {
       console.debug('ws error: ', error);
-      db.incrementFailureCount(url);
+      //db.incrementFailureCount(url);
     } finally {
       this.activeConn.removeItem(url);
       const next = this.pendingConn.dequeue();
@@ -104,11 +104,11 @@ export class ConnPool {
 
     try {
       const time = await wsConnectMilsec(url);
-      db.incrementSuccessCount(url);
+      //db.incrementSuccessCount(url);
       getTime({url, t: time, isFailed: false});
     } catch (error) {
       console.debug('ws error: ', error);
-      db.incrementFailureCount(url);
+      //db.incrementFailureCount(url);
       getTime({url, isFailed: false});
     } finally {
       this.activeConn.removeItem(url);

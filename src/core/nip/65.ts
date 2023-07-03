@@ -1,8 +1,15 @@
-import { EventRTag, EventTags } from 'core/nostr/type';
+import {
+  EventRTag,
+  EventTags,
+  Filter,
+  PublicKey,
+  WellKnownEventKind,
+} from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { Relay } from 'core/relay/type';
 
 export class Nip65 {
+  static kind = WellKnownEventKind.relay_list;
   static toRelays(event: Event) {
     const tags = event.tags;
     const relays = (tags.filter(t => t[0] === EventTags.R) as EventRTag[])
@@ -42,5 +49,20 @@ export class Nip65 {
       .filter(r => r != null) as Relay[];
 
     return relays;
+  }
+
+  static createFilter({
+    pks,
+    limit = 50,
+  }: {
+    pks: PublicKey[];
+    limit?: number;
+  }) {
+    const filter: Filter = {
+      authors: pks,
+      kinds: [this.kind],
+      limit,
+    };
+    return filter;
   }
 }

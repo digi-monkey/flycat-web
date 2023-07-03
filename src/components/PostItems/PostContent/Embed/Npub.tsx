@@ -12,7 +12,7 @@ export const Npub = (npub: NpubResult, userMap: UserMap) => {
     return (
       <span>
         <a
-        href={i18n?.language + Paths.user + npub.pubkey}
+        href={Paths.user + npub.pubkey}
         target="_blank"
         className={styles.hoverLink}
       >

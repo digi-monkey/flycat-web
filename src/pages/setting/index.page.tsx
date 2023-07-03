@@ -15,7 +15,7 @@ import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Avatar, Button, Empty, Form, Input, List, Tabs } from 'antd';
+import { Avatar, Button, Form, Input, Tabs } from 'antd';
 import { noticePubEventResult } from 'components/PubEventNotice';
 
 import PageTitle from 'components/PageTitle';
@@ -141,93 +141,90 @@ export const EditProfilePage = ({ commitId }) => {
       key: 'account',
       children: (
         <div className={styles.accountContainer}>
-          {formData ? (
-            <Form
-              layout="vertical"
-              onFinish={onFormSubmit}
-              initialValues={formData}
+          <Form
+            layout="vertical"
+            onFinish={onFormSubmit}
+            initialValues={formData}
+            key={JSON.stringify(formData)} // force re-render when formData changed
+          >
+            <Form.Item>
+              <div>
+                <Avatar
+                  style={{ width: '64px', height: '64px' }}
+                  src={avatar}
+                />
+                {avatar && (
+                  <Button type="link" onClick={() => setAvatar(undefined)}>
+                    Remove
+                  </Button>
+                )}
+                <ImageUploader
+                  onImgUrls={(imgs: string[]) =>
+                    setAvatar(imgs[imgs.length - 1])
+                  }
+                />
+              </div>
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.username')} name="username">
+              <Input />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.displayName')} name="name">
+              <Input type="text" />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.about')} name="about">
+              <TextArea />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.banner')}>
+              <div>
+                <img src={banner} className={styles.banner} />
+                {banner && (
+                  <Button type="link" onClick={() => setBanner(undefined)}>
+                    Remove
+                  </Button>
+                )}
+                <ImageUploader
+                  onImgUrls={(imgs: string[]) =>
+                    setBanner(imgs[imgs.length - 1])
+                  }
+                />
+              </div>
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.website')} name="website">
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={t('profileEditPanel.btcLightningAddress')}
+              name="bitcoinLightningAddress"
             >
-              <Form.Item>
-                <div>
-                  <Avatar
-                    style={{ width: '64px', height: '64px' }}
-                    src={avatar}
-                  />
-                  {avatar && (
-                    <Button type="link" onClick={() => setAvatar(undefined)}>
-                      Remove
-                    </Button>
-                  )}
-                  <ImageUploader
-                    onImgUrls={(imgs: string[]) =>
-                      setAvatar(imgs[imgs.length - 1])
-                    }
-                  />
-                </div>
-              </Form.Item>
+              <Input />
+            </Form.Item>
 
-              <Form.Item label={t('profileEditPanel.username')} name="username">
-                <Input placeholder={formData.username} />
-              </Form.Item>
+            <Form.Item
+              label={t('profileEditPanel.lud16')}
+              name="bitcoinLightningAddressLud16"
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item label={t('profileEditPanel.displayName')} name="name">
-                <Input type="text" />
-              </Form.Item>
+            <Form.Item
+              label={t('profileEditPanel.domainNameVerification')}
+              name="domainNameVerification"
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item label={t('profileEditPanel.about')} name="about">
-                <TextArea />
-              </Form.Item>
-
-              <Form.Item label={t('profileEditPanel.banner')}>
-                <div>
-                  <img src={banner} className={styles.banner} />
-                  {banner && (
-                    <Button type="link" onClick={() => setBanner(undefined)}>
-                      Remove
-                    </Button>
-                  )}
-                  <ImageUploader
-                    onImgUrls={(imgs: string[]) =>
-                      setBanner(imgs[imgs.length - 1])
-                    }
-                  />
-                </div>
-              </Form.Item>
-
-              <Form.Item label={t('profileEditPanel.website')} name="website">
-                <Input />
-              </Form.Item>
-
-              <Form.Item
-                label={t('profileEditPanel.btcLightningAddress')}
-                name="bitcoinLightningAddress"
-              >
-                <Input />
-              </Form.Item>
-
-              <Form.Item
-                label={t('profileEditPanel.lud16')}
-                name="bitcoinLightningAddressLud16"
-              >
-                <Input />
-              </Form.Item>
-
-              <Form.Item
-                label={t('profileEditPanel.domainNameVerification')}
-                name="domainNameVerification"
-              >
-                <Input />
-              </Form.Item>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
-          ) : (
-            <Empty />
-          )}
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
       ),
     },

@@ -77,7 +77,7 @@ export const Followings: React.FC<FollowingsProp> = ({
           {
             label: buildFollowUnfollow(key).label,
             key: '0',
-            onClick: () => buildFollowUnfollow(key).action,
+            onClick: () => buildFollowUnfollow(key).action(),
           },
           {
             label: 'copy user metadata',

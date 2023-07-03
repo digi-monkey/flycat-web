@@ -87,6 +87,7 @@ export function useSubUserMetadata({
 }) {
   useEffect(() => {
     if (!worker) return;
+    if (!rootEvent) return;
 
     const callRelay =
       newConn.length > 0
@@ -99,11 +100,11 @@ export function useSubUserMetadata({
             data: [],
           };
     const pks = [myPublicKey, ...unknownPks];
-    if (rootEvent?.pubkey) {
+    if (!pks.includes(rootEvent.pubkey)) {
       pks.push(rootEvent.pubkey);
     }
     worker
       .subMetadata(pks, undefined, callRelay)
-      ?.iterating({ cb: handleEvent });
+      .iterating({ cb: handleEvent });
   }, [unknownPks.length, worker, rootEvent, newConn]);
 }

@@ -1,5 +1,7 @@
 import { hash } from 'core/crypto';
 import { Relay } from '../type';
+import { normalize } from 'path';
+import { normalizeWsUrl } from 'utils/common';
 
 export interface RelayPoolDB {
   save: (relay: Relay) => Promise<string> | string; // return key
@@ -72,7 +74,7 @@ export class RelayPoolDatabase implements RelayPoolDB {
 
   save(relay: Relay) {
     const data = RelayPoolDatabase.serializeRelay(relay);
-    const key = this.getKeyByUrl(relay.url);
+    const key = this.getKeyByUrl(normalizeWsUrl(relay.url));
     this.storeAdapter.set(key, data);
 
     // Add the key to the list of stored keys
@@ -94,7 +96,7 @@ export class RelayPoolDatabase implements RelayPoolDB {
   }
 
   load(url: string) {
-    const key = this.getKeyByUrl(url);
+    const key = this.getKeyByUrl(normalizeWsUrl(url));
     return this.get(key);
   }
 
@@ -112,7 +114,6 @@ export class RelayPoolDatabase implements RelayPoolDB {
 
   incrementSuccessCount(url: string) {
     const relay = this.load(url);
-		//console.log(url, "incrementSuccessCount, relay:", relay)
     if (relay) {
       relay.successCount = (relay.successCount ?? 0) + 1;
       this.save(relay);
@@ -121,7 +122,6 @@ export class RelayPoolDatabase implements RelayPoolDB {
 
   incrementFailureCount(url: string) {
     const relay = this.load(url);
-		//console.log(url, "incrementFailureCount, relay:", relay)
     if (relay) {
       relay.failureCount = (relay.failureCount ?? 0) + 1;
       this.save(relay);

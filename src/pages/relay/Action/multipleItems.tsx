@@ -1,36 +1,34 @@
 import { Relay } from 'core/relay/type';
 import styles from './index.module.scss';
 import { Button } from 'antd';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useDefaultGroup } from '../hooks/useDefaultGroup';
-import { useRelayGroup } from '../hooks/useRelayGroup';
+import { RelayGroup } from 'core/relay/group';
 import { ActionType, RelayActionModal } from '../Modal/action';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { updateGroupClassState, useLoadRelayGroup } from '../hooks/useLoadRelayGroup';
 
 export interface MultipleItemsActionProp {
   relays: Relay[];
   open: boolean;
   groupId: string;
+  groups: RelayGroup | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>
 }
 
 export const MultipleItemsAction: React.FC<MultipleItemsActionProp> = ({
   open,
   relays,
-  groupId
+  groupId,
+  groups,
+  setGroups
 }) => {
-  const myPublicKey = useReadonlyMyPublicKey();
-  const defaultGroups = useDefaultGroup();
-  const groups = useRelayGroup(myPublicKey, defaultGroups);
-
   const [openActionModal, setOpenActionModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.copy);
   
   const remove = () => {
     for(const relay of relays){
       groups?.delRelayInGroup(groupId, relay);
+      updateGroupClassState(groups!, setGroups);
     }
-
-    alert("removed!");
   }
 
   const copy = () => {
@@ -63,6 +61,8 @@ export const MultipleItemsAction: React.FC<MultipleItemsActionProp> = ({
         type={actionType}
         open={openActionModal}
         onCancel={() => setOpenActionModal(false)}
+        relayGroups={groups}
+        setRelayGroups={setGroups}
         relays={relays}
       />
     </div>

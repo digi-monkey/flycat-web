@@ -4,7 +4,7 @@ import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { EventTags, EventZTag } from 'core/nostr/type';
+import { EventTags, EventZTag, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { Nip18 } from 'core/nip/18';
@@ -42,8 +42,10 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 
   const repost = async () => {
     if (signEvent == null) return;
-    if (seen[0] == null)
+    if (seen == null || seen[0] == null)
       return messageApi.error('repost required seen relay, not found!');
+    if (ownerEvent.kind !== WellKnownEventKind.text_note)
+      return messageApi.error('non kind-1 repost feature are not available now, WIP');
 
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
@@ -100,7 +102,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const bookmark = async () => {
     if (signEvent == null) return;
     if (!worker == null) return;
-    if (isBookmarking) return messageApi.error("already execute bookmarking..");
+    if (isBookmarking) return messageApi.error('already execute bookmarking..');
 
     setIsBookMarking(true);
 

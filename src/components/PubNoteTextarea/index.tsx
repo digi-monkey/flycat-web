@@ -23,6 +23,7 @@ interface Props {
   isLoggedIn: boolean;
   mode: LoginMode;  
   signEvent?: SignEvent;
+  pubSuccessCallback?: (eventId: string, relayUrl: string[]) => any
 }
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
@@ -30,7 +31,7 @@ export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
   return <Button disabled={disabled} type='primary' htmlType="submit">{t('pubNoteTextarea.btn.post')}</Button>;
 }
 
-const PubNoteTextarea: React.FC<Props> = ({ isLoggedIn, signEvent }) => {
+const PubNoteTextarea: React.FC<Props> = ({ isLoggedIn, signEvent, pubSuccessCallback }) => {
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +64,8 @@ const PubNoteTextarea: React.FC<Props> = ({ isLoggedIn, signEvent }) => {
           selectMention,
           signEvent,
           myPublicKey,
-          worker
+          worker,
+          pubSuccessCallback
         )}
       >
         <Mentions

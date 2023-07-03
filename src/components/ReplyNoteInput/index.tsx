@@ -29,13 +29,14 @@ export interface ReplyEventInputProp {
   userMap: UserMap;
   replyTo: EventWithSeen;
   worker: CallWorker;
-
+  successCb?: (eventId: string, relayUrl: string[]) => any;
   isLoggedIn: boolean;
 }
 export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   worker,
   userMap,
   replyTo,
+  successCb,
   isLoggedIn,
 }) => {
   const router = useRouter();
@@ -69,7 +70,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
       const rawEvent = Nip23.commentToArticleEvent(inputText, replyTo);
       const event = await signEvent(rawEvent);
       const handler = worker.pubEvent(event);
-      noticePubEventResult(handler);
+      noticePubEventResult(handler, successCb);
       setInputText('');
       return;
     }
@@ -89,7 +90,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler);
+    noticePubEventResult(handler, successCb);
     setInputText('');
   };
 

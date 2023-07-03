@@ -25,6 +25,7 @@
     line-height: 24px;
   }
   .btn {
+    cursor: pointer;
     color: var(--primary-06);
 
     /* Label */
@@ -44,8 +45,10 @@
   .icon {
     width: 24px;
     height: 24px;
+    cursor: pointer;
   }
   .title {
+    cursor: pointer;
     color: var(--neutral-09, #1e1e1e);
 
     /* Subheader1-bold */

@@ -1,17 +1,22 @@
 import { Relay } from 'core/relay/type';
+import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 import styles from './index.module.scss';
 import { Button } from 'antd';
 import { ActionType, RelayActionModal } from '../Modal/action';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 
 export interface MultipleItemsPoolActionProp {
   relays: Relay[];
   open: boolean;
+  groups: RelayGroupClass | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
 }
 
 export const MultipleItemsPoolAction: React.FC<MultipleItemsPoolActionProp> = ({
   open,
   relays,
+  groups,
+  setGroups,
 }) => {
   const [openActionModal, setOpenActionModal] = useState(false);
 
@@ -33,6 +38,8 @@ export const MultipleItemsPoolAction: React.FC<MultipleItemsPoolActionProp> = ({
       </div>
 
       <RelayActionModal
+        relayGroups={groups}
+        setRelayGroups={setGroups}
         type={ActionType.copy}
         open={openActionModal}
         onCancel={() => setOpenActionModal(false)}

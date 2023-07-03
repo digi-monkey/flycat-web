@@ -2,25 +2,24 @@ import { EllipsisOutlined } from '@ant-design/icons';
 import { Dropdown, MenuProps } from 'antd';
 import { ActionType, RelayActionModal } from '../Modal/action';
 import { Relay } from 'core/relay/type';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { RelayDetailModal } from '../Modal/detail';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useDefaultGroup } from '../hooks/useDefaultGroup';
-import { useRelayGroup } from '../hooks/useRelayGroup';
+import { RelayGroup } from 'core/relay/group';
+import { updateGroupClassState } from '../hooks/useLoadRelayGroup';
 
 export interface SingleItemActionProp {
   groupId: string;
   relay: Relay;
+  groups: RelayGroup | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>
 }
 
 export const SingleItemAction: React.FC<SingleItemActionProp> = ({
   groupId,
   relay,
+  groups,
+  setGroups
 }) => {
-  const myPublicKey = useReadonlyMyPublicKey();
-  const defaultGroups = useDefaultGroup();
-  const groups = useRelayGroup(myPublicKey, defaultGroups);
-
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openActionModal, setOpenActionModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.copy);
@@ -54,7 +53,7 @@ export const SingleItemAction: React.FC<SingleItemActionProp> = ({
       label: <span>Remove from group</span>,
       onClick: () => {
         groups?.delRelayInGroup(groupId, relay);
-        alert('removed!');
+        updateGroupClassState(groups!, setGroups);
       },
     },
   ];
@@ -74,6 +73,8 @@ export const SingleItemAction: React.FC<SingleItemActionProp> = ({
         type={actionType}
         open={openActionModal}
         onCancel={() => setOpenActionModal(false)}
+        relayGroups={groups}
+        setRelayGroups={setGroups}
         relays={[relay]}
       />
     </>

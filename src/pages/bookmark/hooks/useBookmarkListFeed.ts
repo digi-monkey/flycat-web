@@ -57,6 +57,7 @@ export function useBookmarkListFeed({
         });
         break;
 
+      case WellKnownEventKind.long_form:
       case WellKnownEventKind.text_note:
         setEventMap(prev => {
           prev.set(event.id, event);
