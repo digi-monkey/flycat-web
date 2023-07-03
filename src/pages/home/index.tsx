@@ -34,6 +34,7 @@ import {
   TrendingProfiles,
   parseMetadata,
 } from 'core/api/band';
+import { CallRelayType } from 'core/worker/type';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -101,22 +102,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       isNew: false,
     },
   ];
-  const friends = [
-    {
-      id: '1',
-      name: 'ElectronicMonkey',
-      desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
-      avatar:
-        'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-    },
-    {
-      id: '2',
-      name: 'ElectronicMonkey',
-      desc: "🚀 Tackling what's next @ Web3 🤖  Love to learn ...",
-      avatar:
-        'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-    },
-  ];
   const trending = [
     { tag: 'Nostr', url: Paths.home },
     { tag: 'Nip', url: Paths.home },
@@ -128,7 +113,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     <BaseLayout>
       <Left>
         <PageTitle title={'Home'} />
-        <PubNoteTextarea />
+        <PubNoteTextarea pubSuccessCallback={(eventId, relayUrl)=>{
+          worker?.subMsgByEventIds([eventId], undefined, {
+            type: CallRelayType.batch,
+            data: relayUrl
+          }).iterating({cb: _handleEvent})
+        }} />
         <div className={styles.reloadFeedBtn}>
           <Button
             loading={isRefreshing}

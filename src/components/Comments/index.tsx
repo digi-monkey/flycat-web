@@ -14,6 +14,7 @@ import { getEventIdsFromETags } from 'core/nostr/util';
 import { SubPostItem } from 'components/PostItems/PostContent';
 import PostItems from 'components/PostItems';
 import classNames from 'classnames';
+import { CallRelayType } from 'core/worker/type';
 
 export interface CommentsProps {
   rootEvent: EventWithSeen;
@@ -29,6 +30,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
   const [commentList, setCommentList] = useState<EventWithSeen[]>([]);
   const [unknownPks, setUnknownPks] = useState<PublicKey[]>([]);
   const [commentOrder, setCommentOrder] = useState<string>('recent');
+  const [newPubReplyEvent, setNewPubReplyEvent] = useState<EventWithSeen[]>([]);
 
   const [threadTreeNodes, setThreadTreeNodes] = useState<
     TreeNode<EventWithSeen>[]
@@ -62,35 +64,43 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
 
   useEffect(() => {
     buildThreadNodes();
-  }, [commentList]);
+  }, [commentList.length]);
 
   // todo: better tree algo
   const buildThreadNodes = () => {
-    const ids = threadTreeNodes.map(t => t.value.id);
-    for (const comment of commentList) {
-      if (!ids.includes(comment.id)) {
-        const node = new TreeNode(comment);
-        const parentIds = getEventIdsFromETags(comment.tags);
-        for (const id of parentIds) {
-          if (ids.includes(id)) {
-            const parentNodes = threadTreeNodes.filter(n => n.value.id === id);
-            {
-              for (const parent of parentNodes) {
-                if (
-                  !parent.children.map(n => n.value.id).includes(node.value.id)
-                ) {
-                  parent.addChild(node);
+    setThreadTreeNodes(threadTreeNodes => {
+      const ids = threadTreeNodes.map(t => t.value.id);
+      for (const comment of commentList) {
+        if (!ids.includes(comment.id)) {
+          const node = new TreeNode(comment);
+          const parentIds = getEventIdsFromETags(comment.tags);
+          for (const id of parentIds) {
+            if (ids.includes(id)) {
+              const parentNodes = threadTreeNodes.filter(
+                n => n.value.id === id,
+              );
+              {
+                for (const parent of parentNodes) {
+                  if (
+                    !parent.children
+                      .map(n => n.value.id)
+                      .includes(node.value.id)
+                  ) {
+                    parent.addChild(node);
+                  }
                 }
               }
             }
           }
+          threadTreeNodes.push(node);
         }
-        threadTreeNodes.push(node);
       }
-    }
 
-    const newThreadTreeNodes = truncateThreadNodes(threadTreeNodes);
-    setThreadTreeNodes(newThreadTreeNodes);
+      const newThreadTreeNodes = truncateThreadNodes(threadTreeNodes);
+      return newThreadTreeNodes;
+    });
+
+    // setThreadTreeNodes(newThreadTreeNodes);
   };
   const truncateThreadNodes = (threadTreeNodes: TreeNode<EventWithSeen>[]) => {
     let newThreadNodes: TreeNode<EventWithSeen>[] = threadTreeNodes;
@@ -107,6 +117,26 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
       }
     }
     return newThreadNodes;
+  };
+
+  const successCb = (eventId, relayUrls) => {
+    worker
+      ?.subMsgByEventIds([eventId], undefined, {
+        type: CallRelayType.batch,
+        data: relayUrls,
+      })
+      .iterating({
+        cb: event => {
+          setNewPubReplyEvent(prev => {
+            if (prev.map(prev => prev.id).includes(event.id)) {
+              return prev;
+            }
+
+            const newArr = [...[{ ...event, ...{ seen: relayUrls } }], ...prev];
+            return newArr;
+          });
+        },
+      });
   };
 
   return (
@@ -127,8 +157,20 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
           worker={worker!}
           replyTo={rootEvent}
           userMap={userMap}
+          successCb={successCb}
         />
       </div>
+
+      {/** todo: fix the following hack */}
+      <PostItems
+        msgList={newPubReplyEvent}
+        worker={worker!}
+        userMap={userMap}
+        eventMap={eventMap}
+        relays={worker?.relays.map(r => r.url) || []}
+        showLastReplyToEvent={false}
+      />
+
       {commentOrder === 'recent' &&
         threadTreeNodes.map(n => (
           <div key={n.value.id}>
@@ -137,7 +179,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
               worker={worker!}
               userMap={userMap}
               eventMap={eventMap}
-              relays={[]}
+              relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />
             <div className={styles.subRepliesContainer}>

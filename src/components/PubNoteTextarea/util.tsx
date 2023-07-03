@@ -98,6 +98,7 @@ export const handleSubmitText = async (
   signEvent: SignEvent | undefined,
   myPublicKey: string,
   worker: CallWorker | undefined,
+  pubSuccessCallback?: (eventId, relayUrl) => any
 ) => {
   formEvt.preventDefault();
 
@@ -107,7 +108,7 @@ export const handleSubmitText = async (
     textWithAttachImgs += `\n${url}`;
   }
 
-  await onSubmitText(textWithAttachImgs, signEvent, myPublicKey, worker);
+  await onSubmitText(textWithAttachImgs, signEvent, myPublicKey, worker, pubSuccessCallback);
 
   setText('');
   setAttachImgs([]);
@@ -118,6 +119,7 @@ export async function onSubmitText(
   signEvent: SignEvent | undefined,
   myPublicKey: string,
   worker: CallWorker | undefined,
+  pubSuccessCallback?: (eventId, relayUrl) => any
 ) {
   if(!worker)return alert('worker is null');
   if (signEvent == null) return alert('no sign method!');
@@ -130,5 +132,5 @@ export async function onSubmitText(
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
-  noticePubEventResult(handler);
+  noticePubEventResult(handler, pubSuccessCallback);
 }
