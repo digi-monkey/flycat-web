@@ -1,6 +1,6 @@
 import { EllipsisOutlined } from '@ant-design/icons';
 import { Avatar, Table, Badge, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { Nip11 } from 'core/nip/11';
 import { Relay, RelayTracker } from 'core/relay/type';
@@ -9,11 +9,14 @@ import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
+import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 
 import styles from './table.module.scss';
 
 interface RelayPoolTableProp {
   relays: Relay[];
+  groups: RelayGroupClass | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
 }
 
 interface BenchmarkResult {
@@ -24,7 +27,7 @@ interface BenchmarkResult {
 
 export type RelayTableItem = Relay & { key: string };
 
-const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
+const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays, groups, setGroups }) => {
   const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
 
@@ -243,6 +246,8 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays }) => {
       <MultipleItemsPoolAction
         open={selectedRelays.length > 0}
         relays={selectedRelays}
+        groups={groups}
+        setGroups={setGroups}
       />
       <Table<RelayTableItem>
         rowSelection={{

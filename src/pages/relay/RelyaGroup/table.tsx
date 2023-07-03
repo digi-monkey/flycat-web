@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Table, message } from 'antd';
 import { Relay, RelayTracker } from 'core/relay/type';
 import { Nip11 } from 'core/nip/11';
@@ -7,17 +7,22 @@ import { MultipleItemsAction } from '../Action/multipleItems';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import type { ColumnsType } from 'antd/es/table';
+import { RelayGroup } from 'core/relay/group';
 
 export type RelayTableItem = Relay & { key: string };
 
 export interface RelayGroupTableProp {
   groupId: string;
   relays: Relay[];
+  groups: RelayGroup | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
 }
 
 const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
   groupId,
   relays,
+  groups,
+  setGroups
 }) => {
   const [data, setData] = useState<RelayTableItem[]>([]);
   const [selectRelays, setSelectRelays] = useState<Relay[]>([]);
@@ -85,7 +90,7 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
     {
       key: 'action',
       render: (_, record) => (
-        <SingleItemAction groupId={groupId} relay={record} />
+        <SingleItemAction groupId={groupId} relay={record} groups={groups} setGroups={setGroups} />
       ),
     },
   ];
@@ -109,6 +114,8 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
       <MultipleItemsAction
         groupId={groupId}
         open={selectRelays.length > 0}
+        groups={groups}
+        setGroups={setGroups}
         relays={selectRelays}
       />
     </>

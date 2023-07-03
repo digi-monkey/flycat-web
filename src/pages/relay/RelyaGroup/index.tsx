@@ -1,5 +1,5 @@
 import { useTranslation } from 'next-i18next';
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import {
   Button,
@@ -12,7 +12,6 @@ import {
   Tooltip,
   message,
 } from 'antd';
-import { useDefaultGroup } from '../hooks/useDefaultGroup';
 import { Relay } from 'core/relay/type';
 import { Event } from 'core/nostr/Event';
 import RelayGroupTable from './table';
@@ -30,34 +29,24 @@ import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
 import { CallRelayType } from 'core/worker/type';
 import Link from 'next/link';
+import { updateGroupClassState, useLoadRelayGroup } from '../hooks/useLoadRelayGroup';
 
-export const RelayGroup: React.FC = () => {
+interface RelayGroupProp {
+  groups: RelayGroupClass | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
+}
+
+export const RelayGroup: React.FC<RelayGroupProp> = ({
+  groups,
+  setGroups
+}) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
-  const defaultGroup = useDefaultGroup();
   const { worker, newConn } = useCallWorker();
   const [messageApi, contextHolder] = message.useMessage();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const [inputWsUrl, setInputWsUrl] = useState<string>();
-  const [groups, setGroups] = useState<RelayGroupClass>();
-
-  useEffect(() => {
-    const groups = new RelayGroupClass(myPublicKey);
-    const defaultGroupId = 'default';
-    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
-      groups.setGroup(defaultGroupId, defaultGroup);
-    }
-    setGroups(groups);
-  }, [myPublicKey, defaultGroup]);
-
-  const updateGroupClassState = (oldGroups: RelayGroupClass) => {
-    setGroups(_prev => {
-      const newClass = new RelayGroupClass(myPublicKey);
-      newClass.reInitGroups(oldGroups.map);
-      return newClass;
-    });
-  };
 
   const handleGroupSelect = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -72,14 +61,14 @@ export const RelayGroup: React.FC = () => {
     }
 
     const selectedItems = groups.map.get(selectedGroupId) || [];
-    return <RelayGroupTable groupId={selectedGroupId} relays={selectedItems} />;
+    return <RelayGroupTable groups={groups} setGroups={setGroups} groupId={selectedGroupId} relays={selectedItems} />;
   };
 
   const addRelay = () => {
     if (inputWsUrl && selectedGroupId) {
       // todo: validate wss url
       groups?.addNewRelayToGroup(selectedGroupId, newRelay(inputWsUrl));
-      updateGroupClassState(groups!);
+      updateGroupClassState(groups!, setGroups);
       setInputWsUrl('');
     }
   };
@@ -137,7 +126,7 @@ export const RelayGroup: React.FC = () => {
 
     const relays: Relay[] = [];
     groups?.setGroup(groupId, relays);
-    updateGroupClassState(groups!);
+    updateGroupClassState(groups!, setGroups);
   };
 
   const autoRelays = async () => {

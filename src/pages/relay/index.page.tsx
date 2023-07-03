@@ -5,8 +5,12 @@ import { BaseLayout, Left } from 'components/BaseLayout';
 import { RelayPoolManager } from './RelayPool';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';
+import {RelayGroup as RelayGroupClass} from 'core/relay/group';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
+import { useDefaultGroup } from './hooks/useDefaultGroup';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useLoadRelayGroup } from './hooks/useLoadRelayGroup';
 
 export interface RelayMenuProp {
   showRelayPool: boolean;
@@ -35,7 +39,12 @@ export const RelayMenu: React.FC<RelayMenuProp> = ({
 export function RelayManager() {
   const { t } = useTranslation();
 
+  const myPublicKey = useReadonlyMyPublicKey();
   const [showRelayPool, setShowRelayPool] = useState(false);
+  const [groups, setGroups] = useState<RelayGroupClass>();
+
+  const defaultGroup = useDefaultGroup();
+  useLoadRelayGroup({myPublicKey, defaultGroup, setGroups});
 
   return (
     <BaseLayout>
@@ -44,8 +53,8 @@ export function RelayManager() {
           setShowRelayPool={setShowRelayPool}
           showRelayPool={showRelayPool}
         />
-        {!showRelayPool && <RelayGroup />}
-        {showRelayPool && <RelayPoolManager />}
+        {!showRelayPool && <RelayGroup groups={groups} setGroups={setGroups} />}
+        {showRelayPool && <RelayPoolManager groups={groups} setGroups={setGroups} />}
       </Left>
     </BaseLayout>
   );
