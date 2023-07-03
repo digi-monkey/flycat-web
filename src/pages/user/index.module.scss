@@ -1,0 +1,138 @@
+.pageTitle {
+  display: flex;
+  width: auto;
+  padding: 16px 20px;
+  justify-content: space-between;
+  align-items: center;
+
+  .titleBox {
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-start;
+
+    .arrow {
+      margin-right: var(--basePadding2);
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .title {
+      color: var(--neutral-09, #1e1e1e);
+
+      /* Subheader1-bold */
+      font-size: 16px;
+      font-family: Poppins;
+      font-weight: 600;
+      line-height: 24px;
+    }
+  }
+
+  :global {
+    .ant-input-affix-wrapper {
+      margin: var(--basePadding4) 0;
+
+      border-radius: 20px;
+      border: 1px solid var(--neutral-02, #ededed);
+      background: var(--hover-01);
+
+      &,
+      input {
+        background-color: var(--neutral-02);
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+
+        fill: var(--neutral-06);
+      }
+    }
+  }
+}
+
+.banner {
+  width: auto;
+  padding: 0px var(--basePadding5);
+  height: 157px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+.profile {
+  width: 100%;
+  margin-top: 72px;
+
+  .img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .name {
+    margin-top: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .description {
+    margin-top: 12px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--neutral-06);
+    word-wrap: break-word;
+  }
+}
+.calendar {
+  margin-top: 16px;
+}
+
+.btnGroup {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+
+  .follow{
+
+  }
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.followingList {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+}
+
+.followingTitle {
+  margin-top: 40px;
+  color: var(--neutral-09);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.viewBtnContainer{
+  margin-top: var(--basePadding3);
+}

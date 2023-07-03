@@ -1,0 +1,33 @@
+.post {
+  padding: var(--basePadding3) var(--basePadding5);
+  border-bottom: 1px solid var(--neutral-02);
+
+  .more {
+    width: 18px;
+    height: 18px;
+    color: var(--neutral-06);
+    cursor: pointer;
+  }
+
+  .content {
+    padding-left: calc(var(--padding) * 14);
+    margin-top: var(--basePadding3);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+}
+
+.repost {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  color: var(--neutral-06);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--basePadding3);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}

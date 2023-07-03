@@ -1,44 +1,40 @@
-import { Msgs } from 'components/layout/msg/Msg';
 import { Paths } from 'constants/path';
-import { Button } from '@mui/material';
-import { UserMap } from 'service/type';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { BlogFeeds } from '../blog/feed';
-import { getDraftId } from 'utils/common';
-import { LoginFormTip } from 'components/layout/NavHeader';
+import { handleEvent, refreshMsg } from './utils';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
-import { PubNoteTextarea } from 'components/layout/PubNoteTextarea';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { handleEvent, onSubmitText, refreshMsg } from './utils';
-import { Event, PublicKey, RelayUrl, PetName } from 'service/api';
+import { Avatar, Button, Input } from 'antd';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { ContactList, EventMap, UserMap } from 'core/nostr/type';
 import {
-  useSubGlobalMsg,
-  useSubMsg,
-  useSubMetaDataAndContactList,
+  useSubFollowingMsg,
+  useSubContactList,
   useLoadMoreMsg,
+  useLastReplyEvent,
+  useTrendingFollowings,
+  useSuggestedFollowings,
 } from './hooks';
 
-import styles from './index.module.scss';
-import BasicTabs from 'components/layout/SimpleTabs';
-import CreateIcon from '@mui/icons-material/Create';
-import PublicIcon from '@mui/icons-material/Public';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import { CallRelayType } from 'service/worker/type';
+import Icon from 'components/Icon';
+import Link from 'next/link';
+import classNames from 'classnames';
+import PubNoteTextarea from 'components/PubNoteTextarea';
+import PostItems from 'components/PostItems';
 
-export type ContactList = Map<
-  PublicKey,
-  {
-    relayer: RelayUrl;
-    name: PetName;
-  }
->;
+import styles from './index.module.scss';
+import PageTitle from 'components/PageTitle';
+import {
+  SuggestedProfiles,
+  TrendingProfiles,
+  parseMetadata,
+} from 'core/api/band';
+import { CallRelayType } from 'core/worker/type';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,45 +42,39 @@ export interface HomePageProps {
   signEvent?: SignEvent;
 }
 
-const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
-  const router = useRouter();
-  const myPublicKey = useMyPublicKey();
+const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker({});
 
-  const [globalMsgList, setGlobalMsgList] = useState<Event[]>([]);
+  const router = useRouter();
+  const myPublicKey = useMyPublicKey();
+
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
+  const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
-
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] =
-    useState<{ keys: PublicKey[]; created_at: number }>();
+  const [myContactList, setMyContactList] = useState<ContactList>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [trendingProfiles, setTrendingFollowings] =
+    useState<TrendingProfiles>();
+  const [suggestedProfiles, setSuggestedFollowings] =
+    useState<SuggestedProfiles>();
 
   const relayUrls = Array.from(wsConnectStatus.keys());
-  const isReadonlyMode = isLoggedIn && signEvent == null;
 
   const _handleEvent = handleEvent(
     worker,
-    isLoggedIn,
     userMap,
     myPublicKey,
     setUserMap,
-    setGlobalMsgList,
     setMsgList,
     setMyContactList,
   );
 
-  useSubMetaDataAndContactList(
-    myPublicKey,
-    newConn,
-    isLoggedIn,
-    worker,
-    _handleEvent,
-  );
-  useSubMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
-  useSubGlobalMsg(isLoggedIn, newConn, worker, _handleEvent);
+  useSubContactList(myPublicKey, newConn, worker, _handleEvent);
+  useSubFollowingMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
+  useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
   useLoadMoreMsg({
-    isLoggedIn,
     myContactList,
     myPublicKey,
     msgList,
@@ -92,121 +82,171 @@ const HomePage = ({ isLoggedIn, mode, signEvent }: HomePageProps) => {
     userMap,
     setUserMap,
     setMsgList,
-    setGlobalMsgList,
     setMyContactList,
     loadMoreCount,
   });
+  useSuggestedFollowings({ myPublicKey, setSuggestedFollowings });
+  useTrendingFollowings({ setTrendingFollowings });
+  const recommendProfiles = isLoggedIn
+    ? suggestedProfiles?.profiles
+    : trendingProfiles?.profiles;
 
-  const tabItems = {
-    note: (
-      <>
-        <PubNoteTextarea
-          mode={mode || ({} as LoginMode)}
-          disabled={isReadonlyMode || !isLoggedIn}
-          onSubmitText={text =>
-            onSubmitText(text, signEvent, myPublicKey, worker)
-          }
-          userContactList={myContactList!}
-          userMap={userMap}
-        />
-
-        <div style={{ marginTop: '5px' }}>
-          <div>
-            <Button
-              fullWidth
-              onClick={() =>
-                refreshMsg({
-                  myContactList,
-                  myPublicKey,
-                  worker,
-                  handleEvent: _handleEvent,
-                })
-              }
-            >
-              {t('home.refreshBtn')}
-            </Button>
-          </div>
-          <ul style={{ padding: '5px' }}>
-            {msgList.length === 0 && !isLoggedIn && (
-              <div>
-                <p style={{ color: 'gray' }}>
-                  {t('UserRequiredLoginBox.loginFirst')} <LoginFormTip />
-                </p>
-                <hr />
-                <p style={{ color: 'gray', fontSize: '14px' }}>
-                  {t('homeFeed.globalFeed')}
-                </p>
-                {Msgs(globalMsgList, worker!, userMap, relayUrls)}
-              </div>
-            )}
-            {msgList.length === 0 && isLoggedIn && (
-              <div>
-                <p style={{ color: 'gray' }}>{t('homeFeed.noPostYet')}</p>
-                <p style={{ color: 'gray' }}>{t('homeFeed.followHint')}</p>
-              </div>
-            )}
-            {msgList.length > 0 &&
-              isLoggedIn &&
-              Msgs(msgList, worker!, userMap, relayUrls)}
-          </ul>
-        </div>
-        <div>
-          <Button fullWidth onClick={() => setLoadMoreCount(prev => prev + 1)}>
-            {t('home.loadMoreBtn')}
-          </Button>
-        </div>
-      </>
-    ),
-    post: (
-      <div>
-        <div
-          style={{
-            margin: '10px 0px 40px 0px',
-          }}
-        >
-          <Button
-            fullWidth
-            variant="contained"
-            style={{
-              textTransform: 'capitalize',
-              color: 'white',
-            }}
-            onClick={() =>
-              router.push({
-                pathname: Paths.write,
-                query: { did: getDraftId() },
-              })
-            }
-          >
-            <CreateIcon />
-            &nbsp;{t('nav.menu.blogDashboard')}
-          </Button>
-        </div>
-        <BlogFeeds />
-      </div>
-    ),
-  };
+  // right test data
+  const updates = [
+    {
+      content: '[4.13] Generating rss/json feed for...',
+      isNew: true,
+    },
+    {
+      content: '[4.12] ogp on blog post',
+      isNew: false,
+    },
+  ];
+  const trending = [
+    { tag: 'Nostr', url: Paths.home },
+    { tag: 'Nip', url: Paths.home },
+    { tag: 'Bitcoin', url: Paths.home },
+    { tag: 'Zapping', url: Paths.home },
+  ];
 
   return (
     <BaseLayout>
       <Left>
-        <BasicTabs items={tabItems} />
+        <PageTitle title={'Home'} />
+        <PubNoteTextarea pubSuccessCallback={(eventId, relayUrl)=>{
+          worker?.subMsgByEventIds([eventId], undefined, {
+            type: CallRelayType.batch,
+            data: relayUrl
+          }).iterating({cb: _handleEvent})
+        }} />
+        <div className={styles.reloadFeedBtn}>
+          <Button
+            loading={isRefreshing}
+            type="link"
+            block
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refreshMsg({
+                myContactList,
+                myPublicKey,
+                worker,
+                handleEvent: _handleEvent,
+              });
+              setIsRefreshing(false);
+            }}
+          >
+            Refresh timeline
+          </Button>
+        </div>
+        <div
+          className={classNames(styles.home, {
+            [styles.noData]: msgList.length === 0,
+          })}
+        >
+          {msgList.length === 0 || !isLoggedIn ? (
+            <>
+              <div className={styles.tipsy}>
+                <h1>Share Your Thoughts with The Community</h1>
+                <p>
+                  Only your notes and the ones you follow will show up here.
+                  Publish your ideas and discover what others are sharing!
+                </p>
+              </div>
+              {!isLoggedIn && (
+                <div className={styles.login}>
+                  <Button
+                    type="primary"
+                    onClick={() => router.push(Paths.login)}
+                  >
+                    {t('nav.menu.signIn')}
+                  </Button>
+                  <span
+                    onClick={() => router.push(Paths.login)}
+                    className={styles.explore}
+                  >
+                    Explore as a guest
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className={styles.msgList}>
+                <PostItems
+                  msgList={msgList}
+                  worker={worker!}
+                  userMap={userMap}
+                  relays={relayUrls}
+                  eventMap={eventMap}
+                  showLastReplyToEvent={true}
+                />
+              </div>
+              <Button
+                type="link"
+                block
+                onClick={() => setLoadMoreCount(prev => prev + 1)}
+              >
+                {t('home.loadMoreBtn')}
+              </Button>
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+            </>
+          )}
+        </div>
       </Left>
       <Right>
-        <ul className={styles.menu}>
-          <li onClick={() => router.push({ pathname: Paths.universe })}>
-            <PublicIcon />
-            <span style={{ marginLeft: '5px' }}>
-              {'explore nostr universe'}
-            </span>
-          </li>
-          <li onClick={() => router.push({ pathname: Paths.fof })}>
-            <GroupAddIcon />
-            <span style={{ marginLeft: '5px' }}>
-              {'find friend of friends'}
-            </span>
-          </li>
-        </ul>
+        <div className={styles.rightPanel}>
+          <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+          <div className={styles.flycat}>
+            <h2>Flycat updates</h2>
+            {updates.map((item, key) => (
+              <div className={styles.item} key={key}>
+                <p>{item.content}</p>
+                {item.isNew && <span>New</span>}
+              </div>
+            ))}
+            <Link href={Paths.home}>Learn more</Link>
+          </div>
+          {recommendProfiles && recommendProfiles.length > 0 && (
+            <div className={styles.friends}>
+              <h2>Suggested Followings</h2>
+              {recommendProfiles.map((value, key) => {
+                const item = parseMetadata(value.profile.content);
+                return (
+                  <div className={styles.friend} key={key}>
+                    <div className={styles.info}>
+                      <Avatar src={item?.picture} />
+                      <div className={styles.friendInfo}>
+                        <h3>{item?.name}</h3>
+                        <p>{item?.about}</p>
+                      </div>
+                    </div>
+                    <Button
+                      className={styles.follow}
+                      onClick={() =>
+                        window.open('/user/' + value.pubkey, 'blank')
+                      }
+                    >
+                      View
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className={styles.trending}>
+            <h2>Trending hashtags</h2>
+            {trending.map((item, key) => (
+              <Link href={item.url} key={key}>
+                #{item.tag}
+              </Link>
+            ))}
+          </div>
+        </div>
       </Right>
     </BaseLayout>
   );

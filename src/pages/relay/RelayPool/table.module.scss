@@ -1,0 +1,43 @@
+.hoverable-row:hover .actions-column {
+  visibility: visible;
+}
+
+.actions-column {
+  visibility: hidden;
+}
+
+.actions-column .anticon {
+  margin-right: 8px;
+}
+
+.disconnectedStatus {
+  /* status */
+
+  width: 8px;
+  height: 8px;
+
+  /* red/05 */
+
+  background: #9e3f3f;
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.connectedStatus {
+  width: 8px;
+  height: 8px;
+
+  /* primary/05 */
+
+  background: #739f36;
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}

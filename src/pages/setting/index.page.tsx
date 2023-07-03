@@ -1,107 +1,31 @@
-import { Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import {
-  Event,
   EventSetMetadataContent,
   Nostr,
   WellKnownEventKind,
-} from 'service/api';
-import styled from 'styled-components';
-import { ThinHr } from 'components/layout/ThinHr';
-import { useVersion } from 'hooks/useVersion';
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { ImageUploader } from 'components/ImageUploader';
 import { useCallWorker } from 'hooks/useWorker';
-import { CallRelayType } from 'service/worker/type';
-import { BaseLayout, Left } from 'components/layout/BaseLayout';
+import { CallRelayType } from 'core/worker/type';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { ProfileAvatar, ProfileBanner } from 'components/layout/msg/TextMsg';
+import { Avatar, Button, Form, Input, Tabs } from 'antd';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
-const styles = {
-  userInfo: {
-    paddingRight: '10px',
-    //paddingBottom: '10px',
-    textAlign: 'right' as const,
-    background: 'white',
-  },
-  avatar: {
-    width: '48px',
-    height: '48px',
-  },
-  name: {
-    marginLeft: '20px',
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-  about: {
-    color: 'gray',
-    margin: '10px 0px',
-    display: 'block',
-    fontSize: '14px',
-  },
-  publicKey: {
-    padding: '2px 3px 1px 8px',
-    borderBottom: '2px solid #ffed00',
-    fontSize: '14px',
-    color: 'gray',
-    background: '#fffcaa',
-  },
-  numberSection: {
-    borderRight: '1px solid gray',
-    margin: '0 10px 0 0',
-  },
-  numberCount: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '380',
-  },
-  numberText: {
-    display: 'block',
-    fontSize: '12px',
-    textDecoration: 'underline',
-    color: 'blue',
-  },
-  numberTextUnClickable: {
-    display: 'block',
-    fontSize: '12px',
-    color: 'gray',
-  },
-  userProfile: {},
-  userProfileAvatar: {
-    width: '100%',
-    height: '100%',
-    maxWidth: '80px',
-    maxHeight: '80px',
-    marginRight: '10px',
-    borderRadius: '0',
-  },
-  userProfileName: {
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-  userProfileBtnGroup: {
-    marginTop: '20px',
-  },
-  simpleBtn: {
-    border: '0px',
-    background: 'white',
-  },
-};
+import PageTitle from 'components/PageTitle';
+import styles from './index.module.scss';
+import Preference from './preference';
+import About from './about';
+import { useRouter } from 'next/router';
+import Key from './key';
 
-const Input = styled.input`
-  width: 100%;
-`;
-const Textarea = styled.textarea`
-  width: 100%;
-  height: 100px;
-`;
-const Div = styled.div`
-  margin: 10px 0;
-`;
+const { TextArea } = Input;
 
 interface FormData {
   name?: string;
@@ -113,9 +37,14 @@ interface FormData {
   domainNameVerification?: string;
 }
 
-export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
+export const EditProfilePage = ({ commitId }) => {
   const { t } = useTranslation();
-  const version = useVersion();
+  const router = useRouter();
+  const tabKey = (router.query.tabKey as string | undefined) || 'account';
+  const handleTabChange = key => {
+    router.push(`?tabKey=${key}`); // Update the query parameter in the URL when the tab changes
+  };
+
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -123,16 +52,8 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
   const [profile, setProfile] = useState<
     EventSetMetadataContent & { created_at: number }
   >();
-  const initialFormData: FormData = {
-    name: profile?.display_name,
-    username: profile?.name,
-    about: profile?.about,
-    website: profile?.website,
-    bitcoinLightningAddress: profile?.lud06,
-    bitcoinLightningAddressLud16: profile?.lud16,
-    domainNameVerification: profile?.nip05,
-  };
-  const [formData, setFormData] = useState(initialFormData);
+
+  const [formData, setFormData] = useState<FormData>();
   const [avatar, setAvatar] = useState<string | undefined>(profile?.picture);
   const [banner, setBanner] = useState<string | undefined>(profile?.banner);
 
@@ -161,36 +82,39 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
   useEffect(() => {
     if (newConn.length === 0) return;
     if (myPublicKey == null) return;
+    if (!worker) return;
 
     worker
-      ?.subMetadata([myPublicKey], undefined, undefined, {
+      .subMetadata([myPublicKey], undefined, {
         type: CallRelayType.batch,
         data: newConn,
       })
-      ?.iterating({ cb: handleEvent });
-  }, [newConn, myPublicKey]);
+      .iterating({ cb: handleEvent });
+  }, [worker, newConn, myPublicKey]);
 
   useEffect(() => {
     if (profile == null) return;
 
-    setFormData(initialFormData);
-    setAvatar(profile?.picture);
-    setBanner(profile?.banner);
+    const data: FormData = {
+      name: profile.display_name,
+      username: profile.name,
+      about: profile.about,
+      website: profile.website,
+      bitcoinLightningAddress: profile.lud06,
+      bitcoinLightningAddressLud16: profile.lud16,
+      domainNameVerification: profile.nip05,
+    };
+    setFormData(data);
+    setAvatar(profile.picture);
+    setBanner(profile.banner);
   }, [profile]);
 
-  const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
-  };
-
-  const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
-    evt.preventDefault();
+  const onFormSubmit = async (formData: FormData) => {
     if (signEvent == null) {
       return alert('no sign method!');
+    }
+    if (worker == null) {
+      return alert('something went wrong, please try again.');
     }
 
     const data: EventSetMetadataContent = {
@@ -207,158 +131,136 @@ export const EditProfilePage = ({ isLoggedIn, myPrivateKey, commitId }) => {
     console.log(data);
     const rawEvent = await Nostr.newProfileRawEvent(data);
     const event = await signEvent(rawEvent);
-    if (worker == null) {
-      return alert('something went wrong, please try again.');
-    }
-
-    worker?.pubEvent(event);
-
-    alert('sent! please refresh the page, sorry will fix this soon');
+    const handler = worker.pubEvent(event);
+    noticePubEventResult(handler);
   };
 
-  return (
-    <BaseLayout>
-      <Left>
-        <div style={{ marginBottom: '10px' }}>
-          <div style={{ textAlign: 'left' }}>
-            <div
-              style={{ fontSize: '24px', color: 'black', fontWeight: '500' }}
-            >
-              {t('profileEditPanel.title')}
-            </div>
-            <form onSubmit={handleSubmit}>
-              <Div>
-                <label htmlFor="name">
-                  {t('profileEditPanel.displayName')}
-                </label>
-                <Input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
+  const items = [
+    {
+      label: `Account`,
+      key: 'account',
+      children: (
+        <div className={styles.accountContainer}>
+          <Form
+            layout="vertical"
+            onFinish={onFormSubmit}
+            initialValues={formData}
+            key={JSON.stringify(formData)} // force re-render when formData changed
+          >
+            <Form.Item>
+              <div>
+                <Avatar
+                  style={{ width: '64px', height: '64px' }}
+                  src={avatar}
                 />
-              </Div>
-              <Div>
-                <label htmlFor="username">
-                  {t('profileEditPanel.username')}
-                </label>
-                <Input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
+                {avatar && (
+                  <Button type="link" onClick={() => setAvatar(undefined)}>
+                    Remove
+                  </Button>
+                )}
+                <ImageUploader
+                  onImgUrls={(imgs: string[]) =>
+                    setAvatar(imgs[imgs.length - 1])
+                  }
                 />
-              </Div>
-              <Div>
-                <label htmlFor="pictureUrl">
-                  {t('profileEditPanel.avatar')}
-                </label>
-                <div>
-                  <span style={{ marginRight: '10px' }}>
-                    <ProfileAvatar picture={avatar} />
-                  </span>
-                  <ImageUploader
-                    onImgUrls={(imgs: string[]) =>
-                      setAvatar(imgs[imgs.length - 1])
-                    }
-                  />
-                </div>
-              </Div>
-              <Div>
-                <label htmlFor="about">{t('profileEditPanel.about')}</label>
-                <Textarea
-                  id="about"
-                  name="about"
-                  value={formData.about}
-                  onChange={handleInputChange}
-                />
-              </Div>
-              <Div>
-                <label htmlFor="bannerUrl">
-                  {t('profileEditPanel.banner')}
-                </label>
-                <ProfileBanner picture={banner} />
+              </div>
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.username')} name="username">
+              <Input />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.displayName')} name="name">
+              <Input type="text" />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.about')} name="about">
+              <TextArea />
+            </Form.Item>
+
+            <Form.Item label={t('profileEditPanel.banner')}>
+              <div>
+                <img src={banner} className={styles.banner} />
+                {banner && (
+                  <Button type="link" onClick={() => setBanner(undefined)}>
+                    Remove
+                  </Button>
+                )}
                 <ImageUploader
                   onImgUrls={(imgs: string[]) =>
                     setBanner(imgs[imgs.length - 1])
                   }
                 />
-              </Div>
-              <Div>
-                <label htmlFor="website">{t('profileEditPanel.website')}</label>
-                <Input
-                  type="text"
-                  id="website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                />
-              </Div>
-              <Div>
-                <label htmlFor="bitcoinLightningAddress">
-                  {t('profileEditPanel.btcLightningAddress')}
-                </label>
-                <Input
-                  type="text"
-                  id="bitcoinLightningAddress"
-                  name="bitcoinLightningAddress"
-                  value={formData.bitcoinLightningAddress}
-                  onChange={handleInputChange}
-                />
-              </Div>
-              <Div>
-                <label htmlFor="bitcoinLightningAddress">
-                  {t('profileEditPanel.lud16')}
-                </label>
-                <Input
-                  type="text"
-                  id="bitcoinLightningAddressLud16"
-                  name="bitcoinLightningAddressLud16"
-                  value={formData.bitcoinLightningAddressLud16}
-                  onChange={handleInputChange}
-                />
-              </Div>
-              <Div>
-                <label htmlFor="domainNameVerification">
-                  {t('profileEditPanel.domainNameVerification')}
-                </label>
-                <Input
-                  type="text"
-                  id="domainNameVerification"
-                  name="domainNameVerification"
-                  value={formData.domainNameVerification}
-                  onChange={handleInputChange}
-                />
-              </Div>
-              <Button fullWidth variant="contained" type="submit">
-                {t('profileEditPanel.submit')}
-              </Button>
-            </form>
-          </div>
-        </div>
+              </div>
+            </Form.Item>
 
-        <ThinHr></ThinHr>
-        <div style={{ marginTop: '40px' }}>
-          <div style={{ fontSize: '24px', color: 'black', fontWeight: '500' }}>
-            {'About'}
-          </div>
-          <span>
-            <p>
-              {t('setting.version')} v{version}-{commitId}
-            </p>
-            Flycat is an open source project:{' '}
-            <a
-              href="https://github.com/digi-monkey/flycat-web"
-              target="_blank"
-              rel="noreferrer"
+            <Form.Item label={t('profileEditPanel.website')} name="website">
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={t('profileEditPanel.btcLightningAddress')}
+              name="bitcoinLightningAddress"
             >
-              {t('nav.menu.github')}
-            </a>
-          </span>
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={t('profileEditPanel.lud16')}
+              name="bitcoinLightningAddressLud16"
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={t('profileEditPanel.domainNameVerification')}
+              name="domainNameVerification"
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
+      ),
+    },
+    {
+      label: 'Keys',
+      key: 'keys',
+      children: <Key />,
+    },
+    {
+      label: `Preference`,
+      key: 'preference',
+      children: (
+        <div>
+          <Preference />
+        </div>
+      ),
+    },
+    {
+      label: 'About',
+      key: 'about',
+      children: <About commitId={commitId} />,
+    },
+  ];
+
+  return (
+    <BaseLayout>
+      <Left>
+        <PageTitle title="Settings" />
+        <Tabs
+          centered
+          items={items}
+          activeKey={tabKey}
+          onChange={handleTabChange}
+        />
       </Left>
+      <Right></Right>
     </BaseLayout>
   );
 };
@@ -370,8 +272,8 @@ export const getStaticProps = async ({ locale }: { locale: string }) => {
 
   return {
     props: {
-      commitId, 
-        ...(await serverSideTranslations(locale, ['common']))
-    }
-  }
-}
+      commitId,
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
+};

@@ -1,10 +1,10 @@
-import { Api } from 'service/api';
+import { ImageProvider } from 'core/api/img';
 import { FileImageOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from "react";
 
 import styles from './index.module.scss';
 
-const api = new Api();
+const api = new ImageProvider();
 
 export const ImageUploader = ({
   onImgUrls,

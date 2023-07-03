@@ -1,169 +1,69 @@
-import { Grid } from '@mui/material';
-import { connect } from 'react-redux';
-import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
-import { defaultRelays } from 'service/relay';
-import { WsConnectStatus } from 'service/worker/type';
-import { RelayStoreType } from 'store/relayReducer';
-import { useEffect, useState } from 'react';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { BaseLayout, Left } from 'components/BaseLayout';
+import { RelayPoolManager } from './RelayPool';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { RelayGroup } from './RelyaGroup';
+import {RelayGroup as RelayGroupClass} from 'core/relay/group';
+import styles from './index.module.scss';
+import Icon from 'components/Icon';
+import { useDefaultGroup } from './hooks/useDefaultGroup';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useLoadRelayGroup } from './hooks/useLoadRelayGroup';
 
-import styled from 'styled-components';
-import RelayAdder from './RelayAdder';
-import RelayRemover from './RelayRemover';
-
-export interface State {
-  loginReducer: {
-    isLoggedIn: boolean;
-  };
-  relayReducer: RelayStoreType;
+export interface RelayMenuProp {
+  showRelayPool: boolean;
+  setShowRelayPool: any;
 }
 
-const mapStateToProps = (state: State) => {
-  return {
-    isLoggedIn: state.loginReducer.isLoggedIn,
-    myCustomRelay: state.relayReducer,
-  };
+export const RelayMenu: React.FC<RelayMenuProp> = ({
+  showRelayPool,
+  setShowRelayPool,
+}) => {
+  return showRelayPool ? (
+    <div className={styles.header} onClick={() => setShowRelayPool(false)}>
+        <Icon type="icon-arrow-left" className={styles.icon} />
+        <div className={styles.title}>Browse all relays</div>
+      </div>
+  ) : (
+    <div className={styles.pageTitle}>
+      <div className={styles.title}>Relays</div>
+      <div className={styles.btn} onClick={() => setShowRelayPool(true)}>
+        Explore 500+ relays
+      </div>
+    </div>
+  );
 };
 
-export const styles = {
-  rightMenuLi: {
-    padding: '5px 0px',
-    width: '100%',
-    display: 'block',
-  },
-  simpleUl: {
-    padding: '0px',
-    margin: '20px 0px',
-    listStyle: 'none' as const,
-  },
-  connected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'green',
-  },
-  disconnected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'red',
-  },
-};
-
-export interface RelayManagerProps {
-  isLoggedIn;
-  myCustomRelay: RelayStoreType;
-  wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
-  newConnCallback?: (conns: string[]) => any;
-}
-
-const Link = styled.a`
-  textdecoration: none;
-  color: gray;
-  :hover {
-    textdecoration: underline;
-  }
-`;
-
-export function RelayManager({
-  isLoggedIn,
-  myCustomRelay,
-  wsStatusCallback,
-  newConnCallback,
-}: RelayManagerProps) {
+export function RelayManager() {
   const { t } = useTranslation();
-  const [relays, setRelays] = useState<string[]>([]);
 
   const myPublicKey = useReadonlyMyPublicKey();
-  const { worker, newConn, wsConnectStatus } = useCallWorker();
+  const [showRelayPool, setShowRelayPool] = useState(false);
+  const [groups, setGroups] = useState<RelayGroupClass>();
 
-  useEffect(() => {
-    if (newConnCallback) {
-      newConnCallback(newConn);
-    }
-  }, [newConn]);
-
-  useEffect(() => {
-    if (wsStatusCallback) {
-      wsStatusCallback(wsConnectStatus);
-    }
-  }, [wsConnectStatus]);
-
-  useEffect(() => {
-    // remove duplicated relay
-    let relays = defaultRelays;
-    if (isLoggedIn === true) {
-      relays = relays
-        .concat(...(myCustomRelay[myPublicKey] ?? []))
-        .filter((item, index, self) => self.indexOf(item) === index);
-    }
-
-    setRelays(relays);
-  }, [myPublicKey, myCustomRelay]);
-
-  {
-    useEffect(() => {
-      if (relays.length === 0) return;
-      if (worker == null) return;
-
-      worker?.addRelays(relays);
-    }, [relays]);
-  }
-  // show relay status
-  const relayerStatusUI: any[] = [];
-  const relayerStatusIds: string[] = [];
-
-  const connectStatusArray = Array.from(wsConnectStatus.entries());
-  for (const url of relays) {
-    let status = connectStatusArray.filter(c => c[0] === url).map(c => c[1])[0];
-    if (status == null) {
-      // not found, it is not connected
-      status = false;
-    }
-
-    const style = status ? styles.connected : styles.disconnected;
-    const item = (
-      <li style={styles.rightMenuLi} key={url}>
-        <Grid container style={{ fontSize: '14px' }}>
-          <Grid item xs={12} sm={8}>
-            <span style={style}> · </span>
-            <span style={{ color: 'gray' }}>
-              <Link href={'/backup?relay=' + url}>{url}</Link>
-            </span>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            {myPublicKey && !defaultRelays.includes(url) && (
-              <RelayRemover publicKey={myPublicKey} url={url} />
-            )}
-          </Grid>
-        </Grid>
-      </li>
-    );
-
-    const index = relayerStatusIds.findIndex(v => v === url);
-    if (index != -1) {
-      relayerStatusUI[index] = item;
-    } else {
-      relayerStatusIds[relayerStatusIds.length] = url;
-      relayerStatusUI[relayerStatusUI.length] = item;
-    }
-  }
+  const defaultGroup = useDefaultGroup();
+  useLoadRelayGroup({myPublicKey, defaultGroup, setGroups});
 
   return (
-    <div>
-      <h3>
-        {t('relayManager.title')}({relays.length})
-      </h3>
-      <ul style={styles.simpleUl}>{relayerStatusUI}</ul>
-      <RelayAdder publicKey={myPublicKey} />
-    </div>
+    <BaseLayout>
+      <Left>
+        <RelayMenu
+          setShowRelayPool={setShowRelayPool}
+          showRelayPool={showRelayPool}
+        />
+        {!showRelayPool && <RelayGroup groups={groups} setGroups={setGroups} />}
+        {showRelayPool && <RelayPoolManager groups={groups} setGroups={setGroups} />}
+      </Left>
+    </BaseLayout>
   );
 }
 
-export default connect(mapStateToProps)(RelayManager);
+export default RelayManager;
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
-      ...(await serverSideTranslations(locale, ['common']))
-  }
-})
+    ...(await serverSideTranslations(locale, ['common'])),
+  },
+});

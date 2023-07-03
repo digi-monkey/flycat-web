@@ -12,18 +12,23 @@
   },
   "nav": {
     "menu": {
-      "home": "Home",
-      "notification": "Notification",
-      "profile": "Profile",
       "blog": "Blog",
       "blogDashboard": "Write",
       "github": "Github",
       "globalFeed": "Global",
-      "setting": "Setting",
-      "signOut": "SignOut",
-      "signIn": "SignIn",
       "contact": "Contact",
-      "backup": "Private Backup"
+
+      "profile": "Profile",
+      "setting": "Settings",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "backup": "Backup",
+      "drafts": "Drafts",
+      "home": "Home",
+      "explore": "Explore",
+      "relays": "Relays",
+      "bookmarks": "Bookmarks",
+      "notifications": "Notifications"
     }
   },
   "home": {
@@ -283,5 +288,35 @@
     "me": "Me",
     "success": "published! please refresh the page, sorry will fix this soon!",
     "placeholder": "Please fill out your comment."
+  },
+  "relaySelector": {
+    "modal": {
+      "title": "What is Relay mode?",
+      "global": "Global",
+      "globalDesc": "You can select a relay group/single relay from the list",
+      "auto": "Auto",
+      "autoDesc": "We will automatically select a relay based on our algorithm",
+      "fastest": "Fastest",
+      "fastestDesc": "We will select the relay with fastest connection",
+      "rule": "Rule",
+      "ruleDesc": "You can customize your entire experience on Flycat by uploading your own scripts",
+      "buttonText": "Got it"
+    }
+  },
+  "pubNoteTextarea": {
+    "icons": {
+      "image": "Insert image",
+      "emoji": "Insert emoji",
+      "longForm": "Write long-form"
+    },
+    "btn": {
+      "post": "Post"
+    }
+  },
+  "baseLayout": {
+    "modal": {
+      "title": "Write notes",
+      "desc": "Share your thoughts with the community"
+    }
   }
 }

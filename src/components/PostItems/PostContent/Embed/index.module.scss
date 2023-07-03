@@ -1,0 +1,52 @@
+.refNote {
+  background: #f2f2f2;
+  width: 100%;
+  left: 56px;
+  top: 0px;
+  border-radius: 12px;
+  padding: 12px;
+  margin: var(--basePadding3) 0px;
+  overflow-wrap: anywhere;
+
+  .user {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--neutral-02);
+  }
+}
+
+.refProfile {
+  max-width: 300px;
+  word-wrap: break-word;
+  background: var(--neutral-03);
+  border-radius: 12px;
+  padding: 12px;
+  position: absolute;
+  display: none;
+  z-index: 1;
+
+  .user {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+.hoverLink:hover + .refProfile {
+  display: block;
+}
+
+.refLink {
+  background: #f2f2f2;
+  width: 100%;
+  left: 56px;
+  top: 0px;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}

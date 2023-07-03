@@ -1,75 +1,103 @@
-.post{
-  .comment{
+.postContainer{
+  margin-bottom: var(--basePadding12);
+}
+
+.post {
+  padding: var(--basePadding5);
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 80px 0px 20px 0px;
+  width: 100%;
+
+  .author {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     width: 100%;
-    min-height: 100px;
-    height: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    border-radius: 5px;
 
-    .commentPanel{
-      .image{
-        position: relative;
-        margin: 10px 0;
-
-        img{
-          max-width: 100%;
-          border-radius: 10px;
-        }
-
-        svg{
-          position: absolute;
-          right: 10px;
-          top: 10px;
-          z-index: 1;
-          cursor: pointer;
-
-          &:hover{
-            path{
-              fill: gray;
-            }
-          }
-        }
+    .picture {
+      width: fit-content;
+      margin: 0 auto;
+      cursor: pointer;
+      img {
+        width: 44px;
+        height: 44px;
+        display: block;
+        border-radius: 50%;
       }
+    }
 
-      .footer{
+    .name {
+      color: var(--neutral-09, #1e1e1e);
+      cursor: pointer;
+      font-size: 16px;
+      font-family: Noto Sans;
+      font-weight: 500;
+      line-height: 24px;
+      margin: 10px 0px 20px 0px;
+
+      a {
+        font-size: 16px;
+        color: black;
+      }
+    }
+
+    .btnContainer {
+      display: inline-flex;
+      height: 32px;
+      padding: 0px 3px 0px 0px;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+
+      .btn {
         display: flex;
-        justify-content: space-between;
+        padding: 5px 32px;
         align-items: center;
-        padding-left: 10px;
-        margin-bottom: 20px;
-    
-        .icons{
-          svg:hover{
-            cursor: pointer;
-            path {
-              fill: rgb(141, 197, 63);
-            }
-          }
-        }
-    
-        :global{
-          .MuiButtonBase-root{
-            border-radius: 50px;
-            color: white; 
-          }
-        }
+        gap: 8px;
+
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        border-radius: 22px;
+        background: var(--primary-06, #598022);
+        color: var(--neutral-white, #fff);
+      }
+    }
+
+    .collected {
+      margin: 60px 0px 20px 0px;
+      border-radius: 5px;
+      padding: 10px;
+      text-align: left;
+
+      .title {
+        text-transform: capitalize;
+        color: gray;
       }
 
-      :global{
-        .MuiTextField-root{
-          width: 100%;
-          padding: 5px;
-          background-color: #FFF;
-          border-radius: 5px;
-        }
+      .datetime {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        text-decoration: underline;
+      }
 
-        .MuiButton-root{
-          display: flex;
-          margin: 30px 0 30px auto;
-          color: #FFF;
-        }
+      .dirs {
+        margin: 5px;
+        padding: 5px;
+        border-radius: 5px;
+        text-decoration: underline;
       }
     }
   }
+}
+
+.commentContainer{
+  background-color: var(--post-bg);
 }

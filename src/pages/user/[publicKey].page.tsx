@@ -1,187 +1,62 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { UserMap } from 'service/type';
-import { TagItem } from '../blog/hashTags/TagItem';
 import { useRouter } from 'next/router';
-import { UserHeader } from 'components/layout/UserBox';
-import { ProfileTextMsg } from 'components/layout/msg/TextMsg';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
-import { Article, Nip23 } from 'service/nip/23';
-import { Button, useTheme } from '@mui/material';
-import { CommitCalendar } from 'components/ContributorCalendar/Calendar';
-import { useDateBookData } from 'hooks/useDateBookData';
-import {
-  ProfileBlogCommentMsgItem,
-  ProfileBlogHighlightMsgItem,
-  ProfilePublishBlogMsgItem,
-} from '../blog/components/MsgItem/index';
+import { CommitCalendar } from 'components/CommitCalendar';
 import { useState, useEffect } from 'react';
-import { PersonalBlogFeedItem } from '../blog/feed/FeedItem';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { BaseLayout, Left, Right } from 'components/layout/BaseLayout';
-import { CallRelay, CallRelayType } from 'service/worker/type';
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { CallRelay, CallRelayType } from 'core/worker/type';
 import {
-  Event,
+  deserializeMetadata,
+  shortifyEventId,
+  shortifyPublicKey,
+} from 'core/nostr/content';
+import { isEventPTag } from 'core/nostr/util';
+import {
   EventSetMetadataContent,
   WellKnownEventKind,
   PublicKey,
-  RelayUrl,
-  PetName,
   EventTags,
   EventContactListPTag,
-  isEventPTag,
-  RawEvent,
-  deserializeMetadata,
-} from 'service/api';
+  ContactInfo,
+  UserMap,
+  EventMap,
+} from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
+import { Avatar, Button, Input, Tabs, Tooltip, message } from 'antd';
+import { stringHasImageUrl } from 'utils/common';
+import { useLastReplyEvent } from './hooks';
+import { Followings } from './followings';
 
-import Swal from 'sweetalert2/dist/sweetalert2.js';
-import BasicTabs from 'components/layout/SimpleTabs';
-import { Nip9802 } from 'service/nip/9802';
-
-export const styles = {
-  root: {
-    maxWidth: '900px',
-    margin: '0 auto',
-  },
-  title: {
-    color: 'black',
-    fontSize: '2em',
-    fontWeight: '380',
-    diplay: 'block',
-    width: '100%',
-    margin: '5px',
-  },
-  ul: {
-    padding: '10px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  li: {
-    display: 'inline',
-    padding: '10px',
-  },
-  content: {
-    margin: '5px 0px',
-    minHeight: '700px',
-    background: 'white',
-    borderRadius: '5px',
-  },
-  left: {
-    height: '100%',
-    minHeight: '700px',
-    padding: '20px',
-  },
-  right: {
-    minHeight: '700px',
-    backgroundColor: '#E1D7C6',
-    padding: '20px',
-  },
-  postBox: {},
-  postHintText: {
-    color: '#acdae5',
-    marginBottom: '5px',
-  },
-  postTextArea: {
-    resize: 'none' as const,
-    boxShadow: 'inset 0 0 1px #aaa',
-    border: '1px solid #b9bcbe',
-    width: '100%',
-    height: '80px',
-    fontSize: '14px',
-    padding: '5px',
-    overflow: 'auto',
-  },
-  btn: {
-    display: 'box',
-    textAlign: 'right' as const,
-  },
-  message: {
-    marginTop: '5px',
-  },
-  msgsUl: {
-    padding: '5px',
-  },
-  msgItem: {
-    display: 'block',
-    borderBottom: '1px dashed #ddd',
-    padding: '15px 0',
-  },
-  avatar: {
-    display: 'block',
-    width: '60px',
-    height: '60px',
-  },
-  userName: {
-    textDecoration: 'underline',
-    marginRight: '5px',
-  },
-  time: {
-    color: 'gray',
-    fontSize: '12px',
-    marginTop: '5px',
-  },
-  smallBtn: {
-    fontSize: '12px',
-    marginLeft: '5px',
-    border: 'none' as const,
-  },
-  connected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'green',
-  },
-  disconnected: {
-    fontSize: '18px',
-    fontWeight: '500',
-    color: 'red',
-  },
-  userProfile: {
-    //padding: '10px',
-  },
-  userProfileAvatar: {
-    width: '80px',
-    height: '80px',
-    marginRight: '10px',
-  },
-  userProfileName: {
-    fontSize: '20px',
-    fontWeight: '500',
-  },
-  userProfileBtnGroup: {
-    marginTop: '20px',
-  },
-};
-
-export type ContactList = Map<
-  PublicKey,
-  {
-    relayer: RelayUrl;
-    name: PetName;
-  }
->;
-
-export interface ContactInfo {
-  created_at: number;
-  list: ContactList;
-  keys: string[];
-}
+import styles from './index.module.scss';
+import PostItems from 'components/PostItems';
+import Icon from 'components/Icon';
+import { payLnUrlInWebLn } from 'core/lighting/lighting';
+import { EventWithSeen } from 'pages/type';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 type UserParams = {
   publicKey: PublicKey;
 };
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
+  const myPublicKey = useReadonlyMyPublicKey();
+
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
-  const myPublicKey = useReadonlyMyPublicKey();
-  const [msgList, setMsgList] = useState<Event[]>([]);
+
+  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
+  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactInfo>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articleMsgList, setArticleMsgList] = useState<EventWithSeen[]>([]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const { worker, newConn } = useCallWorker();
 
@@ -208,18 +83,35 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         break;
 
       case WellKnownEventKind.text_note:
+      case WellKnownEventKind.reposts:
       case WellKnownEventKind.article_highlight:
-      case WellKnownEventKind.long_form:
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
+
         if (event.pubkey === publicKey) {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
-              const newItems = [...oldArray, event];
+
+              // save event
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
               // sort by timestamp
               const sortedItems = newItems.sort((a, b) =>
                 a.created_at >= b.created_at ? -1 : 1,
               );
               return sortedItems;
+            } else {
+              const id = oldArray.findIndex(s => s.id === event.id);
+              if (id === -1) return oldArray;
+
+              if (!oldArray[id].seen?.includes(relayUrl!)) {
+                oldArray[id].seen?.push(relayUrl!);
+              }
             }
             return oldArray;
           });
@@ -236,7 +128,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           }
           if (newPks.length > 0) {
             worker
-              ?.subMetadata(newPks, false, undefined, {
+              ?.subMetadata(newPks, undefined, {
                 type: CallRelayType.single,
                 data: [relayUrl!],
               })
@@ -303,34 +195,81 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             };
           });
         }
+
         break;
 
       case WellKnownEventKind.long_form:
-        const article = Nip23.toArticle(event);
-        setArticles(prev => {
-          if (prev.map(p => p.eventId).includes(event.id)) return prev;
+        setEventMap(prev => {
+          prev.set(event.id, event);
+          return prev;
+        });
 
-          const index = prev.findIndex(p => p.id === article.id);
-          if (index !== -1) {
-            const old = prev[index];
-            if (old.updated_at >= article.updated_at) {
-              return prev;
-            } else {
-              return prev.map((p, id) => {
-                if (id === index) return article;
-                return p;
-              });
+        setArticleMsgList(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
             }
           }
-
-          // only add un-duplicated and replyTo msg
-          const newItems = [...prev, article];
-          // sort by timestamp in asc
-          const sortedItems = newItems.sort((a, b) =>
-            a.updated_at >= b.updated_at ? -1 : 1,
-          );
-          return sortedItems;
+          return oldArray;
         });
+
+        setMsgList(oldArray => {
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+
+            // save event
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [relayUrl!] } },
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(relayUrl!)) {
+              oldArray[id].seen?.push(relayUrl!);
+            }
+          }
+          return oldArray;
+        });
+
+        // check if need to sub new user metadata
+        const newPks: string[] = [];
+        for (const t of event.tags) {
+          if (isEventPTag(t)) {
+            const pk = t[1];
+            if (userMap.get(pk) == null) {
+              newPks.push(pk);
+            }
+          }
+        }
+        if (newPks.length > 0) {
+          worker
+            ?.subMetadata(newPks, undefined, {
+              type: CallRelayType.single,
+              data: [relayUrl!],
+            })
+            ?.iterating({ cb: handleEvent });
+        }
         break;
 
       default:
@@ -341,41 +280,59 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   useEffect(() => {
     // todo: validate publicKey
     if (publicKey && publicKey.length === 0) return;
-    if (newConn.length === 0) return;
 
     const pks = [publicKey];
     if (isLoggedIn && myPublicKey.length > 0) {
       pks.push(myPublicKey);
     }
 
-    const callRelay: CallRelay = {
-      type: CallRelayType.batch,
-      data: newConn,
-    };
+    const callRelay: CallRelay =
+      newConn.length > 0
+        ? {
+            type: CallRelayType.batch,
+            data: newConn,
+          }
+        : {
+            type: CallRelayType.connected,
+            data: [],
+          };
     worker
-      ?.subContactList(pks, undefined, undefined, callRelay)
+      ?.subContactList(pks, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subMetadata(pks, undefined, undefined, callRelay)
+      ?.subMetadata(pks, undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
-      ?.subMsg([publicKey], undefined, undefined, callRelay)
+      ?.subMsg([publicKey], undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
       ?.subNip23Posts({ pks: [publicKey], callRelay })
       ?.iterating({ cb: handleEvent });
-  }, [newConn]);
+  }, [newConn, publicKey]);
 
-  const dateBooks = useDateBookData(articles);
+  useEffect(() => {
+    if (!worker) return;
+    if (!userContactList || userContactList.keys.length === 0) return;
 
-  const followUser = async () => {
+    worker?.subMetadata(userContactList.keys)?.iterating({ cb: handleEvent });
+  }, [worker, userContactList?.keys]);
+
+  useLastReplyEvent({
+    msgList,
+    worker,
+    userMap,
+    setUserMap,
+    setEventMap,
+  });
+
+  const relayUrls = worker?.relays.map(r => r.url) || [];
+
+  const _followUser = async (publicKey: string) => {
     if (signEvent == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'no sign method!',
-      });
+      messageApi.error('no sign method!', 3);
       return;
     }
+    if (!worker) return messageApi.error('no worker!', 3);
 
     const pks = myContactList?.keys || [];
     if (pks.length === 0) {
@@ -392,7 +349,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             [
               EventTags.P,
               pk,
-              myContactList.list.get(pk)?.relayer ?? '',
+              myContactList.list.get(pk)?.relay ?? '',
               myContactList.list.get(pk)?.name ?? '',
             ] as EventContactListPTag,
         )
@@ -400,10 +357,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     tags.push([EventTags.P, publicKey, '', '']);
 
     if (tags.length != pks.length + 1) {
-      Swal.fire({
-        icon: 'error',
-        text: 'something went wrong with contact list',
-      });
+      messageApi.error('something went wrong with contact list', 3);
       return;
     }
 
@@ -413,21 +367,74 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       tags,
     );
     const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
-    Swal.fire({
-      icon: 'success',
-      text: 'done, refresh page please!',
+    const pub = worker.pubEvent(event);
+    noticePubEventResult(pub, () => {
+      if (event.pubkey === myPublicKey) {
+        setMyContactList(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
+          }
+
+          const keys = (
+            event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+
+          const list = new Map();
+          for (const t of event.tags.filter(
+            t => t[0] === EventTags.P,
+          ) as EventContactListPTag[]) {
+            list.set(t[1], {
+              relayUrl: t[2],
+              name: t[3],
+            });
+          }
+
+          return {
+            keys,
+            created_at: event.created_at,
+            list,
+          };
+        });
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+      }
     });
   };
-  const unfollowUser = async () => {
+  const _unfollowUser = async (publicKey: string) => {
     if (signEvent == null) {
-      Swal.fire({
-        icon: 'error',
-        text: 'no sign method!',
-      });
+      messageApi.error('no sign method!', 3);
       return;
     }
-    if (!myContactList) return;
+    if (!myContactList) return messageApi.error('no contact list event!', 3);
+    if (!worker) return messageApi.error('no worker!', 3);
 
     const pks = myContactList.keys;
     if (pks.length === 0) {
@@ -443,15 +450,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           [
             EventTags.P,
             pk,
-            myContactList.list.get(pk)?.relayer ?? '',
+            myContactList.list.get(pk)?.relay ?? '',
             myContactList.list.get(pk)?.name ?? '',
           ] as EventContactListPTag,
       );
     if (tags.length != pks.length - 1) {
-      Swal.fire({
-        icon: 'error',
-        text: 'something went wrong with contact list',
-      });
+      messageApi.error('something went wrong with contact list', 3);
       return;
     }
 
@@ -461,185 +465,244 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       tags,
     );
     const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
+    const pub = worker.pubEvent(event);
 
-    Swal.fire({
-      icon: 'success',
-      text: 'done, refresh page please!',
+    noticePubEventResult(pub, () => {
+      if (event.pubkey === myPublicKey) {
+        setMyContactList(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
+          }
+
+          const keys = (
+            event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+
+          const list = new Map();
+          for (const t of event.tags.filter(
+            t => t[0] === EventTags.P,
+          ) as EventContactListPTag[]) {
+            list.set(t[1], {
+              relayUrl: t[2],
+              name: t[3],
+            });
+          }
+
+          return {
+            keys,
+            created_at: event.created_at,
+            list,
+          };
+        });
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+      }
     });
   };
-  const isFollowed =
-    isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
-  const followOrUnfollowOnClick = isFollowed ? unfollowUser : followUser;
-
-  const directorys: string[][] = articles
-    .filter(a => a.dirs != null)
-    .map(a => a.dirs!);
-
-  const tabItems = {
-    note: (
-      <ul style={styles.msgsUl}>
-        {msgList.map((msg, index) => {
-          if (Nip23.isBlogPost(msg)) {
-            return (
-              <ProfilePublishBlogMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else if (Nip23.isBlogCommentMsg(msg)) {
-            return (
-              <ProfileBlogCommentMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else if (Nip9802.isBlogHighlightMsg(msg)) {
-            return (
-              <ProfileBlogHighlightMsgItem
-                event={msg}
-                userMap={userMap}
-                worker={worker!}
-                key={msg.id}
-              />
-            );
-          } else {
-            return (
-              <ProfileTextMsg
-                msgEvent={msg}
-                key={msg.id}
-                userMap={userMap}
-                replyTo={msg.tags
-                  .filter(t => t[0] === EventTags.P)
-                  .map(t => {
-                    return {
-                      name: userMap.get(t[1])?.name,
-                      pk: t[1],
-                    };
-                  })}
-                worker={worker!}
-                lightingAddress={
-                  userMap.get(msg.pubkey)?.lud06 ||
-                  userMap.get(msg.pubkey)?.lud16
-                }
-              />
-            );
-          }
-        })}
-      </ul>
-    ),
-    post: (
-      <ul style={styles.msgsUl}>
-        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() =>
-              router.push({ pathname: `${Paths.blog}/${publicKey}` })
-            }
-          >
-            {"go to the user's blog page"}
-          </Button>
-        </div>
-        {articles.map((a, key) => (
-          <PersonalBlogFeedItem
-            key={key}
-            article={a}
-            lightingAddress={
-              userMap.get(a.pubKey)?.lud06 || userMap.get(a.pubKey)?.lud16
-            }
-          />
-        ))}
-      </ul>
-    ),
+  const buildFollowUnfollow = (publicKey: string) => {
+    const isFollowed =
+      isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
+    return isFollowed
+      ? {
+          label: 'unfollow',
+          action: () => _unfollowUser(publicKey),
+        }
+      : {
+          label: 'follow',
+          action: () => _followUser(publicKey),
+        };
   };
+  const followOrUnfollow = buildFollowUnfollow(publicKey);
+
+  const tabItems = [
+    {
+      label: `all`,
+      key: 'all',
+      children: (
+        <PostItems
+          msgList={msgList}
+          worker={worker!}
+          userMap={userMap}
+          relays={[]}
+          eventMap={eventMap}
+        />
+      ),
+    },
+    {
+      label: `long-form`,
+      key: 'longForm',
+      children: (
+        <PostItems
+          msgList={articleMsgList}
+          worker={worker!}
+          userMap={userMap}
+          relays={relayUrls}
+          eventMap={eventMap}
+        />
+      ),
+    },
+    {
+      label: `media`,
+      key: 'media',
+      children: (
+        <PostItems
+          msgList={msgList.filter(
+            e =>
+              e.kind === WellKnownEventKind.text_note &&
+              stringHasImageUrl(e.content),
+          )}
+          worker={worker!}
+          userMap={userMap}
+          relays={relayUrls}
+          eventMap={eventMap}
+        />
+      ),
+    },
+  ];
+
   return (
     <BaseLayout>
       <Left>
-        <div style={styles.userProfile}>
-          <UserHeader
-            pk={publicKey}
-            isFollowed={isFollowed}
-            followOrUnfollowOnClick={followOrUnfollowOnClick}
-            metadata={userMap.get(publicKey)}
+        {contextHolder}
+        <div className={styles.pageTitle}>
+          <div className={styles.titleBox}>
+            <div className={styles.arrow}>
+              {' '}
+              <Icon
+                style={{ width: '24px', height: '24px' }}
+                type="icon-arrow-left"
+              ></Icon>{' '}
+            </div>
+            <div className={styles.title}>
+              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+              &apos;s profile
+            </div>
+          </div>
+          <div>
+            <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+          </div>
+        </div>
+
+        {userMap.get(publicKey)?.banner && (
+          <div className={styles.banner}>
+            <img src={userMap.get(publicKey)?.banner} alt="" />
+          </div>
+        )}
+
+        <div>
+          <Tabs
+            defaultActiveKey="all"
+            centered
+            items={tabItems}
+            size={'large'}
           />
-        </div>
-
-        <div style={{ marginTop: '20px' }}>
-          <CommitCalendar pk={publicKey} />
-        </div>
-
-        <div style={styles.message}>
-          <BasicTabs items={tabItems} />
         </div>
       </Left>
       <Right>
-        {dateBooks.length > 0 && (
-          <div style={{ marginTop: '10px' }}>{'Collection'}</div>
-        )}
-        <div style={{ marginTop: '20px', fontSize: '14px' }}>
-          {dateBooks.map((book, key) => (
-            <div
-              key={key}
-              style={{
-                color: 'gray',
-                padding: '5px 0px',
-                margin: '10px 0px',
-                borderBottom: '1px dashed rgb(221, 221, 221)',
-                textTransform: 'capitalize',
-              }}
-            >
-              <span>{book.title}</span>
-              <span style={{ float: 'right' }}>
-                {'('}
-                {book.count}
-                {')'}
-              </span>
-            </div>
-          ))}
-          {directorys
-            .map(d => d[0])
-            .filter((value, index, self) => self.indexOf(value) === index)
-            .map((dir, key) => (
-              <div
-                key={key}
-                style={{
-                  color: 'gray',
-                  padding: '5px 0px',
-                  margin: '10px 0px',
-                  borderBottom: '1px dashed rgb(221, 221, 221)',
-                  textTransform: 'capitalize',
-                }}
-              >
-                <span>{dir}</span>
-
-                <span style={{ float: 'right' }}>
-                  {'('}
-                  {
-                    articles
-                      .filter(a => a.dirs != null)
-                      .filter(a => a.dirs![0] === dir).length
-                  }
-                  {')'}
-                </span>
-              </div>
-            ))}
-        </div>
         <div>
-          <div style={{ marginTop: '20px', fontSize: '14px' }}>
-            {articles
-              .map(article => article.hashTags)
-              .flat(Infinity)
-              .filter(t => typeof t === 'string')
-              .map((t, key) => (
-                <TagItem key={key} tag={t as string} />
-              ))}
+          <div className={styles.profile}>
+            <div className={styles.img}>
+              <Avatar
+                style={{ width: '100%', height: '100%' }}
+                src={userMap.get(publicKey)?.picture}
+                alt=""
+              />
+            </div>
+            <div className={styles.name}>
+              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+            </div>
+            <div className={styles.description}>
+              {userMap.get(publicKey)?.about}
+            </div>
           </div>
         </div>
+
+        <div className={styles.calendar}>
+          <CommitCalendar pk={publicKey} />
+        </div>
+
+        {myPublicKey === publicKey ? (
+          <div className={styles.btnGroup}>
+            <Button
+              onClick={() => {
+                window.open(Paths.setting);
+              }}
+            >
+              Edit profile
+            </Button>
+            <Icon
+              type="icon-Gear"
+              className={styles.icon}
+              onClick={() => {
+                window.open(Paths.setting + '?tabKey=preference');
+              }}
+            />
+          </div>
+        ) : (
+          <div className={styles.btnGroup}>
+            <Button type="primary" onClick={followOrUnfollow.action}>
+              {followOrUnfollow.label}
+            </Button>
+            <Tooltip title={`Article RSS URL`}>
+              <Icon
+                type="icon-rss"
+                className={styles.icon}
+                onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
+              />
+            </Tooltip>
+            <Tooltip title={`Zap The User`}>
+              <Icon
+                type="icon-bolt"
+                className={styles.icon}
+                onClick={async () => {
+                  const lnUrl =
+                    userMap.get(publicKey)?.lud06 ||
+                    userMap.get(publicKey)?.lud16;
+                  if (lnUrl == null) {
+                    return alert(
+                      'no ln url, please tell the author to set up one.',
+                    );
+                  }
+                  await payLnUrlInWebLn(lnUrl);
+                }}
+              />
+            </Tooltip>
+          </div>
+        )}
+
+        <Followings
+          buildFollowUnfollow={buildFollowUnfollow}
+          pks={userContactList?.keys || []}
+          userMap={userMap}
+        />
       </Right>
     </BaseLayout>
   );

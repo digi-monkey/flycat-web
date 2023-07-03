@@ -7,29 +7,29 @@ const Pages = {
     name: 'notification',
     path: '/notification'
   },
-  blog: {
-    name: 'blog',
-    path: '/blog'
+  bookmarks: {
+    name: 'bookmark',
+    path: '/bookmark'
+  },
+  explore: {
+    name: 'explore',
+    path: '/explore'
   },
   write: {
     name: 'write',
-    path: '/blog/write'
+    path: '/write'
   },
   edit: {
-    name: 'blog_edit',
-    path: '/blog/edit/'
+    name: 'edit',
+    path: '/edit/'
   },
-  contact: {
-    name: 'contact',
-    path: '/contact/'
+  draft: {
+    name: 'draft',
+    path: '/draft'
   },
   user: {
     name: 'user',
     path: '/user/'
-  },
-  backup: {
-    name: 'backup',
-    path: '/backup'
   },
   relay: {
     name: 'relay',
@@ -39,29 +39,13 @@ const Pages = {
     name: 'event',
     path: '/event'
   },
-  article: {
-    name: 'article',
-    path: '/article/'
-  },
   post: {
     name: 'post',
     path: '/post/'
   },
-  legacy_blog: {
-    name: 'legacy-blog',
-    path: '/legacy-blog/'
-  },
-  universe: {
-    name: 'universe',
-    path: '/universe'
-  },
   setting: {
     name: 'setting',
     path: '/setting'
-  },
-  fof: {
-    name: 'fof',
-    path: '/fof'
   },
   login: {
     name: 'login',
