@@ -86,6 +86,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   });
   useSuggestedFollowings({ myPublicKey, setSuggestedFollowings });
   useTrendingFollowings({ setTrendingFollowings });
+  const recommendProfiles = isLoggedIn
+    ? suggestedProfiles?.profiles
+    : trendingProfiles?.profiles;
 
   // right test data
   const updates = [
@@ -217,36 +220,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
-          {isLoggedIn ? (
+          {recommendProfiles && recommendProfiles.length > 0 && (
             <div className={styles.friends}>
               <h2>Suggested Followings</h2>
-              {suggestedProfiles?.profiles.map((value, key) => {
-                const item = parseMetadata(value.profile.content);
-                return (
-                  <div className={styles.friend} key={key}>
-                    <div className={styles.info}>
-                      <Avatar src={item?.picture} />
-                      <div className={styles.friendInfo}>
-                        <h3>{item?.name}</h3>
-                        <p>{item?.about}</p>
-                      </div>
-                    </div>
-                    <Button
-                      className={styles.follow}
-                      onClick={() =>
-                        window.open('/user/' + value.pubkey, 'blank')
-                      }
-                    >
-                      View
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className={styles.friends}>
-              <h2>Trending of Followings</h2>
-              {trendingProfiles?.profiles.map((value, key) => {
+              {recommendProfiles.map((value, key) => {
                 const item = parseMetadata(value.profile.content);
                 return (
                   <div className={styles.friend} key={key}>
@@ -270,6 +247,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               })}
             </div>
           )}
+
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
             {trending.map((item, key) => (

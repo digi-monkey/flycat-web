@@ -1,8 +1,12 @@
 import { Modal } from 'antd';
 import { PubEventResultStream } from 'core/worker/sub';
-import styles from './index.module.scss';
+import { shortifyEventId } from 'core/nostr/content';
+import { CopyText } from 'components/CopyText/CopyText';
 
-export async function noticePubEventResult(handler: PubEventResultStream) {
+import styles from './index.module.scss';
+import { PubEventResultMsg } from 'core/worker/type';
+
+export async function noticePubEventResult(handler: PubEventResultStream, successCb?: (eventId: string, successRelays: string[])=> any) {
   let secondsPassed = 0;
   const instance = Modal.success({
     title: 'Publishing Events..',
@@ -16,8 +20,10 @@ export async function noticePubEventResult(handler: PubEventResultStream) {
     });
   }, 1000);
 
+  const pubResult: PubEventResultMsg[] = [];
   const result: React.JSX.Element[] = [];
   for await (const h of handler) {
+    pubResult.push(h);
     const item = (
       <li key={h.relayUrl} className={styles.item}>
         <span>{h.relayUrl}</span>
@@ -31,12 +37,17 @@ export async function noticePubEventResult(handler: PubEventResultStream) {
   }
   handler.unsubscribe();
 
+  const successRelays = pubResult.filter(r => r.isSuccess).map(r => r.relayUrl);
+  if(successRelays.length > 0 && successCb){
+    successCb(handler.eventId, successRelays);
+  }
+
   //close the waiting
   clearInterval(timer);
   instance.update({
     title: 'Published Event',
     content: <div>
-    <div className={styles.eventId}>event: {handler.eventId}</div>
+    <div className={styles.eventId}>event@{shortifyEventId(handler.eventId)} <CopyText name={"Copy Event Id"} textToCopy={handler.eventId} /></div>
     <div>{result}</div>
   </div>,
   });
