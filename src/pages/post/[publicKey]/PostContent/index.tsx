@@ -62,7 +62,12 @@ const PostContent = ({
               </div>
             </div>
             <div>
-              {publicKey !== myPublicKey && <Button>{'follow'}</Button>}
+              {publicKey !== myPublicKey && (
+                <Link href={`${Paths.user + publicKey}`}>
+                  <Button>{'View Profile'}</Button>
+                  {/*todo: fix to follow/unfollow*/}
+                </Link>
+              )}
               {publicKey === myPublicKey && (
                 <Link href={`${Paths.edit + publicKey}/${articleId}`}>
                   <Button>{'Edit this post'}</Button>
@@ -74,16 +79,16 @@ const PostContent = ({
       </div>
 
       <div className={styles.articleText}>
-      <ReactMarkdown
-        components={{
-          img: ({ node, ...props }) => (
-            <img className={styles.articleImg} {...props} />
-          ),
-        }}
-      >
-        {content ?? ''}
-      </ReactMarkdown>
-      </div> 
+        <ReactMarkdown
+          components={{
+            img: ({ node, ...props }) => (
+              <img className={styles.articleImg} {...props} />
+            ),
+          }}
+        >
+          {content ?? ''}
+        </ReactMarkdown>
+      </div>
 
       <div className={styles.postTags}>
         {article?.hashTags?.flat(Infinity).map((t, key) => (
