@@ -20,7 +20,7 @@ export async function noticePubEventResult(
         <li key={h.relayUrl} className={styles.item}>
           <span>{h.relayUrl}</span>
           <span className={h.isSuccess ? styles.success : styles.failed}>
-            {h.isSuccess ? 'success' : 'failed '}
+            {h.isSuccess && 'success'}
             {!h.isSuccess && h.reason}
           </span>
         </li>
