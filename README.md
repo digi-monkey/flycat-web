@@ -2,10 +2,11 @@
 
 Another [Nostr](https://github.com/nostr-protocol/nips) web client.
 
-~~Integrating with [flycat protocol](https://github.com/digi-monkey/flycat-protocol) to bring a blogging and reading experience on Nostr.~~ 🎉🎉🎉 We have migrated to [Nip-23](https://github.com/nostr-protocol/nips/blob/master/23.md) for interoperability!
+Flycat 0.2.0 release 🎉🎉🎉
 
 ## Main Differences
 
+- no like/dislike reaction, non-addictive, peaceful light mode
 - short notes and long blog posts all-in-one web client
 - use SharedWorker to manage websocket connections across different tabs
 
