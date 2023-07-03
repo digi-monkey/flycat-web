@@ -10,7 +10,11 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { CallRelay, CallRelayType } from 'core/worker/type';
-import { deserializeMetadata, shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
+import {
+  deserializeMetadata,
+  shortifyEventId,
+  shortifyPublicKey,
+} from 'core/nostr/content';
 import { isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
@@ -34,6 +38,7 @@ import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { EventWithSeen } from 'pages/type';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -89,7 +94,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
-  
+
               // save event
               const newItems = [
                 ...oldArray,
@@ -103,7 +108,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             } else {
               const id = oldArray.findIndex(s => s.id === event.id);
               if (id === -1) return oldArray;
-  
+
               if (!oldArray[id].seen?.includes(relayUrl!)) {
                 oldArray[id].seen?.push(relayUrl!);
               }
@@ -211,7 +216,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               a.created_at >= b.created_at ? -1 : 1,
             );
             return sortedItems;
-          }else {
+          } else {
             const id = oldArray.findIndex(s => s.id === event.id);
             if (id === -1) return oldArray;
 
@@ -327,6 +332,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       messageApi.error('no sign method!', 3);
       return;
     }
+    if (!worker) return messageApi.error('no worker!', 3);
 
     const pks = myContactList?.keys || [];
     if (pks.length === 0) {
@@ -361,15 +367,74 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       tags,
     );
     const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
-    messageApi.success('done, refresh page please!', 3);
+    const pub = worker.pubEvent(event);
+    noticePubEventResult(pub, () => {
+      if (event.pubkey === myPublicKey) {
+        setMyContactList(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
+          }
+
+          const keys = (
+            event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+
+          const list = new Map();
+          for (const t of event.tags.filter(
+            t => t[0] === EventTags.P,
+          ) as EventContactListPTag[]) {
+            list.set(t[1], {
+              relayUrl: t[2],
+              name: t[3],
+            });
+          }
+
+          return {
+            keys,
+            created_at: event.created_at,
+            list,
+          };
+        });
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+      }
+    });
   };
   const _unfollowUser = async (publicKey: string) => {
     if (signEvent == null) {
       messageApi.error('no sign method!', 3);
       return;
     }
-    if (!myContactList) return;
+    if (!myContactList) return messageApi.error('no contact list event!', 3);
+    if (!worker) return messageApi.error('no worker!', 3);
 
     const pks = myContactList.keys;
     if (pks.length === 0) {
@@ -400,9 +465,67 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       tags,
     );
     const event = await signEvent(rawEvent);
-    worker?.pubEvent(event);
+    const pub = worker.pubEvent(event);
 
-    messageApi.success('done, refresh page please! sorry will fix soon', 3);
+    noticePubEventResult(pub, () => {
+      if (event.pubkey === myPublicKey) {
+        setMyContactList(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
+          }
+
+          const keys = (
+            event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+
+          const list = new Map();
+          for (const t of event.tags.filter(
+            t => t[0] === EventTags.P,
+          ) as EventContactListPTag[]) {
+            list.set(t[1], {
+              relayUrl: t[2],
+              name: t[3],
+            });
+          }
+
+          return {
+            keys,
+            created_at: event.created_at,
+            list,
+          };
+        });
+
+        if (event.pubkey === publicKey) {
+          setUserContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            const list = new Map();
+            for (const t of event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]) {
+              list.set(t[1], {
+                relayUrl: t[2],
+                name: t[3],
+              });
+            }
+            return {
+              keys,
+              created_at: event.created_at,
+              list,
+            };
+          });
+        }
+      }
+    });
   };
   const buildFollowUnfollow = (publicKey: string) => {
     const isFollowed =
@@ -479,7 +602,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               ></Icon>{' '}
             </div>
             <div className={styles.title}>
-              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}&apos;s profile
+              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+              &apos;s profile
             </div>
           </div>
           <div>
@@ -512,7 +636,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                 alt=""
               />
             </div>
-            <div className={styles.name}>{userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}</div>
+            <div className={styles.name}>
+              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+            </div>
             <div className={styles.description}>
               {userMap.get(publicKey)?.about}
             </div>
@@ -549,7 +675,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               <Icon
                 type="icon-rss"
                 className={styles.icon}
-                onClick={()=>window.open('/api/rss/' + publicKey, "blank")}
+                onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
               />
             </Tooltip>
             <Tooltip title={`Zap The User`}>

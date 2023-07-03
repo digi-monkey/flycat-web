@@ -64,7 +64,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
 
   useEffect(() => {
     buildThreadNodes();
-  }, [commentList.length]);
+  }, [commentList]);
 
   // todo: better tree algo
   const buildThreadNodes = () => {
