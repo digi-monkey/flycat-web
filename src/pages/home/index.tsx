@@ -85,11 +85,14 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     setMyContactList,
     loadMoreCount,
   });
+
+  /*
   useSuggestedFollowings({ myPublicKey, setSuggestedFollowings });
   useTrendingFollowings({ setTrendingFollowings });
   const recommendProfiles = isLoggedIn
     ? suggestedProfiles?.profiles
     : trendingProfiles?.profiles;
+    */
 
   // right test data
   const updates = [
@@ -113,12 +116,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     <BaseLayout>
       <Left>
         <PageTitle title={'Home'} />
-        <PubNoteTextarea pubSuccessCallback={(eventId, relayUrl)=>{
-          worker?.subMsgByEventIds([eventId], undefined, {
-            type: CallRelayType.batch,
-            data: relayUrl
-          }).iterating({cb: _handleEvent})
-        }} />
+        <PubNoteTextarea
+          pubSuccessCallback={(eventId, relayUrl) => {
+            worker
+              ?.subMsgByEventIds([eventId], undefined, {
+                type: CallRelayType.batch,
+                data: relayUrl,
+              })
+              .iterating({ cb: _handleEvent });
+          }}
+        />
         <div className={styles.reloadFeedBtn}>
           <Button
             loading={isRefreshing}
@@ -210,7 +217,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
-          {recommendProfiles && recommendProfiles.length > 0 && (
+          {/*
+             {recommendProfiles && recommendProfiles.length > 0 && (
             <div className={styles.friends}>
               <h2>Suggested Followings</h2>
               {recommendProfiles.map((value, key) => {
@@ -237,6 +245,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               })}
             </div>
           )}
+          */}
 
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
