@@ -38,6 +38,9 @@ export enum WellKnownEventKind {
   bookmark_list = 30001,
 
   long_form = 30023,
+
+  community_metadata = 34550,
+  community_approval = 4550,
 }
 
 export enum EventETagMarker {
@@ -54,6 +57,7 @@ export enum EventTags {
   A = 'a',
   Z = 'zap',
   R = 'r',
+  K = 'k', // kinds
 }
 
 export type LudType = 'lud06' | 'lud16';

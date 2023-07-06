@@ -1,88 +1,142 @@
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
-import { Divider, Segmented, Tag } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
-import { useState } from 'react';
-import { EventMap, UserMap } from 'core/nostr/type';
-import { LatestFeed } from './latestFeed';
-import { BestLongFormFeed } from './bestLongFormFeed';
-import PageTitle from 'components/PageTitle';
+import { useLoadCommunities } from './hooks/useLoadCommunities';
+import { Event } from 'core/nostr/Event';
+import { useEffect, useState } from 'react';
+import { CommunityMetadata, Nip172 } from 'core/nip/172';
+import {
+  EventMap,
+  EventSetMetadataContent,
+  Naddr,
+  UserMap,
+  WellKnownEventKind,
+} from 'core/nostr/type';
+import { Divider, Input, Tabs } from 'antd';
+import { Community } from './community';
+import { deserializeMetadata } from 'core/nostr/content';
+import { useLoadProfiles } from './hooks/useLoadProfile';
 
+import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
-import { HotestFeed } from './hotestFeed';
+
+const { Search } = Input;
 
 const Explore = () => {
   const { t } = useTranslation();
 
   const { worker, newConn } = useCallWorker();
+
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
-  const [selectedOption, setSelectedOption] = useState('Latest');
+  const [communities, setCommunities] = useState<Map<Naddr, CommunityMetadata>>(
+    new Map(),
+  );
+  const [selectedCommunityId, setSelectedCommunityId] = useState<Naddr>();
+  const [searchName, setSearchName] = useState<string>();
 
-  const handleOptionChange = option => {
-    setSelectedOption(option);
-  };
+  const handleEvent = (event: Event, relayUrl?: string) => {
+    switch (event.kind) {
+      case WellKnownEventKind.set_metadata:
+        {
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
+          setUserMap(prev => {
+            const newMap = new Map(prev);
+            const oldData = newMap.get(event.pubkey) as { created_at: number };
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
 
-  const renderContent = () => {
-    if (selectedOption === 'Latest') {
-      return (
-        <LatestFeed
-          worker={worker!}
-          newConn={newConn}
-          userMap={userMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          setEventMap={setEventMap}
-        />
-      );
-    } else if (selectedOption === 'Hot') {
-      return (
-        <Divider orientation="left">
-          <Tag color="error">Page Under Construction 🚧</Tag>
-        </Divider>
-        /*
-        <HotestFeed
-          worker={worker!}
-          newConn={newConn}
-          userMap={userMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          setEventMap={setEventMap}
-        />
-        */
-      );
-    } else if (selectedOption === 'long-form') {
-      //todo: not best yet
-      return (
-        <BestLongFormFeed
-          worker={worker!}
-          newConn={newConn}
-          userMap={userMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          setEventMap={setEventMap}
-        />
-      );
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
+            return newMap;
+          });
+        }
+        break;
+
+      case Nip172.metadata_kind:
+        const metadata = Nip172.parseCommunityMetadata(event);
+        const addr = Nip172.communityAddr({
+          identifier: metadata.id,
+          author: metadata.creator,
+        });
+        setCommunities(prev => {
+          const newMap = new Map(prev);
+          newMap.set(addr, metadata);
+          return newMap;
+        });
+        break;
+
+      default:
+        break;
     }
   };
 
+  useEffect(()=>{
+    if(communities.size > 0 && !selectedCommunityId){
+      setSelectedCommunityId(Array.from(communities.keys())[0]);
+    }
+  }, [communities]);
+
+  useLoadCommunities({ worker, newConn, handleEvent });
+  useLoadProfiles({ worker, handleEvent, newConn, communities });
   return (
     <BaseLayout>
       <Left>
-        <div className={styles.header}>
-          <PageTitle title={'Explore'} />
-          <div>
-            <Segmented
-              value={selectedOption}
-              onChange={handleOptionChange}
-              options={['Latest', 'Hot', 'long-form']}
+        <PageTitle title={'Explore'} />
+        {selectedCommunityId && (
+          <Community
+            worker={worker}
+            setEventMap={setEventMap}
+            setUserMap={setUserMap}
+            userMap={userMap}
+            eventMap={eventMap}
+            community={communities.get(selectedCommunityId)!}
+          />
+        )}
+      </Left>
+      <Right>
+        <div className={styles.rightPanel}>
+          <Search
+            size="large"
+            placeholder="search community name"
+            onSearch={value => setSearchName(value)}
+          />
+          <Divider orientation="left">Communities</Divider>
+          <div className={styles.communityTab}>
+            <Tabs
+              tabPosition="left"
+              activeKey={selectedCommunityId}
+              onChange={naddr => {console.log("changed!", naddr);setSelectedCommunityId(naddr)}}
+              items={
+                searchName
+                  ? Array.from(communities.keys())
+                      .filter(a => a.includes(searchName))
+                      .map(naddr => {
+                        const community = communities.get(naddr)!;
+                        return {
+                          label: community.id,
+                          key: naddr,
+                        };
+                      })
+                  : Array.from(communities.keys()).map(naddr => {
+                      const community = communities.get(naddr)!;
+                      return {
+                        label: community.id,
+                        key: naddr,
+                      };
+                    })
+              }
             />
           </div>
         </div>
-        <div>{renderContent()}</div>
-      </Left>
-      <Right></Right>
+      </Right>
     </BaseLayout>
   );
 };
