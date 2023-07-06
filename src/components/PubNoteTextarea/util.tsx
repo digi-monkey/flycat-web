@@ -108,19 +108,7 @@ export const handleSubmitText = async (
     textWithAttachImgs += `\n${url}`;
   }
 
-  await onSubmitText(textWithAttachImgs, signEvent, myPublicKey, worker, pubSuccessCallback);
-
-  setText('');
-  setAttachImgs([]);
-};
-
-export async function onSubmitText(
-  text: string,
-  signEvent: SignEvent | undefined,
-  myPublicKey: string,
-  worker: CallWorker | undefined,
-  pubSuccessCallback?: (eventId, relayUrl) => any
-) {
+  // publish
   if(!worker)return alert('worker is null');
   if (signEvent == null) return alert('no sign method!');
 
@@ -132,5 +120,9 @@ export async function onSubmitText(
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
-  noticePubEventResult(handler, pubSuccessCallback);
-}
+  noticePubEventResult(handler, pubSuccessCallback); 
+
+  setText('');
+  setAttachImgs([]);
+};
+
