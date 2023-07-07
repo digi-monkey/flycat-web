@@ -5,6 +5,7 @@ import {
   EventId,
   EventTags,
   Filter,
+  Naddr,
   PublicKey,
   WellKnownEventKind,
 } from 'core/nostr/type';
@@ -89,6 +90,28 @@ export class Nip172 {
     return filter;
   }
 
+  // query approval for specific event id
+  static approvalForEventFilter({
+    identifier,
+    author,
+    moderators,
+    eventIds,
+  }: {
+    identifier: string;
+    author: PublicKey;
+    moderators: PublicKey[];
+    eventIds: EventId[];
+  }) {
+    const addr = this.communityAddr({ identifier, author });
+    const filter: Filter = {
+      authors: [author, ...moderators],
+      kinds: [this.approval_kind],
+      '#a': [addr],
+      '#e': eventIds,
+    };
+    return filter;
+  }
+
   // get all the approval posts
   // todo: this only handles single post in approval
   static approvalPostFilter({ approvalEvent }: { approvalEvent: Event }) {
@@ -148,6 +171,28 @@ export class Nip172 {
       t[0] === EventTags.A &&
       t[1].split(':')[0] === this.metadata_kind.toString()
     );
+  }
+
+  static isCommunityPost(event: Event): boolean {
+    return event.tags.filter(t => this.isCommunityATag(t)).length > 0;
+  }
+
+  static getCommunityAddr(event: Event) {
+    if (!this.isCommunityPost(event))
+      throw new Error('not a valid community post');
+
+    const aTags = event.tags.filter(t => this.isCommunityATag(t));
+    if (aTags.length === 0){
+			throw new Error('not a valid community post: a tag not found');
+		}
+
+    return aTags.map(t => t[1] as Naddr)[0] as Naddr;
+  }
+
+  static parseCommunityAddr(addr: Naddr) {
+    const author = addr.split(':')[1];
+    const identifier = addr.split(':')[2];
+    return { identifier, author };
   }
 
   static parseCommunityMetadata(event: Event) {

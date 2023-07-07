@@ -13,6 +13,11 @@ import { Nip18 } from 'core/nip/18';
 import PostRepost from './PostRepost';
 import { toUnSeenEvent } from 'core/nostr/util';
 import PostArticleComment from './PostArticleComment';
+import { Nip172 } from 'core/nip/172';
+import Link from 'next/link';
+import Icon from 'components/Icon';
+import { Paths } from 'constants/path';
+import { PostCommunityHeader } from './PostCommunityHeader';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -21,6 +26,7 @@ interface PostItemsProps {
   eventMap: EventMap;
   relays: string[];
   showLastReplyToEvent?: boolean;
+  showFromCommunity?: boolean;
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
@@ -30,6 +36,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   eventMap,
   relays,
   showLastReplyToEvent = true,
+  showFromCommunity = true,
 }) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
@@ -47,6 +54,7 @@ const PostItems: React.FC<PostItemsProps> = ({
           />
         ) : (
           <div className={styles.post} key={msg.id}>
+            {showFromCommunity && <PostCommunityHeader event={msg} />}
             <PostUser
               publicKey={msg.pubkey}
               avatar={getUser(msg)?.picture || ''}

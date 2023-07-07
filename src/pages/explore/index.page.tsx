@@ -14,7 +14,7 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { Divider, Input, Tabs } from 'antd';
-import { Community } from './community';
+import { Community } from './community/community';
 import { deserializeMetadata } from 'core/nostr/content';
 import { useLoadProfiles } from './hooks/useLoadProfile';
 

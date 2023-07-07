@@ -25,6 +25,7 @@ import Picker from '@emoji-mart/react';
 import emojiData from '@emoji-mart/data';
 import classNames from 'classnames';
 import { Naddr } from 'core/nostr/type';
+import { maxStrings } from 'utils/common';
 
 interface Props {
   isLoggedIn: boolean;
@@ -202,7 +203,7 @@ const PubNoteTextarea: React.FC<Props> = ({
               }
             >
               <Icon type="icon-explore" className={styles.community} />
-              {selectedCommunity ? communities.get(selectedCommunity)?.id : "No Comm"}
+              {selectedCommunity ? maxStrings(communities.get(selectedCommunity)?.id||"", 10) : "No Comm"}
             </Popover>
           </div>
           <SubmitButton

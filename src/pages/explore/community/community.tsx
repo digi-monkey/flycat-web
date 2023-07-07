@@ -1,5 +1,5 @@
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
-import styles from './index.module.scss';
+import styles from '../index.module.scss';
 import {
   Avatar,
   Badge,
@@ -275,6 +275,7 @@ export function Community({
         userMap={userMap}
         eventMap={eventMap}
         relays={worker?.relays.map(r => r.url) || []}
+        showFromCommunity={false}
       />
     </>
   );
