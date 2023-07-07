@@ -20,13 +20,10 @@ import { RootState } from 'store/configureStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { noticePubEventResult } from 'components/PubEventNotice';
-import { useLoadContacts } from 'components/PubNoteTextarea/hooks';
 import {
   deserializeMetadata,
   shortifyNPub,
-  shortifyPublicKey,
 } from 'core/nostr/content';
-import { CallRelayType } from 'core/worker/type';
 import { createCallRelay } from 'core/worker/util';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 

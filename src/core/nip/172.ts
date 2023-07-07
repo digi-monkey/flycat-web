@@ -19,7 +19,7 @@ export interface CommunityMetadata {
   id: string; // also is the Community name
   description: string;
   image: string;
-	rules?: string;
+	rules: string;
 }
 
 export class Nip172 {
@@ -224,6 +224,9 @@ export class Nip172 {
     const description = event.tags
       .filter(t => t[0] === 'description')
       .map(t => t[1] as string)[0];
+		const rules = event.tags
+      .filter(t => t[0] === 'rules')
+      .map(t => t[1] as string)[0];
     const creator = event.pubkey;
     const moderators = event.tags
       .filter(t => t[0] === EventTags.P)
@@ -233,6 +236,7 @@ export class Nip172 {
       id,
       image,
       description,
+			rules,
       creator,
       moderators,
     };

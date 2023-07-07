@@ -17,7 +17,7 @@
     border-radius: var(--baseBorderRadius8);
     padding: var(--basePadding3);
   }
-  .createCommunityBtn{
+  .createCommunityBtn {
     display: flex;
     justify-content: flex-start;
     margin: var(--basePadding8) 0px;
@@ -35,14 +35,26 @@
     border-radius: var(--baseBorderRadius8);
   }
 
-  .title{
-    @include font-subheader1-bold;
+  .title {
+    @include  font-header2;
     margin: var(--basePadding3) 0px;
   }
 
   .description {
     @include font-label;
     margin: var(--basePadding3) 0;
+    white-space: pre-line;
+  }
+
+  .ruleTitle {
+    @include font-subheader1-bold;
+    margin: var(--basePadding3) 0px;
+  }
+
+  .rules {
+    @include font-label;
+    margin: var(--basePadding3) 0;
+    white-space: pre-line;
   }
 
   .moderator {
@@ -50,14 +62,14 @@
     justify-content: space-between;
   }
 
-  .selectBtn{
+  .selectBtn {
     display: flex;
     justify-content: space-between;
   }
 }
 
-.modal{
-  .modalCoseIcons{
+.modal {
+  .modalCoseIcons {
     width: 24px;
     height: 24px;
   }
