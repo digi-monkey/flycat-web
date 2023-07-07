@@ -1,7 +1,7 @@
 import { SignEvent } from 'store/loginReducer';
 import { CallWorker } from 'core/worker/caller';
 import { ImageProvider, compressImage} from 'core/api/img';
-import { WellKnownEventKind } from 'core/nostr/type';
+import { EventTags, Naddr, Tags, WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { noticePubEventResult } from 'components/PubEventNotice';
 
@@ -98,7 +98,8 @@ export const handleSubmitText = async (
   signEvent: SignEvent | undefined,
   myPublicKey: string,
   worker: CallWorker | undefined,
-  pubSuccessCallback?: (eventId, relayUrl) => any
+  pubSuccessCallback?: (eventId, relayUrl) => any,
+  selectedCommunity?: Naddr
 ) => {
   formEvt.preventDefault();
 
@@ -108,29 +109,25 @@ export const handleSubmitText = async (
     textWithAttachImgs += `\n${url}`;
   }
 
-  await onSubmitText(textWithAttachImgs, signEvent, myPublicKey, worker, pubSuccessCallback);
+  // publish
+  if(!worker)return alert('worker is null');
+  if (signEvent == null) return alert('no sign method!');
+
+  const tags: Tags = [];
+  if(selectedCommunity){
+    tags.push([EventTags.A, selectedCommunity, '']);
+  }
+  const rawEvent = new RawEvent(
+    myPublicKey,
+    WellKnownEventKind.text_note,
+    tags,
+    text,
+  );
+  const event = await signEvent(rawEvent);
+  const handler = worker.pubEvent(event);
+  noticePubEventResult(handler, pubSuccessCallback); 
 
   setText('');
   setAttachImgs([]);
 };
 
-export async function onSubmitText(
-  text: string,
-  signEvent: SignEvent | undefined,
-  myPublicKey: string,
-  worker: CallWorker | undefined,
-  pubSuccessCallback?: (eventId, relayUrl) => any
-) {
-  if(!worker)return alert('worker is null');
-  if (signEvent == null) return alert('no sign method!');
-
-  const rawEvent = new RawEvent(
-    myPublicKey,
-    WellKnownEventKind.text_note,
-    undefined,
-    text,
-  );
-  const event = await signEvent(rawEvent);
-  const handler = worker.pubEvent(event);
-  noticePubEventResult(handler, pubSuccessCallback);
-}
