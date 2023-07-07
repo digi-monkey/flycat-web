@@ -4,13 +4,14 @@ import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Button, Mentions, Popover, Select, Tooltip } from 'antd';
 import { handleFileSelect, handleSubmitText } from './util';
 import {
   IMentions,
+  useLoadCommunities,
   useLoadContacts,
   useSetMentions,
   useSetRelays,
@@ -23,12 +24,14 @@ import styles from './index.module.scss';
 import Picker from '@emoji-mart/react';
 import emojiData from '@emoji-mart/data';
 import classNames from 'classnames';
+import { Naddr } from 'core/nostr/type';
 
 interface Props {
   isLoggedIn: boolean;
   mode: LoginMode;
   signEvent?: SignEvent;
   pubSuccessCallback?: (eventId: string, relayUrl: string[]) => any;
+  activeCommunity?: Naddr;
 }
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
@@ -44,13 +47,14 @@ const PubNoteTextarea: React.FC<Props> = ({
   isLoggedIn,
   signEvent,
   pubSuccessCallback,
+  activeCommunity,
 }) => {
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
-  const { worker } = useCallWorker();
+  const { worker, newConn } = useCallWorker();
   const [text, setText] = useState('');
   const [relays, setRelays] = useState<string[]>([]);
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
@@ -58,10 +62,16 @@ const PubNoteTextarea: React.FC<Props> = ({
   const [mentionValue, setMentionsValue] = useState<IMentions[]>([]);
   const [selectMention, setSelectMention] = useState({});
   const [mentionsFocus, setMentionsFocus] = useState(false);
+  const [selectedCommunity, setSelectedCommunity] = useState<Naddr>();
 
-  const { userMap } = useLoadContacts();
+  const { userMap } = useLoadContacts({ worker, newConn });
+  const communities = useLoadCommunities({ worker, newConn });
   useSetMentions(setMentionsValue, userMap);
   useSetRelays(setRelays);
+
+  useEffect(()=>{
+    setSelectedCommunity(activeCommunity);
+  }, [activeCommunity])
 
   return (
     <div
@@ -82,6 +92,7 @@ const PubNoteTextarea: React.FC<Props> = ({
             myPublicKey,
             worker,
             pubSuccessCallback,
+            selectedCommunity
           )
         }
       >
@@ -166,23 +177,33 @@ const PubNoteTextarea: React.FC<Props> = ({
                 <Icon type="icon-article" className={styles.article} />
               </Link>
             </Tooltip>
-            <Tooltip placement="top" title={'community'}>
-              
-              <Select
-                style={{ width: '200px' }}
-                // labelInValue
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? '').includes(input)
-                }
-                options={[
-                  { value: 'jack', label: 'Jack' },
-                  { value: 'lucy', label: 'Lucy' },
-                  { value: 'Yiminghe', label: 'yiminghe' },
-                ]}
-              />
-            </Tooltip>
+            <Popover
+              title="Select community to post"
+              content={
+               <>
+                <Select
+                  title="community"
+                  style={{ width: '200px' }}
+                  value={selectedCommunity}
+                  onChange={(value)=>setSelectedCommunity(value)}
+                  showSearch
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').includes(input)
+                  }
+                  options={Array.from(communities.keys()).map(k => {
+                    return {
+                      label: communities.get(k)?.id,
+                      value: k,
+                    };
+                  })}
+                />
+               </>
+              }
+            >
+              <Icon type="icon-explore" className={styles.community} />
+              {selectedCommunity ? communities.get(selectedCommunity)?.id : "No Comm"}
+            </Popover>
           </div>
           <SubmitButton
             disabled={

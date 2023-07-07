@@ -250,7 +250,7 @@ export function Community({
             Create Post
           </Button>
           <Modal
-            title={'Post to Community'}
+            title={'Post to '+community.id}
             wrapClassName={styles.modal}
             footer={null}
             open={openWrite}
@@ -261,10 +261,10 @@ export function Community({
           >
             <p>
               {
-                'once your post is approval by moderator, it will show up in the community'
+                'Your post will show up in your profile, but it needs to be approved by moderator to show up in the community'
               }
             </p>
-            <PubNoteTextarea />
+            <PubNoteTextarea activeCommunity={Nip172.communityAddr({identifier: community.id, author: community.creator})} />
           </Modal>
         </div>
       </div>

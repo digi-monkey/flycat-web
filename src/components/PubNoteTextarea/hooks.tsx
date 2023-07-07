@@ -10,12 +10,16 @@ import {
   EventContactListPTag,
   EventSetMetadataContent,
   EventTags,
+  Naddr,
   PublicKey,
   UserMap,
   WellKnownEventKind
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import styles from './index.module.scss';
+import { CallWorker } from 'core/worker/caller';
+import { createCallRelay } from 'core/worker/util';
+import { CommunityMetadata, Nip172 } from 'core/nip/172';
 
 export interface IMentions {
   key: string,
@@ -23,8 +27,13 @@ export interface IMentions {
   label: React.ReactNode
 }
 
-export function useLoadContacts() {
-  const { worker, newConn, wsConnectStatus } = useCallWorker();
+export function useLoadContacts({
+  worker,
+  newConn,
+}: {
+  worker?: CallWorker;
+  newConn: string[];
+}) {
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
   
@@ -76,7 +85,7 @@ export function useLoadContacts() {
     worker
       ?.subMetaDataAndContactList(pks, undefined, {
         type: CallRelayType.batch,
-        data: newConn || Array.from(wsConnectStatus.keys()),
+        data: newConn,
       })
       ?.iterating({ cb: handleEvent });
   }, [newConn, myPublicKey]);
@@ -123,4 +132,47 @@ export function useSetRelays(setRelays: React.Dispatch<React.SetStateAction<stri
     relays = relays.filter((elem, index, self) => index === self.indexOf(elem));
     setRelays(relays);
   }, [myPublicKey, myCustomRelay]);
+}
+
+export function useLoadCommunities({
+  worker,
+  newConn,
+}: {
+  worker?: CallWorker;
+  newConn: string[];
+}) {
+
+  const [communities, setCommunities] = useState<Map<Naddr, CommunityMetadata>>(
+    new Map(),
+  );
+
+  const handleEvent = (event: Event, relayUrl?: string) => {
+    switch (event.kind) {
+      case Nip172.metadata_kind:
+        const metadata = Nip172.parseCommunityMetadata(event);
+        const addr = Nip172.communityAddr({
+          identifier: metadata.id,
+          author: metadata.creator,
+        });
+        setCommunities(prev => {
+          const newMap = new Map(prev);
+          newMap.set(addr, metadata);
+          return newMap;
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  useEffect(() => {
+    if (!worker) return;
+
+    const callRelay = createCallRelay(newConn);
+    const filter = Nip172.communitiesFilter();
+    worker.subFilter({ filter, callRelay }).iterating({ cb: handleEvent });
+  }, [newConn, worker]);
+
+  return communities;
 }

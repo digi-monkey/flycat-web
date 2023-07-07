@@ -87,7 +87,8 @@
 
       .upload,
       .emoji,
-      .article{
+      .article,
+      .community{
         width: 24px;
         height: 24px;
         margin-right: 20px;
@@ -99,8 +100,8 @@
         cursor: pointer;
       }
 
-      .article{
-        margin-right: 0;
+      .community{
+        margin-right: 0px; 
       }
 
       >a{
