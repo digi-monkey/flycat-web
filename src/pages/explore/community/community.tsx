@@ -214,6 +214,7 @@ export function Community({
     <>
       <div className={styles.communityPage}>
         <img src={community.image} alt="" className={styles.banner} />
+        <div className={styles.title}>{community.id}</div>
         <div className={styles.description}>{community.description}</div>
         <div className={styles.moderator}>
           <div>

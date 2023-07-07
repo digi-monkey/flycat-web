@@ -1,0 +1,9 @@
+.title {
+  @include font-header2;
+  margin: var(--basePadding5) 0px;
+}
+
+.form {
+  width: auto;
+  margin: var(--basePadding5);
+}

@@ -153,6 +153,20 @@ export const shortifyPublicKey = (key: PublicKey | undefined) => {
   return 'Anonymous';
 };
 
+export const shortifyNPub = (key: string | undefined) => {
+  if (key && key.startsWith("npub")) {
+    return key.slice(0, 7) + '..' + key.slice(key.length - 3);
+  }
+  if(typeof key === "string" && key.length < 8){
+    return key;
+  }
+  if(typeof key === "string" && key.length > 8){
+    return key.slice(0, 3) + '..' + key.slice(key.length - 3);
+  }
+
+  return 'Anonymous';
+};
+
 export const shortifyEventId = (key: PublicKey | undefined) => {
   if (key && isValidEventId(key)) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
