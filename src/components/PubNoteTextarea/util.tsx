@@ -121,7 +121,7 @@ export const handleSubmitText = async (
     myPublicKey,
     WellKnownEventKind.text_note,
     tags,
-    text,
+    textWithAttachImgs,
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
