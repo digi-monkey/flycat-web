@@ -58,76 +58,6 @@ export function Community({
     setMsgList([]);
     const ids: EventId[] = [];
 
-    setLoading(true);
-    const filter = Nip172.approvalFilter({
-      identifier: community.id,
-      author: community.creator,
-      moderators: community.moderators,
-    });
-    const dataStream = worker.subFilter({ filter }).getIterator();
-    for await (const data of dataStream) {
-      const id = Nip172.shortNoteIdFromApproval({ approvalEvent: data.event });
-
-      const event = Nip172.parseNoteFromApproval(data.event);
-
-      if (event != null) {
-        console.log(event);
-        setMsgList(oldArray => {
-          if (event == null) return oldArray; //todo:fix this, very strange
-
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-
-            // check if need to sub new user metadata
-            const newPks: string[] = [];
-            if (userMap.get(event.pubkey) == null) {
-              newPks.push(event.pubkey);
-            }
-            for (const t of event.tags) {
-              if (isEventPTag(t)) {
-                const pk = t[1];
-                if (userMap.get(pk) == null) {
-                  newPks.push(pk);
-                }
-              }
-            }
-            if (newPks.length > 0) {
-              const sub = worker?.subMetadata(newPks, undefined, {
-                type: CallRelayType.single,
-                data: [data.relayUrl!],
-              });
-              sub?.iterating({ cb: handleEvent });
-            }
-
-            // save event
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [data.relayUrl!] } }, // todo: this relay url is not the target event's relay
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            return sortedItems;
-          } else {
-            const id = oldArray.findIndex(s => s.id === event.id);
-            if (id === -1) return oldArray;
-
-            if (!oldArray[id].seen?.includes(data.relayUrl!)) {
-              oldArray[id].seen?.push(data.relayUrl!);
-            }
-          }
-          return oldArray;
-        });
-        continue;
-      }
-
-      if (id && !ids.includes(id)) ids.push(id);
-    }
-    dataStream.unsubscribe();
-
-    if (ids.length === 0) return setLoading(false);
-
     const handleEvent = (event, relayUrl) => {
       switch (event.kind) {
         case WellKnownEventKind.set_metadata:
@@ -206,6 +136,76 @@ export function Community({
           break;
       }
     };
+
+    setLoading(true);
+    const filter = Nip172.approvalFilter({
+      identifier: community.id,
+      author: community.creator,
+      moderators: community.moderators,
+    });
+    const dataStream = worker.subFilter({ filter }).getIterator();
+    for await (const data of dataStream) {
+      const id = Nip172.shortNoteIdFromApproval({ approvalEvent: data.event });
+
+      const event = Nip172.parseNoteFromApproval(data.event);
+
+      if (event != null) {
+        console.log(event);
+        setMsgList(oldArray => {
+          if (event == null) return oldArray; //todo:fix this, very strange
+
+          if (!oldArray.map(e => e.id).includes(event.id)) {
+            // do not add duplicated msg
+
+            // check if need to sub new user metadata
+            const newPks: string[] = [];
+            if (userMap.get(event.pubkey) == null) {
+              newPks.push(event.pubkey);
+            }
+            for (const t of event.tags) {
+              if (isEventPTag(t)) {
+                const pk = t[1];
+                if (userMap.get(pk) == null) {
+                  newPks.push(pk);
+                }
+              }
+            }
+            if (newPks.length > 0) {
+              worker.subMetadata(newPks, undefined, {
+                type: CallRelayType.single,
+                data: [data.relayUrl!],
+              }).iterating({ cb: handleEvent });
+            }
+
+            // save event
+            const newItems = [
+              ...oldArray,
+              { ...event, ...{ seen: [data.relayUrl!] } }, // todo: this relay url is not the target event's relay
+            ];
+            // sort by timestamp
+            const sortedItems = newItems.sort((a, b) =>
+              a.created_at >= b.created_at ? -1 : 1,
+            );
+            return sortedItems;
+          } else {
+            const id = oldArray.findIndex(s => s.id === event.id);
+            if (id === -1) return oldArray;
+
+            if (!oldArray[id].seen?.includes(data.relayUrl!)) {
+              oldArray[id].seen?.push(data.relayUrl!);
+            }
+          }
+          return oldArray;
+        });
+        continue;
+      }
+
+      if (id && !ids.includes(id)) ids.push(id);
+    }
+    dataStream.unsubscribe();
+
+    if (ids.length === 0) return setLoading(false);
+
     worker.subMsgByEventIds(ids).iterating({ cb: handleEvent });
     setLoading(false);
   };
