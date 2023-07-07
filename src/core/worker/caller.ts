@@ -237,7 +237,10 @@ export class CallWorker {
             } else {
               const res = result?.value;
               if (res == null) continue;
-              cb(res.event, res.relayUrl);
+
+              if(typeof cb === "function"){
+                cb(res.event, res.relayUrl);
+              }
             }
           }
 
