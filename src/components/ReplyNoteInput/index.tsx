@@ -79,7 +79,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
       [EventTags.E, replyTo.id, relay] as EventETag,
       [EventTags.P, replyTo.pubkey, relay] as EventPTag,
     ];
-    const originTags = replyTo.tags;
+    const originTags = replyTo.tags.filter(t => t[0] === EventTags.E || t[0] === EventTags.P); // only copy the e and p tags.
 
     const rawEvent = new RawEvent(
       '',

@@ -176,7 +176,7 @@ export class Nip172 {
   }) {
     const addr = this.communityAddr({ identifier, author });
     const filter: Filter = {
-      kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
+      //kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
       '#a': [addr],
     };
     return filter;

@@ -27,6 +27,7 @@ import { deserializeMetadata } from 'core/nostr/content';
 import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import PubNoteTextarea from 'components/PubNoteTextarea';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -44,10 +45,12 @@ export function Community({
   setEventMap,
   setUserMap,
 }: CommunityProps) {
+  const myPublicKey = useReadonlyMyPublicKey();
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
+  const [allMsgList, setAllMsgList] = useState<EventWithSeen[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [openWrite, setOpenWrite] = useState(false);
+  const [selectTab, setSelectTab] = useState<string | number>();
 
   useEffect(() => {
     getApprovalShortNoteId();
@@ -85,6 +88,7 @@ export function Community({
             prev.set(event.id, event);
             return prev;
           });
+          if(!Nip172.isCommunityPost(event))return;
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
@@ -212,6 +216,108 @@ export function Community({
     setLoading(false);
   };
 
+  const getAllShortNoteId = async () => {
+    if (!worker) return;
+    setAllMsgList([]);
+
+    const handleEvent = (event, relayUrl) => {
+      switch (event.kind) {
+        case WellKnownEventKind.set_metadata:
+          const metadata: EventSetMetadataContent = deserializeMetadata(
+            event.content,
+          );
+          setUserMap(prev => {
+            const newMap = new Map(prev);
+            const oldData = newMap.get(event.pubkey) as { created_at: number };
+            if (oldData && oldData.created_at > event.created_at) {
+              // the new data is outdated
+              return newMap;
+            }
+
+            newMap.set(event.pubkey, {
+              ...metadata,
+              ...{ created_at: event.created_at },
+            });
+            return newMap;
+          });
+          break;
+
+        case WellKnownEventKind.text_note:
+          setEventMap(prev => {
+            prev.set(event.id, event);
+            return prev;
+          });
+          if(!Nip172.isCommunityPost(event))return;
+
+          setAllMsgList(oldArray => {
+            if (!oldArray.map(e => e.id).includes(event.id)) {
+              // do not add duplicated msg
+
+              // check if need to sub new user metadata
+              const newPks: string[] = [];
+              if (userMap.get(event.pubkey) == null) {
+                newPks.push(event.pubkey);
+              }
+              for (const t of event.tags) {
+                if (isEventPTag(t)) {
+                  const pk = t[1];
+                  if (userMap.get(pk) == null) {
+                    newPks.push(pk);
+                  }
+                }
+              }
+              if (newPks.length > 0) {
+                const sub = worker?.subMetadata(newPks, undefined, {
+                  type: CallRelayType.single,
+                  data: [relayUrl!],
+                });
+                sub?.iterating({ cb: handleEvent });
+              }
+
+              // save event
+              const newItems = [
+                ...oldArray,
+                { ...event, ...{ seen: [relayUrl!] } },
+              ];
+              // sort by timestamp
+              const sortedItems = newItems.sort((a, b) =>
+                a.created_at >= b.created_at ? -1 : 1,
+              );
+              return sortedItems;
+            } else {
+              const id = oldArray.findIndex(s => s.id === event.id);
+              if (id === -1) return oldArray;
+
+              if (!oldArray[id].seen?.includes(relayUrl!)) {
+                oldArray[id].seen?.push(relayUrl!);
+              }
+            }
+            return oldArray;
+          });
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    const filter = Nip172.allPostsFilter({
+      identifier: community.id,
+      author: community.creator,
+    });
+    console.log("filter:", filter)
+    worker.subFilter({ filter }).iterating({ cb: handleEvent });
+  };
+
+  useEffect(()=>{
+    if(selectTab === "un-approval"){
+      getAllShortNoteId();
+    }
+  }, [selectTab, community])
+
+  const isModerator = community.moderators.includes(myPublicKey);
+  const unApprovalMsgList = allMsgList.filter(msg => !msgList.map(m => m.id).includes(msg.id));
+
   return (
     <>
       <div className={styles.communityPage}>
@@ -245,10 +351,13 @@ export function Community({
         <Divider orientation="left"></Divider>
         <div className={styles.selectBtn}>
           <Segmented
+            value={selectTab}
+            onChange={val => setSelectTab(val)}
             options={[
               { label: 'Latest', value: 'latest', disabled: false },
               { label: 'Hotest', value: 'hotest', disabled: true },
               { label: 'Long-form', value: 'long-form', disabled: true },
+              { label: 'UnApproval', value: 'un-approval' },
             ]}
           />
           <Button type="link" onClick={() => setOpenWrite(true)}>
@@ -278,15 +387,34 @@ export function Community({
           </Modal>
         </div>
       </div>
-      {msgList.length === 0 && <Empty />}
-      <PostItems
-        msgList={msgList}
-        worker={worker!}
-        userMap={userMap}
-        eventMap={eventMap}
-        relays={worker?.relays.map(r => r.url) || []}
-        showFromCommunity={false}
-      />
+
+      {selectTab === 'un-approval' && (
+        <>
+          {unApprovalMsgList.length === 0 && <Empty />}
+          <PostItems
+            msgList={unApprovalMsgList}
+            worker={worker!}
+            userMap={userMap}
+            eventMap={eventMap}
+            relays={worker?.relays.map(r => r.url) || []}
+            showFromCommunity={false}
+          />
+        </>
+      )}
+
+      {selectTab !== 'un-approval' && (
+        <>
+          {msgList.length === 0 && <Empty />}
+          <PostItems
+            msgList={msgList}
+            worker={worker!}
+            userMap={userMap}
+            eventMap={eventMap}
+            relays={worker?.relays.map(r => r.url) || []}
+            showFromCommunity={false}
+          />
+        </>
+      )}
     </>
   );
 }
