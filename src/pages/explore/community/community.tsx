@@ -171,10 +171,12 @@ export function Community({
               }
             }
             if (newPks.length > 0) {
-              worker.subMetadata(newPks, undefined, {
-                type: CallRelayType.single,
-                data: [data.relayUrl!],
-              }).iterating({ cb: handleEvent });
+              worker
+                .subMetadata(newPks, undefined, {
+                  type: CallRelayType.single,
+                  data: [data.relayUrl!],
+                })
+                .iterating({ cb: handleEvent });
             }
 
             // save event
@@ -214,7 +216,10 @@ export function Community({
     <>
       <div className={styles.communityPage}>
         <img src={community.image} alt="" className={styles.banner} />
+        <div className={styles.title}>{community.id}</div>
         <div className={styles.description}>{community.description}</div>
+        <div className={styles.ruleTitle}>Rules</div>
+        <div className={styles.rules}>{community.rules}</div>
         <div className={styles.moderator}>
           <div>
             <Tooltip
@@ -250,7 +255,7 @@ export function Community({
             Create Post
           </Button>
           <Modal
-            title={'Post to '+community.id}
+            title={'Post to ' + community.id}
             wrapClassName={styles.modal}
             footer={null}
             open={openWrite}
@@ -264,7 +269,12 @@ export function Community({
                 'Your post will show up in your profile, but it needs to be approved by moderator to show up in the community'
               }
             </p>
-            <PubNoteTextarea activeCommunity={Nip172.communityAddr({identifier: community.id, author: community.creator})} />
+            <PubNoteTextarea
+              activeCommunity={Nip172.communityAddr({
+                identifier: community.id,
+                author: community.creator,
+              })}
+            />
           </Modal>
         </div>
       </div>

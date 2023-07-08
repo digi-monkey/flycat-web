@@ -13,7 +13,7 @@ import {
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
-import { Divider, Input, Tabs } from 'antd';
+import { Button, Divider, Input, Tabs } from 'antd';
 import { Community } from './community/community';
 import { deserializeMetadata } from 'core/nostr/content';
 import { useLoadProfiles } from './hooks/useLoadProfile';
@@ -134,6 +134,10 @@ const Explore = () => {
                     })
               }
             />
+          </div>
+          
+          <div className={styles.createCommunityBtn}>
+            <Button onClick={()=>window.open("/explore/community/create")}>create new community</Button>
           </div>
         </div>
       </Right>

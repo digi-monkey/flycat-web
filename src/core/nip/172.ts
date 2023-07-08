@@ -11,6 +11,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { isEvent } from 'core/nostr/util';
+import { RawEvent } from 'core/nostr/RawEvent';
 
 export interface CommunityMetadata {
   creator: PublicKey;
@@ -18,11 +19,26 @@ export interface CommunityMetadata {
   id: string; // also is the Community name
   description: string;
   image: string;
+	rules: string;
 }
 
 export class Nip172 {
   static metadata_kind = WellKnownEventKind.community_metadata;
   static approval_kind = WellKnownEventKind.community_approval;
+
+	static createCommunityRawEvent(data: CommunityMetadata){
+		const tags =[
+			[EventTags.D, data.id],
+			["image", data.image],
+			["description", data.description],
+			["rules", data.rules],
+		];
+		for(const moderator of data.moderators){
+			tags.push([EventTags.P, moderator, '', 'moderator']);
+		}
+		const event = new RawEvent('', this.metadata_kind, tags);
+		return event;
+	}
 
   static communitiesFilter(pks?: PublicKey[]): Filter {
     const filter: Filter = {
@@ -208,6 +224,9 @@ export class Nip172 {
     const description = event.tags
       .filter(t => t[0] === 'description')
       .map(t => t[1] as string)[0];
+		const rules = event.tags
+      .filter(t => t[0] === 'rules')
+      .map(t => t[1] as string)[0];
     const creator = event.pubkey;
     const moderators = event.tags
       .filter(t => t[0] === EventTags.P)
@@ -217,6 +236,7 @@ export class Nip172 {
       id,
       image,
       description,
+			rules,
       creator,
       moderators,
     };
