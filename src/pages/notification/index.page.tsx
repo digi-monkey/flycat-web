@@ -26,6 +26,7 @@ import { Nip172 } from 'core/nip/172';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import Icon from 'components/Icon';
 import Link from 'next/link';
+import { createCallRelay } from 'core/worker/util';
 
 export interface ItemProps {
   msg: Event;
@@ -122,17 +123,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     if (newConn.length === 0) return;
     if (!worker) return;
 
-    const callRelay =
-      newConn.length === 0
-        ? {
-            type: CallRelayType.connected,
-            data: [],
-          }
-        : {
-            type: CallRelayType.batch,
-            data: newConn,
-          };
-
+    const callRelay = createCallRelay(newConn);
     worker
       .subFilter({
         filter: {
@@ -277,23 +268,34 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             .map(msg => {
               const moderator = msg.pubkey;
               const postEvent = Nip172.parseNoteFromApproval(msg);
-              const community = Nip172.parseCommunityAddr(msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1])
+              const community = Nip172.parseCommunityAddr(
+                msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
+              );
+              const header = (
+                <div className={styles.approvalHeader}>
+                  <div className={styles.description}>
+                    <Link href={'/user/' + moderator}>
+                      {userMap.get(moderator)?.name ||
+                        shortifyNPub(
+                          Nip19.encode(moderator, Nip19DataType.Npubkey),
+                        )}
+                    </Link>
+                    {' just approve your post from '}
+                    <span className={styles.communityHeader} onClick={()=>window.open('/explore/community/'+encodeURIComponent(Nip172.communityAddr(community)))}>
+                      {' '}
+                      <Icon type="icon-explore" /> {community.identifier}
+                    </span>
+                  </div>
+                  <div className={styles.time}>{timeSince(msg.created_at)}</div>
+                </div>
+              );
 
               return (
                 <>
                   {postEvent ? (
                     <>
                       <PostItems
-                        extraHeader={
-                          <div className={styles.approvalHeader}>
-                            <div className={styles.description}>
-                              <Link href={'/user/'+moderator}>{userMap.get(moderator)?.name || shortifyNPub(Nip19.encode(moderator, Nip19DataType.Npubkey))}</Link>
-                              {' just approve your post from '}
-                              <span className={styles.communityHeader}> <Icon type='icon-explore' /> {community.identifier}</span>
-                            </div>
-                            <div className={styles.time}>{timeSince(msg.created_at)}</div>
-                          </div>
-                        }
+                        extraHeader={header}
                         msgList={[postEvent!]}
                         worker={worker!}
                         userMap={userMap}
