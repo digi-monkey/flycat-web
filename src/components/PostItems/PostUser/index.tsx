@@ -9,6 +9,7 @@ import Icon from 'components/Icon';
 import { copyToClipboard } from 'utils/common';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { EventWithSeen } from 'pages/type';
+import { Event } from 'core/nostr/Event';
 
 interface PostUserProps {
   publicKey: string;
@@ -18,6 +19,10 @@ interface PostUserProps {
   child?: boolean;
   time?: number;
   event: EventWithSeen;
+  extraMenu?: {
+    label: string;
+    onClick: (event: Event, msg: typeof message) => any;
+  }[];
 }
 
 const PostUser: React.FC<PostUserProps> = ({
@@ -28,6 +33,7 @@ const PostUser: React.FC<PostUserProps> = ({
   descNodes,
   event,
   child = false,
+  extraMenu,
 }) => {
   const timeSince = useTimeSince(time || 0);
 
@@ -82,6 +88,17 @@ const PostUser: React.FC<PostUserProps> = ({
       },
     },
   ];
+  if (extraMenu) {
+    for (const option of extraMenu) {
+      items.push({
+        label: option.label,
+        key: (items.length + 1).toString(),
+        onClick: () => {
+          option.onClick(event, message);
+        },
+      });
+    }
+  }
 
   return (
     <div

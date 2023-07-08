@@ -1,6 +1,7 @@
 import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
 import { EventMap, UserMap } from 'core/nostr/type';
+import {Event} from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
 
@@ -13,11 +14,9 @@ import { Nip18 } from 'core/nip/18';
 import PostRepost from './PostRepost';
 import { toUnSeenEvent } from 'core/nostr/util';
 import PostArticleComment from './PostArticleComment';
-import { Nip172 } from 'core/nip/172';
-import Link from 'next/link';
-import Icon from 'components/Icon';
 import { Paths } from 'constants/path';
 import { PostCommunityHeader } from './PostCommunityHeader';
+import { message } from 'antd';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -27,6 +26,10 @@ interface PostItemsProps {
   relays: string[];
   showLastReplyToEvent?: boolean;
   showFromCommunity?: boolean;
+  extraMenu?: {
+    label: string;
+    onClick: (event: Event, msg: typeof message) => any;
+  }[];
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
@@ -37,6 +40,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   relays,
   showLastReplyToEvent = true,
   showFromCommunity = true,
+  extraMenu
 }) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
@@ -61,6 +65,7 @@ const PostItems: React.FC<PostItemsProps> = ({
               name={getUser(msg)?.name}
               time={msg.created_at}
               event={msg}
+              extraMenu={extraMenu}
             />
             <div className={styles.content}>
               {Nip23.isBlogPost(msg) ? (

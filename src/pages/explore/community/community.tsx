@@ -28,6 +28,10 @@ import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { Event } from 'core/nostr/Event';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -51,6 +55,10 @@ export function Community({
   const [loading, setLoading] = useState(false);
   const [openWrite, setOpenWrite] = useState(false);
   const [selectTab, setSelectTab] = useState<string | number>();
+
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
 
   useEffect(() => {
     getApprovalShortNoteId();
@@ -88,7 +96,7 @@ export function Community({
             prev.set(event.id, event);
             return prev;
           });
-          if(!Nip172.isCommunityPost(event))return;
+          if (!Nip172.isCommunityPost(event)) return;
           setMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
               // do not add duplicated msg
@@ -247,7 +255,7 @@ export function Community({
             prev.set(event.id, event);
             return prev;
           });
-          if(!Nip172.isCommunityPost(event))return;
+          if (!Nip172.isCommunityPost(event)) return;
 
           setAllMsgList(oldArray => {
             if (!oldArray.map(e => e.id).includes(event.id)) {
@@ -305,18 +313,34 @@ export function Community({
       identifier: community.id,
       author: community.creator,
     });
-    console.log("filter:", filter)
+    console.log('filter:', filter);
     worker.subFilter({ filter }).iterating({ cb: handleEvent });
   };
 
-  useEffect(()=>{
-    if(selectTab === "un-approval"){
+  useEffect(() => {
+    if (selectTab === 'un-approval') {
       getAllShortNoteId();
     }
-  }, [selectTab, community])
+  }, [selectTab, community]);
 
   const isModerator = community.moderators.includes(myPublicKey);
-  const unApprovalMsgList = allMsgList.filter(msg => !msgList.map(m => m.id).includes(msg.id));
+  const unApprovalMsgList = allMsgList.filter(
+    msg => !msgList.map(m => m.id).includes(msg.id),
+  );
+
+  const createApproval = async (postEvent: Event, message) => {
+    if (!worker) return message.error('worker not found');
+    if (!signEvent) return message.errpr('signEvent method not found');
+
+    const rawEvent = Nip172.createApprovePostRawEvent(
+      postEvent,
+      community.id,
+      community.creator,
+    );
+    const event = await signEvent(rawEvent);
+    const handle = worker.pubEvent(event);
+    noticePubEventResult(handle, () => getApprovalShortNoteId());
+  };
 
   return (
     <>
@@ -398,6 +422,17 @@ export function Community({
             eventMap={eventMap}
             relays={worker?.relays.map(r => r.url) || []}
             showFromCommunity={false}
+            extraMenu={
+              isModerator
+                ? [
+                    {
+                      label: 'approve this event',
+                      onClick: (event, message) =>
+                        createApproval(event, message),
+                    },
+                  ]
+                : []
+            }
           />
         </>
       )}
