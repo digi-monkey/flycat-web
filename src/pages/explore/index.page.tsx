@@ -106,6 +106,7 @@ const Explore = () => {
           <Search
             size="large"
             placeholder="search community name"
+            onChange={e => setSearchName(e.target.value)}
             onSearch={value => setSearchName(value)}
           />
           <Divider orientation="left">Communities</Divider>
@@ -113,7 +114,7 @@ const Explore = () => {
             <Tabs
               tabPosition="left"
               activeKey={selectedCommunityId}
-              onChange={naddr => {console.log("changed!", naddr);setSelectedCommunityId(naddr)}}
+              onChange={naddr => {setSelectedCommunityId(naddr)}}
               items={
                 searchName
                   ? Array.from(communities.keys())

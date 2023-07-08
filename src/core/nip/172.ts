@@ -19,26 +19,42 @@ export interface CommunityMetadata {
   id: string; // also is the Community name
   description: string;
   image: string;
-	rules: string;
+  rules: string;
 }
 
 export class Nip172 {
   static metadata_kind = WellKnownEventKind.community_metadata;
   static approval_kind = WellKnownEventKind.community_approval;
 
-	static createCommunityRawEvent(data: CommunityMetadata){
-		const tags =[
-			[EventTags.D, data.id],
-			["image", data.image],
-			["description", data.description],
-			["rules", data.rules],
-		];
-		for(const moderator of data.moderators){
-			tags.push([EventTags.P, moderator, '', 'moderator']);
-		}
-		const event = new RawEvent('', this.metadata_kind, tags);
-		return event;
-	}
+  static createCommunityRawEvent(data: CommunityMetadata) {
+    const tags = [
+      [EventTags.D, data.id],
+      ['image', data.image],
+      ['description', data.description],
+      ['rules', data.rules],
+    ];
+    for (const moderator of data.moderators) {
+      tags.push([EventTags.P, moderator, '', 'moderator']);
+    }
+    const event = new RawEvent('', this.metadata_kind, tags);
+    return event;
+  }
+
+  static createApprovePostRawEvent(
+    postEvent: Event,
+    identifier: string,
+    author: PublicKey,
+  ) {
+    // todo: only for kind 1, need to handle long-form
+    const tags = [
+      [EventTags.A, this.communityAddr({ identifier, author })],
+      [EventTags.E, postEvent.id],
+      [EventTags.P, postEvent.pubkey],
+    ];
+    const content = JSON.stringify(postEvent);
+    const rawEvent = new RawEvent('', this.approval_kind, tags, content);
+    return rawEvent;
+  }
 
   static communitiesFilter(pks?: PublicKey[]): Filter {
     const filter: Filter = {
@@ -176,7 +192,7 @@ export class Nip172 {
   }) {
     const addr = this.communityAddr({ identifier, author });
     const filter: Filter = {
-      kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
+      //kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
       '#a': [addr],
     };
     return filter;
@@ -198,9 +214,9 @@ export class Nip172 {
       throw new Error('not a valid community post');
 
     const aTags = event.tags.filter(t => this.isCommunityATag(t));
-    if (aTags.length === 0){
-			throw new Error('not a valid community post: a tag not found');
-		}
+    if (aTags.length === 0) {
+      throw new Error('not a valid community post: a tag not found');
+    }
 
     return aTags.map(t => t[1] as Naddr)[0] as Naddr;
   }
@@ -224,7 +240,7 @@ export class Nip172 {
     const description = event.tags
       .filter(t => t[0] === 'description')
       .map(t => t[1] as string)[0];
-		const rules = event.tags
+    const rules = event.tags
       .filter(t => t[0] === 'rules')
       .map(t => t[1] as string)[0];
     const creator = event.pubkey;
@@ -236,7 +252,7 @@ export class Nip172 {
       id,
       image,
       description,
-			rules,
+      rules,
       creator,
       moderators,
     };
