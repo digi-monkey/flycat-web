@@ -9,7 +9,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { fetchSince, get, update } from 'core/last-notify';
-import { deserializeMetadata } from 'core/nostr/content';
+import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 
@@ -22,6 +22,10 @@ import { Nip57 } from 'core/nip/57';
 import styles from './index.module.scss';
 import { timeSince } from 'utils/time';
 import { notifyKinds } from './kinds';
+import { Nip172 } from 'core/nip/172';
+import { Nip19, Nip19DataType } from 'core/nip/19';
+import Icon from 'components/Icon';
+import Link from 'next/link';
 
 export interface ItemProps {
   msg: Event;
@@ -40,6 +44,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [unreadMentions, setUnreadMentions] = useState<EventId[]>([]);
   const [unreadReposts, setUnreadReposts] = useState<EventId[]>([]);
   const [unreadZaps, setUnreadZaps] = useState<EventId[]>([]);
+  const [unreadApproval, setUnreadApproval] = useState<EventId[]>([]);
 
   function handleEvent(event: Event, relayUrl?: string) {
     switch (event.kind) {
@@ -159,6 +164,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     setUnreadMentions(getUnreadEventIds(WellKnownEventKind.text_note));
     setUnreadReposts(getUnreadEventIds(WellKnownEventKind.reposts));
     setUnreadZaps(getUnreadEventIds(WellKnownEventKind.zap_receipt));
+    setUnreadApproval(getUnreadEventIds(WellKnownEventKind.community_approval));
   };
 
   useEffect(() => {
@@ -257,6 +263,52 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
               );
             })}
         </List>
+      ),
+    },
+    {
+      label: <Badge count={unreadApproval.length}>New Approval</Badge>,
+      key: 'new-approval',
+      children: (
+        <>
+          {msgList.filter(e => e.kind === WellKnownEventKind.community_approval)
+            .length === 0 && <Empty />}
+          {msgList
+            .filter(e => e.kind === WellKnownEventKind.community_approval)
+            .map(msg => {
+              const moderator = msg.pubkey;
+              const postEvent = Nip172.parseNoteFromApproval(msg);
+              const community = Nip172.parseCommunityAddr(msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1])
+
+              return (
+                <>
+                  {postEvent ? (
+                    <>
+                      <PostItems
+                        extraHeader={
+                          <div className={styles.approvalHeader}>
+                            <div className={styles.description}>
+                              <Link href={'/user/'+moderator}>{userMap.get(moderator)?.name || shortifyNPub(Nip19.encode(moderator, Nip19DataType.Npubkey))}</Link>
+                              {' just approve your post from '}
+                              <span className={styles.communityHeader}> <Icon type='icon-explore' /> {community.identifier}</span>
+                            </div>
+                            <div className={styles.time}>{timeSince(msg.created_at)}</div>
+                          </div>
+                        }
+                        msgList={[postEvent!]}
+                        worker={worker!}
+                        userMap={userMap}
+                        eventMap={eventMap}
+                        relays={worker?.relays.map(r => r.url) || []}
+                        showFromCommunity={false}
+                      />
+                    </>
+                  ) : (
+                    'Unknown approval post info'
+                  )}
+                </>
+              );
+            })}
+        </>
       ),
     },
   ];
