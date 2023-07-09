@@ -3,7 +3,7 @@ import { EventId, EventMap, EventTags, Naddr, UserMap } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -56,7 +56,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     [],
   );
   const [approveByMe, setApproveByMe] = useState<EventId[]>([]);
-  const [commAddrs, setCommAddrs] = useState<Map<EventId, Naddr>>(new Map());
   const [requestApproveMsgList, setRequestApproveMsgList] = useState<Event[]>(
     [],
   );
@@ -132,6 +131,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     }
   }
 
+  const limit = 5;
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
     if (!worker) return;
@@ -144,6 +144,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           '#p': [myPublicKey],
           kinds: notifyKinds,
           since: fetchSince,
+          limit,
         },
         callRelay,
       })
@@ -156,6 +157,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           authors: [myPublicKey],
           kinds: [WellKnownEventKind.community_approval],
           since: fetchSince,
+          limit,
         },
         callRelay,
       })
@@ -196,7 +198,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           kinds: [WellKnownEventKind.community_metadata],
           since: fetchSince,
         },
-        callRelay
+        callRelay,
       })
       .getIterator();
     const commAddrs: Map<EventId, Naddr> = new Map();
@@ -223,6 +225,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           filter: {
             '#a': addrs,
             kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
+            limit,
           },
         })
         .iterating({
@@ -322,249 +325,272 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     </Button>
   );
 
+  const relays = worker?.relays.map(r => r.url) || [];
+
+  const mentionMsgList = msgList.filter(
+    e => e.kind === WellKnownEventKind.text_note,
+  );
+  const repostMsgList = msgList.filter(
+    e => e.kind === WellKnownEventKind.reposts,
+  );
+  const zapMsgList = msgList.filter(
+    e => e.kind === WellKnownEventKind.zap_receipt,
+  );
+  const newApproveMsgList = msgList.filter(
+    e => e.kind === WellKnownEventKind.community_approval,
+  );
+
+  const mentionUI = useMemo(
+    () => (
+      <>
+        {mentionMsgList.length === 0 && <Empty />}
+        <PostItems
+          relays={relays}
+          msgList={mentionMsgList}
+          worker={worker!}
+          userMap={userMap}
+          eventMap={eventMap}
+        />
+      </>
+    ),
+    [mentionMsgList],
+  );
+  const repostUI = useMemo(
+    () => (
+      <>
+        {repostMsgList.length === 0 && <Empty />}
+        <PostItems
+          relays={relays}
+          msgList={repostMsgList}
+          worker={worker!}
+          userMap={userMap}
+          eventMap={eventMap}
+        />
+      </>
+    ),
+    [repostMsgList],
+  );
+  const zapUI = useMemo(
+    () => (
+      <List>
+        {zapMsgList.length === 0 && <Empty />}
+        {zapMsgList.map(msg => {
+          const zapInfo = Nip57.parseZapReceiptInfo(msg);
+          if (zapInfo) {
+            worker
+              ?.subMetadata([zapInfo.sender, zapInfo.wallet])
+              .iterating({ cb: handleEvent });
+          }
+          return (
+            <List.Item key={msg.id} style={{ paddingLeft: '20px' }}>
+              {zapInfo ? (
+                <List.Item.Meta
+                  avatar={<Avatar src={userMap.get(zapInfo.sender)?.picture} />}
+                  title={
+                    <>
+                      {userMap.get(zapInfo.sender)?.name}
+                      {' just zapped you '}
+                      <span className={styles.sats}>
+                        {+zapInfo.human_readable_part.amount / 1000} sats
+                      </span>
+                    </>
+                  }
+                  description={
+                    'from ' +
+                    (userMap.get(zapInfo.wallet)?.name || 'unknown wallet')
+                  }
+                />
+              ) : (
+                'unknown zap info'
+              )}
+            </List.Item>
+          );
+        })}
+      </List>
+    ),
+    [zapMsgList],
+  );
+  const newApprovalUI = useMemo(
+    () => (
+      <>
+        {newApproveMsgList.length === 0 && <Empty />}
+        {newApproveMsgList.map(msg => {
+          const moderator = msg.pubkey;
+          const postEvent = Nip172.parseNoteFromApproval(msg);
+          const community = Nip172.parseCommunityAddr(
+            msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
+          );
+          const header = (
+            <div className={styles.approvalHeader}>
+              <div className={styles.description}>
+                <Link href={'/user/' + moderator}>
+                  {userMap.get(moderator)?.name ||
+                    shortifyNPub(
+                      Nip19.encode(moderator, Nip19DataType.Npubkey),
+                    )}
+                </Link>
+                {' just approve your post from '}
+                <span
+                  className={styles.communityHeader}
+                  onClick={() =>
+                    window.open(
+                      '/explore/community/' +
+                        encodeURIComponent(Nip172.communityAddr(community)),
+                    )
+                  }
+                >
+                  {' '}
+                  <Icon type="icon-explore" /> {community.identifier}
+                </span>
+              </div>
+              <div className={styles.time}>{timeSince(msg.created_at)}</div>
+            </div>
+          );
+
+          return (
+            <>
+              {postEvent ? (
+                <>
+                  <PostItems
+                    extraHeader={header}
+                    msgList={[postEvent!]}
+                    worker={worker!}
+                    userMap={userMap}
+                    eventMap={eventMap}
+                    relays={relays}
+                    showFromCommunity={false}
+                  />
+                </>
+              ) : (
+                'Unknown approval post info'
+              )}
+            </>
+          );
+        })}
+      </>
+    ),
+    [newApproveMsgList],
+  );
+  const newRequestApprovalUI = useMemo(
+    () => (
+      <>
+        {requestApproveMsgList.length === 0 && <Empty />}
+        {requestApproveMsgList.map(msg => {
+          const community = Nip172.parseCommunityAddr(
+            msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
+          );
+          const isAlreadyApproved = approveByMe.includes(msg.id);
+          const createApproval = async (postEvent: Event, message) => {
+            if (!worker) return message.error('worker not found');
+            if (!signEvent) return message.errpr('signEvent method not found');
+
+            const rawEvent = Nip172.createApprovePostRawEvent(
+              postEvent,
+              community.identifier,
+              community.author,
+            );
+            const event = await signEvent(rawEvent);
+            const handle = worker.pubEvent(event);
+            noticePubEventResult(handle);
+          };
+          const header = (
+            <div className={styles.approvalHeader}>
+              <div className={styles.description}>
+                <Link href={'/user/' + msg.pubkey}>
+                  {userMap.get(msg.pubkey)?.name ||
+                    shortifyNPub(
+                      Nip19.encode(msg.pubkey, Nip19DataType.Npubkey),
+                    )}
+                </Link>
+                {' request post approval in '}
+                <span
+                  className={styles.communityHeader}
+                  onClick={() =>
+                    window.open(
+                      '/explore/community/' +
+                        encodeURIComponent(Nip172.communityAddr(community)),
+                    )
+                  }
+                >
+                  {' '}
+                  <Icon type="icon-explore" /> {community.identifier}
+                </span>
+              </div>
+              <div>
+                <Button
+                  type="primary"
+                  onClick={() => createApproval(msg, message)}
+                  disabled={isAlreadyApproved}
+                >
+                  {isAlreadyApproved ? 'Approved' : 'Approve'}
+                </Button>
+              </div>
+            </div>
+          );
+
+          return (
+            <>
+              {msg ? (
+                <>
+                  <PostItems
+                    extraHeader={header}
+                    msgList={[msg!]}
+                    worker={worker!}
+                    userMap={userMap}
+                    eventMap={eventMap}
+                    relays={relays}
+                    showFromCommunity={false}
+                    extraMenu={
+                      isAlreadyApproved
+                        ? []
+                        : [
+                            {
+                              label: 'approve this event',
+                              onClick: (event, message) =>
+                                createApproval(event, message),
+                            },
+                          ]
+                    }
+                  />
+                </>
+              ) : (
+                'Unknown request post approval info'
+              )}
+            </>
+          );
+        })}
+      </>
+    ),
+    [],
+  );
+
   const items = [
     {
       label: <Badge count={unreadMentions.length}>Mentions</Badge>,
       key: 'mentions',
-      children: (
-        <>
-          {msgList.filter(e => e.kind === WellKnownEventKind.text_note)
-            .length === 0 && <Empty />}
-          <PostItems
-            relays={worker?.relays.map(r => r.url) || []}
-            msgList={msgList.filter(
-              e => e.kind === WellKnownEventKind.text_note,
-            )}
-            worker={worker!}
-            userMap={userMap}
-            eventMap={eventMap}
-          />
-        </>
-      ),
+      children: mentionUI,
     },
     {
       label: <Badge count={unreadReposts.length}>Reposts</Badge>,
       key: 'reposts',
-      children: (
-        <>
-          {msgList.filter(e => e.kind === WellKnownEventKind.reposts).length ===
-            0 && <Empty />}
-          <PostItems
-            relays={worker?.relays.map(r => r.url) || []}
-            msgList={msgList.filter(e => e.kind === WellKnownEventKind.reposts)}
-            worker={worker!}
-            userMap={userMap}
-            eventMap={eventMap}
-          />
-        </>
-      ),
+      children: repostUI,
     },
     {
       label: <Badge count={unreadZaps.length}>Zaps</Badge>,
       key: 'zaps',
-      children: (
-        <List>
-          {msgList.filter(e => e.kind === WellKnownEventKind.zap_receipt)
-            .length === 0 && <Empty />}
-          {msgList
-            .filter(e => e.kind === WellKnownEventKind.zap_receipt)
-            .map(msg => {
-              const zapInfo = Nip57.parseZapReceiptInfo(msg);
-              if (zapInfo) {
-                worker
-                  ?.subMetadata([zapInfo.sender, zapInfo.wallet])
-                  .iterating({ cb: handleEvent });
-              }
-              return (
-                <List.Item key={msg.id} style={{ paddingLeft: '20px' }}>
-                  {zapInfo ? (
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar src={userMap.get(zapInfo.sender)?.picture} />
-                      }
-                      title={
-                        <>
-                          {userMap.get(zapInfo.sender)?.name}
-                          {' just zapped you '}
-                          <span className={styles.sats}>
-                            {+zapInfo.human_readable_part.amount / 1000} sats
-                          </span>
-                        </>
-                      }
-                      description={
-                        'from ' +
-                        (userMap.get(zapInfo.wallet)?.name || 'unknown wallet')
-                      }
-                    />
-                  ) : (
-                    'unknown zap info'
-                  )}
-                </List.Item>
-              );
-            })}
-        </List>
-      ),
+      children: zapUI,
     },
     {
       label: <Badge count={unreadApproval.length}>New Approval</Badge>,
       key: 'new-approval',
-      children: (
-        <>
-          {msgList.filter(e => e.kind === WellKnownEventKind.community_approval)
-            .length === 0 && <Empty />}
-          {msgList
-            .filter(e => e.kind === WellKnownEventKind.community_approval)
-            .map(msg => {
-              const moderator = msg.pubkey;
-              const postEvent = Nip172.parseNoteFromApproval(msg);
-              const community = Nip172.parseCommunityAddr(
-                msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
-              );
-              const header = (
-                <div className={styles.approvalHeader}>
-                  <div className={styles.description}>
-                    <Link href={'/user/' + moderator}>
-                      {userMap.get(moderator)?.name ||
-                        shortifyNPub(
-                          Nip19.encode(moderator, Nip19DataType.Npubkey),
-                        )}
-                    </Link>
-                    {' just approve your post from '}
-                    <span
-                      className={styles.communityHeader}
-                      onClick={() =>
-                        window.open(
-                          '/explore/community/' +
-                            encodeURIComponent(Nip172.communityAddr(community)),
-                        )
-                      }
-                    >
-                      {' '}
-                      <Icon type="icon-explore" /> {community.identifier}
-                    </span>
-                  </div>
-                  <div className={styles.time}>{timeSince(msg.created_at)}</div>
-                </div>
-              );
-
-              return (
-                <>
-                  {postEvent ? (
-                    <>
-                      <PostItems
-                        extraHeader={header}
-                        msgList={[postEvent!]}
-                        worker={worker!}
-                        userMap={userMap}
-                        eventMap={eventMap}
-                        relays={worker?.relays.map(r => r.url) || []}
-                        showFromCommunity={false}
-                      />
-                    </>
-                  ) : (
-                    'Unknown approval post info'
-                  )}
-                </>
-              );
-            })}
-        </>
-      ),
+      children: newApprovalUI,
     },
     {
       label: (
         <Badge count={unreadRequestApproval.length}>Request Approval</Badge>
       ),
       key: 'new-request-approval',
-      children: (
-        <>
-          {requestApproveMsgList.length === 0 && <Empty />}
-          {requestApproveMsgList.map(msg => {
-            const community = Nip172.parseCommunityAddr(
-              msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
-            );
-            const isAlreadyApproved = approveByMe.includes(msg.id);
-            const createApproval = async (postEvent: Event, message) => {
-              if (!worker) return message.error('worker not found');
-              if (!signEvent)
-                return message.errpr('signEvent method not found');
-
-              const rawEvent = Nip172.createApprovePostRawEvent(
-                postEvent,
-                community.identifier,
-                community.author,
-              );
-              const event = await signEvent(rawEvent);
-              const handle = worker.pubEvent(event);
-              noticePubEventResult(handle);
-            };
-            const header = (
-              <div className={styles.approvalHeader}>
-                <div className={styles.description}>
-                  <Link href={'/user/' + msg.pubkey}>
-                    {userMap.get(msg.pubkey)?.name ||
-                      shortifyNPub(
-                        Nip19.encode(msg.pubkey, Nip19DataType.Npubkey),
-                      )}
-                  </Link>
-                  {' request post approval in '}
-                  <span
-                    className={styles.communityHeader}
-                    onClick={() =>
-                      window.open(
-                        '/explore/community/' +
-                          encodeURIComponent(Nip172.communityAddr(community)),
-                      )
-                    }
-                  >
-                    {' '}
-                    <Icon type="icon-explore" /> {community.identifier}
-                  </span>
-                </div>
-                <div>
-                  <Button
-                    type="primary"
-                    onClick={() => createApproval(msg, message)}
-                    disabled={isAlreadyApproved}
-                  >
-                    {isAlreadyApproved ? 'Approved' : 'Approve'}
-                  </Button>
-                </div>
-              </div>
-            );
-
-            return (
-              <>
-                {msg ? (
-                  <>
-                    <PostItems
-                      extraHeader={header}
-                      msgList={[msg!]}
-                      worker={worker!}
-                      userMap={userMap}
-                      eventMap={eventMap}
-                      relays={worker?.relays.map(r => r.url) || []}
-                      showFromCommunity={false}
-                      extraMenu={
-                        isAlreadyApproved
-                          ? []
-                          : [
-                              {
-                                label: 'approve this event',
-                                onClick: (event, message) =>
-                                  createApproval(event, message),
-                              },
-                            ]
-                      }
-                    />
-                  </>
-                ) : (
-                  'Unknown request post approval info'
-                )}
-              </>
-            );
-          })}
-        </>
-      ),
+      children: newRequestApprovalUI,
     },
   ];
 
