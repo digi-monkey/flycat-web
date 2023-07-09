@@ -12,23 +12,23 @@ import { fetchSince, get, update } from 'core/last-notify';
 import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-
-import { Avatar, Badge, Button, Empty, List, Tabs, message } from 'antd';
-import PostItems from 'components/PostItems';
 import { useSubLastReplyEvent } from 'hooks/useSubLastReplyEvent';
-import PageTitle from 'components/PageTitle';
-import { Nip57 } from 'core/nip/57';
-
-import styles from './index.module.scss';
+import { Avatar, Badge, Button, Empty, List, Tabs, message } from 'antd';
 import { timeSince } from 'utils/time';
 import { notifyKinds } from './kinds';
 import { Nip172 } from 'core/nip/172';
 import { Nip19, Nip19DataType } from 'core/nip/19';
-import Icon from 'components/Icon';
-import Link from 'next/link';
+import { Nip57 } from 'core/nip/57';
 import { createCallRelay } from 'core/worker/util';
 import { RootState } from 'store/configureStore';
 import { noticePubEventResult } from 'components/PubEventNotice';
+
+import PostItems from 'components/PostItems';
+import PageTitle from 'components/PageTitle';
+import Icon from 'components/Icon';
+import Link from 'next/link';
+
+import styles from './index.module.scss';
 
 export interface ItemProps {
   msg: Event;
@@ -55,11 +55,9 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [unreadRequestApproval, setUnreadRequestApproval] = useState<EventId[]>(
     [],
   );
+  const [approveByMe, setApproveByMe] = useState<EventId[]>([]);
   const [commAddrs, setCommAddrs] = useState<Map<EventId, Naddr>>(new Map());
   const [requestApproveMsgList, setRequestApproveMsgList] = useState<Event[]>(
-    [],
-  );
-  const [approveByMe, setApproveByMe] = useState<EventId[]>(
     [],
   );
 
@@ -136,9 +134,9 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
-    if (newConn.length === 0) return;
     if (!worker) return;
 
+    // get all notify kind event
     const callRelay = createCallRelay(newConn);
     worker
       .subFilter({
@@ -150,58 +148,73 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         callRelay,
       })
       .iterating({ cb: handleEvent });
+
+    // get approve event by me
     worker
+      .subFilter({
+        filter: {
+          authors: [myPublicKey],
+          kinds: [WellKnownEventKind.community_approval],
+          since: fetchSince,
+        },
+        callRelay,
+      })
+      .iterating({
+        cb: event => {
+          if (event.kind !== WellKnownEventKind.community_approval) return;
+
+          const eventIds = event.tags
+            .filter(t => t[0] === EventTags.E)
+            .map(t => t[1] as EventId);
+          if (eventIds.length === 0) return;
+
+          setApproveByMe(prev => {
+            const newData = prev;
+            if (!newData.includes(eventIds[0])) {
+              newData.push(eventIds[0]);
+            }
+            return newData;
+          });
+        },
+      });
+  }, [newConn, myPublicKey, worker]);
+
+  useEffect(() => {
+    getRequestApproveEvents();
+  }, [worker, newConn, myPublicKey]);
+
+  useSubLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
+
+  const getRequestApproveEvents = async () => {
+    if (!worker) return;
+
+    const callRelay = createCallRelay(newConn);
+    const iterator = worker
       .subFilter({
         filter: {
           '#p': [myPublicKey],
           kinds: [WellKnownEventKind.community_metadata],
           since: fetchSince,
         },
+        callRelay
       })
-      .iterating({
-        cb: event => {
-          if (event.kind !== WellKnownEventKind.community_metadata) return;
+      .getIterator();
+    const commAddrs: Map<EventId, Naddr> = new Map();
+    for await (const data of iterator) {
+      const event = data.event;
+      if (event.kind !== WellKnownEventKind.community_metadata) return;
 
-          setCommAddrs(prev => {
-            const newMap = new Map(prev);
-            newMap.set(
-              event.id,
-              Nip172.communityAddr({
-                identifier: event.tags
-                  .filter(t => t[0] === EventTags.D)
-                  .map(t => t[1])[0]!,
-                author: event.pubkey,
-              }),
-            );
-            return newMap;
-          });
-        },
-      });
-    worker.subFilter({
-      filter: {
-        authors: [myPublicKey],
-        kinds: [WellKnownEventKind.community_approval],
-        since: fetchSince
-      },
-      callRelay
-    }).iterating({cb: (event)=> {
-      if(event.kind !== WellKnownEventKind.community_approval)return;
-
-      const eventIds = event.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as EventId);
-      if(eventIds.length === 0)return;
-
-      setApproveByMe(prev => {
-        const newData = prev;
-        if(!newData.includes(eventIds[0])){
-          newData.push(eventIds[0]);
-        }
-        return newData;
-      })
-    }})
-  }, [newConn, myPublicKey, worker]);
-
-  useEffect(() => {
-    if (!worker) return;
+      commAddrs.set(
+        event.id,
+        Nip172.communityAddr({
+          identifier: event.tags
+            .filter(t => t[0] === EventTags.D)
+            .map(t => t[1])[0]!,
+          author: event.pubkey,
+        }),
+      );
+    }
+    iterator.unsubscribe();
 
     const addrs = Array.from(commAddrs.values());
     if (addrs.length > 0) {
@@ -256,9 +269,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           },
         });
     }
-  }, [commAddrs.size, worker]);
-
-  useSubLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
+  };
 
   const getUnreadEventIds = (kind: WellKnownEventKind) => {
     return msgList
@@ -296,9 +307,9 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     updateUnreadItems();
   }, [msgList]);
 
-  useEffect(()=>{
+  useEffect(() => {
     setUnreadRequestApproval(getUnreadRequestApproveEventIds());
-  }, [unreadRequestApproval])
+  }, [unreadRequestApproval]);
 
   const onMarkAll = () => {
     update(Math.round(Date.now() / 1000));
@@ -509,7 +520,15 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     <Icon type="icon-explore" /> {community.identifier}
                   </span>
                 </div>
-                <div><Button type="primary" onClick={()=>createApproval(msg, message)} disabled={isAlreadyApproved}>{isAlreadyApproved ? 'Approved':'Approve'}</Button></div>
+                <div>
+                  <Button
+                    type="primary"
+                    onClick={() => createApproval(msg, message)}
+                    disabled={isAlreadyApproved}
+                  >
+                    {isAlreadyApproved ? 'Approved' : 'Approve'}
+                  </Button>
+                </div>
               </div>
             );
 
@@ -525,13 +544,17 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                       eventMap={eventMap}
                       relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
-                      extraMenu={isAlreadyApproved ? [] : [
-                        {
-                          label: 'approve this event',
-                          onClick: (event, message) =>
-                            createApproval(event, message),
-                        },
-                      ]}
+                      extraMenu={
+                        isAlreadyApproved
+                          ? []
+                          : [
+                              {
+                                label: 'approve this event',
+                                onClick: (event, message) =>
+                                  createApproval(event, message),
+                              },
+                            ]
+                      }
                     />
                   </>
                 ) : (
@@ -549,8 +572,14 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     <BaseLayout>
       <Left>
         <PageTitle title="Notifications" right={markAll} />
-        <Tabs centered items={items} />
-        <Button type="link">Since {timeSince(fetchSince)} ago</Button>
+        {isLoggedIn ? (
+          <>
+            <Tabs centered items={items} />
+            <Button type="link">Since {timeSince(fetchSince)} ago</Button>
+          </>
+        ) : (
+          <>You must sign in first</>
+        )}
       </Left>
       <Right></Right>
     </BaseLayout>
