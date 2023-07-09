@@ -290,12 +290,15 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     setUnreadReposts(getUnreadEventIds(WellKnownEventKind.reposts));
     setUnreadZaps(getUnreadEventIds(WellKnownEventKind.zap_receipt));
     setUnreadApproval(getUnreadEventIds(WellKnownEventKind.community_approval));
-    setUnreadRequestApproval(getUnreadRequestApproveEventIds());
   };
 
   useEffect(() => {
     updateUnreadItems();
   }, [msgList]);
+
+  useEffect(()=>{
+    setUnreadRequestApproval(getUnreadRequestApproveEventIds());
+  }, [unreadRequestApproval])
 
   const onMarkAll = () => {
     update(Math.round(Date.now() / 1000));
