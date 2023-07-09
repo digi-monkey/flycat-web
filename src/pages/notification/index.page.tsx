@@ -13,7 +13,7 @@ import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 
-import { Avatar, Badge, Button, Empty, List, Tabs } from 'antd';
+import { Avatar, Badge, Button, Empty, List, Tabs, message } from 'antd';
 import PostItems from 'components/PostItems';
 import { useSubLastReplyEvent } from 'hooks/useSubLastReplyEvent';
 import PageTitle from 'components/PageTitle';
@@ -57,6 +57,9 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   );
   const [commAddrs, setCommAddrs] = useState<Map<EventId, Naddr>>(new Map());
   const [requestApproveMsgList, setRequestApproveMsgList] = useState<Event[]>(
+    [],
+  );
+  const [approveByMe, setApproveByMe] = useState<EventId[]>(
     [],
   );
 
@@ -174,6 +177,27 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           });
         },
       });
+    worker.subFilter({
+      filter: {
+        authors: [myPublicKey],
+        kinds: [WellKnownEventKind.community_approval],
+        since: fetchSince
+      },
+      callRelay
+    }).iterating({cb: (event)=> {
+      if(event.kind !== WellKnownEventKind.community_approval)return;
+
+      const eventIds = event.tags.filter(t => t[0] === EventTags.E).map(t => t[1] as EventId);
+      if(eventIds.length === 0)return;
+
+      setApproveByMe(prev => {
+        const newData = prev;
+        if(!newData.includes(eventIds[0])){
+          newData.push(eventIds[0]);
+        }
+        return newData;
+      })
+    }})
   }, [newConn, myPublicKey, worker]);
 
   useEffect(() => {
@@ -444,6 +468,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             const community = Nip172.parseCommunityAddr(
               msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
             );
+            const isAlreadyApproved = approveByMe.includes(msg.id);
             const createApproval = async (postEvent: Event, message) => {
               if (!worker) return message.error('worker not found');
               if (!signEvent)
@@ -481,7 +506,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     <Icon type="icon-explore" /> {community.identifier}
                   </span>
                 </div>
-                <div className={styles.time}>{timeSince(msg.created_at)}</div>
+                <div><Button type="primary" onClick={()=>createApproval(msg, message)} disabled={isAlreadyApproved}>{isAlreadyApproved ? 'Approved':'Approve'}</Button></div>
               </div>
             );
 
@@ -497,7 +522,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                       eventMap={eventMap}
                       relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
-                      extraMenu={[
+                      extraMenu={isAlreadyApproved ? [] : [
                         {
                           label: 'approve this event',
                           onClick: (event, message) =>
