@@ -62,7 +62,6 @@ export function useNotification() {
         filter: {
           '#p': [myPublicKey],
           kinds: [WellKnownEventKind.community_metadata],
-          since: fetchSince,
         },
       })
       .iterating({
@@ -89,6 +88,9 @@ export function useNotification() {
   useEffect(() => {
     if (!worker) return;
 
+    const lastReadTime = get() || fetchSince;
+    const since = lastReadTime + 1; // exclude the last read msg itself
+    
     const addrs = Array.from(commAddrs.values());
     if (addrs.length > 0) {
       worker
@@ -96,6 +98,7 @@ export function useNotification() {
           filter: {
             '#a': addrs,
             kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
+            since,
           },
         })
         .iterating({
@@ -125,6 +128,8 @@ export function useNotification() {
         });
     }
   }, [commAddrs.size, worker]);
+
+  console.log("requestApproveMsgList: ", requestApproveMsgList);
 
   return eventIds.length + requestApproveMsgList.length > 0;
 }
