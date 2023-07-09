@@ -30,6 +30,7 @@ interface PostItemsProps {
     label: string;
     onClick: (event: Event, msg: typeof message) => any;
   }[];
+  extraHeader?: React.ReactNode;
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
@@ -40,7 +41,8 @@ const PostItems: React.FC<PostItemsProps> = ({
   relays,
   showLastReplyToEvent = true,
   showFromCommunity = true,
-  extraMenu
+  extraMenu,
+  extraHeader
 }) => {
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
@@ -58,6 +60,7 @@ const PostItems: React.FC<PostItemsProps> = ({
           />
         ) : (
           <div className={styles.post} key={msg.id}>
+            {extraHeader}
             {showFromCommunity && <PostCommunityHeader event={msg} />}
             <PostUser
               publicKey={msg.pubkey}
