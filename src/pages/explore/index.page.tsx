@@ -13,13 +13,14 @@ import {
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
-import { Button, Divider, Input, Tabs } from 'antd';
+import { Button, Divider, Input, Space, Tabs } from 'antd';
 import { Community } from './community/community';
 import { deserializeMetadata } from 'core/nostr/content';
 import { useLoadProfiles } from './hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
+import { SearchOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -78,8 +79,8 @@ const Explore = () => {
     }
   };
 
-  useEffect(()=>{
-    if(communities.size > 0 && !selectedCommunityId){
+  useEffect(() => {
+    if (communities.size > 0 && !selectedCommunityId) {
       setSelectedCommunityId(Array.from(communities.keys())[0]);
     }
   }, [communities]);
@@ -90,6 +91,54 @@ const Explore = () => {
     <BaseLayout>
       <Left>
         <PageTitle title={'Explore'} />
+
+        <div className={styles.communitySearchPanel}>
+          <Input
+            size="large"
+            addonBefore={<SearchOutlined />}
+            placeholder="Search community name"
+            onChange={e => setSearchName(e.target.value)}
+          />
+
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => window.open('/explore/community/create')}
+          >
+            create new one
+          </Button>
+        </div>
+
+        <Divider orientation="left">All Communities</Divider>
+        <div className={styles.communityTab}>
+          <Tabs
+            tabPosition="top"
+            activeKey={selectedCommunityId}
+            onChange={naddr => {
+              setSelectedCommunityId(naddr);
+            }}
+            items={
+              searchName
+                ? Array.from(communities.keys())
+                    .filter(a => a.includes(searchName))
+                    .map(naddr => {
+                      const community = communities.get(naddr)!;
+                      return {
+                        label: community.id,
+                        key: naddr,
+                      };
+                    })
+                : Array.from(communities.keys()).map(naddr => {
+                    const community = communities.get(naddr)!;
+                    return {
+                      label: community.id,
+                      key: naddr,
+                    };
+                  })
+            }
+          />
+        </div>
+
         {selectedCommunityId && (
           <Community
             worker={worker}
@@ -101,47 +150,7 @@ const Explore = () => {
           />
         )}
       </Left>
-      <Right>
-        <div className={styles.rightPanel}>
-          <Search
-            size="large"
-            placeholder="search community name"
-            onChange={e => setSearchName(e.target.value)}
-            onSearch={value => setSearchName(value)}
-          />
-          <Divider orientation="left">Communities</Divider>
-          <div className={styles.communityTab}>
-            <Tabs
-              tabPosition="left"
-              activeKey={selectedCommunityId}
-              onChange={naddr => {setSelectedCommunityId(naddr)}}
-              items={
-                searchName
-                  ? Array.from(communities.keys())
-                      .filter(a => a.includes(searchName))
-                      .map(naddr => {
-                        const community = communities.get(naddr)!;
-                        return {
-                          label: community.id,
-                          key: naddr,
-                        };
-                      })
-                  : Array.from(communities.keys()).map(naddr => {
-                      const community = communities.get(naddr)!;
-                      return {
-                        label: community.id,
-                        key: naddr,
-                      };
-                    })
-              }
-            />
-          </div>
-          
-          <div className={styles.createCommunityBtn}>
-            <Button onClick={()=>window.open("/explore/community/create")}>create new community</Button>
-          </div>
-        </div>
-      </Right>
+      <Right></Right>
     </BaseLayout>
   );
 };
