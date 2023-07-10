@@ -202,6 +202,7 @@
     z-index: 2;
     display: flex;
     justify-content: space-between;
+    gap: var(--basePadding2);
     align-items: center;
     padding: var(--basePadding4);
     height: var(--mobileHeaderHeight);
@@ -223,12 +224,20 @@
       width: 24px;
       height: 24px;
     }
+
+    div:first-of-type{
+      margin-top: 0px;
+      width: 100%;
+      padding: 0px;
+    }
   }
   main{
+    /*
     padding: {
       left: var(--basePadding4);
       right: var(--basePadding4);
     }
+    */
   }
   footer{
     position: fixed;
