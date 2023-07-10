@@ -131,7 +131,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     }
   }
 
-  const limit = 50;
+  const limit = 100;
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
     if (!worker) return;
@@ -329,16 +329,16 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const mentionMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.text_note,
-  ).slice(0, 20);
+  ).slice(0,15);
   const repostMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.reposts,
-  );
+  ).slice(0,15);
   const zapMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.zap_receipt,
-  );
+  ).slice(0,15);
   const newApproveMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.community_approval,
-  );
+  ).slice(0,15);
 
   const mentionUI = useMemo(
     () => (
@@ -561,7 +561,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         })}
       </>
     ),
-    [],
+    [requestApproveMsgList],
   );
 
   const items = [
@@ -601,7 +601,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         {isLoggedIn ? (
           <>
             <Tabs centered items={items} />
-            <Button type="link">Since {timeSince(fetchSince)} ago</Button>
+            <Button type="link">Since {timeSince(fetchSince)} ago, last 15 items</Button>
           </>
         ) : (
           <>You must sign in first</>
