@@ -5,23 +5,16 @@
   align-items: center;
 }
 
-.rightPanel {
-  position: fixed;
-  margin-top: var(--basePadding5);
-  .communityTab {
-    max-height: 450px;
-    overflow-y: scroll;
-    // border-bottom: 1px solid var(--primary-06);
-    // border-left: 1px solid var(--primary-06);
-    // border-right: 1px solid var(--primary-06);
-    border-radius: var(--baseBorderRadius8);
-    padding: var(--basePadding3);
-  }
-  .createCommunityBtn {
-    display: flex;
-    justify-content: flex-start;
-    margin: var(--basePadding8) 0px;
-  }
+.communitySearchPanel {
+  display: flex;
+  justify-content: space-between;
+  margin: var(--basePadding2) var(--basePadding5);
+  align-items: center;
+  gap: var(--basePadding5);
+}
+
+.communityTab{
+  margin: var(--basePadding2) var(--basePadding5);  
 }
 
 .communityPage {
@@ -36,7 +29,7 @@
   }
 
   .title {
-    @include  font-header2;
+    @include font-header2;
     margin: var(--basePadding3) 0px;
   }
 
