@@ -14,6 +14,10 @@
     margin-top: var(--basePadding3);
     overflow-wrap: anywhere;
     white-space: pre-line;
+
+    @include for-mobile{
+      padding-left: calc(var(--padding) * 1);
+    }
   }
 }
 
