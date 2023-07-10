@@ -32,43 +32,43 @@ export function MediaPreviews({ content }: PreviewsProp) {
             [styles.w33]: ![1, 2, 4, 8].includes(imageUrls.length),
           })}
         >
-          {imageUrls.map(url => (
-            <ImagePreview url={url} key={url} />
+          {imageUrls.map((url,index) => (
+            <ImagePreview url={url} key={url + index} />
           ))}
         </ul>
       )}
       {videoUrls.length > 0 && (
         <div>
-          {videoUrls.map(url => (
-            <VideoPreview url={url} key={url} />
+          {videoUrls.map((url,index) => (
+            <VideoPreview url={url} key={url + index} />
           ))}
         </div>
       )}
       {audioUrls.length > 0 && (
         <div>
-          {audioUrls.map(url => (
-            <AudioPreview src={url} key={url} />
+          {audioUrls.map((url,index) => (
+            <AudioPreview src={url} key={url + index} />
           ))}
         </div>
       )}
       {previewUrls.length > 0 && (
         <div>
-          {previewUrls.map(url => (
-            <UrlPreview url={url} key={url} />
+          {previewUrls.map((url,index) => (
+            <UrlPreview url={url} key={url + index} />
           ))}
         </div>
       )}
       {bolt11Invoices.length > 0 && (
         <div>
-          {bolt11Invoices.map(url => (
-            <LightingInvoice url={url} key={url} />
+          {bolt11Invoices.map((url,index) => (
+            <LightingInvoice url={url} key={url + index} />
           ))}
         </div>
       )}
       {lnUrls.length > 0 && (
         <div>
-          {lnUrls.map(url => (
-            <LnUrlInvoice url={url} key={url} />
+          {lnUrls.map((url,index) => (
+            <LnUrlInvoice url={url} key={url + index} />
           ))}
         </div>
       )}

@@ -2,7 +2,7 @@ import { EventId, EventMap, EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
 import { Relay } from 'core/relay/type';
@@ -12,12 +12,18 @@ import { MediaPreviews } from './Media';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
 import { Avatar, Button } from 'antd';
-import { normalizeContent, shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
+import {
+  normalizeContent,
+  shortifyEventId,
+  shortifyPublicKey,
+} from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
 import { Nip23 } from 'core/nip/23';
 import PostArticle from '../PostArticle';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
+import { maxStrings } from 'utils/common';
+import Icon from 'components/Icon';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -84,7 +90,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     const lastReply = msgEvent.tags
       .filter(t => t[0] === EventTags.E)
       .map(t => {
-        return { id: t[1], relay: t[2]?.split(",")[0] };
+        return { id: t[1], relay: t[2]?.split(',')[0] };
       })
       .pop();
 
@@ -119,10 +125,20 @@ export const PostContent: React.FC<PostContentProp> = ({
     });
   };
 
-  return (
+  const [expanded, setExpanded] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const isOverflow =
+    contentRef.current &&
+    contentRef.current.scrollHeight > contentRef.current.clientHeight;
+
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
+  const content = (
     <div>
       <div>{contentComponents}</div>
-
       {showLastReplyToEvent && lastReplyToEvent && (
         <SubPostItem userMap={userMap} event={lastReplyToEvent} />
       )}
@@ -136,8 +152,30 @@ export const PostContent: React.FC<PostContentProp> = ({
           </Button>
         </div>
       )}
-
       <MediaPreviews content={msgEvent.content} />
+    </div>
+  );
+
+  return (
+    <div>
+      {expanded ? (
+        content
+      ) : (
+        <div>
+          <div
+            ref={contentRef}
+            style={{ maxHeight: '150px', overflow: 'hidden' }}
+          >
+            {content}
+          </div>
+          {isOverflow && 
+            <div className={styles.expandContent}>
+              <Icon type="icon-arrow-down" />
+              <Button type='link' onClick={toggleExpanded}> Expand</Button>
+            </div>
+          }
+        </div>
+      )}
     </div>
   );
 };
@@ -172,7 +210,7 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
       </div>
       <div className={styles.content}>
         <div className={styles.event} onClick={clickEventBody}>
-          {event.content}
+          {maxStrings(event.content, 150)}
         </div>
         <MediaPreviews content={event.content} />
       </div>

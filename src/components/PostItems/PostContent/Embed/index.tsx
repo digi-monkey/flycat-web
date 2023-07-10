@@ -35,7 +35,7 @@ export const transformRefEmbed = (
     nprofiles?: NprofileResult[];
     nrelays?: NrelayResult[];
   },
-  userMap: UserMap
+  userMap: UserMap,
 ) => {
   let refTexts: string[] = [];
   let refComponents: any[] = [];
@@ -54,7 +54,9 @@ export const transformRefEmbed = (
   }
   if (nprofiles) {
     refTexts = refTexts.concat(nprofiles.map(n => n.key));
-    refComponents = refComponents.concat(nprofiles.map(n => Nprofile(n, userMap)));
+    refComponents = refComponents.concat(
+      nprofiles.map(n => Nprofile(n, userMap)),
+    );
   }
   if (naddrs) {
     refTexts = refTexts.concat(naddrs.map(n => n.key));
@@ -65,13 +67,16 @@ export const transformRefEmbed = (
     refComponents = refComponents.concat(nrelays.map(n => Nrelay(n)));
   }
 
-  const delimiters = refTexts;
-  const pattern = new RegExp(delimiters.join('|'));
- 
-  // Split the string based on the substrings
-  const textComponents = content
-    .split(pattern)
-    .map((text, index) => <span key={text+index}>{text}</span>);
+  let textComponents: any[] = [content];
+  if (refTexts.length > 0) {
+    const delimiters = refTexts;
+    const pattern = new RegExp(delimiters.join('|'));
+
+    // Split the string based on the substrings
+    textComponents = content
+      .split(pattern)
+      .map((text, index) => <span key={text + index}>{text}</span>);
+  }
 
   // Find the maximum length between the two arrays
   const maxLength = Math.max(textComponents.length, refComponents.length);
