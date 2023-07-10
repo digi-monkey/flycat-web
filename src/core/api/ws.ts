@@ -140,13 +140,13 @@ export class WS {
   }
 
   private doReconnect() {
-    if (!this._ws || this._ws.readyState === WebSocket.CLOSED) {
+    if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {
       this._ws = new WebSocket(this.url);
     }
 
     const reconnect = (_e: CloseEvent) => {
       setTimeout(() => {
-        console.log('try reconnect..');
+        console.log('try reconnect..', this.url);
         this.doReconnect();
       }, this.reconnectIdleSecs * 1000);
     };

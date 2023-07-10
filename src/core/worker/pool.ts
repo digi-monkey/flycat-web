@@ -39,7 +39,7 @@ export class Pool {
             } subs: active ${ws.activeSubscriptions.getSize()}, pending ${ws.pendingSubscriptions.size()}`,
           );
         });
-    }, 1 * 1000);
+    }, 2 * 1000);
   }
 
   closeAll() {
