@@ -565,7 +565,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   );
 
   const items = [
-    /*
     {
       label: <Badge count={unreadMentions.length}>Mentions</Badge>,
       key: 'mentions',
@@ -576,7 +575,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       key: 'reposts',
       children: repostUI,
     },
-    */
     {
       label: <Badge count={unreadZaps.length}>Zaps</Badge>,
       key: 'zaps',
@@ -594,7 +592,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       key: 'new-request-approval',
       children: newRequestApprovalUI,
     },
-    
   ];
 
   return (
