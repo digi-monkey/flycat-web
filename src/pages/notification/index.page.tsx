@@ -376,11 +376,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         {zapMsgList.length === 0 && <Empty />}
         {zapMsgList.map(msg => {
           const zapInfo = Nip57.parseZapReceiptInfo(msg);
-          if (zapInfo) {
-            worker
-              ?.subMetadata([zapInfo.sender, zapInfo.wallet])
-              .iterating({ cb: handleEvent });
-          }
           return (
             <List.Item key={msg.id} style={{ paddingLeft: '20px' }}>
               {zapInfo ? (
