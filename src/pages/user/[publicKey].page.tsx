@@ -544,7 +544,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   const tabItems = [
     {
-      label: `all`,
+      label: `All`,
       key: 'all',
       children: (
         <PostItems
@@ -557,7 +557,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       ),
     },
     {
-      label: `long-form`,
+      label: `Long-form`,
       key: 'longForm',
       children: (
         <PostItems
@@ -570,7 +570,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       ),
     },
     {
-      label: `media`,
+      label: `Media`,
       key: 'media',
       children: (
         <PostItems
