@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Event } from 'core/nostr/Event';
 import { fetchSince, get } from 'core/last-notify';
-import { CallRelayType } from 'core/worker/type';
 import { useReadonlyMyPublicKey } from './useMyPublicKey';
 import { useCallWorker } from './useWorker';
 import { notifyKinds } from 'pages/notification/kinds';

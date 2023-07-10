@@ -25,8 +25,11 @@ export const createPortOnMessageListener = ({
     switch (type) {
       case FromConsumerMsgType.switchRelays:
         {
-          console.log('SWITCH_RELAYS');
+          console.log('SWITCH_RELAYS', res.data.switchRelays, pool.switchRelays);
           const data = res.data;
+          if(data.switchRelays.relays.length === 0)return;
+          if(data.switchRelays.id === pool.switchRelays.id)return console.log("no need to switch");
+
           pool.doSwitchRelays(data.switchRelays!);
 
           // post the alert to other ports
