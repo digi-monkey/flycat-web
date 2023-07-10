@@ -16,8 +16,9 @@ export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
   unsubscribe(): void;
   id: string;
   url: string;
-  isEose: ()=>boolean;
-  isIdleTimeout: ()=>boolean;
+  isEose: () => boolean;
+  isIdleTimeout: () => boolean;
+  isFirstItemTimeout: () => boolean;
 }
 
 export interface SubscriptionNoticeStream
@@ -35,17 +36,26 @@ export interface AuthStream extends AsyncIterableIterator<Challenge> {
   unsubscribe(): void;
 }
 
+export enum SubIdStatus {
+  pending = 'pending',
+  activated = 'activated',
+  dropped = 'dropped',
+}
+
 export function createSubscriptionEventStream(
   webSocket: WebSocket,
   id: string,
+  getSubIdStatus: (subId: string) => SubIdStatus,
   unsubscribeCb?: (id: string) => any,
-  timeoutMs = 3000
+  timeoutMs = 3000,
 ): SubscriptionEventStream {
   let observer: ((done: boolean, value?: Event) => void) | null;
   let isFirstObservation = true;
   let timeout: number | null = null;
   let isEose = false;
   let isIdleTimeout = false; // todo: there should a total timeout too, but it needs to start after subscription is entered the active subs pool
+  let isFirstItemTimeout = false;
+  let firstItemTimeout: number | null = null;
 
   const onMessage = event => {
     const msg: RelayResponse = JSON.parse(event.data);
@@ -103,6 +113,10 @@ export function createSubscriptionEventStream(
       return new Promise<IteratorResult<Event>>((resolve: any, reject) => {
         if (isFirstObservation) {
           observer = (done: boolean, value?: Event) => {
+            if (firstItemTimeout) {
+              clearTimeout(firstItemTimeout);
+            }
+
             if (done === true) {
               clearTimeout(timeout!); // Clear the timeout if the first observation is done
               resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
@@ -111,25 +125,58 @@ export function createSubscriptionEventStream(
             isFirstObservation = false;
             resolve({ value, done: false });
           };
-        }else{
-        timeout = setTimeout(() => {
-          if (observer) {
-            isIdleTimeout = true;
-            observer(true);
-          } // Trigger the observer with 'done: true' if timeout occurs
-        }, timeoutMs); // Set the desired timeout value (in milliseconds)
 
-        observer = (done: boolean, value?: Event) => {
-          if (timeout) {
-            clearTimeout(timeout);
+          let checker: number | null = null;
+          const checkIfStarted = () => {
+            const status = getSubIdStatus(id);
+            if (status === SubIdStatus.pending && checker == null) {
+              checker = setInterval(()=>{
+                checkIfStarted();
+              }, 500);
+              return;
+            }
+
+            if (status === SubIdStatus.activated) {
+              if(checker)clearInterval(checker);
+              firstItemTimeout = setTimeout(() => {
+                isFirstItemTimeout = true;
+                resolve({ value: undefined as any, done: true });
+              }, 5000);
+              return;
+            }
+
+            if (status === SubIdStatus.dropped) {
+              if(checker)clearInterval(checker);
+              if (firstItemTimeout) {
+                clearTimeout(firstItemTimeout);
+              }
+              resolve({ value: undefined as any, done: true });
+              return;
+            }
           }
-          if (done === true) {
-            resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
-            return;
-          }
-          resolve({ value, done: false });
-        };
-      }
+          checkIfStarted();
+        } else {
+          timeout = setTimeout(() => {
+            if (observer) {
+              isIdleTimeout = true;
+              observer(true);
+            } // Trigger the observer with 'done: true' if timeout occurs
+          }, timeoutMs); // Set the desired timeout value (in milliseconds)
+
+          observer = (done: boolean, value?: Event) => {
+            if (firstItemTimeout) {
+              clearTimeout(firstItemTimeout);
+            }
+            if (timeout) {
+              clearTimeout(timeout);
+            }
+            if (done === true) {
+              resolve({ value: undefined as any, done }); // Resolve with 'done: true' if 'done' flag is true
+              return;
+            }
+            resolve({ value, done: false });
+          };
+        }
       });
     },
     return(): Promise<IteratorResult<Event>> {
@@ -149,14 +196,21 @@ export function createSubscriptionEventStream(
       webSocket.send(JSON.stringify([ClientRequestType.Close, id]));
       webSocket.removeEventListener('message', onMessage);
       webSocket.removeEventListener('error', onError);
-      if(unsubscribeCb){
+      if (unsubscribeCb) {
         unsubscribeCb(id);
       }
     },
     id: id,
     url: webSocket.url,
-    isEose: ()=>{return isEose},
-    isIdleTimeout: ()=>{return isIdleTimeout},
+    isEose: () => {
+      return isEose;
+    },
+    isIdleTimeout: () => {
+      return isIdleTimeout;
+    },
+    isFirstItemTimeout: () => {
+      return isFirstItemTimeout;
+    },
   };
 
   return subscription;
@@ -249,7 +303,7 @@ export function createPublishEventResultStream(
           const result: EventPubResult = {
             isSuccess,
             reason,
-            relayUrl: webSocket.url
+            relayUrl: webSocket.url,
           };
           observer(false, result);
         }
@@ -307,9 +361,7 @@ export function createPublishEventResultStream(
   return subscription;
 }
 
-export function createAuthStream(
-  webSocket: WebSocket,
-): AuthStream {
+export function createAuthStream(webSocket: WebSocket): AuthStream {
   let observer: ((done: boolean, value?: Challenge) => void) | null;
 
   const onMessage = event => {

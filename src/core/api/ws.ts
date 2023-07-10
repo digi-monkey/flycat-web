@@ -9,6 +9,7 @@ import { Event } from 'core/nostr/Event';
 import { Queue } from 'types/queue';
 import { Pool } from 'types/pool';
 import {
+  SubIdStatus,
   createAuthStream,
   createPublishEventResultStream,
   createSubscriptionEventStream,
@@ -71,7 +72,18 @@ export class WS {
       }
       this.releaseActiveSubscription(id);
     }
-    return createSubscriptionEventStream(this._ws, subId, onUnsubscribe);
+    const getSubIdStatus = this.getSubIdStatus.bind(this);
+    return createSubscriptionEventStream(this._ws, subId, getSubIdStatus, onUnsubscribe);
+  }
+
+  getSubIdStatus(subId: string){
+    if(this.pendingSubscriptions.has(subId)){
+      return SubIdStatus.pending;
+    }
+    if(this.activeSubscriptions.has(subId)){
+      return SubIdStatus.activated;
+    }
+    return SubIdStatus.dropped;
   }
 
   subNotice() {

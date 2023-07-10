@@ -30,6 +30,14 @@ export class Pool<T> {
     return this.items.length >= this.maxCapacity;
   }
 
+  has(item: T): boolean {
+    const index = this.items.indexOf(item);
+    if (index !== -1) {
+			return true;
+    }
+		return false;
+  }
+
   getSize(): number {
     return this.items.length;
   }
