@@ -18,6 +18,7 @@ import { Nip23 } from 'core/nip/23';
 import PostArticle from '../PostArticle';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
+import { maxStrings } from 'utils/common';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -172,7 +173,7 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
       </div>
       <div className={styles.content}>
         <div className={styles.event} onClick={clickEventBody}>
-          {event.content}
+          {maxStrings(event.content, 150)}
         </div>
         <MediaPreviews content={event.content} />
       </div>

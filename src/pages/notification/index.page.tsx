@@ -131,7 +131,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     }
   }
 
-  const limit = 5;
+  const limit = 50;
   useEffect(() => {
     if (myPublicKey == null || myPublicKey.length === 0) return;
     if (!worker) return;
@@ -312,7 +312,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   useEffect(() => {
     setUnreadRequestApproval(getUnreadRequestApproveEventIds());
-  }, [unreadRequestApproval]);
+  }, [requestApproveMsgList]);
 
   const onMarkAll = () => {
     update(Math.round(Date.now() / 1000));
@@ -329,7 +329,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const mentionMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.text_note,
-  );
+  ).slice(0, 20);
   const repostMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.reposts,
   );
@@ -565,6 +565,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   );
 
   const items = [
+    /*
     {
       label: <Badge count={unreadMentions.length}>Mentions</Badge>,
       key: 'mentions',
@@ -575,6 +576,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       key: 'reposts',
       children: repostUI,
     },
+    */
     {
       label: <Badge count={unreadZaps.length}>Zaps</Badge>,
       key: 'zaps',
@@ -592,6 +594,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       key: 'new-request-approval',
       children: newRequestApprovalUI,
     },
+    
   ];
 
   return (
