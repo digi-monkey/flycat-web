@@ -50,3 +50,28 @@
   padding: 12px;
   margin-bottom: 10px;
 }
+
+.refLongForm {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--basePadding2);
+  margin: var(--basePadding3) 0px;
+  padding: var(--basePadding3);
+  @include font-header3;
+  color: var(--primary-06);
+  border-radius: var(--basePadding2);
+  background-color: var(--neutral-02);
+
+  a {
+    color: var(--primary-06);
+  }
+  .summary{
+    @include font-body;
+  }
+  svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--primary-06);
+  }
+}
