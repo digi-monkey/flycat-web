@@ -379,8 +379,7 @@ export function Community({
             onChange={val => setSelectTab(val)}
             options={[
               { label: 'Latest', value: 'latest', disabled: false },
-              { label: 'Hotest', value: 'hotest', disabled: true },
-              { label: 'Long-form', value: 'long-form', disabled: true },
+              { label: 'Pin', value: 'hotest', disabled: true },
               { label: 'UnApproval', value: 'un-approval' },
             ]}
           />
