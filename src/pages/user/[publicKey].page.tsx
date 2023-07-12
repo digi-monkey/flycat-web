@@ -39,6 +39,7 @@ import Icon from 'components/Icon';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { EventWithSeen } from 'pages/type';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -46,6 +47,7 @@ type UserParams = {
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const myPublicKey = useReadonlyMyPublicKey();
+  const isMobile = useMatchMobile();
 
   const router = useRouter();
   const { publicKey } = router.query as UserParams;
@@ -588,28 +590,105 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     },
   ];
 
+  const actionBtnGroups =
+    myPublicKey === publicKey ? (
+      <div className={styles.btnGroup}>
+        <Button
+          onClick={() => {
+            window.open(Paths.setting);
+          }}
+        >
+          Edit profile
+        </Button>
+        <Icon
+          type="icon-Gear"
+          className={styles.icon}
+          onClick={() => {
+            window.open(Paths.setting + '?tabKey=preference');
+          }}
+        />
+      </div>
+    ) : (
+      <div className={styles.btnGroup}>
+        <Button type="primary" onClick={followOrUnfollow.action}>
+          {followOrUnfollow.label}
+        </Button>
+        <Tooltip title={`Article RSS URL`}>
+          <Icon
+            type="icon-rss"
+            className={styles.icon}
+            onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
+          />
+        </Tooltip>
+        <Tooltip title={`Zap The User`}>
+          <Icon
+            type="icon-bolt"
+            className={styles.icon}
+            onClick={async () => {
+              const lnUrl =
+                userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
+              if (lnUrl == null) {
+                return alert(
+                  'no ln url, please tell the author to set up one.',
+                );
+              }
+              await payLnUrlInWebLn(lnUrl);
+            }}
+          />
+        </Tooltip>
+      </div>
+    );
+
   return (
     <BaseLayout>
       <Left>
         {contextHolder}
-        <div className={styles.pageTitle}>
-          <div className={styles.titleBox}>
-            <div className={styles.arrow}>
-              {' '}
-              <Icon
-                style={{ width: '24px', height: '24px' }}
-                type="icon-arrow-left"
-              ></Icon>{' '}
+        {!isMobile && (
+          <div className={styles.pageTitle}>
+            <div className={styles.titleBox}>
+              <div className={styles.arrow}>
+                {' '}
+                <Icon
+                  style={{ width: '24px', height: '24px' }}
+                  type="icon-arrow-left"
+                ></Icon>{' '}
+              </div>
+              <div className={styles.title}>
+                {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+                &apos;s profile
+              </div>
             </div>
-            <div className={styles.title}>
-              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
-              &apos;s profile
+            <div>
+              <Input
+                placeholder="Search"
+                prefix={<Icon type="icon-search" />}
+              />
             </div>
           </div>
-          <div>
-            <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+        )}
+        {isMobile && (
+          <div className={styles.mobileProfile}>
+            <div className={styles.profile}>
+              <div>
+                <div className={styles.img}>
+                  <Avatar
+                    style={{ width: '100%', height: '100%' }}
+                    src={userMap.get(publicKey)?.picture}
+                    alt=""
+                  />
+                </div>
+                <div className={styles.name}>
+                  {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+                </div>
+              </div>
+              <div>{actionBtnGroups}</div>
+            </div>
+
+            <div className={styles.description}>
+              {userMap.get(publicKey)?.about}
+            </div>
           </div>
-        </div>
+        )}
 
         {userMap.get(publicKey)?.banner && (
           <div className={styles.banner}>
@@ -649,54 +728,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <CommitCalendar pk={publicKey} />
         </div>
 
-        {myPublicKey === publicKey ? (
-          <div className={styles.btnGroup}>
-            <Button
-              onClick={() => {
-                window.open(Paths.setting);
-              }}
-            >
-              Edit profile
-            </Button>
-            <Icon
-              type="icon-Gear"
-              className={styles.icon}
-              onClick={() => {
-                window.open(Paths.setting + '?tabKey=preference');
-              }}
-            />
-          </div>
-        ) : (
-          <div className={styles.btnGroup}>
-            <Button type="primary" onClick={followOrUnfollow.action}>
-              {followOrUnfollow.label}
-            </Button>
-            <Tooltip title={`Article RSS URL`}>
-              <Icon
-                type="icon-rss"
-                className={styles.icon}
-                onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
-              />
-            </Tooltip>
-            <Tooltip title={`Zap The User`}>
-              <Icon
-                type="icon-bolt"
-                className={styles.icon}
-                onClick={async () => {
-                  const lnUrl =
-                    userMap.get(publicKey)?.lud06 ||
-                    userMap.get(publicKey)?.lud16;
-                  if (lnUrl == null) {
-                    return alert(
-                      'no ln url, please tell the author to set up one.',
-                    );
-                  }
-                  await payLnUrlInWebLn(lnUrl);
-                }}
-              />
-            </Tooltip>
-          </div>
-        )}
+        {actionBtnGroups}
 
         <Followings
           buildFollowUnfollow={buildFollowUnfollow}
