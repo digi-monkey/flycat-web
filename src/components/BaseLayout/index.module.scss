@@ -232,12 +232,9 @@
     }
   }
   main{
-    /*
     padding: {
-      left: var(--basePadding4);
-      right: var(--basePadding4);
+      bottom: calc(var(--basePadding5) * 5);
     }
-    */
   }
   footer{
     position: fixed;

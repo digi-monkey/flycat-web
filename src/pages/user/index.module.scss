@@ -65,6 +65,26 @@
   }
 }
 
+
+.mobileProfile{
+  margin: 0 var(--basePadding5);
+  justify-content: center;
+  .profile{
+    margin-top: var(--basePadding2);
+    display: flex;
+    justify-content: space-between;
+  }
+  .description{
+    margin: var(--basePadding3) 0px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--neutral-06);
+    word-wrap: break-word; 
+  }
+}
+
+
 .profile {
   width: 100%;
   margin-top: 72px;

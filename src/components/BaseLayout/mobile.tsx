@@ -14,6 +14,8 @@ import { RelaySelector } from 'components/RelaySelector';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import classNames from 'classnames';
+import { shortifyNPub } from 'core/nostr/content';
+import { Nip19, Nip19DataType } from 'core/nip/19';
 
 interface Props {
   body: React.ReactNode[];
@@ -53,8 +55,8 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
   return (
     <div className={styles.mobile}>
       <header>
-        {isLoggedIn && user ? (
-          <Avatar src={user.picture} onClick={() => setOpen(true)} />
+        {isLoggedIn ? (
+          <Avatar src={user?.picture} onClick={() => setOpen(true)} />
         ) : (
           <Avatar
             icon={<UserOutlined />}
@@ -100,7 +102,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
         />
         <div className={styles.userTitle}>
           <Avatar src={user?.picture} />
-          <h1>{user?.display_name || user?.name}</h1>
+          <h1>{user?.name || user?.display_name || shortifyNPub(Nip19.encode(myPublicKey, Nip19DataType.Npubkey))}</h1>
         </div>
         <ul>
           {UserMenus.map((item, key) => (
