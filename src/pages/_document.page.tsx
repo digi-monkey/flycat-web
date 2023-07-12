@@ -5,17 +5,26 @@ export default class FlyCatDocument extends Document {
     return (
       <Html>
         <Head>
-          <link href="https://fonts.googleapis.com/css2?family=Noto%20Sans:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+            rel="stylesheet"
+          />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Noto%20Sans:wght@100;200;300;400;500;600;700;800;900&display=swap"
+            rel="stylesheet"
+          />
+
           <script async src="https://platform.twitter.com/widgets.js"></script>
           <script async src="https://www.tiktok.com/embed.js"></script>
-          <meta name="application-name" content="PWA App" />
+
+          <meta name="application-name" content="flycat" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta
             name="apple-mobile-web-app-status-bar-style"
             content="default"
           />
-          <meta name="apple-mobile-web-app-title" content="PWA App" />
-          <meta name="description" content="Best PWA App in the world" />
+          <meta name="apple-mobile-web-app-title" content="flycat" />
+          <meta name="description" content="a beautiful nostr client" />
           <meta name="format-detection" content="telephone=no" />
           <meta name="mobile-web-app-capable" content="yes" />
           <meta
@@ -42,7 +51,6 @@ export default class FlyCatDocument extends Document {
             sizes="167x167"
             href="/icons/touch-icon-ipad-retina.png"
           />
-
           <link
             rel="icon"
             type="image/png"
@@ -62,31 +70,24 @@ export default class FlyCatDocument extends Document {
             color="#5bbad5"
           />
           <link rel="shortcut icon" href="/favicon.ico" />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
-          />
 
           <meta name="twitter:card" content="summary" />
-          <meta name="twitter:url" content="https://yourdomain.com" />
-          <meta name="twitter:title" content="PWA App" />
-          <meta
-            name="twitter:description"
-            content="Best PWA App in the world"
-          />
+          <meta name="twitter:url" content="https:/flycat.club" />
+          <meta name="twitter:title" content="flycat" />
+          <meta name="twitter:description" content="a beautiful nostr client" />
           <meta
             name="twitter:image"
-            content="https://yourdomain.com/icons/android-chrome-192x192.png"
+            content="https://flycat.club/icons/android-chrome-192x192.png"
           />
-          <meta name="twitter:creator" content="@DavidWShadow" />
+          <meta name="twitter:creator" content="@flycat" />
           <meta property="og:type" content="website" />
-          <meta property="og:title" content="PWA App" />
-          <meta property="og:description" content="Best PWA App in the world" />
-          <meta property="og:site_name" content="PWA App" />
-          <meta property="og:url" content="https://yourdomain.com" />
+          <meta property="og:title" content="flycat" />
+          <meta property="og:description" content="a beautiful nostr client" />
+          <meta property="og:site_name" content="flycat" />
+          <meta property="og:url" content="https://flycat.club" />
           <meta
             property="og:image"
-            content="https://yourdomain.com/icons/apple-touch-icon.png"
+            content="https://flycat.club/icons/apple-touch-icon.png"
           />
 
           <link
