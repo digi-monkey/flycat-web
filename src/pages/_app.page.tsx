@@ -26,7 +26,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
     <Provider store={store}>
       <ConfigProvider theme={theme}>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         </Head>
         <Component {...pageProps} />
         <Analytics />
