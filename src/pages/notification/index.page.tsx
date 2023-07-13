@@ -594,10 +594,10 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       <Left>
         <PageTitle title="Notifications" right={markAll} />
         {isLoggedIn ? (
-          <>
+          <div className={styles.notification}>
             <Tabs centered items={items} />
             <Button type="link">Since {timeSince(fetchSince)} ago, last 15 items</Button>
-          </>
+          </div>
         ) : (
           <>You must sign in first</>
         )}
