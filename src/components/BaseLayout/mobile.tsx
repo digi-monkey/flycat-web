@@ -4,18 +4,19 @@ import { RootState } from 'store/configureStore';
 import { useSelector } from 'react-redux';
 import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Drawer } from 'antd';
+import { Avatar, Badge, Drawer } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { MenuId, NavMenus, UserMenus, navClick } from './utils';
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 import { RelaySelector } from 'components/RelaySelector';
+import { shortifyNPub } from 'core/nostr/content';
+import { Nip19, Nip19DataType } from 'core/nip/19';
+import { useNotification } from 'hooks/useNotification';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import classNames from 'classnames';
-import { shortifyNPub } from 'core/nostr/content';
-import { Nip19, Nip19DataType } from 'core/nip/19';
 
 interface Props {
   body: React.ReactNode[];
@@ -29,6 +30,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
   const myPublicKey = useReadonlyMyPublicKey();
+  const isNewUnread = useNotification();
 
   const { t } = useTranslation();
   const [nav, setNav] = useState<typeof NavMenus>([]);
@@ -79,6 +81,10 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
             >
               {item.id === MenuId.add ? (
                 <span onClick={() => setOpenWrite(true)}>{item.icon}</span>
+              ) : item.id === MenuId.notifications && isNewUnread ? (
+                <Badge dot>
+                 {item.icon} 
+                </Badge>
               ) : (
                 item.icon
               )}
@@ -102,7 +108,11 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
         />
         <div className={styles.userTitle}>
           <Avatar src={user?.picture} />
-          <h1>{user?.name || user?.display_name || shortifyNPub(Nip19.encode(myPublicKey, Nip19DataType.Npubkey))}</h1>
+          <h1>
+            {user?.name ||
+              user?.display_name ||
+              shortifyNPub(Nip19.encode(myPublicKey, Nip19DataType.Npubkey))}
+          </h1>
         </div>
         <ul>
           {UserMenus.map((item, key) => (
