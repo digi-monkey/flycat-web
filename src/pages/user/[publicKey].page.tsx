@@ -40,6 +40,13 @@ import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { EventWithSeen } from 'pages/type';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import {
+  createFollowContactEvent,
+  createInitialFollowContactEvent,
+  createUnFollowContactEvent,
+  isFollowed,
+  updateMyContactEvent,
+} from 'core/worker/util';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -55,7 +62,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactInfo>();
+  const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [articleMsgList, setArticleMsgList] = useState<EventWithSeen[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
@@ -140,36 +147,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         break;
 
       case WellKnownEventKind.contact_list:
-        if (event.pubkey === myPublicKey) {
-          setMyContactList(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            const keys = (
-              event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[]
-            ).map(t => t[1]);
-
-            const list = new Map();
-            for (const t of event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]) {
-              list.set(t[1], {
-                relayUrl: t[2],
-                name: t[3],
-              });
-            }
-
-            return {
-              keys,
-              created_at: event.created_at,
-              list,
-            };
-          });
-        }
-
         if (event.pubkey === publicKey) {
           setUserContactList(prev => {
             if (prev && prev?.created_at >= event.created_at) {
@@ -299,7 +276,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             data: [],
           };
     worker
-      ?.subContactList(pks, undefined, callRelay)
+      ?.subContactList([publicKey], undefined, callRelay)
       ?.iterating({ cb: handleEvent });
     worker
       ?.subMetadata(pks, undefined, callRelay)
@@ -311,6 +288,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       ?.subNip23Posts({ pks: [publicKey], callRelay })
       ?.iterating({ cb: handleEvent });
   }, [newConn, publicKey]);
+
+  useEffect(() => {
+    if (!worker) return;
+    if (myPublicKey.length === 0) return;
+
+    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
+  }, [worker, myPublicKey]);
 
   useEffect(() => {
     if (!worker) return;
@@ -336,203 +320,54 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     }
     if (!worker) return messageApi.error('no worker!', 3);
 
-    const pks = myContactList?.keys || [];
-    if (pks.length === 0) {
+    const target: {
+      type: 'people' | 'hashTag' | 'community';
+      data: string;
+    } = { type: 'people', data: publicKey };
+
+    let rawEvent: RawEvent | null = null;
+    if (myContactEvent) {
+      rawEvent = createFollowContactEvent(myContactEvent, target);
+    } else {
       const isConfirmed = window.confirm(
         'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
       );
-
       if (!isConfirmed) return;
+      rawEvent = createInitialFollowContactEvent(target);
     }
 
-    const tags = myContactList
-      ? pks.map(
-          pk =>
-            [
-              EventTags.P,
-              pk,
-              myContactList.list.get(pk)?.relay ?? '',
-              myContactList.list.get(pk)?.name ?? '',
-            ] as EventContactListPTag,
-        )
-      : [];
-    tags.push([EventTags.P, publicKey, '', '']);
-
-    if (tags.length != pks.length + 1) {
-      messageApi.error('something went wrong with contact list', 3);
-      return;
-    }
-
-    const rawEvent = new RawEvent(
-      myPublicKey,
-      WellKnownEventKind.contact_list,
-      tags,
-    );
     const event = await signEvent(rawEvent);
-    const pub = worker.pubEvent(event);
-    noticePubEventResult(pub, () => {
-      if (event.pubkey === myPublicKey) {
-        setMyContactList(prev => {
-          if (prev && prev?.created_at >= event.created_at) {
-            return prev;
-          }
-
-          const keys = (
-            event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]
-          ).map(t => t[1]);
-
-          const list = new Map();
-          for (const t of event.tags.filter(
-            t => t[0] === EventTags.P,
-          ) as EventContactListPTag[]) {
-            list.set(t[1], {
-              relayUrl: t[2],
-              name: t[3],
-            });
-          }
-
-          return {
-            keys,
-            created_at: event.created_at,
-            list,
-          };
-        });
-
-        if (event.pubkey === publicKey) {
-          setUserContactList(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            const keys = (
-              event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[]
-            ).map(t => t[1]);
-            const list = new Map();
-            for (const t of event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]) {
-              list.set(t[1], {
-                relayUrl: t[2],
-                name: t[3],
-              });
-            }
-            return {
-              keys,
-              created_at: event.created_at,
-              list,
-            };
-          });
-        }
-      }
-    });
+    const handler = worker.pubEvent(event);
+    return noticePubEventResult(handler, () =>
+      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+    );
   };
   const _unfollowUser = async (publicKey: string) => {
     if (signEvent == null) {
       messageApi.error('no sign method!', 3);
       return;
     }
-    if (!myContactList) return messageApi.error('no contact list event!', 3);
+    if (!myContactEvent) return messageApi.error('no contact event!', 3);
     if (!worker) return messageApi.error('no worker!', 3);
 
-    const pks = myContactList.keys;
-    if (pks.length === 0) {
-      const isConfirmed = window.confirm(
-        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
-      );
-      if (!isConfirmed) return;
-    }
-    const tags = pks
-      .filter(pk => pk !== publicKey)
-      .map(
-        pk =>
-          [
-            EventTags.P,
-            pk,
-            myContactList.list.get(pk)?.relay ?? '',
-            myContactList.list.get(pk)?.name ?? '',
-          ] as EventContactListPTag,
-      );
-    if (tags.length != pks.length - 1) {
-      messageApi.error('something went wrong with contact list', 3);
-      return;
-    }
-
-    const rawEvent = new RawEvent(
-      myPublicKey,
-      WellKnownEventKind.contact_list,
-      tags,
-    );
-    const event = await signEvent(rawEvent);
-    const pub = worker.pubEvent(event);
-
-    noticePubEventResult(pub, () => {
-      if (event.pubkey === myPublicKey) {
-        setMyContactList(prev => {
-          if (prev && prev?.created_at >= event.created_at) {
-            return prev;
-          }
-
-          const keys = (
-            event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]
-          ).map(t => t[1]);
-
-          const list = new Map();
-          for (const t of event.tags.filter(
-            t => t[0] === EventTags.P,
-          ) as EventContactListPTag[]) {
-            list.set(t[1], {
-              relayUrl: t[2],
-              name: t[3],
-            });
-          }
-
-          return {
-            keys,
-            created_at: event.created_at,
-            list,
-          };
-        });
-
-        if (event.pubkey === publicKey) {
-          setUserContactList(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            const keys = (
-              event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[]
-            ).map(t => t[1]);
-            const list = new Map();
-            for (const t of event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]) {
-              list.set(t[1], {
-                relayUrl: t[2],
-                name: t[3],
-              });
-            }
-            return {
-              keys,
-              created_at: event.created_at,
-              list,
-            };
-          });
-        }
-      }
+    const rawEvent = createUnFollowContactEvent(myContactEvent, {
+      type: 'people',
+      data: publicKey,
     });
+    const event = await signEvent(rawEvent);
+    const handler = worker.pubEvent(event);
+    return noticePubEventResult(handler, () =>
+      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+    );
   };
+
   const buildFollowUnfollow = (publicKey: string) => {
-    const isFollowed =
-      isLoggedIn && myContactList && myContactList?.keys.includes(publicKey);
-    return isFollowed
+    const isFollow =
+      isLoggedIn &&
+      myContactEvent?.id && // use ?.id to trigger UI update
+      isFollowed(myContactEvent, { type: 'people', data: publicKey });
+    
+    return isFollow
       ? {
           label: 'unfollow',
           action: () => _unfollowUser(publicKey),

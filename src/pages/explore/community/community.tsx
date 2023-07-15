@@ -2,14 +2,13 @@ import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import styles from '../index.module.scss';
 import {
   Avatar,
-  Badge,
   Button,
   Divider,
   Empty,
   Modal,
   Segmented,
-  Skeleton,
   Tooltip,
+  message,
 } from 'antd';
 import {
   EventId,
@@ -32,6 +31,14 @@ import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { Event } from 'core/nostr/Event';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import {
+  createFollowContactEvent,
+  createInitialFollowContactEvent,
+  createUnFollowContactEvent,
+  isFollowed,
+  updateMyContactEvent,
+} from 'core/worker/util';
+import { RawEvent } from 'core/nostr/RawEvent';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -50,6 +57,7 @@ export function Community({
   setUserMap,
 }: CommunityProps) {
   const myPublicKey = useReadonlyMyPublicKey();
+  const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [allMsgList, setAllMsgList] = useState<EventWithSeen[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,6 +71,64 @@ export function Community({
   useEffect(() => {
     getApprovalShortNoteId();
   }, [worker, community]);
+
+  useEffect(() => {
+    if (!worker) return;
+    if (myPublicKey.length === 0) return;
+
+    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
+  }, [myPublicKey, worker]);
+
+  const target: { type: 'people' | 'hashTag' | 'community'; data: string } = {
+    type: 'community',
+    data: Nip172.communityAddr({
+      identifier: community.id,
+      author: community.creator,
+    }),
+  };
+  const follow = async () => {
+    if (!signEvent) return message.error('no sign method');
+    if (!worker) return message.error('no worker!');
+
+    let rawEvent: RawEvent | null = null;
+    if (myContactEvent) {
+      rawEvent = createFollowContactEvent(myContactEvent, target);
+    } else {
+      const isConfirmed = window.confirm(
+        'hey you have 0 followings, are you sure to continue? \n\n(if you think 0 followings is a wrong, please click CANCEL and try again, otherwise you might lost all your following!)',
+      );
+      if (!isConfirmed) return;
+      rawEvent = createInitialFollowContactEvent(target);
+    }
+
+    const event = await signEvent(rawEvent);
+    const handler = worker.pubEvent(event);
+    return noticePubEventResult(handler, () =>
+      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+    );
+  };
+  const unfollow = async () => {
+    if (!signEvent) return message.error('no sign method');
+    if (!worker) return message.error('no worker!');
+    if (!myContactEvent) return message.error('contact event not found!');
+    const rawEvent = createUnFollowContactEvent(myContactEvent, target);
+    const event = await signEvent(rawEvent);
+    const handler = worker.pubEvent(event);
+    return noticePubEventResult(handler, () =>
+      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+    );
+  };
+  const actionText =
+    myContactEvent && isFollowed(myContactEvent, target)
+      ? 'Unfollow'
+      : 'Follow';
+  const actionOnClick =
+    myContactEvent && isFollowed(myContactEvent, target) ? unfollow : follow;
+  const actionButton = (
+    <Button type="primary" onClick={actionOnClick} disabled={!signEvent}>
+      {actionText}
+    </Button>
+  );
 
   const getApprovalShortNoteId = async () => {
     if (!worker) return;
@@ -370,7 +436,7 @@ export function Community({
               ))}
             </Avatar.Group>
           </div>
-          <div>{/* <Button type="primary">Subscribe</Button> */}</div>
+          <div>{actionButton}</div>
         </div>
         <Divider orientation="left"></Divider>
         <div className={styles.selectBtn}>

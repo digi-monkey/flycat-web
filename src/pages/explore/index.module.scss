@@ -5,6 +5,49 @@
   align-items: center;
 }
 
+.explorePanel {
+  margin: 0px var(--basePadding5);
+  .searchGroup {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--basePadding5);
+
+    svg {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .commList {
+      width: 32px;
+      height: 32px;
+    }
+  }
+  .posts {
+    margin-top: var(--basePadding3);
+  }
+  .commCardListItem {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background-color: var(--neutral-02);
+    border-radius: var(--basePadding3);
+    padding: var(--basePadding2);
+
+    .name {
+      @include font-footnote;
+      max-width: 100%;
+      word-break: break-all;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
 .communitySearchPanel {
   display: flex;
   justify-content: space-between;
@@ -13,8 +56,27 @@
   gap: var(--basePadding5);
 }
 
-.communityTab{
-  margin: var(--basePadding2) var(--basePadding5);  
+.communityTab {
+  margin: var(--basePadding2) var(--basePadding5);
+  :global {
+    .ant-list-item{
+      :hover{
+        cursor: pointer;
+      }
+    }
+    .ant-list-item-meta-description {
+      text-overflow: ellipsis;
+      max-height: 4.4em;
+      word-wrap: break-word;
+
+      overflow: hidden;
+    }
+    img {
+      width: 200px;
+      height: 100px;
+      object-fit: cover;
+    }
+  }
 }
 
 .communityPage {
