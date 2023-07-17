@@ -182,17 +182,21 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
               relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />
-            <div className={styles.subRepliesContainer}>
-              {n.children.map(c => (
-                <SubPostItem
-                  key={c.value.id}
-                  event={c.value}
-                  userMap={userMap}
-                />
-              ))}
-            </div>
-            <br />
-            <br />
+            {n.children.length > 0 && (
+              <>
+                <div className={styles.subRepliesContainer}>
+                  {n.children.map(c => (
+                    <SubPostItem
+                      key={c.value.id}
+                      event={c.value}
+                      userMap={userMap}
+                    />
+                  ))}
+                </div>
+                <br />
+                <br />
+              </>
+            )}
           </div>
         ))}
 
