@@ -27,7 +27,6 @@ import PostItems from 'components/PostItems';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { updateMyContactEvent } from 'core/worker/util';
 import { setEventWithSeenMsgList } from 'pages/helper';
-import Link from 'next/link';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -231,7 +230,7 @@ const Explore = () => {
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={'Explore'} />
+        <PageTitle title={'Communities'} />
         <div className={styles.explorePanel}>
           <div className={styles.searchGroup}>
             <Input
@@ -239,7 +238,7 @@ const Explore = () => {
               prefix={<Icon type="icon-search" />}
               onChange={e => setSearchName(e.target.value)}
             />
-            <Icon onClick={()=>window.open("/explore/community/list")} className={styles.commList} type="icon-rule-mode" />
+            <Icon onClick={()=>window.open("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
           </div>
 
           <div className={styles.posts}>
@@ -266,7 +265,7 @@ const Explore = () => {
                     className={styles.commCardListItem}
                     onClick={() =>
                       window.open(
-                        `/explore/community/` +
+                        `/communities/n/` +
                           Nip172.communityAddr({
                             identifier: item.id,
                             author: item.creator,

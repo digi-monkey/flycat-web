@@ -125,7 +125,7 @@ export default function CreateCommunity() {
     const handler = worker.pubEvent(event);
     noticePubEventResult(handler);
     window.open(
-      '/explore/community/' +
+      '/communities/n/' +
         encodeURIComponent(
           Nip172.communityAddr({
             identifier: metadata.id,

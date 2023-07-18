@@ -11,9 +11,9 @@ const Pages = {
     name: 'bookmark',
     path: '/bookmark'
   },
-  explore: {
-    name: 'explore',
-    path: '/explore'
+  communities: {
+    name: 'communities',
+    path: '/communities'
   },
   write: {
     name: 'write',

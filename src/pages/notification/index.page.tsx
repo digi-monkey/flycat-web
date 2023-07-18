@@ -429,7 +429,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   className={styles.communityHeader}
                   onClick={() =>
                     window.open(
-                      '/explore/community/' +
+                      '/communities/n/' +
                         encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
@@ -502,7 +502,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   className={styles.communityHeader}
                   onClick={() =>
                     window.open(
-                      '/explore/community/' +
+                      '/communities/n/' +
                         encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
