@@ -16,8 +16,8 @@ export function PostCommunityHeader({ event }: { event: Event }) {
       From
       <Link
         href={`${
-          Paths.explore +
-          '/community/' +
+          Paths.communities +
+          '/n/' +
           encodeURIComponent(Nip172.getCommunityAddr(event))
         }`}
       >

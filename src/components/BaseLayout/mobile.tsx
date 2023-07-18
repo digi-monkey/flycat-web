@@ -40,7 +40,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
     const result = NavMenus.filter(item =>
       [
         MenuId.home,
-        MenuId.explore,
+        MenuId.communities,
         MenuId.relays,
         MenuId.notifications,
       ].includes(item.id),

@@ -4,7 +4,7 @@ import { message } from 'antd';
 
 export enum MenuId {
   home = 'home',
-  explore = 'explore',
+  communities = 'communities',
   relays = 'relays',
   bookmarks = 'bookmarks',
   notifications = 'notifications',
@@ -22,10 +22,10 @@ export const NavMenus = [{
   title: 'nav.menu.home',
   link: Paths.home
 }, {
-  id: MenuId.explore,
+  id: MenuId.communities,
   icon: <Icon type="icon-explore" />,
-  title: 'nav.menu.explore',
-  link: Paths.explore
+  title: 'nav.menu.communities',
+  link: Paths.communities
 }, {
   id: MenuId.relays,
   icon: <Icon type="icon-Relay" />,

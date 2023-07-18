@@ -112,7 +112,7 @@ const Explore = () => {
           <Button
             type="primary"
             size="large"
-            onClick={() => window.open('/explore/community/create')}
+            onClick={() => window.open('/communities/n/create')}
           >
             create community 
           </Button>
@@ -136,7 +136,7 @@ const Explore = () => {
                   <List.Item
                     extra={<img alt="logo" src={item.value.image} />}
                     onClick={() =>
-                      window.open('/explore/community/' + item.key)
+                      window.open('/communities/n/' + item.key)
                     }
                   >
                     <List.Item.Meta
@@ -174,7 +174,7 @@ const Explore = () => {
             renderItem={item => (
               <List.Item
                 extra={<img alt="logo" src={item.value.image} />}
-                onClick={() => window.open('/explore/community/' + item.key)}
+                onClick={() => window.open('/communities/n/' + item.key)}
               >
                 <List.Item.Meta
                   style={{ textOverflow: 'ellipsis' }}
