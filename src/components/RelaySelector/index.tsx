@@ -6,7 +6,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { Button, Cascader, Modal, message } from 'antd';
+import { Button, Cascader, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
@@ -16,7 +16,13 @@ import {
   SwitchRelays,
   WsConnectStatus,
 } from 'core/worker/type';
-import { getDisabledTitle, getFooterMenus, initModeOptions } from './util';
+import {
+  getConnectedRelayUrl,
+  getDisabledTitle,
+  getFooterMenus,
+  initModeOptions,
+  toConnectStatus,
+} from './util';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
@@ -38,7 +44,7 @@ export interface Option {
 export function RelaySelector({
   wsStatusCallback,
   newConnCallback,
-  className
+  className,
 }: RelaySelectorProps) {
   const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
@@ -207,7 +213,7 @@ export function RelaySelector({
                     <span className={styles.failed}>failed</span>
                   ) : (
                     <span className={styles.success}>
-                      {Math.round(b.t!) + " ms"}
+                      {Math.round(b.t!) + ' ms'}
                     </span>
                   )}
                 </span>
@@ -218,6 +224,14 @@ export function RelaySelector({
       });
     }
   };
+
+  const connectedUrlTooltip = (
+    <>
+      {getConnectedRelayUrl(wsConnectStatus).length > 0 ? getConnectedRelayUrl(wsConnectStatus).map(url => (
+        <li key={url}>{url}</li>
+      )) : "No connected relays"}
+    </>
+  );
 
   return (
     <div className={classNames(styles.relaySelector, className)}>
@@ -238,7 +252,11 @@ export function RelaySelector({
           <>
             <span className={styles.relayMode}>{label[0]}</span>
             {label.length > 1 && (
-              <span className={styles.childrenItem}>{label[1]}</span>
+              <Tooltip placement="bottom" title={connectedUrlTooltip}>
+                <span className={styles.childrenItem}>
+                  {toConnectStatus(label[1], wsConnectStatus)}
+                </span>
+              </Tooltip>
             )}
           </>
         )}
