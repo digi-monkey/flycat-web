@@ -1,8 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export function useMatchMobile() {
   const [mobile, setMobile] = useState<undefined | boolean>();
-  useEffect(() => setMobile(/iPhone|Android/i.test(navigator.userAgent)), []);
+  useEffect(() => {
+    setMobile(/iPhone|Android/i.test(navigator.userAgent));
+
+    const handleResize = () => {
+      setMobile(
+        /iPhone|Android/i.test(navigator.userAgent) || window.innerWidth < 768,
+      );
+    };
+
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+      handleResize(); // Initial check
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, []);
 
   return mobile;
 }
