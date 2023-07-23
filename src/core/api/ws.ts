@@ -22,7 +22,9 @@ export class WS {
   public url: string;
   public maxSub: number;
   public reconnectIdleSecs: number;
-  public onCloseListeners: ((_e: CloseEvent)=>any)[];
+  public onCloseListeners: ((_e: CloseEvent) => any)[];
+  public onOpenListener: ((_e: any) => any) | null = null;
+  public onErrorListener: ((_e: any) => any) | null = null;
 
   public subscriptionFilters: Map<SubscriptionId, Filter>;
   public pendingSubscriptions: Queue<SubscriptionId>;
@@ -44,7 +46,7 @@ export class WS {
     if (typeof urlOrWebsocket === 'string') {
       this.url = urlOrWebsocket;
       this._ws = new WebSocket(urlOrWebsocket);
-      if(autoReconnect){
+      if (autoReconnect) {
         this.doReconnect();
       }
     } else {
@@ -65,22 +67,27 @@ export class WS {
 
     this.processSubFilter(subId);
 
-    const onUnsubscribe = (id:string)=>{
-      if(this.pendingSubscriptions.has(id)){
+    const onUnsubscribe = (id: string) => {
+      if (this.pendingSubscriptions.has(id)) {
         this.pendingSubscriptions.removeItem(id);
         return;
       }
       this.releaseActiveSubscription(id);
-    }
+    };
     const getSubIdStatus = this.getSubIdStatus.bind(this);
-    return createSubscriptionEventStream(this._ws, subId, getSubIdStatus, onUnsubscribe);
+    return createSubscriptionEventStream(
+      this._ws,
+      subId,
+      getSubIdStatus,
+      onUnsubscribe,
+    );
   }
 
-  getSubIdStatus(subId: string){
-    if(this.pendingSubscriptions.has(subId)){
+  getSubIdStatus(subId: string) {
+    if (this.pendingSubscriptions.has(subId)) {
       return SubIdStatus.pending;
     }
-    if(this.activeSubscriptions.has(subId)){
+    if (this.activeSubscriptions.has(subId)) {
       return SubIdStatus.activated;
     }
     return SubIdStatus.dropped;
@@ -113,9 +120,9 @@ export class WS {
     const data: EventSubRequest = [ClientRequestType.SubFilter, subId, filter];
 
     if (this.activeSubscriptions.isFull()) {
-      if(!this.pendingSubscriptions.has(subId)){
+      if (!this.pendingSubscriptions.has(subId)) {
         this.pendingSubscriptions.enqueue(subId);
-      }else{
+      } else {
         console.debug(`${subId} already in the pending queue`);
       }
       return;
@@ -140,10 +147,6 @@ export class WS {
   }
 
   private doReconnect() {
-    if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {
-      this._ws = new WebSocket(this.url);
-    }
-
     const reconnect = (_e: CloseEvent) => {
       setTimeout(() => {
         console.log('try reconnect..', this.url);
@@ -151,10 +154,33 @@ export class WS {
       }, this.reconnectIdleSecs * 1000);
     };
 
+    if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {
+      this._ws = new WebSocket(this.url);
+
+      const CONNECT_TIMEOUT = 5000; // 5 seconds
+
+      const connectTimer = setTimeout(() => {
+        if (this._ws.readyState !== WebSocket.OPEN) {
+          console.debug('WebSocket connection timeout', this.url);
+        }
+        if (this._ws.readyState === WebSocket.CONNECTING) {
+          this._ws.close();
+        }
+      }, CONNECT_TIMEOUT);
+
+      this._ws.addEventListener('open', e => {
+        clearTimeout(connectTimer);
+        console.debug('WebSocket connection established', this.url);
+
+        if (this.onOpenListener) this.onOpenListener(e);
+      });
+    }
 
     this._ws.onclose = reconnect;
+    this._ws.onerror = this.onErrorListener;
+    //this._ws.onopen = this.onOpenListener;
     // note: do not change order the onclose and addEventListener otherwise added listener will gone.
-    for(const listener of this.onCloseListeners){
+    for (const listener of this.onCloseListeners) {
       this.addCloseListener(listener);
     }
   }
@@ -185,19 +211,24 @@ export class WS {
   }
 
   addCloseListener(cb: (event: CloseEvent) => any) {
-    if(!this.onCloseListeners.includes(cb)){
+    if (!this.onCloseListeners.includes(cb)) {
       this.onCloseListeners.push(cb);
     }
 
-    this._ws.addEventListener("close", cb);
+    this._ws.addEventListener('close', cb);
   }
 
   onOpen(cb: (event: WSEvent) => any) {
+    this.onOpenListener = cb;
     this._ws.onopen = cb;
   }
 
   onError(cb: (event: WSEvent) => any) {
-    this._ws.onerror = cb;
+    this.onErrorListener = cb;
+    this._ws.onerror = e => {
+      this._ws.close();
+      cb(e);
+    };
   }
 }
 
