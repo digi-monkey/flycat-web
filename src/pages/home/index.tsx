@@ -9,7 +9,7 @@ import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
-import { Avatar, Button, Input } from 'antd';
+import { Avatar, Button, Input, Segmented } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { ContactList, EventMap, UserMap } from 'core/nostr/type';
 import {
@@ -74,27 +74,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 
   useSubContactList(myPublicKey, newConn, worker, _handleEvent);
-  useSubFollowingMsg(myContactList, myPublicKey, newConn, worker, _handleEvent);
-  useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
-  useLoadMoreMsg({
-    myContactList,
-    myPublicKey,
-    msgList,
-    worker,
-    userMap,
-    setUserMap,
-    setMsgList,
-    setMyContactList,
-    loadMoreCount,
-  });
-
-  /*
-  useSuggestedFollowings({ myPublicKey, setSuggestedFollowings });
-  useTrendingFollowings({ setTrendingFollowings });
-  const recommendProfiles = isLoggedIn
-    ? suggestedProfiles?.profiles
-    : trendingProfiles?.profiles;
-    */
 
   // right test data
   const updates = [
@@ -114,10 +93,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     { tag: 'Zapping', url: Paths.home },
   ];
 
+  const filterMsg = <Segmented options={['Follow', 'Global', 'Article', 'Media']} />;
+
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={'Home'} />
+        <PageTitle title={'Home'} right={filterMsg}/>
         <PubNoteTextarea
           pubSuccessCallback={(eventId, relayUrl) => {
             worker
