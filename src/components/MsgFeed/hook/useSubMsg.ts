@@ -14,6 +14,7 @@ import { Event } from 'core/nostr/Event';
 export function useSubMsg({
   msgFilter,
   isValidEvent,
+  setIsRefreshing,
   worker,
   newConn,
   setMsgList,
@@ -22,6 +23,7 @@ export function useSubMsg({
 }: {
   msgFilter: Filter;
   isValidEvent?: (event: Event) => boolean;
+  setIsRefreshing:  Dispatch<SetStateAction<boolean>>; 
   worker: CallWorker | undefined;
   newConn: string[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
@@ -31,7 +33,8 @@ export function useSubMsg({
   const subMsg = async () => {
     if (!worker) return;
     if (!validateFilter(msgFilter)) return;
-
+    setIsRefreshing(true);
+    console.log("start sub msg..", newConn, msgFilter);
     const callRelay = createCallRelay(newConn);
     const dataStream = worker
       .subFilter({ filter: msgFilter, callRelay })
@@ -59,11 +62,13 @@ export function useSubMsg({
       }
     }
     dataStream.unsubscribe();
+    console.log("finished sub msg!");
+    setIsRefreshing(false);
   };
 
   useEffect(() => {
     subMsg();
-  }, [msgFilter, worker, newConn]);
+  }, [worker, newConn]);
 }
 
 export async function subMsgAsync({

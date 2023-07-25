@@ -80,6 +80,69 @@ export const setMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, 
   });
 }
 
+export const pushEventWithSeenMsgList = (event: Event, relayUrl: string, msgList:EventWithSeen[]) => {
+  const oldArray = msgList;
+  if (!oldArray.map(e => e.id).includes(event.id)) {
+    // do not add duplicated msg
+
+    // save event
+    const newItems = [
+      ...oldArray,
+      { ...event, ...{ seen: [relayUrl!] } },
+    ];
+    // sort by timestamp
+    const sortedItems = newItems.sort((a, b) =>
+      a.created_at >= b.created_at ? -1 : 1,
+    );
+    return sortedItems;
+  } else {
+    const id = oldArray.findIndex(s => s.id === event.id);
+    if (id === -1) return oldArray;
+
+    if (!oldArray[id].seen?.includes(relayUrl!)) {
+      oldArray[id].seen?.push(relayUrl!);
+    }
+  }
+  return oldArray;
+}
+
+export const pushMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, msgList: EventWithSeen[], maxMsgLength: number) => {
+  const oldArray = msgList;
+  if (
+    oldArray.length > maxMsgLength &&
+    oldArray[oldArray.length - 1].created_at > event.created_at
+  ) {
+    return oldArray;
+  }
+
+  if (!oldArray.map(e => e.id).includes(event.id)) {
+    // do not add duplicated msg
+
+    // save event
+    const newItems = [
+      ...oldArray,
+      { ...event, ...{ seen: [relayUrl!] } },
+    ];
+    // sort by timestamp
+    const sortedItems = newItems.sort((a, b) =>
+      a.created_at >= b.created_at ? -1 : 1,
+    );
+    // cut to max size
+    if (sortedItems.length > maxMsgLength) {
+      return sortedItems.slice(0, maxMsgLength + 1);
+    }
+    return sortedItems;
+  } else {
+    const id = oldArray.findIndex(s => s.id === event.id);
+    if (id === -1) return oldArray;
+
+    if (!oldArray[id].seen?.includes(relayUrl!)) {
+      oldArray[id].seen?.push(relayUrl!);
+    }
+  }
+  return oldArray;
+}
+
 export const onSetEventMap = (event: Event, setEventMap: Dispatch<SetStateAction<EventMap>>) => {
   return setEventMap(prev => {
     const newMap = new Map(prev);

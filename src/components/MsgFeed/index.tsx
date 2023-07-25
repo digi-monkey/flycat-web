@@ -1,6 +1,6 @@
 import { Button } from 'antd';
 
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventMap, Filter, UserMap } from 'core/nostr/type';
@@ -17,7 +17,7 @@ import styles from './index.module.scss';
 
 export interface MsgFeedProp {
   msgFilter: Filter;
-  isValidEvent?: (event: Event)=>boolean;
+  isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
   newConn: string[];
   userMap: UserMap;
@@ -49,6 +49,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useSubMsg({
     msgFilter,
     isValidEvent,
+    setIsRefreshing,
     worker,
     newConn,
     setMsgList,
@@ -66,6 +67,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setMsgList,
     loadMoreCount,
   });
+
+  useEffect(() => {
+    return () => {
+      setMsgList([]);
+    };
+  }, []);
 
   return (
     <>

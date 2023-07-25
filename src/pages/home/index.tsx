@@ -52,8 +52,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [myContactList, setMyContactList] = useState<ContactList>();
   const [selectFilter, setSelectFilter] = useState<string>('Follow');
 
-  const relayUrls = Array.from(wsConnectStatus.keys());
-
   const _handleEvent = handleEvent(
     worker,
     userMap,
@@ -117,13 +115,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 
   const renderMsg = () => {
-    let filter: Filter | null = null;
+    let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
     let emptyData: ReactNode | null = null;
 
     if (selectFilter === 'Follow') {
       const pks = myContactList?.keys || [];
-      filter = {
+      msgFilter = {
         limit: 50,
         kinds: [
           WellKnownEventKind.text_note,
@@ -137,7 +135,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     }
 
     if (selectFilter === 'All') {
-      filter = {
+      msgFilter = {
         limit: 50,
         kinds: [
           WellKnownEventKind.text_note,
@@ -149,14 +147,14 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     }
 
     if (selectFilter === 'Article') {
-      filter = {
+      msgFilter = {
         limit: 50,
         kinds: [WellKnownEventKind.long_form],
       };
     }
 
     if(selectFilter === 'Media'){
-      filter = {
+      msgFilter = {
         limit: 50,
         kinds: [
           WellKnownEventKind.text_note,
@@ -167,12 +165,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       }
     }
 
-    if (filter == null) return 'unknown filter';
+    if (msgFilter == null) return 'unknown filter';
 
     return (
       <MsgFeed
         key={selectFilter}
-        msgFilter={filter}
+        msgFilter={msgFilter}
         isValidEvent={isValidEvent}
         worker={worker}
         newConn={newConn}
