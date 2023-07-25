@@ -11,7 +11,7 @@ import {
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect, useMemo } from 'react';
 
 export function useLastReplyEvent({
   msgList,
@@ -28,11 +28,15 @@ export function useLastReplyEvent({
 }) {
   const subEvent: EventId[] = msgList.map(e => e.id);
   const subPks: PublicKey[] = Array.from(userMap.keys());
+  
+  const list = useMemo(()=>{return msgList}, [msgList.length]);
 
   useEffect(() => {
     if (!worker) return;
     if(msgList.length === 0)return;
 
+    console.log("sub reply", msgList.length);
+    
     const replies = msgList
       .map(msgEvent => {
         const lastReply = msgEvent.tags
@@ -170,5 +174,5 @@ export function useLastReplyEvent({
 
     subEvent.push(...newIds);
     subPks.push(...newPks);
-  }, [msgList.length]);
+  }, [worker, list]);
 }

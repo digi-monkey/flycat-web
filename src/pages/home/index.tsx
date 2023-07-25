@@ -1,6 +1,6 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useRouter } from 'next/router';
 import { handleEvent } from './utils';
 import { EventWithSeen } from 'pages/type';
@@ -19,16 +19,17 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
+import { CallRelayType } from 'core/worker/type';
+import { MsgFeed } from 'components/MsgFeed';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
-import classNames from 'classnames';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
-import { CallRelayType } from 'core/worker/type';
-import { MsgFeed } from 'components/MsgFeed';
+import { Event } from 'core/nostr/Event';
+import { stringHasImageUrl } from 'utils/common';
 
 import dynamic from 'next/dynamic';
 
@@ -49,7 +50,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [myContactList, setMyContactList] = useState<ContactList>();
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectFilter, setSelectFilter] = useState<string>('Follow');
 
   const relayUrls = Array.from(wsConnectStatus.keys());
@@ -112,15 +112,18 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     <Segmented
       value={selectFilter}
       onChange={val => setSelectFilter(val as string)}
-      options={['Follow', 'Global', 'Article', 'Media']}
+      options={['Follow', 'All', 'Article', 'Media']}
     />
   );
 
   const renderMsg = () => {
+    let filter: Filter | null = null;
+    let isValidEvent: ((event: Event) => boolean) | undefined;
+    let emptyData: ReactNode | null = null;
+
     if (selectFilter === 'Follow') {
       const pks = myContactList?.keys || [];
-
-      const filter: Filter = {
+      filter = {
         limit: 50,
         kinds: [
           WellKnownEventKind.text_note,
@@ -130,22 +133,11 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         ],
         authors: pks,
       };
-      return (
-        <MsgFeed
-          msgFilter={filter}
-          worker={worker}
-          newConn={newConn}
-          setEventMap={setEventMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          userMap={userMap}
-          emptyDataReactNode={emptyFollowReactData}
-        />
-      );
+      emptyData = emptyFollowReactData;
     }
 
-    if (selectFilter === 'Global') {
-      const filter: Filter = {
+    if (selectFilter === 'All') {
+      filter = {
         limit: 50,
         kinds: [
           WellKnownEventKind.text_note,
@@ -154,41 +146,45 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           WellKnownEventKind.reposts,
         ],
       };
-      return (
-        <MsgFeed
-          msgFilter={filter}
-          worker={worker}
-          newConn={newConn}
-          setEventMap={setEventMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          userMap={userMap}
-          emptyDataReactNode={emptyFollowReactData}
-        />
-      );
     }
 
     if (selectFilter === 'Article') {
-      const filter: Filter = {
+      filter = {
         limit: 50,
         kinds: [WellKnownEventKind.long_form],
       };
-      return (
-        <MsgFeed
-          msgFilter={filter}
-          worker={worker}
-          newConn={newConn}
-          setEventMap={setEventMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          userMap={userMap}
-          emptyDataReactNode={emptyFollowReactData}
-        />
-      );
     }
 
-    return <>empty</>;
+    if(selectFilter === 'Media'){
+      filter = {
+        limit: 50,
+        kinds: [
+          WellKnownEventKind.text_note,
+        ],
+      }
+      isValidEvent = (event: Event) => {
+        return event.kind === WellKnownEventKind.text_note && stringHasImageUrl(event.content);
+      }
+    }
+
+    if (filter == null) return 'unknown filter';
+
+    return (
+      <MsgFeed
+        key={selectFilter}
+        msgFilter={filter}
+        isValidEvent={isValidEvent}
+        worker={worker}
+        newConn={newConn}
+        setEventMap={setEventMap}
+        setUserMap={setUserMap}
+        eventMap={eventMap}
+        userMap={userMap}
+        emptyDataReactNode={emptyData}
+      />
+    );
   };
+
   return (
     <BaseLayout>
       <Left>

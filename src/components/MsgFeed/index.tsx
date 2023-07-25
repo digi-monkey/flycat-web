@@ -5,7 +5,7 @@ import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventMap, Filter, UserMap } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
-
+import { Event } from 'core/nostr/Event';
 import { subMsgAsync, useSubMsg } from './hook/useSubMsg';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
@@ -17,6 +17,7 @@ import styles from './index.module.scss';
 
 export interface MsgFeedProp {
   msgFilter: Filter;
+  isValidEvent?: (event: Event)=>boolean;
   worker: CallWorker | undefined;
   newConn: string[];
   userMap: UserMap;
@@ -28,6 +29,7 @@ export interface MsgFeedProp {
 
 export const MsgFeed: React.FC<MsgFeedProp> = ({
   msgFilter,
+  isValidEvent,
   worker,
   newConn,
   userMap,
@@ -46,6 +48,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   useSubMsg({
     msgFilter,
+    isValidEvent,
     worker,
     newConn,
     setMsgList,
@@ -55,6 +58,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
   useLoadMoreMsg({
     msgFilter,
+    isValidEvent,
     msgList,
     worker,
     setEventMap,

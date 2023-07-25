@@ -9,9 +9,11 @@ import {
   setMaxLimitEventWithSeenMsgList,
 } from 'pages/helper';
 import { validateFilter } from '../util';
+import { Event } from 'core/nostr/Event';
 
 export function useSubMsg({
   msgFilter,
+  isValidEvent,
   worker,
   newConn,
   setMsgList,
@@ -19,33 +21,48 @@ export function useSubMsg({
   maxMsgLength,
 }: {
   msgFilter: Filter;
+  isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
   newConn: string[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
-  useEffect(() => {
+  const subMsg = async () => {
     if (!worker) return;
     if (!validateFilter(msgFilter)) return;
 
     const callRelay = createCallRelay(newConn);
-    worker.subFilter({ filter: msgFilter, callRelay }).iterating({
-      cb: (event, relayUrl) => {
-        onSetEventMap(event, setEventMap);
+    const dataStream = worker
+      .subFilter({ filter: msgFilter, callRelay })
+      .getIterator();
+    for await (const data of dataStream) {
+      const event = data.event;
+      const relayUrl = data.relayUrl!;
+      onSetEventMap(event, setEventMap);
 
-        if (maxMsgLength) {
-          setMaxLimitEventWithSeenMsgList(
-            event,
-            relayUrl!,
-            setMsgList,
-            maxMsgLength,
-          );
-        } else {
-          setEventWithSeenMsgList(event, relayUrl!, setMsgList);
+      if (isValidEvent) {
+        if (!isValidEvent(event)) {
+          continue;
         }
-      },
-    });
+      }
+
+      if (maxMsgLength) {
+        setMaxLimitEventWithSeenMsgList(
+          event,
+          relayUrl!,
+          setMsgList,
+          maxMsgLength,
+        );
+      } else {
+        setEventWithSeenMsgList(event, relayUrl!, setMsgList);
+      }
+    }
+    dataStream.unsubscribe();
+  };
+
+  useEffect(() => {
+    subMsg();
   }, [msgFilter, worker, newConn]);
 }
 

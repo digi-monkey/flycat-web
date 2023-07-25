@@ -1,3 +1,4 @@
+import { Event } from 'core/nostr/Event';
 import { EventMap, Filter } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
@@ -12,6 +13,7 @@ import { Dispatch, SetStateAction, useEffect } from 'react';
 
 export function useLoadMoreMsg({
   msgFilter,
+	isValidEvent,
   worker,
   msgList,
   setEventMap,
@@ -20,6 +22,7 @@ export function useLoadMoreMsg({
   loadMoreCount,
 }: {
   msgFilter: Filter;
+	isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
   msgList: EventWithSeen[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
@@ -44,6 +47,12 @@ export function useLoadMoreMsg({
     worker.subFilter({ filter, callRelay }).iterating({
       cb: (event, relayUrl) => {
         onSetEventMap(event, setEventMap);
+
+				if(isValidEvent){
+					if(!isValidEvent(event)){
+						return;
+					}
+				}
 
         if (maxMsgLength) {
           setMaxLimitEventWithSeenMsgList(
