@@ -29,6 +29,7 @@ export function useLoadMoreMsg({
 }) {
   useEffect(() => {
     if (!worker) return;
+    if (loadMoreCount <= 1) return;
 
     const lastMsg = msgList.at(msgList.length - 1);
     if (!lastMsg) {
@@ -56,5 +57,5 @@ export function useLoadMoreMsg({
         }
       },
     });
-  }, [msgFilter, worker]);
+  }, [msgFilter, worker, loadMoreCount]);
 }

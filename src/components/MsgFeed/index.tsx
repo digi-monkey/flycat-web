@@ -5,16 +5,15 @@ import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventMap, Filter, UserMap } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
-import { Paths } from 'constants/path';
-import { t } from 'i18next';
 
-import classNames from 'classnames';
-import PostItems from 'components/PostItems';
-import router from 'next/router';
-import styles from './index.module.scss';
 import { subMsgAsync, useSubMsg } from './hook/useSubMsg';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
+import { useTranslation } from 'react-i18next';
+
+import classNames from 'classnames';
+import PostItems from 'components/PostItems';
+import styles from './index.module.scss';
 
 export interface MsgFeedProp {
   msgFilter: Filter;
@@ -37,6 +36,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   setEventMap,
   emptyDataReactNode,
 }) => {
+  const { t } = useTranslation();
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);

@@ -2,39 +2,33 @@ import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { handleEvent, refreshMsg } from './utils';
+import { handleEvent } from './utils';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
-import { Avatar, Button, Input, Segmented } from 'antd';
+import { Button, Input, Segmented } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { ContactList, EventMap, UserMap } from 'core/nostr/type';
 import {
-  useSubFollowingMsg,
-  useSubContactList,
-  useLoadMoreMsg,
-  useLastReplyEvent,
-  useTrendingFollowings,
-  useSuggestedFollowings,
-} from './hooks';
+  ContactList,
+  EventMap,
+  Filter,
+  UserMap,
+  WellKnownEventKind,
+} from 'core/nostr/type';
+import { useSubContactList } from './hooks';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import classNames from 'classnames';
 import PubNoteTextarea from 'components/PubNoteTextarea';
-import PostItems from 'components/PostItems';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
-import {
-  SuggestedProfiles,
-  TrendingProfiles,
-  parseMetadata,
-} from 'core/api/band';
 import { CallRelayType } from 'core/worker/type';
+import { MsgFeed } from 'components/MsgFeed';
 
 import dynamic from 'next/dynamic';
 
@@ -54,13 +48,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
-  const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [myContactList, setMyContactList] = useState<ContactList>();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [trendingProfiles, setTrendingFollowings] =
-    useState<TrendingProfiles>();
-  const [suggestedProfiles, setSuggestedFollowings] =
-    useState<SuggestedProfiles>();
+  const [selectFilter, setSelectFilter] = useState<string>('Follow');
 
   const relayUrls = Array.from(wsConnectStatus.keys());
 
@@ -93,12 +83,116 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     { tag: 'Zapping', url: Paths.home },
   ];
 
-  const filterMsg = <Segmented options={['Follow', 'Global', 'Article', 'Media']} />;
+  const emptyFollowReactData = (
+    <>
+      <div className={styles.tipsy}>
+        <h1>Share Your Thoughts with The Community</h1>
+        <p>
+          Only your notes and the ones you follow will show up here. Publish
+          your ideas and discover what others are sharing!
+        </p>
+      </div>
+      {!isLoggedIn && (
+        <div className={styles.login}>
+          <Button type="primary" onClick={() => router.push(Paths.login)}>
+            {t('nav.menu.signIn')}
+          </Button>
+          <span
+            onClick={() => router.push(Paths.login)}
+            className={styles.explore}
+          >
+            Explore as a guest
+          </span>
+        </div>
+      )}
+    </>
+  );
 
+  const filterMsg = (
+    <Segmented
+      value={selectFilter}
+      onChange={val => setSelectFilter(val as string)}
+      options={['Follow', 'Global', 'Article', 'Media']}
+    />
+  );
+
+  const renderMsg = () => {
+    if (selectFilter === 'Follow') {
+      const pks = myContactList?.keys || [];
+
+      const filter: Filter = {
+        limit: 50,
+        kinds: [
+          WellKnownEventKind.text_note,
+          WellKnownEventKind.article_highlight,
+          WellKnownEventKind.long_form,
+          WellKnownEventKind.reposts,
+        ],
+        authors: pks,
+      };
+      return (
+        <MsgFeed
+          msgFilter={filter}
+          worker={worker}
+          newConn={newConn}
+          setEventMap={setEventMap}
+          setUserMap={setUserMap}
+          eventMap={eventMap}
+          userMap={userMap}
+          emptyDataReactNode={emptyFollowReactData}
+        />
+      );
+    }
+
+    if (selectFilter === 'Global') {
+      const filter: Filter = {
+        limit: 50,
+        kinds: [
+          WellKnownEventKind.text_note,
+          WellKnownEventKind.article_highlight,
+          WellKnownEventKind.long_form,
+          WellKnownEventKind.reposts,
+        ],
+      };
+      return (
+        <MsgFeed
+          msgFilter={filter}
+          worker={worker}
+          newConn={newConn}
+          setEventMap={setEventMap}
+          setUserMap={setUserMap}
+          eventMap={eventMap}
+          userMap={userMap}
+          emptyDataReactNode={emptyFollowReactData}
+        />
+      );
+    }
+
+    if (selectFilter === 'Article') {
+      const filter: Filter = {
+        limit: 50,
+        kinds: [WellKnownEventKind.long_form],
+      };
+      return (
+        <MsgFeed
+          msgFilter={filter}
+          worker={worker}
+          newConn={newConn}
+          setEventMap={setEventMap}
+          setUserMap={setUserMap}
+          eventMap={eventMap}
+          userMap={userMap}
+          emptyDataReactNode={emptyFollowReactData}
+        />
+      );
+    }
+
+    return <>empty</>;
+  };
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={'Home'} right={filterMsg}/>
+        <PageTitle title={'Home'} right={filterMsg} />
         <PubNoteTextarea
           pubSuccessCallback={(eventId, relayUrl) => {
             worker
@@ -109,83 +203,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               .iterating({ cb: _handleEvent });
           }}
         />
-        <div className={styles.reloadFeedBtn}>
-          <Button
-            loading={isRefreshing}
-            type="link"
-            block
-            onClick={async () => {
-              setIsRefreshing(true);
-              await refreshMsg({
-                myContactList,
-                myPublicKey,
-                worker,
-                handleEvent: _handleEvent,
-              });
-              setIsRefreshing(false);
-            }}
-          >
-            Refresh timeline
-          </Button>
-        </div>
-        <div
-          className={classNames(styles.home, {
-            [styles.noData]: msgList.length === 0,
-          })}
-        >
-          {msgList.length === 0 || !isLoggedIn ? (
-            <>
-              <div className={styles.tipsy}>
-                <h1>Share Your Thoughts with The Community</h1>
-                <p>
-                  Only your notes and the ones you follow will show up here.
-                  Publish your ideas and discover what others are sharing!
-                </p>
-              </div>
-              {!isLoggedIn && (
-                <div className={styles.login}>
-                  <Button
-                    type="primary"
-                    onClick={() => router.push(Paths.login)}
-                  >
-                    {t('nav.menu.signIn')}
-                  </Button>
-                  <span
-                    onClick={() => router.push(Paths.login)}
-                    className={styles.explore}
-                  >
-                    Explore as a guest
-                  </span>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className={styles.msgList}>
-                <PostItems
-                  msgList={msgList}
-                  worker={worker!}
-                  userMap={userMap}
-                  relays={relayUrls}
-                  eventMap={eventMap}
-                  showLastReplyToEvent={true}
-                />
-              </div>
-              <Button
-                type="link"
-                block
-                onClick={() => setLoadMoreCount(prev => prev + 1)}
-              >
-                {t('home.loadMoreBtn')}
-              </Button>
-              <br />
-              <br />
-              <br />
-              <br />
-              <br />
-            </>
-          )}
-        </div>
+        {renderMsg()}
       </Left>
       <Right>
         <div className={styles.rightPanel}>

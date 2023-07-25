@@ -8,6 +8,7 @@ import {
   setEventWithSeenMsgList,
   setMaxLimitEventWithSeenMsgList,
 } from 'pages/helper';
+import { validateFilter } from '../util';
 
 export function useSubMsg({
   msgFilter,
@@ -26,6 +27,7 @@ export function useSubMsg({
 }) {
   useEffect(() => {
     if (!worker) return;
+    if (!validateFilter(msgFilter)) return;
 
     const callRelay = createCallRelay(newConn);
     worker.subFilter({ filter: msgFilter, callRelay }).iterating({

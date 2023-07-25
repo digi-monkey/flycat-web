@@ -31,6 +31,7 @@ export function useLastReplyEvent({
 
   useEffect(() => {
     if (!worker) return;
+    if(msgList.length === 0)return;
 
     const replies = msgList
       .map(msgEvent => {
