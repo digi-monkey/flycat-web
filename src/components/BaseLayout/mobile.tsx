@@ -80,14 +80,14 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           {nav.map((item, key) => (
             <li
               key={key}
-              onClick={() => navClick(item, myPublicKey, router, isLoggedIn, t)}
+              onClick={() => {item.id === MenuId.add ? setOpenWrite(true) : navClick(item, myPublicKey, router, isLoggedIn, t)}}
               className={classNames({
                 [styles.active]: item.link === router.pathname,
                 [styles.add]: item.id === MenuId.add,
               })}
             >
               {item.id === MenuId.add ? (
-                <span onClick={() => setOpenWrite(true)}>{item.icon}</span>
+                <span>{item.icon}</span>
               ) : item.id === MenuId.notifications && isNewUnread ? (
                 <Badge dot>
                  {item.icon} 
