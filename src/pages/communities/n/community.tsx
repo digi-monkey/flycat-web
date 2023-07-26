@@ -40,7 +40,7 @@ import {
   updateMyContactEvent,
 } from 'core/worker/util';
 import { RawEvent } from 'core/nostr/RawEvent';
-import {Right} from "../../../components/BaseLayout";
+import { useRouter } from 'next/router'
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -68,6 +68,7 @@ export function Community({
   const [selectTab, setSelectTab] = useState<string | number>();
   const [activeTab, setActiveTab] = useState('Latest');
 
+  const router = useRouter();
 
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -426,7 +427,7 @@ export function Community({
   return (
     <>
       <div className={styles.communityPage}>
-        <div className={styles.communityNav}>
+        <div className={styles.communityNav} onClick={() => router.push('/communities')}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M20.9999 12C20.9999 11.4477 20.5522 11 19.9999 11H6.41394L10.9999 6.41397C11.3904 6.0235 11.3904 5.39043 10.9999 4.99997C10.6095 4.6095 9.9764 4.6095 9.58594 4.99997L2.93949 11.6464C2.74423 11.8417 2.74423 12.1583 2.93949 12.3535L9.58594 19C9.9764 19.3904 10.6095 19.3904 10.9999 19C11.3904 18.6095 11.3904 17.9764 10.9999 17.586L6.41394 13H19.9999C20.5522 13 20.9999 12.5523 20.9999 12Z" fill="#1E1E1E"/>
           </svg>
