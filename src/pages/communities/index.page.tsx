@@ -27,10 +27,12 @@ import PostItems from 'components/PostItems';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { updateMyContactEvent } from 'core/worker/util';
 import { setEventWithSeenMsgList } from 'pages/helper';
+import { useRouter } from 'next/router'
 
 const Explore = () => {
   const { t } = useTranslation();
   const myPublicKey = useMyPublicKey();
+  const router = useRouter()
   const { worker, newConn } = useCallWorker();
 
   const [myContactEvent, setMyContactEvent] = useState<Event>();
@@ -238,7 +240,7 @@ const Explore = () => {
               prefix={<Icon type="icon-search" />}
               onChange={e => setSearchName(e.target.value)}
             />
-            <Icon onClick={()=>window.open("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
+            <Icon onClick={()=>router.push("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
           </div>
 
           <div className={styles.posts}>
@@ -264,7 +266,7 @@ const Explore = () => {
                   <div
                     className={styles.commCardListItem}
                     onClick={() =>
-                      window.open(
+                        router.push(
                         `/communities/n/` +
                           Nip172.communityAddr({
                             identifier: item.id,
