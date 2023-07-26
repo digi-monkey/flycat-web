@@ -6,6 +6,10 @@
   padding: 10px;
   border-radius: var(--baseBorderRadius8);
 
+  @include for-mobile{
+    margin: 0px; 
+  }
+
   &.focus{
     border: 1px solid var(--primary-06);
   }
@@ -22,6 +26,7 @@
 
     textarea{
       padding: 0;
+      min-height: 150px;
     }
   }
 

@@ -190,6 +190,13 @@
     width: 24px;
     height: 24px;
   }
+  :global{
+    .ant-modal-content{
+      @include for-mobile{
+        padding: var(--basePadding2);
+      }
+    }
+  }
 }
 
 .mobile{
