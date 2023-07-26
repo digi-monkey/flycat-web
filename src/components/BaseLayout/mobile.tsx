@@ -1,7 +1,7 @@
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
 import { RootState } from 'store/configureStore';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Badge, Drawer } from 'antd';
@@ -31,6 +31,13 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
   );
   const myPublicKey = useReadonlyMyPublicKey();
   const isNewUnread = useNotification();
+  const dispatch = useDispatch();
+  const doLogout = () => {
+    dispatch({
+      type: 'LOGOUT',
+    });
+    window.location.href = Paths.login;
+  }
 
   const { t } = useTranslation();
   const [nav, setNav] = useState<typeof NavMenus>([]);
@@ -118,7 +125,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           {UserMenus.map((item, key) => (
             <li
               key={key}
-              onClick={() => navClick(item, myPublicKey, router, isLoggedIn, t)}
+              onClick={() => { item?.id === MenuId.signOut ? doLogout() : navClick(item, myPublicKey, router, isLoggedIn, t) }}
             >
               {item?.icon} <span>{item && t(item.title)}</span>
             </li>
