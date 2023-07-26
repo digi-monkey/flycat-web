@@ -1,22 +1,6 @@
 .post {
   padding: var(--basePadding3) var(--basePadding5);
   border-bottom: 1px solid var(--neutral-02);
-
-  .communityIdWrapper {
-    display: flex;
-    align-items: center;
-    padding: 5px 20px;
-    margin: 12px 0;
-    border-radius: 8px;
-    background: var(--post-bg, #F2F2F2);
-    .communityIdContent {
-      color: var(--primary-06, #598022);
-      &:hover {
-        cursor: pointer;
-      }
-    }
-  }
-
   .more {
     width: 18px;
     height: 18px;

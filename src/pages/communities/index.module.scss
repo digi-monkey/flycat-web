@@ -97,6 +97,32 @@
     }
   }
 
+  .msgTypeWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 0 14px;
+    .typeButtonContainer {
+      display: flex;
+      justify-content: space-around;
+      .typeButton {
+        height: 22px;
+        padding: 0 12px;
+        border-radius: 20px;
+        margin: 0 6px;
+        background: var(--neutral-02, #EDEDED);
+        font-size: 12px;
+        line-height: 22px;
+        &.typeActive {
+          background: var(--primary-02, #DDEEBA);
+        }
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
   .banner {
     position: relative;
     height: 157px;
