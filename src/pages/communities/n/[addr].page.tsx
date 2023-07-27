@@ -18,8 +18,12 @@ import { createCallRelay } from 'core/worker/util';
 import styles from './index.module.scss';
 import Icon from "../../../components/Icon";
 import {
+  CalendarOutlined
+} from '@ant-design/icons';
+import {
   Input,
-  Avatar
+  Avatar,
+  Tooltip
 } from "antd";
 import { UserOutlined } from '@ant-design/icons';
 
@@ -112,7 +116,7 @@ export default function NaddrCommunity() {
       );
     }
   }
-
+  console.log('--->', community)
   return (
     <BaseLayout>
       <Left>
@@ -142,19 +146,22 @@ export default function NaddrCommunity() {
           </div>
           <div className={styles.rightPanelHeader}>Moderators</div>
           <div className={styles.avatarContainer}>
-            <Avatar className={styles.antAvatar} style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
-            <Avatar className={styles.antAvatar} style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
-            <Avatar className={styles.antAvatar} style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
+                <Avatar.Group maxCount={5}>
+                  {community?.moderators.map(pk => (
+                    <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
+                      <a href={'/user/' + pk}>
+                        <Avatar src={userMap.get(pk)?.picture} />
+                      </a>
+                    </Tooltip>
+                  ))}
+                </Avatar.Group>
           </div>
           <div className={styles.rightPanelHeader}>Rules</div>
           <div>{ formattedText }</div>
           <div className={styles.calendarRecord}>
             <div className={styles.recordHeader}>My Record</div>
             <div className={styles.recordTime}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M14.25 3H12.75V1.5H11.25V3H6.75V1.5H5.25V3H3.75C2.92275 3 2.25 3.67275 2.25 4.5V15C2.25 15.8273 2.92275 16.5 3.75 16.5H14.25C15.0773 16.5 15.75 15.8273 15.75 15V4.5C15.75 3.67275 15.0773 3 14.25 3ZM14.2515 15H3.75V6H14.25L14.2515 15Z" fill="#1E1E1E"/>
-                <path d="M7.54287 12.3534C7.93339 12.7439 8.56656 12.7439 8.95708 12.3534L12 9.31048C12.2928 9.01763 12.2928 8.54283 12 8.24998C11.7071 7.95713 11.2323 7.95713 10.9395 8.24998L8.24998 10.9395L7.06048 9.74998C6.76763 9.45713 6.29283 9.45713 5.99998 9.74998C5.70713 10.0428 5.70713 10.5176 5.99998 10.8105L7.54287 12.3534Z" fill="#1E1E1E"/>
-              </svg>
+              <CalendarOutlined />
               <p> Since Jul 20, 2023 (1 days)</p>
             </div>
             <div className={styles.recordDataWrapper}>
