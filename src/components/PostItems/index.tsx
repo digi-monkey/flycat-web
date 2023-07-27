@@ -53,16 +53,9 @@ const PostItems: React.FC<PostItemsProps> = ({
   showLastReplyToEvent = true,
   showFromCommunity = true,
   extraMenu,
-  extraHeader,
-  communityId= ""
+  extraHeader
 }) => {
-  const [activeTab, setActiveTab] = useState('Latest');
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
-
-  const handleTabClick = (tabName) => {
-    setActiveTab(tabName);
-  };
-
 
   return (
     <>
