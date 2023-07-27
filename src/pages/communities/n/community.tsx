@@ -501,7 +501,6 @@ export function Community({
                         eventMap={eventMap}
                         relays={worker?.relays.map(r => r.url) || []}
                         showFromCommunity={false}
-                        communityId={community.id}
                     />
                   </>
                 },
@@ -534,7 +533,6 @@ export function Community({
                               ]
                               : []
                         }
-                        communityId={community.id}
                     />
                   </>,
                 },
