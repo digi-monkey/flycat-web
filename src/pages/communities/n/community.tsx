@@ -10,7 +10,7 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'core/worker/type';
 import { isEventPTag } from 'core/nostr/util';
@@ -41,6 +41,11 @@ interface CommunityProps {
   worker?: CallWorker;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
+  setPostCount?: Dispatch<SetStateAction<number>>;
+  setContributorCount?: Dispatch<SetStateAction<number>>;
+  setMyPostCount?: Dispatch<SetStateAction<number>>;
+  setMyUnApprovalPostCount?: Dispatch<SetStateAction<number>>;
+  setActionButton?: Dispatch<SetStateAction<ReactNode>>; 
 }
 
 export function Community({
@@ -50,6 +55,11 @@ export function Community({
   eventMap,
   setEventMap,
   setUserMap,
+  setPostCount,
+  setContributorCount,
+  setMyPostCount,
+  setMyUnApprovalPostCount,
+  setActionButton
 }: CommunityProps) {
   const myPublicKey = useReadonlyMyPublicKey();
   const [myContactEvent, setMyContactEvent] = useState<Event>();
@@ -57,7 +67,7 @@ export function Community({
   const [allMsgList, setAllMsgList] = useState<EventWithSeen[]>([]);
   const [loading, setLoading] = useState(false);
   const [openWrite, setOpenWrite] = useState(false);
-  const [selectTab, setSelectTab] = useState<string | number>();
+  const [selectTab, setSelectTab] = useState<string | number>('Latest');
   const [activeTab, setActiveTab] = useState('Latest');
 
   const router = useRouter();
@@ -415,6 +425,30 @@ export function Community({
     setActiveTab(tabName);
   };
 
+  useEffect(()=>{
+    if(setPostCount){
+      setPostCount(msgList.length);
+    }
+    if(setContributorCount){
+      setContributorCount(new Set(msgList.map(item => item.pubkey)).size)
+    }
+    if(setMyPostCount){
+      setMyPostCount(msgList.filter(item => item.pubkey === myPublicKey).length);
+    }
+  }, [msgList]);
+
+  useEffect(()=>{
+    if(setMyUnApprovalPostCount){
+      setMyUnApprovalPostCount(unApprovalMsgList.filter(item => item.pubkey === myPublicKey).length);
+    }
+  }, [unApprovalMsgList]);
+
+  useEffect(()=>{
+    if(setActionButton){
+      setActionButton(actionButton);
+    }
+  }, [actionButton])
+
   return (
     <>
       <div className={styles.communityPage}>
@@ -464,16 +498,10 @@ export function Community({
             )}
           </div>
         </div>
-        {/*<div className={styles.title}>{community.id}</div>*/}
-        {/*<div className={styles.description}>{community.description}</div>*/}
-        {/*<div className={styles.ruleTitle}>Rules</div>*/}
-        {/*<div className={styles.rules}>{community.rules}</div>*/}
-
-        {/*  <div>{actionButton}</div>*/}
-        {/*</div>*/}
         <div className={styles.selectBtn}>
           <Tabs
             defaultActiveKey="latest"
+            onChange={val => setSelectTab(val)}
             items={[
               {
                 label: 'Latest',

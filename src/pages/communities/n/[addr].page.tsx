@@ -12,7 +12,7 @@ import { useRouter } from 'next/router';
 import { Community } from './community';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import { deserializeMetadata } from 'core/nostr/content';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { createCallRelay } from 'core/worker/util';
 import styles from './index.module.scss';
@@ -25,7 +25,6 @@ import {
   Avatar,
   Tooltip
 } from "antd";
-import { UserOutlined } from '@ant-design/icons';
 
 type UserParams = {
   addr: Naddr;
@@ -40,6 +39,12 @@ export default function NaddrCommunity() {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [community, setCommunity] = useState<CommunityMetadata>();
+
+  const [postCount, setPostCount] = useState<number>(0);
+  const [contributorCount, setContributorCount] = useState<number>(0);
+  const [myPostCount, setMyPostCount] = useState<number>(0); 
+  const [myUnApprovalPostCount, setMyUnApprovalPostCount] = useState<number>(0);
+  const [actionButton, setActionButtom] = useState<ReactNode>();
 
   const handleEvent = (event: Event, relayUrl?: string) => {
     switch (event.kind) {
@@ -127,6 +132,11 @@ export default function NaddrCommunity() {
             userMap={userMap}
             eventMap={eventMap}
             community={community}
+            setPostCount={setPostCount}
+            setContributorCount={setContributorCount}
+            setMyPostCount={setMyPostCount}
+            setMyUnApprovalPostCount={setMyUnApprovalPostCount}
+            setActionButton={setActionButtom}
           />
         )}
       </Left>
@@ -135,11 +145,11 @@ export default function NaddrCommunity() {
           <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
           <div className={styles.communityDataWrapper}>
             <div className={styles.dataContainer}>
-              <p className={styles.dataNum}>1.5k</p>
+              <p className={styles.dataNum}>{postCount}</p>
               <p className={styles.dataTitle}>Posts</p>
             </div>
             <div className={styles.dataContainer}>
-              <p className={styles.dataNum}>102</p>
+              <p className={styles.dataNum}>{contributorCount}</p>
               <p className={styles.dataTitle}>Contributors</p>
             </div>
           </div>
@@ -165,16 +175,18 @@ export default function NaddrCommunity() {
             </div>
             <div className={styles.recordDataWrapper}>
               <div className={styles.recordDataContainer}>
-                <p className={styles.recordData}>2</p>
+                <p className={styles.recordData}>{myPostCount}</p>
                 <p className={styles.recordTitle}>Posts</p>
               </div>
               <div className={styles.recordDataContainer}>
-                <p className={styles.recordData}>2</p>
-                <p className={styles.recordTitle}>Posts</p>
+                <p className={styles.recordData}>{myUnApprovalPostCount + myPostCount}</p>
+                <p className={styles.recordTitle}>Submissions</p>
               </div>
             </div>
           </div>
-          <div className={styles.followButton}>Follow</div>
+          <div className={styles.followButton}>
+            {actionButton}
+          </div>
         </div>
       </Right>
     </BaseLayout>
