@@ -1,32 +1,23 @@
-import { useState } from 'react';
-
 import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
 import { EventMap, UserMap } from 'core/nostr/type';
-import {Event} from 'core/nostr/Event';
+import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
+import { PostContent } from './PostContent';
+import { Nip18 } from 'core/nip/18';
+import { toUnSeenEvent } from 'core/nostr/util';
+import { PostCommunityHeader } from './PostCommunityHeader';
+import {
+  message,
+} from 'antd';
 
 import styles from './index.module.scss';
 import PostUser from './PostUser';
 import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
-import { PostContent } from './PostContent';
-import { Nip18 } from 'core/nip/18';
 import PostRepost from './PostRepost';
-import { toUnSeenEvent } from 'core/nostr/util';
 import PostArticleComment from './PostArticleComment';
-import { Paths } from 'constants/path';
-import { PostCommunityHeader } from './PostCommunityHeader';
-import {
-  message,
-  Button,
-  Modal
-} from 'antd';
-import Icon from "../Icon";
-import PubNoteTextarea from "../PubNoteTextarea";
-import {Nip172} from "../../core/nip/172";
-
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -41,7 +32,6 @@ interface PostItemsProps {
     onClick: (event: Event, msg: typeof message) => any;
   }[];
   extraHeader?: React.ReactNode;
-  communityId?: string
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
