@@ -96,7 +96,6 @@ export default function NaddrCommunity() {
   }, [worker, newConn, naddr]);
 
   const splitText = (text: string) => {
-    // 使用正则表达式来分割字符串，同时保留分隔符
     const parts = text.split(/(\d+\.)/);
     const filteredParts = parts.filter(part => part.trim() !== '');
     return filteredParts;
@@ -116,7 +115,7 @@ export default function NaddrCommunity() {
       );
     }
   }
-  console.log('--->', community)
+  
   return (
     <BaseLayout>
       <Left>

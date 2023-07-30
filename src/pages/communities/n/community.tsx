@@ -1,13 +1,7 @@
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import styles from '../index.module.scss';
-import {
-  Button,
-  Empty,
-  Modal,
-  message,
-  Tabs
-} from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons'
+import { Button, Empty, Modal, message, Tabs, Avatar, Tooltip } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
   EventId,
   EventMap,
@@ -37,7 +31,8 @@ import {
   updateMyContactEvent,
 } from 'core/worker/util';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -66,6 +61,7 @@ export function Community({
   const [activeTab, setActiveTab] = useState('Latest');
 
   const router = useRouter();
+  const isMobile = useMatchMobile();
 
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -132,7 +128,6 @@ export function Community({
       {actionText}
     </Button>
   );
-
 
   const getApprovalShortNoteId = async () => {
     if (!worker) return;
@@ -388,9 +383,8 @@ export function Community({
   };
 
   const showPublishModal = () => {
-    setOpenWrite(true)
-  }
-
+    setOpenWrite(true);
+  };
 
   useEffect(() => {
     if (selectTab === 'un-approval') {
@@ -417,76 +411,100 @@ export function Community({
     noticePubEventResult(handle, () => getApprovalShortNoteId());
   };
 
-  const handleTabClick = (tabName) => {
+  const handleTabClick = tabName => {
     setActiveTab(tabName);
   };
 
   return (
     <>
       <div className={styles.communityPage}>
-        <div className={styles.communityNav} onClick={() => router.push('/communities')}>
+        <div
+          className={styles.communityNav}
+          onClick={() => router.push('/communities')}
+        >
           <ArrowLeftOutlined />
           {community.id}
         </div>
-        <div style={{backgroundImage: `url(${community.image})`}} className={styles.banner}>
+        <div
+          style={{ backgroundImage: `url(${community.image})` }}
+          className={styles.banner}
+        >
           <div className={styles.bannerContainer}>
             <div className={styles.bannerTitle}>{community.id}</div>
             <div className={styles.bannerContent}>{community.description}</div>
+            {isMobile && (
+              <div className={styles.mobilePanel}>
+                <div className={styles.moderator}>
+                  <div>
+                    <Tooltip
+                      key={community.creator}
+                      title={userMap.get(community.creator)?.name}
+                      placement="top"
+                    >
+                      <Avatar src={userMap.get(community.creator)?.picture} />
+                    </Tooltip>
+
+                    <Avatar.Group maxCount={3}>
+                      {community.moderators.map(pk => (
+                        <Tooltip
+                          key={pk}
+                          title={userMap.get(pk)?.name}
+                          placement="top"
+                        >
+                          <a href={'/user/' + pk}>
+                            <Avatar src={userMap.get(pk)?.picture} />
+                          </a>
+                        </Tooltip>
+                      ))}
+                    </Avatar.Group>
+                  </div>
+                </div>
+                <div>{actionButton}</div>
+              </div>
+            )}
           </div>
         </div>
         {/*<div className={styles.title}>{community.id}</div>*/}
         {/*<div className={styles.description}>{community.description}</div>*/}
         {/*<div className={styles.ruleTitle}>Rules</div>*/}
         {/*<div className={styles.rules}>{community.rules}</div>*/}
-        {/*<div className={styles.moderator}>*/}
-        {/*  <div>*/}
-        {/*    <Tooltip*/}
-        {/*      key={community.creator}*/}
-        {/*      title={userMap.get(community.creator)?.name}*/}
-        {/*      placement="top"*/}
-        {/*    >*/}
-        {/*      <Avatar src={userMap.get(community.creator)?.picture} />*/}
-        {/*    </Tooltip>*/}
 
-        {/*    <Avatar.Group maxCount={5}>*/}
-        {/*      {community.moderators.map(pk => (*/}
-        {/*        <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">*/}
-        {/*          <a href={'/user/' + pk}>*/}
-        {/*            <Avatar src={userMap.get(pk)?.picture} />*/}
-        {/*          </a>*/}
-        {/*        </Tooltip>*/}
-        {/*      ))}*/}
-        {/*    </Avatar.Group>*/}
-        {/*  </div>*/}
         {/*  <div>{actionButton}</div>*/}
         {/*</div>*/}
         <div className={styles.selectBtn}>
           <Tabs
-              defaultActiveKey="latest"
-              items={[
-                {
-                  label: 'Latest',
-                  key: 'latest',
-                  children:  <>
+            defaultActiveKey="latest"
+            items={[
+              {
+                label: 'Latest',
+                key: 'latest',
+                children: (
+                  <>
                     <div className={styles.msgTypeWrapper}>
                       <div className={styles.typeButtonContainer}>
                         <div
-                            className={`${styles.typeButton} ${activeTab === 'Latest' ? styles.typeActive : ''}`}
-                            onClick={() => handleTabClick('Latest')}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Latest' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Latest')}
                         >
                           Latest
                         </div>
                         <div
-                            className={`${styles.typeButton} ${activeTab === 'Hot' ? styles.typeActive : ''}`}
-                            onClick={() => handleTabClick('Hot')}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Hot' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Hot')}
                         >
                           Hot
                         </div>
                         <div
-                            className={`${styles.typeButton} ${activeTab === 'Long-Form' ? styles.typeActive : ''}`}
-                            onClick={() => handleTabClick('Long-Form')}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Long-Form' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Long-Form')}
                         >
-                          Long-Form 
+                          Long-Form
                         </div>
                       </div>
                       <Button type="link" onClick={() => showPublishModal()}>
@@ -495,59 +513,62 @@ export function Community({
                     </div>
                     {msgList.length === 0 && <Empty />}
                     <PostItems
-                        msgList={msgList}
-                        worker={worker!}
-                        userMap={userMap}
-                        eventMap={eventMap}
-                        relays={worker?.relays.map(r => r.url) || []}
-                        showFromCommunity={false}
+                      msgList={msgList}
+                      worker={worker!}
+                      userMap={userMap}
+                      eventMap={eventMap}
+                      relays={worker?.relays.map(r => r.url) || []}
+                      showFromCommunity={false}
                     />
                   </>
-                },
-                {
-                  label: 'Pin',
-                  key: 'hotest',
-                  children: 'Tab 2',
-                  disabled: true,
-                },
-                {
-                  label: 'UnApproval',
-                  key: 'un-approval',
-                  children: <>
+                ),
+              },
+              {
+                label: 'Pin',
+                key: 'hotest',
+                children: 'Tab 2',
+                disabled: true,
+              },
+              {
+                label: 'UnApproval',
+                key: 'un-approval',
+                children: (
+                  <>
                     {unApprovalMsgList.length === 0 && <Empty />}
                     <PostItems
-                        msgList={unApprovalMsgList}
-                        worker={worker!}
-                        userMap={userMap}
-                        eventMap={eventMap}
-                        relays={worker?.relays.map(r => r.url) || []}
-                        showFromCommunity={false}
-                        extraMenu={
-                          isModerator
-                              ? [
-                                {
-                                  label: 'approve this event',
-                                  onClick: (event, message) =>
-                                      createApproval(event, message),
-                                },
-                              ]
-                              : []
-                        }
+                      msgList={unApprovalMsgList}
+                      worker={worker!}
+                      userMap={userMap}
+                      eventMap={eventMap}
+                      relays={worker?.relays.map(r => r.url) || []}
+                      showFromCommunity={false}
+                      extraMenu={
+                        isModerator
+                          ? [
+                              {
+                                label: 'approve this event',
+                                onClick: (event, message) =>
+                                  createApproval(event, message),
+                              },
+                            ]
+                          : []
+                      }
                     />
-                  </>,
-                },
-              ]}
+                  </>
+                ),
+              },
+            ]}
           />
         </div>
         <Modal
-            title={'Post to ' + community.id}
-            wrapClassName={styles.modal}
-            footer={null}
-            open={openWrite}
-            onCancel={() => setOpenWrite(false)}
-            closeIcon={
-              <Icon type="icon-cross" className={styles.modalCoseIcons} />
-            }
+          title={'Post to ' + community.id}
+          wrapClassName={styles.modal}
+          footer={null}
+          open={openWrite}
+          onCancel={() => setOpenWrite(false)}
+          closeIcon={
+            <Icon type="icon-cross" className={styles.modalCoseIcons} />
+          }
         >
           <p>
             {
@@ -555,10 +576,10 @@ export function Community({
             }
           </p>
           <PubNoteTextarea
-              activeCommunity={Nip172.communityAddr({
-                identifier: community.id,
-                author: community.creator,
-              })}
+            activeCommunity={Nip172.communityAddr({
+              identifier: community.id,
+              author: community.creator,
+            })}
           />
         </Modal>
       </div>
