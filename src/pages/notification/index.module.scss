@@ -42,5 +42,8 @@
     .ant-tabs-nav{
       margin: 0px var(--basePadding5);
     }
+    .ant-tabs-nav-list {
+      width: auto;
+    }
   }
 }

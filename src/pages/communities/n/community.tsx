@@ -483,10 +483,10 @@ export function Community({
                           Hot
                         </div>
                         <div
-                            className={`${styles.typeButton} ${activeTab === 'Best long form' ? styles.typeActive : ''}`}
-                            onClick={() => handleTabClick('Best long form')}
+                            className={`${styles.typeButton} ${activeTab === 'Long-Form' ? styles.typeActive : ''}`}
+                            onClick={() => handleTabClick('Long-Form')}
                         >
-                          Best long form
+                          Long-Form 
                         </div>
                       </div>
                       <Button type="link" onClick={() => showPublishModal()}>

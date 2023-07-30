@@ -162,16 +162,3 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ant-tabs {
-  width: 100%;
-}
-.ant-tabs-nav-list {
-  width: 100%;
-  .ant-tabs-tab {
-    flex: 1;
-    .ant-tabs-tab-btn {
-      width: 100%;
-      text-align: center;
-    }
-  }
-}

@@ -106,6 +106,7 @@
       display: flex;
       justify-content: space-around;
       .typeButton {
+        white-space: nowrap;
         height: 22px;
         padding: 0 12px;
         border-radius: 20px;
