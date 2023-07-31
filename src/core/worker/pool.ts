@@ -141,6 +141,7 @@ export class Pool {
           return ws.isConnected();
       }
     });
+    // console.log("call relay type: ", callRelayType, "sub filter with relays: ", relays.map(w => w.url));
     return relays.map(ws => {
       const filterSubId = subId;
       const data = this.portSubs.get(portId);
