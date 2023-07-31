@@ -37,10 +37,10 @@ export function useSubMsg({
     if (!worker) return;
     if (!validateFilter(msgFilter)) return;
     setIsRefreshing(true);
-    console.log("start sub msg..", newConn, msgFilter);
     const pks: string[] = [];
 
     const callRelay = createCallRelay(newConn);
+    console.debug("start sub msg..", newConn, msgFilter, callRelay);
     const dataStream = worker
       .subFilter({ filter: msgFilter, callRelay })
       .getIterator();
@@ -71,9 +71,10 @@ export function useSubMsg({
       }
     }
     dataStream.unsubscribe();
-    console.log("finished sub msg!");
+    console.debug("finished sub msg!");
     setIsRefreshing(false);
 
+    // sub user profiles
     if(pks.length > 0){
       worker?.subFilter({filter: {
         kinds: [WellKnownEventKind.set_metadata],
@@ -82,7 +83,6 @@ export function useSubMsg({
         onSetUserMap(event, setUserMap);
       }})
     }
-  
   };
 
   useEffect(() => {

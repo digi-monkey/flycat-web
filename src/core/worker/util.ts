@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction } from 'react';
 
 export function createCallRelay(newConn: string[]): CallRelay {
   const type =
-    newConn.length > 0 ? CallRelayType.connected : CallRelayType.batch;
+    newConn.length > 0 ? CallRelayType.batch : CallRelayType.connected;
   return {
     type,
     data: newConn,
