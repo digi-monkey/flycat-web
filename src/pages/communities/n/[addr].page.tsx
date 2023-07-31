@@ -12,9 +12,19 @@ import { useRouter } from 'next/router';
 import { Community } from './community';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import { deserializeMetadata } from 'core/nostr/content';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { createCallRelay } from 'core/worker/util';
+import styles from './index.module.scss';
+import Icon from "../../../components/Icon";
+import {
+  CalendarOutlined
+} from '@ant-design/icons';
+import {
+  Input,
+  Avatar,
+  Tooltip
+} from "antd";
 
 type UserParams = {
   addr: Naddr;
@@ -29,6 +39,12 @@ export default function NaddrCommunity() {
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [community, setCommunity] = useState<CommunityMetadata>();
+
+  const [postCount, setPostCount] = useState<number>(0);
+  const [contributorCount, setContributorCount] = useState<number>(0);
+  const [myPostCount, setMyPostCount] = useState<number>(0); 
+  const [myUnApprovalPostCount, setMyUnApprovalPostCount] = useState<number>(0);
+  const [actionButton, setActionButtom] = useState<ReactNode>();
 
   const handleEvent = (event: Event, relayUrl?: string) => {
     switch (event.kind) {
@@ -84,6 +100,27 @@ export default function NaddrCommunity() {
     worker.subFilter({ filter, callRelay }).iterating({ cb: handleEvent });
   }, [worker, newConn, naddr]);
 
+  const splitText = (text: string) => {
+    const parts = text.split(/(\d+\.)/);
+    const filteredParts = parts.filter(part => part.trim() !== '');
+    return filteredParts;
+  };
+
+
+  let formattedText: JSX.Element[] | null = null;
+
+  if (community?.rules) {
+    const parts = splitText(community.rules);
+    formattedText = [];
+    for (let i = 0; i < parts.length; i += 2) {
+      formattedText.push(
+          <p key={i}>
+            {parts[i]}{parts[i + 1]}
+          </p>
+      );
+    }
+  }
+  
   return (
     <BaseLayout>
       <Left>
@@ -95,10 +132,63 @@ export default function NaddrCommunity() {
             userMap={userMap}
             eventMap={eventMap}
             community={community}
+            setPostCount={setPostCount}
+            setContributorCount={setContributorCount}
+            setMyPostCount={setMyPostCount}
+            setMyUnApprovalPostCount={setMyUnApprovalPostCount}
+            setActionButton={setActionButtom}
           />
         )}
       </Left>
-      <Right></Right>
+      <Right>
+        <div className={styles.rightPanel}>
+          <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+          <div className={styles.communityDataWrapper}>
+            <div className={styles.dataContainer}>
+              <p className={styles.dataNum}>{postCount}</p>
+              <p className={styles.dataTitle}>Posts</p>
+            </div>
+            <div className={styles.dataContainer}>
+              <p className={styles.dataNum}>{contributorCount}</p>
+              <p className={styles.dataTitle}>Contributors</p>
+            </div>
+          </div>
+          <div className={styles.rightPanelHeader}>Moderators</div>
+          <div className={styles.avatarContainer}>
+                <Avatar.Group maxCount={5}>
+                  {community?.moderators.map(pk => (
+                    <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
+                      <a href={'/user/' + pk}>
+                        <Avatar src={userMap.get(pk)?.picture} />
+                      </a>
+                    </Tooltip>
+                  ))}
+                </Avatar.Group>
+          </div>
+          <div className={styles.rightPanelHeader}>Rules</div>
+          <div>{ formattedText }</div>
+          <div className={styles.calendarRecord}>
+            <div className={styles.recordHeader}>My Record</div>
+            <div className={styles.recordTime}>
+              <CalendarOutlined />
+              <p> Since Jul 20, 2023 (1 days)</p>
+            </div>
+            <div className={styles.recordDataWrapper}>
+              <div className={styles.recordDataContainer}>
+                <p className={styles.recordData}>{myPostCount}</p>
+                <p className={styles.recordTitle}>Posts</p>
+              </div>
+              <div className={styles.recordDataContainer}>
+                <p className={styles.recordData}>{myUnApprovalPostCount + myPostCount}</p>
+                <p className={styles.recordTitle}>Submissions</p>
+              </div>
+            </div>
+          </div>
+          <div className={styles.followButton}>
+            {actionButton}
+          </div>
+        </div>
+      </Right>
     </BaseLayout>
   );
 }

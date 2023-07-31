@@ -1,15 +1,7 @@
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import styles from '../index.module.scss';
-import {
-  Avatar,
-  Button,
-  Divider,
-  Empty,
-  Modal,
-  Segmented,
-  Tooltip,
-  message,
-} from 'antd';
+import { Button, Empty, Modal, message, Tabs, Avatar, Tooltip } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
   EventId,
   EventMap,
@@ -18,7 +10,7 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'core/worker/type';
 import { isEventPTag } from 'core/nostr/util';
@@ -39,6 +31,8 @@ import {
   updateMyContactEvent,
 } from 'core/worker/util';
 import { RawEvent } from 'core/nostr/RawEvent';
+import { useRouter } from 'next/router';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -47,7 +41,13 @@ interface CommunityProps {
   worker?: CallWorker;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
+  setPostCount?: Dispatch<SetStateAction<number>>;
+  setContributorCount?: Dispatch<SetStateAction<number>>;
+  setMyPostCount?: Dispatch<SetStateAction<number>>;
+  setMyUnApprovalPostCount?: Dispatch<SetStateAction<number>>;
+  setActionButton?: Dispatch<SetStateAction<ReactNode>>; 
 }
+
 export function Community({
   community,
   userMap,
@@ -55,14 +55,24 @@ export function Community({
   eventMap,
   setEventMap,
   setUserMap,
+  setPostCount,
+  setContributorCount,
+  setMyPostCount,
+  setMyUnApprovalPostCount,
+  setActionButton
 }: CommunityProps) {
   const myPublicKey = useReadonlyMyPublicKey();
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [allMsgList, setAllMsgList] = useState<EventWithSeen[]>([]);
+  const [myActionButton, setMyActionButton] = useState<ReactNode>();
   const [loading, setLoading] = useState(false);
   const [openWrite, setOpenWrite] = useState(false);
-  const [selectTab, setSelectTab] = useState<string | number>();
+  const [selectTab, setSelectTab] = useState<string | number>('Latest');
+  const [activeTab, setActiveTab] = useState('Latest');
+
+  const router = useRouter();
+  const isMobile = useMatchMobile();
 
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -118,7 +128,9 @@ export function Community({
       updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
     );
   };
-  const actionText =
+
+  useEffect(()=>{
+    const actionText =
     myContactEvent && isFollowed(myContactEvent, target)
       ? 'Unfollow'
       : 'Follow';
@@ -129,6 +141,8 @@ export function Community({
       {actionText}
     </Button>
   );
+  setMyActionButton(actionButton);
+  }, [myContactEvent])
 
   const getApprovalShortNoteId = async () => {
     if (!worker) return;
@@ -383,6 +397,10 @@ export function Community({
     worker.subFilter({ filter }).iterating({ cb: handleEvent });
   };
 
+  const showPublishModal = () => {
+    setOpenWrite(true);
+  };
+
   useEffect(() => {
     if (selectTab === 'un-approval') {
       getAllShortNoteId();
@@ -408,113 +426,199 @@ export function Community({
     noticePubEventResult(handle, () => getApprovalShortNoteId());
   };
 
+  const handleTabClick = tabName => {
+    setActiveTab(tabName);
+  };
+
+  useEffect(()=>{
+    if(setPostCount){
+      setPostCount(msgList.length);
+    }
+    if(setContributorCount){
+      setContributorCount(new Set(msgList.map(item => item.pubkey)).size)
+    }
+    if(setMyPostCount){
+      setMyPostCount(msgList.filter(item => item.pubkey === myPublicKey).length);
+    }
+  }, [msgList]);
+
+  useEffect(()=>{
+    if(setMyUnApprovalPostCount){
+      const unApprovalMsgList = allMsgList.filter(
+        msg => !msgList.map(m => m.id).includes(msg.id),
+      );
+      setMyUnApprovalPostCount(unApprovalMsgList.filter(item => item.pubkey === myPublicKey).length);
+    }
+  }, [allMsgList]);
+
+  useEffect(()=>{
+    if(myActionButton && setActionButton){
+      setActionButton(myActionButton);
+    }
+  }, [myActionButton]);
+
   return (
     <>
       <div className={styles.communityPage}>
-        <img src={community.image} alt="" className={styles.banner} />
-        <div className={styles.title}>{community.id}</div>
-        <div className={styles.description}>{community.description}</div>
-        <div className={styles.ruleTitle}>Rules</div>
-        <div className={styles.rules}>{community.rules}</div>
-        <div className={styles.moderator}>
-          <div>
-            <Tooltip
-              key={community.creator}
-              title={userMap.get(community.creator)?.name}
-              placement="top"
-            >
-              <Avatar src={userMap.get(community.creator)?.picture} />
-            </Tooltip>
-
-            <Avatar.Group maxCount={5}>
-              {community.moderators.map(pk => (
-                <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
-                  <a href={'/user/' + pk}>
-                    <Avatar src={userMap.get(pk)?.picture} />
-                  </a>
-                </Tooltip>
-              ))}
-            </Avatar.Group>
-          </div>
-          <div>{actionButton}</div>
+        <div
+          className={styles.communityNav}
+          onClick={() => router.push('/communities')}
+        >
+          <ArrowLeftOutlined />
+          {community.id}
         </div>
-        <Divider orientation="left"></Divider>
+        <div
+          style={{ backgroundImage: `url(${community.image})` }}
+          className={styles.banner}
+        >
+          <div className={styles.bannerContainer}>
+            <div className={styles.bannerTitle}>{community.id}</div>
+            <div className={styles.bannerContent}>{community.description}</div>
+            {isMobile && (
+              <div className={styles.mobilePanel}>
+                <div className={styles.moderator}>
+                  <div>
+                    <Tooltip
+                      key={community.creator}
+                      title={userMap.get(community.creator)?.name}
+                      placement="top"
+                    >
+                      <Avatar src={userMap.get(community.creator)?.picture} />
+                    </Tooltip>
+
+                    <Avatar.Group maxCount={3}>
+                      {community.moderators.map(pk => (
+                        <Tooltip
+                          key={pk}
+                          title={userMap.get(pk)?.name}
+                          placement="top"
+                        >
+                          <a href={'/user/' + pk}>
+                            <Avatar src={userMap.get(pk)?.picture} />
+                          </a>
+                        </Tooltip>
+                      ))}
+                    </Avatar.Group>
+                  </div>
+                </div>
+                <div>{myActionButton}</div>
+              </div>
+            )}
+          </div>
+        </div>
         <div className={styles.selectBtn}>
-          <Segmented
-            value={selectTab}
+          <Tabs
+            defaultActiveKey="latest"
             onChange={val => setSelectTab(val)}
-            options={[
-              { label: 'Latest', value: 'latest', disabled: false },
-              { label: 'Pin', value: 'hotest', disabled: true },
-              { label: 'UnApproval', value: 'un-approval' },
+            items={[
+              {
+                label: 'Latest',
+                key: 'latest',
+                children: (
+                  <>
+                    <div className={styles.msgTypeWrapper}>
+                      <div className={styles.typeButtonContainer}>
+                        <div
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Latest' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Latest')}
+                        >
+                          Latest
+                        </div>
+                        <div
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Hot' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Hot')}
+                        >
+                          Hot
+                        </div>
+                        <div
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Long-Form' ? styles.typeActive : ''
+                          }`}
+                          onClick={() => handleTabClick('Long-Form')}
+                        >
+                          Long-Form
+                        </div>
+                      </div>
+                      <Button type="link" onClick={() => showPublishModal()}>
+                        + Create Post
+                      </Button>
+                    </div>
+                    {msgList.length === 0 && <Empty />}
+                    <PostItems
+                      msgList={msgList}
+                      worker={worker!}
+                      userMap={userMap}
+                      eventMap={eventMap}
+                      relays={worker?.relays.map(r => r.url) || []}
+                      showFromCommunity={false}
+                    />
+                  </>
+                ),
+              },
+              {
+                label: 'Pin',
+                key: 'hotest',
+                children: 'Tab 2',
+                disabled: true,
+              },
+              {
+                label: 'UnApproval',
+                key: 'un-approval',
+                children: (
+                  <>
+                    {unApprovalMsgList.length === 0 && <Empty />}
+                    <PostItems
+                      msgList={unApprovalMsgList}
+                      worker={worker!}
+                      userMap={userMap}
+                      eventMap={eventMap}
+                      relays={worker?.relays.map(r => r.url) || []}
+                      showFromCommunity={false}
+                      extraMenu={
+                        isModerator
+                          ? [
+                              {
+                                label: 'approve this event',
+                                onClick: (event, message) =>
+                                  createApproval(event, message),
+                              },
+                            ]
+                          : []
+                      }
+                    />
+                  </>
+                ),
+              },
             ]}
           />
-          <Button type="link" onClick={() => setOpenWrite(true)}>
-            Create Post
-          </Button>
-          <Modal
-            title={'Post to ' + community.id}
-            wrapClassName={styles.modal}
-            footer={null}
-            open={openWrite}
-            onCancel={() => setOpenWrite(false)}
-            closeIcon={
-              <Icon type="icon-cross" className={styles.modalCoseIcons} />
-            }
-          >
-            <p>
-              {
-                'Your post will show up in your profile, but it needs to be approved by moderator to show up in the community'
-              }
-            </p>
-            <PubNoteTextarea
-              activeCommunity={Nip172.communityAddr({
-                identifier: community.id,
-                author: community.creator,
-              })}
-            />
-          </Modal>
         </div>
-      </div>
-
-      {selectTab === 'un-approval' && (
-        <>
-          {unApprovalMsgList.length === 0 && <Empty />}
-          <PostItems
-            msgList={unApprovalMsgList}
-            worker={worker!}
-            userMap={userMap}
-            eventMap={eventMap}
-            relays={worker?.relays.map(r => r.url) || []}
-            showFromCommunity={false}
-            extraMenu={
-              isModerator
-                ? [
-                    {
-                      label: 'approve this event',
-                      onClick: (event, message) =>
-                        createApproval(event, message),
-                    },
-                  ]
-                : []
+        <Modal
+          title={'Post to ' + community.id}
+          wrapClassName={styles.modal}
+          footer={null}
+          open={openWrite}
+          onCancel={() => setOpenWrite(false)}
+          closeIcon={
+            <Icon type="icon-cross" className={styles.modalCoseIcons} />
+          }
+        >
+          <p>
+            {
+              'Your post will show up in your profile, but it needs to be approved by moderator to show up in the community'
             }
+          </p>
+          <PubNoteTextarea
+            activeCommunity={Nip172.communityAddr({
+              identifier: community.id,
+              author: community.creator,
+            })}
           />
-        </>
-      )}
-
-      {selectTab !== 'un-approval' && (
-        <>
-          {msgList.length === 0 && <Empty />}
-          <PostItems
-            msgList={msgList}
-            worker={worker!}
-            userMap={userMap}
-            eventMap={eventMap}
-            relays={worker?.relays.map(r => r.url) || []}
-            showFromCommunity={false}
-          />
-        </>
-      )}
+        </Modal>
+      </div>
     </>
   );
 }

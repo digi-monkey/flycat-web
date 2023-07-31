@@ -1,0 +1,121 @@
+.rightPanel {
+  :global {
+    .ant-input-affix-wrapper {
+      margin: var(--basePadding4) 0;
+      height: 40px;
+      border-radius: 50px;
+
+      &:hover {
+        border: none;
+        border-inline-end: none;
+        box-shadow: none;
+      }
+
+      &,
+      input {
+        background-color: var(--neutral-02);
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+
+        fill: var(--neutral-06);
+      }
+    }
+  }
+
+  .communityDataWrapper {
+    display: flex;
+    .dataContainer {
+      width: 96px;
+      .dataNum {
+        color: var(--neutral-09, #1E1E1E);
+        /* Header3 */
+        font-family: Poppins;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 28px; /* 140% */
+        margin-bottom: 8px;
+      }
+      .dataTitle {
+        color: var(--neutral-06, #787878);
+        /* Label */
+        font-family: Noto Sans;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 22px; /* 157.143% */
+      }
+    }
+  }
+
+  .rightPanelHeader {
+    margin-top: 6px;
+    margin-bottom: 16px;
+    color: var(--neutral-09, #1E1E1E);
+    /* Subheader1-bold */
+    font-family: Poppins;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .avatarContainer {
+    margin-bottom: 32px;
+    .antAvatar {
+      margin-right: 4px !important;
+    }
+  }
+  .calendarRecord {
+    width: 286px;
+    padding: 16px;
+    margin: 32px 0;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: var(--post-bg, #F2F2F2);
+    .recordHeader {
+      color: var(--neutral-09, #1E1E1E);
+      /* Subheader1-bold */
+      font-family: Poppins;
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 24px; /* 150% */
+    }
+    .recordTime {
+      display: flex;
+      align-items: center;
+      svg {
+        margin-right: 4px;
+      }
+    }
+    .recordDataWrapper {
+      display: flex;
+      .recordDataContainer {
+        color: var(--neutral-06, #787878);
+        .recordData {
+          width: 96px;
+          color: var(--neutral-09, #1E1E1E);
+          /* Header3 */
+          font-family: Poppins;
+          font-size: 20px;
+          font-style: normal;
+          font-weight: 600;
+          line-height: 28px; /* 140% */
+          margin-bottom: 8px;
+        }
+      }
+    }
+  }
+  .followButton {
+    button{
+      width: 100%;
+      height: 44px;
+      border-radius: 22px;
+      background: var(--primary-06, #598022);
+      text-align: center;
+      color: #fff;
+    }
+  }
+}

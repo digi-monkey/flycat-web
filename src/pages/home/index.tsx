@@ -36,6 +36,8 @@ import {
 } from 'core/api/band';
 import { CallRelayType } from 'core/worker/type';
 
+import dynamic from 'next/dynamic';
+
 export interface HomePageProps {
   isLoggedIn: boolean;
   mode?: LoginMode;
@@ -261,4 +263,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 };
 
-export default connect(loginMapStateToProps)(HomePage);
+export default dynamic(() => Promise.resolve(connect(loginMapStateToProps)(HomePage)), {
+  ssr: false,
+});
