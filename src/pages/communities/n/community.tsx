@@ -65,6 +65,7 @@ export function Community({
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [allMsgList, setAllMsgList] = useState<EventWithSeen[]>([]);
+  const [myActionButton, setMyActionButton] = useState<ReactNode>();
   const [loading, setLoading] = useState(false);
   const [openWrite, setOpenWrite] = useState(false);
   const [selectTab, setSelectTab] = useState<string | number>('Latest');
@@ -127,7 +128,9 @@ export function Community({
       updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
     );
   };
-  const actionText =
+
+  useEffect(()=>{
+    const actionText =
     myContactEvent && isFollowed(myContactEvent, target)
       ? 'Unfollow'
       : 'Follow';
@@ -138,6 +141,8 @@ export function Community({
       {actionText}
     </Button>
   );
+  setMyActionButton(actionButton);
+  }, [myContactEvent])
 
   const getApprovalShortNoteId = async () => {
     if (!worker) return;
@@ -439,15 +444,18 @@ export function Community({
 
   useEffect(()=>{
     if(setMyUnApprovalPostCount){
+      const unApprovalMsgList = allMsgList.filter(
+        msg => !msgList.map(m => m.id).includes(msg.id),
+      );
       setMyUnApprovalPostCount(unApprovalMsgList.filter(item => item.pubkey === myPublicKey).length);
     }
-  }, [unApprovalMsgList]);
+  }, [allMsgList]);
 
   useEffect(()=>{
-    if(setActionButton){
-      setActionButton(actionButton);
+    if(myActionButton && setActionButton){
+      setActionButton(myActionButton);
     }
-  }, [actionButton])
+  }, [myActionButton]);
 
   return (
     <>
@@ -493,7 +501,7 @@ export function Community({
                     </Avatar.Group>
                   </div>
                 </div>
-                <div>{actionButton}</div>
+                <div>{myActionButton}</div>
               </div>
             )}
           </div>
