@@ -1,10 +1,11 @@
-import { EventMap, Filter } from 'core/nostr/type';
+import { EventMap, Filter, UserMap, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { createCallRelay } from 'core/worker/util';
 import { EventWithSeen } from 'pages/type';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import {
   onSetEventMap,
+  onSetUserMap,
   setEventWithSeenMsgList,
   setMaxLimitEventWithSeenMsgList,
 } from 'pages/helper';
@@ -18,6 +19,7 @@ export function useSubMsg({
   worker,
   newConn,
   setMsgList,
+  setUserMap,
   setEventMap,
   maxMsgLength,
 }: {
@@ -27,6 +29,7 @@ export function useSubMsg({
   worker: CallWorker | undefined;
   newConn: string[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
+  setUserMap:  Dispatch<SetStateAction<UserMap>>; 
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
@@ -35,6 +38,8 @@ export function useSubMsg({
     if (!validateFilter(msgFilter)) return;
     setIsRefreshing(true);
     console.log("start sub msg..", newConn, msgFilter);
+    const pks: string[] = [];
+
     const callRelay = createCallRelay(newConn);
     const dataStream = worker
       .subFilter({ filter: msgFilter, callRelay })
@@ -48,6 +53,10 @@ export function useSubMsg({
         if (!isValidEvent(event)) {
           continue;
         }
+      }
+
+      if(!pks.includes(event.pubkey)){
+        pks.push(event.pubkey);
       }
 
       if (maxMsgLength) {
@@ -64,6 +73,16 @@ export function useSubMsg({
     dataStream.unsubscribe();
     console.log("finished sub msg!");
     setIsRefreshing(false);
+
+    if(pks.length > 0){
+      worker?.subFilter({filter: {
+        kinds: [WellKnownEventKind.set_metadata],
+        authors: pks
+      }, callRelay}).iterating({cb: (event)=>{
+        onSetUserMap(event, setUserMap);
+      }})
+    }
+  
   };
 
   useEffect(() => {

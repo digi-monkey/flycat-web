@@ -2,7 +2,6 @@ import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
 import { ReactNode, useState } from 'react';
 import { useRouter } from 'next/router';
-import { handleEvent } from './utils';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
@@ -18,7 +17,6 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
-import { CallRelayType } from 'core/worker/type';
 import { MsgFeed } from 'components/MsgFeed';
 
 import Icon from 'components/Icon';
@@ -50,14 +48,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [myContactList, setMyContactList] = useState<ContactList>();
   const [selectFilter, setSelectFilter] = useState<string>('Follow');
 
-  const _handleEvent = handleEvent(
-    worker,
-    myPublicKey,
-    setUserMap,
-    setMyContactList,
-  );
-
-  useSubContactList(myPublicKey, newConn, worker, _handleEvent);
+  useSubContactList(myPublicKey, newConn, worker, setMyContactList);
 
   // right test data
   const updates = [
@@ -185,12 +176,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         <PageTitle title={'Home'} right={filterMsg} />
         <PubNoteTextarea
           pubSuccessCallback={(eventId, relayUrl) => {
-            worker
-              ?.subMsgByEventIds([eventId], undefined, {
-                type: CallRelayType.batch,
-                data: relayUrl,
-              })
-              .iterating({ cb: _handleEvent });
+            // todo
           }}
         />
         {renderMsg()}
@@ -208,36 +194,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
-          {/*
-             {recommendProfiles && recommendProfiles.length > 0 && (
-            <div className={styles.friends}>
-              <h2>Suggested Followings</h2>
-              {recommendProfiles.map((value, key) => {
-                const item = parseMetadata(value.profile.content);
-                return (
-                  <div className={styles.friend} key={key}>
-                    <div className={styles.info}>
-                      <Avatar src={item?.picture} />
-                      <div className={styles.friendInfo}>
-                        <h3>{item?.name}</h3>
-                        <p>{item?.about}</p>
-                      </div>
-                    </div>
-                    <Button
-                      className={styles.follow}
-                      onClick={() =>
-                        window.open('/user/' + value.pubkey, 'blank')
-                      }
-                    >
-                      View
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          */}
-
+          
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
             {trending.map((item, key) => (

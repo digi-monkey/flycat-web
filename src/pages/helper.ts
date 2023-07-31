@@ -2,7 +2,8 @@ import { Dispatch, SetStateAction } from 'react';
 import { RootState } from 'store/configureStore';
 import { EventWithSeen } from './type';
 import { Event } from 'core/nostr/Event';
-import { EventMap } from 'core/nostr/type';
+import { EventMap, EventSetMetadataContent, UserMap } from 'core/nostr/type';
+import { deserializeMetadata } from 'core/nostr/content';
 
 export const loginMapStateToProps = (state: RootState) => {
   return {
@@ -157,3 +158,23 @@ export const onSetEventMap = (event: Event, setEventMap: Dispatch<SetStateAction
   });  
 }
 
+export const onSetUserMap = (event: Event, setUserMap: Dispatch<SetStateAction<UserMap>>) => {
+  const metadata: EventSetMetadataContent = deserializeMetadata(
+    event.content,
+  );
+  
+  return setUserMap(prev => {
+    const newMap = new Map(prev);
+    const oldData = newMap.get(event.pubkey) as { created_at: number };
+    if (oldData && oldData.created_at > event.created_at) {
+      // the new data is outdated
+      return newMap;
+    }
+
+    newMap.set(event.pubkey, {
+      ...metadata,
+      ...{ created_at: event.created_at },
+    });
+    return newMap;
+  });
+}

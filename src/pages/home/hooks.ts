@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 import { CallRelayType } from 'core/worker/type';
 import {
+  ContactList,
+  EventContactListPTag,
+  EventTags,
   PublicKey,
 } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 
 export function useSubContactList(
   myPublicKey: PublicKey,
   newConn: string[],
   worker: CallWorker | undefined,
-  handleEvent: (event: Event, relayUrl?: string) => any,
+  setMyContactList: Dispatch<SetStateAction<ContactList | undefined>>
 ) {
   useEffect(() => {
     if (!worker) return;
@@ -27,7 +29,25 @@ export function useSubContactList(
       callRelay,
     );
     sub.iterating({
-      cb: handleEvent,
+      cb: (event)=>{
+        if (event.pubkey === myPublicKey) {
+          setMyContactList(prev => {
+            if (prev && prev?.created_at >= event.created_at) {
+              return prev;
+            }
+
+            const keys = (
+              event.tags.filter(
+                t => t[0] === EventTags.P,
+              ) as EventContactListPTag[]
+            ).map(t => t[1]);
+            return {
+              keys,
+              created_at: event.created_at,
+            };
+          });
+        }
+      },
     });
   }, [myPublicKey, newConn]);
 }

@@ -53,6 +53,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     worker,
     newConn,
     setMsgList,
+    setUserMap,
     setEventMap,
     maxMsgLength,
   });
