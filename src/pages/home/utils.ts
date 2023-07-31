@@ -13,12 +13,9 @@ import { Event } from 'core/nostr/Event';
 
 export function handleEvent(
   worker,
-  userMap,
   myPublicKey,
   setUserMap,
-  setMsgList,
   setMyContactList,
-  maxMsgLength = 50,
 ) {
   return function handleEvent(event: Event, relayUrl?: string) {
     console.debug(`[${worker?._workerId}]receive event`, relayUrl, event.kind);
@@ -41,48 +38,6 @@ export function handleEvent(
           });
           return newMap;
         });
-        break;
-
-      case WellKnownEventKind.text_note:
-      case WellKnownEventKind.article_highlight:
-      case WellKnownEventKind.long_form:
-      case WellKnownEventKind.reposts:
-        setMsgList(oldArray => {
-          if (
-            oldArray.length > maxMsgLength &&
-            oldArray[oldArray.length - 1].created_at > event.created_at
-          ) {
-            return oldArray;
-          }
-
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-
-            // save event
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [relayUrl!] } },
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            // cut to max size
-            if (sortedItems.length > maxMsgLength) {
-              return sortedItems.slice(0, maxMsgLength + 1);
-            }
-            return sortedItems;
-          } else {
-            const id = oldArray.findIndex(s => s.id === event.id);
-            if (id === -1) return oldArray;
-
-            if (!oldArray[id].seen?.includes(relayUrl!)) {
-              oldArray[id].seen?.push(relayUrl!);
-            }
-          }
-          return oldArray;
-        });
-
         break;
 
       case WellKnownEventKind.contact_list:
@@ -109,36 +64,4 @@ export function handleEvent(
         break;
     }
   };
-}
-
-export async function refreshMsg({
-  myContactList,
-  myPublicKey,
-  worker,
-  handleEvent,
-}: {
-  myContactList?: { keys: PublicKey[]; created_at: number };
-  myPublicKey: string;
-  worker?: CallWorker;
-  handleEvent: (event: Event, relayUrl?: string | undefined) => void;
-}) {
-  if(!worker)return;
-
-  const pks = myContactList?.keys || [];
-  // subscribe myself msg too
-  if (myPublicKey && !pks.includes(myPublicKey) && myPublicKey.length > 0)
-    pks.push(myPublicKey);
-
-  if (pks.length > 0) {
-    const callRelay = {
-      type: CallRelayType.connected,
-      data: [],
-    };
-
-    const subMsg = worker.subMsg(pks, 'homeRefreshMsg', callRelay).getIterator();
-    for await(const data of subMsg){
-      handleEvent(data.event, data.relayUrl);
-    }
-    subMsg.unsubscribe();
-  }
 }

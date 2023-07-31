@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { ReactNode, useState } from 'react';
 import { useRouter } from 'next/router';
 import { handleEvent } from './utils';
-import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
@@ -41,23 +40,20 @@ export interface HomePageProps {
 
 const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { t } = useTranslation();
-  const { worker, newConn, wsConnectStatus } = useCallWorker({});
 
   const router = useRouter();
   const myPublicKey = useMyPublicKey();
+  const { worker, newConn } = useCallWorker();
 
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
   const [myContactList, setMyContactList] = useState<ContactList>();
   const [selectFilter, setSelectFilter] = useState<string>('Follow');
 
   const _handleEvent = handleEvent(
     worker,
-    userMap,
     myPublicKey,
     setUserMap,
-    setMsgList,
     setMyContactList,
   );
 
