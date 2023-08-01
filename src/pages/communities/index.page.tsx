@@ -141,7 +141,8 @@ const Explore = () => {
 
   useEffect(() => {
     if (!worker) return;
-    if (myPublicKey.length === 0) return;
+    if (!myPublicKey) return;
+    if (myPublicKey && myPublicKey.length === 0) return;
 
     updateMyContactEvent({worker, pk: myPublicKey, setMyContactEvent});
   }, [worker, myPublicKey, newConn]);
@@ -149,6 +150,7 @@ const Explore = () => {
   useEffect(() => {
     if (
       selectTabKey === 'Following' &&
+      myPublicKey &&
       myPublicKey.length > 0 &&
       worker &&
       myContactEvent
