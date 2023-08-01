@@ -99,21 +99,26 @@ export function useSetMentions(
 ) {
   const myPublicKey = useReadonlyMyPublicKey();
 
+  // todo: this render too many times, maybe just set value before user typing
   useEffect(() => {
+    if(userMap.size === 0)return;
+
     setMentionsValue([]);
-    const mentions = Array.from(userMap.entries()).filter(u => u[0] !== myPublicKey).reduce((result, [pk, user]) => {
+    const mentions = Array.from(userMap.entries())?.filter(u => u[0] !== myPublicKey).reduce((result, [pk, user]) => {
+      const name = user.name || user.display_name || "...";
       result.push({
         key: pk,
-        value: user.name,
+        value: name,
         label: <div className={styles.mentions}>
-          <img src={user.picture} alt="picture" />
-          <span>{user.name}</span>
+          <img src={user?.picture} alt="picture" />
+          <span>{name}</span>
         </div>
       });
       return result;
     }, [] as IMentions[]);
+    if(mentions.length > 0)
     setMentionsValue(mentions);
-  }, [userMap]);
+  }, [userMap.size]);
 }
 
 export function useSetRelays(setRelays: React.Dispatch<React.SetStateAction<string[]>>) {
