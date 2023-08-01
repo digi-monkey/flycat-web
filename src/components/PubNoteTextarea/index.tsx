@@ -71,7 +71,9 @@ const PubNoteTextarea: React.FC<Props> = ({
   useSetRelays(setRelays);
 
   useEffect(()=>{
-    setSelectedCommunity(activeCommunity);
+    if(activeCommunity){
+      setSelectedCommunity(activeCommunity);
+    }
   }, [activeCommunity])
 
   return (
