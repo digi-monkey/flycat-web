@@ -206,14 +206,15 @@
     position: sticky;
     top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 4;
     display: flex;
     justify-content: space-between;
     gap: var(--basePadding2);
     align-items: center;
     padding: var(--basePadding4);
     height: var(--mobileHeaderHeight);
-    background-color: var(--neutral-white);
+    background-color: rgb(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
 
     :global {
       .ant-avatar{
@@ -251,7 +252,8 @@
     box-sizing: border-box;
     width: 100%;
     height: var(--mobileFooterHeight);
-    background-color: var(--neutral-white);
+    background-color: rgb(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
     padding: {
       left: var(--basePadding4);
       right: var(--basePadding4);
