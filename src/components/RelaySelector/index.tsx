@@ -4,7 +4,7 @@ import { RelayGroup } from 'core/relay/group';
 import { RelayGroupMap } from 'core/relay/group/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
-import { useDefaultGroup } from '../../pages/relay/hooks/useDefaultGroup';
+import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
 import { Button, Cascader, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
@@ -28,6 +28,7 @@ import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import { ConnPool } from 'core/api/pool';
 import classNames from 'classnames';
+import { normalizeWsUrl } from 'utils/common';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -157,7 +158,7 @@ export function RelaySelector({
     if (switchRelays?.relays) {
       const keys = Array.from(wsConnectStatus.keys());
       for (const key of keys) {
-        if (!switchRelays.relays.map(r => r.url).includes(key)) {
+        if (!switchRelays.relays.map(r => normalizeWsUrl(r.url)).includes(normalizeWsUrl(key))) {
           wsConnectStatus.delete(key);
         }
       }
@@ -188,7 +189,7 @@ export function RelaySelector({
       return;
     }
     if (value[0] === RelayModeSelectMenus.manageRelays) {
-      router.push(Paths.relay);
+      router.push(Paths.relayManager);
       return;
     }
     setSelectedValue(value);

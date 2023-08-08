@@ -7,6 +7,7 @@ import {
   WsConnectStatus,
 } from './type';
 import { WS } from 'core/api/ws';
+import { normalizeWsUrl } from 'utils/common';
 
 export class Pool {
   private wsList: WS[] = [];
@@ -71,7 +72,8 @@ export class Pool {
   setupWebSocketApis() {
     this.switchRelays.relays
       .map(r => r.url)
-      .forEach(relayUrl => {
+      .forEach(_relayUrl => {
+        const relayUrl = normalizeWsUrl(_relayUrl);
         if (!this.wsConnectStatus.has(relayUrl)) {
           const onOpen = _event => {
             if (ws.isConnected() === true) {

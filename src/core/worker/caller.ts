@@ -79,6 +79,7 @@ export class CallWorker {
             const data = res.data;
             this.wsConnStatus = data.wsConnectStatus;
             this.relayGroupId = data.id;
+            this.relays = data.relays;
             if (onWsConnStatus) {
               onWsConnStatus(this.wsConnStatus);
             }
