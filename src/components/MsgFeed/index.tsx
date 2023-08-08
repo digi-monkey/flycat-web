@@ -25,6 +25,7 @@ export interface MsgFeedProp {
   eventMap: EventMap;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   emptyDataReactNode: React.ReactNode;
+  maxMsgLength?: number;
 }
 
 export const MsgFeed: React.FC<MsgFeedProp> = ({
@@ -37,13 +38,14 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   eventMap,
   setEventMap,
   emptyDataReactNode,
+  maxMsgLength: _maxMsgLength
 }) => {
   const { t } = useTranslation();
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
 
-  const maxMsgLength = 50;
+  const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
 
   useSubMsg({

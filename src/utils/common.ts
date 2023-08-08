@@ -54,3 +54,14 @@ export function normalizeWsUrl(url: string): string {
   const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
   return normalizedUrl;
 }
+
+export function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+  const chunkedArray: T[][] = [];
+
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    const chunk: T[] = arr.slice(i, i + chunkSize);
+    chunkedArray.push(chunk);
+  }
+
+  return chunkedArray;
+}

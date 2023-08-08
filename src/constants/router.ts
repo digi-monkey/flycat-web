@@ -35,6 +35,10 @@ const Pages = {
     name: 'relay',
     path: '/relay'
   },
+  relayManager: {
+    name: 'relayManager',
+    path: '/relay-manager'
+  },
   event: {
     name: 'event',
     path: '/event'

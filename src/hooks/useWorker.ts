@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { WsConnectStatus } from 'core/worker/type';
 import { isEqualMaps } from 'utils/validator';
+import { normalizeWsUrl } from 'utils/common';
 
 export type OnMsgHandler = (this, nostrData: any, relayUrl?: string) => any;
 
@@ -72,6 +73,21 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
     setLastWsConnectStatus(wsConnectStatus);
     setNewConn(newConn);
   }, [wsConnectStatus]);
+
+  useEffect(() => {
+    if (worker?.relays) {
+      const newStatus = wsConnectStatus; 
+      const keys = Array.from(newStatus.keys());
+      for (const key of keys) {
+        if (!worker.relays.map(r => normalizeWsUrl(r.url)).includes(normalizeWsUrl(key))) {
+          newStatus.delete(key);
+        }
+      }
+      if(!isEqualMaps(newStatus, wsConnectStatus)){
+        setWsConnectStatus(newStatus);
+      }
+    }
+  }, [worker?.relays]);
 
   return {
     worker,
