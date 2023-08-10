@@ -14,6 +14,7 @@ import { Paths } from 'constants/path';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import { copyToClipboard } from 'utils/common';
+import { useRouter } from 'next/router';
 
 export interface FollowingsProp {
   buildFollowUnfollow: (publicKey: string) => {
@@ -29,6 +30,7 @@ export const Followings: React.FC<FollowingsProp> = ({
   userMap,
   buildFollowUnfollow,
 }) => {
+  const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
   const viewMore = () => {
     Modal.info({
@@ -96,7 +98,7 @@ export const Followings: React.FC<FollowingsProp> = ({
           <li key={key} className={styles.followingList}>
             <div
               className={styles.user}
-              onClick={() => window.open(Paths.user + `/${key}`, 'blank')}
+              onClick={() => router.push(Paths.user + `/${key}`, 'blank')}
             >
               <Avatar size={'small'} src={userMap.get(key)?.picture} alt="" />
               <div>{userMap.get(key)?.name || "..."}</div>

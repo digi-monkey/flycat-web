@@ -23,6 +23,7 @@ import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
 import Comments from 'components/Comments';
+import PageTitle from 'components/PageTitle';
 
 type UserParams = {
   publicKey: string;
@@ -30,6 +31,7 @@ type UserParams = {
 };
 
 export default function NewArticle({ preArticle }: { preArticle?: Article }) {
+  const router = useRouter();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
   const { publicKey } = query;
@@ -152,6 +154,12 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       </Head>
       <BaseLayout silent={true}>
         <Left>
+          <PageTitle title="Article" icon={<Icon
+                onClick={() => router.back()}
+                width={24}
+                height={24}
+                type="icon-arrow-left"
+              />} />
           <div className={styles.postContainer}>
             <div className={styles.post}>
               <PostContent
@@ -183,7 +191,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
 
                   <div
                     className={styles.name}
-                    onClick={() => window.open(Paths.user + publicKey, 'blank')}
+                    onClick={() => router.push(Paths.user + publicKey, 'blank')}
                   >
                     {userMap.get(publicKey)?.name}
                   </div>

@@ -22,10 +22,12 @@ import styles from '../index.module.scss';
 import { SearchOutlined } from '@ant-design/icons';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { updateMyContactEvent } from 'core/worker/util';
+import { useRouter } from 'next/router';
 
 const Explore = () => {
   const { t } = useTranslation();
 
+  const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn } = useCallWorker();
 
@@ -112,7 +114,7 @@ const Explore = () => {
           <Button
             type="primary"
             size="large"
-            onClick={() => window.open('/communities/n/create')}
+            onClick={() => router.push('/communities/n/create')}
           >
             create community 
           </Button>
@@ -136,7 +138,7 @@ const Explore = () => {
                   <List.Item
                     extra={<img alt="logo" src={item.value.image} />}
                     onClick={() =>
-                      window.open('/communities/n/' + item.key)
+                      router.push('/communities/n/' + item.key)
                     }
                   >
                     <List.Item.Meta
@@ -174,7 +176,7 @@ const Explore = () => {
             renderItem={item => (
               <List.Item
                 extra={<img alt="logo" src={item.value.image} />}
-                onClick={() => window.open('/communities/n/' + item.key)}
+                onClick={() => router.push('/communities/n/' + item.key)}
               >
                 <List.Item.Meta
                   style={{ textOverflow: 'ellipsis' }}

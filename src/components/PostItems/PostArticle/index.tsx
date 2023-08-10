@@ -8,6 +8,7 @@ import styles from './index.module.scss';
 import classNames from 'classnames';
 import { getRandomIndex } from 'utils/common';
 import { CSSProperties, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
 interface PostArticleProps {
   userAvatar: string;
@@ -21,6 +22,7 @@ const PostArticle: React.FC<PostArticleProps> = ({
   event,
 }) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const article = Nip23.toArticle(event);
   const { pubKey: author, id: articleId, title, image, summary } = article;
   const addr = Nip23.getAddr(author, articleId);
@@ -43,7 +45,7 @@ const PostArticle: React.FC<PostArticleProps> = ({
     <div
       className={styles.article}
       style={bgStyle}
-      onClick={() => window.open(Nip23.addrToUrl(addr), '_blank')}
+      onClick={() =>  router.push(Nip23.addrToUrl(addr))}
     >
       {image && <img src={image} alt={title || ''} />}
       <div className={styles.content}>

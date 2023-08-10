@@ -27,7 +27,9 @@
       line-height: 24px;
     }
   }
+}
 
+.rightPanel{
   :global {
     .ant-input-affix-wrapper {
       margin: var(--basePadding4) 0;

@@ -16,6 +16,7 @@ import {
 } from 'core/nostr/type';
 import { PostContent } from '../PostContent';
 import { CallWorker } from 'core/worker/caller';
+import { useRouter } from 'next/router';
 
 interface PostArticleCommentProps {
   eventMap: EventMap;
@@ -36,6 +37,7 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
   const aTag = Nip23.getATag(event);
   const addr = aTag[1];
   const { pubkey, articleId } = Nip23.addrToPkAndId(addr);
+  const router = useRouter();
 
   const [bgStyle, setBgStyle] = useState<CSSProperties | undefined>();
   useEffect(() => {
@@ -80,7 +82,7 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
         <div
           className={styles.article}
           style={bgStyle}
-          onClick={() => window.open(Nip23.addrToUrl(addr), '_blank')}
+          onClick={() => router.push(Nip23.addrToUrl(addr), '_blank')}
         >
           {article?.image && (
             <img src={article?.image} alt={article?.title || ''} />

@@ -47,6 +47,7 @@ import {
   isFollowed,
   updateMyContactEvent,
 } from 'core/worker/util';
+import PageTitle from 'components/PageTitle';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -366,7 +367,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       isLoggedIn &&
       myContactEvent?.id && // use ?.id to trigger UI update
       isFollowed(myContactEvent, { type: 'people', data: publicKey });
-    
+
     return isFollow
       ? {
           label: 'unfollow',
@@ -430,7 +431,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       <div className={styles.btnGroup}>
         <Button
           onClick={() => {
-            window.open(Paths.setting);
+            router.push(Paths.setting);
           }}
         >
           Edit profile
@@ -439,7 +440,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           type="icon-Gear"
           className={styles.icon}
           onClick={() => {
-            window.open(Paths.setting + '?tabKey=preference');
+            router.push(Paths.setting + '?tabKey=preference');
           }}
         />
       </div>
@@ -452,7 +453,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <Icon
             type="icon-rss"
             className={styles.icon}
-            onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
+            onClick={() => router.push('/api/rss/' + publicKey, 'blank')}
           />
         </Tooltip>
         <Tooltip title={`Zap The User`}>
@@ -479,50 +480,66 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       <Left>
         {contextHolder}
         {!isMobile && (
-          <div className={styles.pageTitle}>
-            <div className={styles.titleBox}>
-              <div className={styles.arrow}>
-                {' '}
-                <Icon
-                  style={{ width: '24px', height: '24px' }}
-                  type="icon-arrow-left"
-                ></Icon>{' '}
-              </div>
-              <div className={styles.title}>
-                {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
-                &apos;s profile
-              </div>
-            </div>
-            <div>
-              <Input
-                placeholder="Search"
-                prefix={<Icon type="icon-search" />}
+          <PageTitle
+            title={
+              (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
+            }
+            icon={
+              <Icon
+                onClick={() => router.back()}
+                width={24}
+                height={24}
+                type="icon-arrow-left"
               />
-            </div>
-          </div>
+            }
+            right={
+              <div className={styles.rightPanel}>
+                <Input
+                  placeholder="Search"
+                  prefix={<Icon type="icon-search" />}
+                />
+              </div>
+            }
+          />
         )}
         {isMobile && (
-          <div className={styles.mobileProfile}>
-            <div className={styles.profile}>
-              <div>
-                <div className={styles.img}>
-                  <Avatar
-                    style={{ width: '100%', height: '100%' }}
-                    src={userMap.get(publicKey)?.picture}
-                    alt=""
-                  />
+          <>
+            <PageTitle
+              title={
+                (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
+              }
+              icon={
+                <Icon
+                  onClick={() => router.back()}
+                  width={24}
+                  height={24}
+                  type="icon-arrow-left"
+                />
+              }
+            />
+            <div className={styles.mobileProfile}>
+              <div className={styles.profile}>
+                <div>
+                  <div className={styles.img}>
+                    <Avatar
+                      style={{ width: '100%', height: '100%' }}
+                      src={userMap.get(publicKey)?.picture}
+                      alt=""
+                    />
+                  </div>
+                  <div className={styles.name}>
+                    {userMap.get(publicKey)?.name ||
+                      shortifyPublicKey(publicKey)}
+                  </div>
                 </div>
-                <div className={styles.name}>
-                  {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
-                </div>
+                <div>{actionBtnGroups}</div>
               </div>
-              <div>{actionBtnGroups}</div>
-            </div>
 
-            <div className={styles.description}>
-              {userMap.get(publicKey)?.about}
+              <div className={styles.description}>
+                {userMap.get(publicKey)?.about}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {userMap.get(publicKey)?.banner && (
