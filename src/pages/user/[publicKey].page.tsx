@@ -482,8 +482,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         {!isMobile && (
           <PageTitle
             title={
-              userMap.get(publicKey)?.name ||
-              shortifyPublicKey(publicKey) + '&apos;s profile'
+              (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
             }
             icon={
               <Icon
@@ -507,8 +506,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <>
             <PageTitle
               title={
-                userMap.get(publicKey)?.name ||
-                shortifyPublicKey(publicKey) + '&apos;s profile'
+                (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
               }
               icon={
                 <Icon

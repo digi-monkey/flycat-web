@@ -23,6 +23,7 @@ import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
 import Comments from 'components/Comments';
+import PageTitle from 'components/PageTitle';
 
 type UserParams = {
   publicKey: string;
@@ -153,6 +154,12 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       </Head>
       <BaseLayout silent={true}>
         <Left>
+          <PageTitle title="Article" icon={<Icon
+                onClick={() => router.back()}
+                width={24}
+                height={24}
+                type="icon-arrow-left"
+              />} />
           <div className={styles.postContainer}>
             <div className={styles.post}>
               <PostContent
