@@ -367,7 +367,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       isLoggedIn &&
       myContactEvent?.id && // use ?.id to trigger UI update
       isFollowed(myContactEvent, { type: 'people', data: publicKey });
-    
+
     return isFollow
       ? {
           label: 'unfollow',
@@ -480,43 +480,68 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       <Left>
         {contextHolder}
         {!isMobile && (
-          <PageTitle 
-            title={userMap.get(publicKey)?.name || shortifyPublicKey(publicKey) + "&apos;s profile"} 
-            icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>} 
-            right={<div className={styles.rightPanel}>
-              <Input
-              placeholder="Search"
-              prefix={<Icon type="icon-search" />}
+          <PageTitle
+            title={
+              userMap.get(publicKey)?.name ||
+              shortifyPublicKey(publicKey) + '&apos;s profile'
+            }
+            icon={
+              <Icon
+                onClick={() => router.back()}
+                width={24}
+                height={24}
+                type="icon-arrow-left"
               />
-            </div>
-            } />
+            }
+            right={
+              <div className={styles.rightPanel}>
+                <Input
+                  placeholder="Search"
+                  prefix={<Icon type="icon-search" />}
+                />
+              </div>
+            }
+          />
         )}
         {isMobile && (
           <>
-          <PageTitle title={userMap.get(publicKey)?.name || shortifyPublicKey(publicKey) + "&apos;s profile"} icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>} />
-          <div className={styles.mobileProfile}>
-            <div className={styles.profile}>
-              <div>
-                <div className={styles.img}>
-                  <Avatar
-                    style={{ width: '100%', height: '100%' }}
-                    src={userMap.get(publicKey)?.picture}
-                    alt=""
-                  />
+            <PageTitle
+              title={
+                userMap.get(publicKey)?.name ||
+                shortifyPublicKey(publicKey) + '&apos;s profile'
+              }
+              icon={
+                <Icon
+                  onClick={() => router.back()}
+                  width={24}
+                  height={24}
+                  type="icon-arrow-left"
+                />
+              }
+            />
+            <div className={styles.mobileProfile}>
+              <div className={styles.profile}>
+                <div>
+                  <div className={styles.img}>
+                    <Avatar
+                      style={{ width: '100%', height: '100%' }}
+                      src={userMap.get(publicKey)?.picture}
+                      alt=""
+                    />
+                  </div>
+                  <div className={styles.name}>
+                    {userMap.get(publicKey)?.name ||
+                      shortifyPublicKey(publicKey)}
+                  </div>
                 </div>
-                <div className={styles.name}>
-                  {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
-                </div>
+                <div>{actionBtnGroups}</div>
               </div>
-              <div>{actionBtnGroups}</div>
-            </div>
 
-            <div className={styles.description}>
-              {userMap.get(publicKey)?.about}
+              <div className={styles.description}>
+                {userMap.get(publicKey)?.about}
+              </div>
             </div>
-          </div>
           </>
-          
         )}
 
         {userMap.get(publicKey)?.banner && (
