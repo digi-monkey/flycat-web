@@ -47,6 +47,7 @@ import {
   isFollowed,
   updateMyContactEvent,
 } from 'core/worker/util';
+import PageTitle from 'components/PageTitle';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -479,29 +480,20 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       <Left>
         {contextHolder}
         {!isMobile && (
-          <div className={styles.pageTitle}>
-            <div className={styles.titleBox}>
-              <div className={styles.arrow}>
-                {' '}
-                <Icon
-                  style={{ width: '24px', height: '24px' }}
-                  type="icon-arrow-left"
-                ></Icon>{' '}
-              </div>
-              <div className={styles.title}>
-                {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
-                &apos;s profile
-              </div>
-            </div>
-            <div>
+          <PageTitle 
+            title={userMap.get(publicKey)?.name || shortifyPublicKey(publicKey) + "&apos;s profile"} 
+            icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>} 
+            right={<div className={styles.rightPanel}>
               <Input
-                placeholder="Search"
-                prefix={<Icon type="icon-search" />}
+              placeholder="Search"
+              prefix={<Icon type="icon-search" />}
               />
             </div>
-          </div>
+            } />
         )}
         {isMobile && (
+          <>
+          <PageTitle title={userMap.get(publicKey)?.name || shortifyPublicKey(publicKey) + "&apos;s profile"} icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>} />
           <div className={styles.mobileProfile}>
             <div className={styles.profile}>
               <div>
@@ -523,6 +515,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               {userMap.get(publicKey)?.about}
             </div>
           </div>
+          </>
+          
         )}
 
         {userMap.get(publicKey)?.banner && (

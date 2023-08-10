@@ -4,11 +4,12 @@
   padding: 16px 20px;
   align-items: baseline;
   justify-content: space-between;
+  align-items: center;
 
   .title {
     display: flex;
     width: auto;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-start;
     gap: 10px;
 

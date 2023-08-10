@@ -16,11 +16,12 @@ import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Comments from 'components/Comments';
 import PageTitle from 'components/PageTitle';
+import Icon from 'components/Icon';
 
 export const EventPage = () => {
   const { t } = useTranslation();
   const { eventId } = useRouter().query as { eventId: string };
-
+  const router = useRouter();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
 
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
@@ -83,7 +84,7 @@ export const EventPage = () => {
     <BaseLayout>
       <Left>
         <div>
-          <PageTitle title={t('thread.title')} />
+          <PageTitle title={t('thread.title')} icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>}/>
 
           {rootEvent && (
             <>
