@@ -29,6 +29,7 @@ import Icon from 'components/Icon';
 import Link from 'next/link';
 
 import styles from './index.module.scss';
+import { useRouter } from 'next/router';
 
 export interface ItemProps {
   msg: Event;
@@ -38,6 +39,7 @@ export interface ItemProps {
 }
 
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -428,7 +430,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                 <span
                   className={styles.communityHeader}
                   onClick={() =>
-                    window.open(
+                    router.push(
                       '/communities/n/' +
                         encodeURIComponent(Nip172.communityAddr(community)),
                     )
@@ -501,7 +503,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                 <span
                   className={styles.communityHeader}
                   onClick={() =>
-                    window.open(
+                    router.push(
                       '/communities/n/' +
                         encodeURIComponent(Nip172.communityAddr(community)),
                     )

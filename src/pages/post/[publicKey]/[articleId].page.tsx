@@ -30,6 +30,7 @@ type UserParams = {
 };
 
 export default function NewArticle({ preArticle }: { preArticle?: Article }) {
+  const router = useRouter();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
   const { publicKey } = query;
@@ -183,7 +184,7 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
 
                   <div
                     className={styles.name}
-                    onClick={() => window.open(Paths.user + publicKey, 'blank')}
+                    onClick={() => router.push(Paths.user + publicKey, 'blank')}
                   >
                     {userMap.get(publicKey)?.name}
                   </div>

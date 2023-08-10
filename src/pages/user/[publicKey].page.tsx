@@ -430,7 +430,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       <div className={styles.btnGroup}>
         <Button
           onClick={() => {
-            window.open(Paths.setting);
+            router.push(Paths.setting);
           }}
         >
           Edit profile
@@ -439,7 +439,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           type="icon-Gear"
           className={styles.icon}
           onClick={() => {
-            window.open(Paths.setting + '?tabKey=preference');
+            router.push(Paths.setting + '?tabKey=preference');
           }}
         />
       </div>
@@ -452,7 +452,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <Icon
             type="icon-rss"
             className={styles.icon}
-            onClick={() => window.open('/api/rss/' + publicKey, 'blank')}
+            onClick={() => router.push('/api/rss/' + publicKey, 'blank')}
           />
         </Tooltip>
         <Tooltip title={`Zap The User`}>

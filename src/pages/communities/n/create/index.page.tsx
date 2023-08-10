@@ -26,6 +26,7 @@ import {
 } from 'core/nostr/content';
 import { createCallRelay } from 'core/worker/util';
 import { Nip19, Nip19DataType } from 'core/nip/19';
+import { useRouter } from 'next/router';
 
 const { TextArea } = Input;
 
@@ -39,6 +40,7 @@ interface FormData {
 }
 
 export default function CreateCommunity() {
+  const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn } = useCallWorker();
   const signEvent = useSelector(
@@ -124,7 +126,7 @@ export default function CreateCommunity() {
 
     const handler = worker.pubEvent(event);
     noticePubEventResult(handler);
-    window.open(
+    router.push(
       '/communities/n/' +
         encodeURIComponent(
           Nip172.communityAddr({
