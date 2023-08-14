@@ -36,11 +36,11 @@ export const Followings: React.FC<FollowingsProp> = ({
     Modal.info({
       closable: true,
       width: '600px',
-      bodyStyle: { height: 'auto', maxHeight: '500px', overflow: 'scroll' },
+      bodyStyle: { height: 'auto' },
       title: 'Following List',
       content: (
         <List
-          className="demo-loadmore-list"
+          className={styles.modalList}
           itemLayout="horizontal"
           dataSource={pks}
           renderItem={pk => (

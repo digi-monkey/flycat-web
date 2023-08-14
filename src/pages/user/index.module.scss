@@ -158,3 +158,8 @@
 .viewBtnContainer{
   margin-top: var(--basePadding3);
 }
+
+.modalList{
+  max-height: 500px;
+  overflow-y: scroll;
+}
