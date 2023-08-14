@@ -139,22 +139,23 @@ export const PostContent: React.FC<PostContentProp> = ({
   const content = (
     <div>
       <div>{contentComponents}</div>
-      {showLastReplyToEvent && lastReplyToEvent && (
-        <SubPostItem userMap={userMap} event={lastReplyToEvent} />
-      )}
-      {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
-        <div className={styles.replyEvent}>
-          <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
-            event@{shortifyEventId(lastReplyToEventId)}
-          </Link>
-          <Button onClick={tryReloadLastReplyEvent} type="link">
-            try reload
-          </Button>
-        </div>
-      )}
-      <MediaPreviews content={msgEvent.content} />
     </div>
   );
+
+  const extraContent = <>{showLastReplyToEvent && lastReplyToEvent && (
+    <SubPostItem userMap={userMap} event={lastReplyToEvent} />
+  )}
+  {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
+    <div className={styles.replyEvent}>
+      <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
+        event@{shortifyEventId(lastReplyToEventId)}
+      </Link>
+      <Button onClick={tryReloadLastReplyEvent} type="link">
+        try reload
+      </Button>
+    </div>
+  )}
+  <MediaPreviews content={msgEvent.content} /></>
 
   return (
     <div>
@@ -164,18 +165,14 @@ export const PostContent: React.FC<PostContentProp> = ({
         <div>
           <div
             ref={contentRef}
-            style={{ maxHeight: '150px', overflow: 'hidden' }}
+            style={{ maxHeight: '100px', overflow: 'hidden'}}
           >
             {content}
           </div>
-          {isOverflow && 
-            <div className={styles.expandContent}>
-              <Icon type="icon-arrow-down" />
-              <Button type='link' onClick={toggleExpanded}> Expand</Button>
-            </div>
-          }
+          {isOverflow && <Button className={styles.viewMore} type='link' onClick={toggleExpanded}> View More</Button>}
         </div>
       )}
+      {extraContent}
     </div>
   );
 };

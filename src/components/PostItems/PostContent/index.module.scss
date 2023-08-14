@@ -42,19 +42,8 @@
   white-space: pre-line;
 }
 
-.expandContent{
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin: var(--basePadding3) 0px;
-
-  svg{
-    height: 18px;
-    width: 18px;
-    fill: var(--primary-06);
-  }
-  button{
-    margin-left: 2px;
-    padding-left: 2px;
-  }
+.viewMore{
+  margin-left: 2px;
+  padding-left: 2px;
+  
 }
