@@ -21,6 +21,8 @@ const ENCRYPT_ENCODING = CryptoJS.enc.Base64;
 const HASH_ENCODING = CryptoJS.enc.Hex;
 const HEX_ENCODING = CryptoJS.enc.Hex;
 
+const Bech32MaxSize = 5000;
+
 export function Sha256(data: string): HexStr {
   return CryptoJS.SHA256(data).toString(HASH_ENCODING);
 }
@@ -55,7 +57,7 @@ export function randomKeyPair(): { privKey: string; pubKey: string } {
 export function bech32Encode(data: HexStr, prefix: Utf8Str): string {
   try {
     const words = bech32.toWords(fromHexString(data)!);
-    return bech32.encode(prefix, words);
+    return bech32.encode(prefix, words, Bech32MaxSize);
   } catch (error: any) {
     throw new Error(`bech32Encode error ${error.message}`);
   }
