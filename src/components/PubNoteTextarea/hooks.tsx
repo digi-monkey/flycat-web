@@ -121,24 +121,6 @@ export function useSetMentions(
   }, [userMap.size]);
 }
 
-export function useSetRelays(setRelays: React.Dispatch<React.SetStateAction<string[]>>) {
-  const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
-  const myPublicKey = useReadonlyMyPublicKey();
-  const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
-
-  useEffect(() => {
-    let relays = seedRelays;
-    if (isLoggedIn === true) {
-      relays = relays
-        .concat(...(myCustomRelay[myPublicKey] ?? []))
-        .filter((item, index, self) => self.indexOf(item) === index);
-    }
-
-    relays = relays.filter((elem, index, self) => index === self.indexOf(elem));
-    setRelays(relays);
-  }, [myPublicKey, myCustomRelay]);
-}
-
 export function useLoadCommunities({
   worker,
   newConn,

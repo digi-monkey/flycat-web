@@ -14,7 +14,6 @@ import {
   useLoadCommunities,
   useLoadContacts,
   useSetMentions,
-  useSetRelays,
 } from './hooks';
 
 import Link from 'next/link';
@@ -57,7 +56,6 @@ const PubNoteTextarea: React.FC<Props> = ({
   const { t } = useTranslation();
   const { worker, newConn } = useCallWorker();
   const [text, setText] = useState('');
-  const [relays, setRelays] = useState<string[]>([]);
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [mentionValue, setMentionsValue] = useState<IMentions[]>([]);
@@ -68,7 +66,6 @@ const PubNoteTextarea: React.FC<Props> = ({
   const { userMap } = useLoadContacts({ worker, newConn });
   const communities = useLoadCommunities({ worker, newConn });
   useSetMentions(setMentionsValue, userMap);
-  useSetRelays(setRelays);
 
   useEffect(()=>{
     if(activeCommunity){
@@ -109,7 +106,7 @@ const PubNoteTextarea: React.FC<Props> = ({
             setSelectMention({
               [value || '']: Nip19.encodeNprofile({
                 pubkey: key ?? '',
-                relays,
+                relays: [], // todo: add user's relay
               }),
               ...selectMention,
             })
