@@ -29,6 +29,7 @@ import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 
 import dynamic from 'next/dynamic';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -42,6 +43,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const router = useRouter();
   const myPublicKey = useMyPublicKey();
   const { worker, newConn } = useCallWorker();
+  const isMobile = useMatchMobile();
 
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
@@ -94,11 +96,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 
   const filterMsg = (
-    <Segmented
-      value={selectFilter}
-      onChange={val => setSelectFilter(val as string)}
-      options={['Follow', 'All', 'Article', 'Media']}
-    />
+    <div className={styles.msgFilter}>
+      <Segmented
+        value={selectFilter}
+        onChange={val => setSelectFilter(val as string)}
+        options={['Follow', 'All', 'Article', 'Media']}
+      />
+    </div>
   );
 
   const renderMsg = () => {
@@ -140,16 +144,17 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       };
     }
 
-    if(selectFilter === 'Media'){
+    if (selectFilter === 'Media') {
       msgFilter = {
         limit: 50,
-        kinds: [
-          WellKnownEventKind.text_note,
-        ],
-      }
+        kinds: [WellKnownEventKind.text_note],
+      };
       isValidEvent = (event: Event) => {
-        return event.kind === WellKnownEventKind.text_note && stringHasImageUrl(event.content);
-      }
+        return (
+          event.kind === WellKnownEventKind.text_note &&
+          stringHasImageUrl(event.content)
+        );
+      };
     }
 
     if (msgFilter == null) return 'unknown filter';
@@ -173,12 +178,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={'Home'} right={filterMsg} />
-        <PubNoteTextarea
-          pubSuccessCallback={(eventId, relayUrl) => {
-            // todo
-          }}
-        />
+        <PageTitle title={'Home'} right={isMobile ? '' : filterMsg} />
+        {isMobile ? (
+          <div className={styles.mobileFilter}>{filterMsg}</div>
+        ) : (
+          <PubNoteTextarea
+            pubSuccessCallback={(eventId, relayUrl) => {
+              // todo
+            }}
+          />
+        )}
         {renderMsg()}
       </Left>
       <Right>
@@ -194,7 +203,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             ))}
             <Link href={Paths.home}>Learn more</Link>
           </div>
-          
+
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
             {trending.map((item, key) => (
@@ -209,6 +218,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 };
 
-export default dynamic(() => Promise.resolve(connect(loginMapStateToProps)(HomePage)), {
-  ssr: false,
-});
+export default dynamic(
+  () => Promise.resolve(connect(loginMapStateToProps)(HomePage)),
+  {
+    ssr: false,
+  },
+);
