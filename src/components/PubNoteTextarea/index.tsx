@@ -207,7 +207,7 @@ const PubNoteTextarea: React.FC<Props> = ({
           </div>
           <SubmitButton
             disabled={
-              text.length === 0 ||
+              (text.length === 0 && attachImgs.length === 0) ||
               isUploading ||
               !isLoggedIn ||
               (isLoggedIn && signEvent == null)
