@@ -156,7 +156,6 @@ const PubNoteTextarea: React.FC<Props> = ({
             />
             <Popover
               placement="bottom"
-              title={text}
               content={
                 <Picker
                   data={emojiData}
