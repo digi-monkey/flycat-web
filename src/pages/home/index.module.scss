@@ -184,3 +184,28 @@
     }
   }
 }
+
+.msgFilter{
+  :global{
+    .ant-segmented-item-selected{
+      background-color: var(--primary-02);
+      color: var(--neutral-06);
+    }
+  }
+}
+
+.mobileFilter{
+  :global{
+    .ant-segmented{
+      width: 100%;
+    }
+    .ant-segmented-group{
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .ant-segmented-item{
+      flex: 1;
+    }
+  }
+}
