@@ -148,6 +148,12 @@ export function RelayPage() {
     initRelays();
   }, []);
 
+  useEffect(()=>{
+    if(connectedWsUrls.length > 0 && selectRelay == null){
+     setSelectRelay(connectedWsUrls[0]);
+    }
+  }, [connectedWsUrls]);
+
   const relayInfo = () => {
     if (selectRelay && relays.length > 0) {
       const target = relays.filter(
