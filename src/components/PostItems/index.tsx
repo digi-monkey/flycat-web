@@ -18,6 +18,7 @@ import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
+import { PostHighlight } from './PostHighlight';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -89,7 +90,7 @@ const PostItems: React.FC<PostItemsProps> = ({
                   showReplyArticle={showLastReplyToEvent}
                 />
               ) : Nip9802.isBlogHighlightMsg(msg) ? (
-                <>HighlightMsg</>
+                <PostHighlight event={msg}/>
               ) : (
                 <PostContent
                   ownerEvent={msg}

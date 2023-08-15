@@ -100,7 +100,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       <Segmented
         value={selectFilter}
         onChange={val => setSelectFilter(val as string)}
-        options={['Follow', 'All', 'Article', 'Media']}
+        options={['Follow', 'All', 'Article', 'Media', 'Highlight']}
       />
     </div>
   );
@@ -153,6 +153,18 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         return (
           event.kind === WellKnownEventKind.text_note &&
           stringHasImageUrl(event.content)
+        );
+      };
+    }
+
+    if (selectFilter === 'Highlight') {
+      msgFilter = {
+        limit: 50,
+        kinds: [WellKnownEventKind.article_highlight],
+      };
+      isValidEvent = (event: Event) => {
+        return (
+          event.kind === WellKnownEventKind.article_highlight
         );
       };
     }

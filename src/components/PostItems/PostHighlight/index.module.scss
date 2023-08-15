@@ -1,0 +1,5 @@
+.quote {
+  border-left: 1px solid var(--primary-06);
+  padding-left: var(--basePadding2);
+  @include font-body;
+}

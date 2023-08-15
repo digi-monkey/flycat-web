@@ -37,6 +37,15 @@ export function isValidWssUrl(url: string): boolean {
   return false;
 }
 
+export function isValidHttpUrl(url: string): boolean {
+  try {
+    const urlObject = new URL(url);
+    return urlObject.protocol === "http:" || urlObject.protocol === "https:";
+  } catch (error) {
+    return false;
+  }
+}
+
 // invalid string including ""
 export function isEmptyStr(text?: string) {
   return text == null || text.length === 0;
