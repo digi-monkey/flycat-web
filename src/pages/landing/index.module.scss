@@ -1,0 +1,45 @@
+.root {
+  padding-bottom: var(--basePadding10);
+  .header {
+    margin: var(--basePadding5) var(--basePadding10);
+    img {
+      width: 64px;
+      height: 64px;
+    }
+  }
+
+  .instr {
+    padding: var(--basePadding10);
+    .title {
+      @include font-header3;
+      color: var(--neutral-08);
+      font-size: 45px;
+      line-height: 60px;
+      white-space: pre-wrap;
+      span {
+        color: var(--red-05);
+      }
+    }
+    .description {
+      margin: var(--basePadding5) 0px;
+      font-size: 20px;
+      color: var(--neutral-06);
+      p {
+        margin: var(--basePadding5) 0px;
+      }
+      a {
+        color: var(--primary-06);
+      }
+    }
+    .action {
+      margin: var(--basePadding10) 0px;
+      .manualInstall{
+	color: var(--neutral-08);
+	margin: var(--basePadding5) 0px;
+      }
+    }
+  }
+  .img {
+    width: 100%;
+  }
+}
