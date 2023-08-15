@@ -4,13 +4,14 @@ import { DeviceFrameset } from 'react-device-frameset';
 
 import styles from './index.module.scss';
 import InstallButton from './install';
+import Link from 'next/link';
 import 'react-device-frameset/styles/marvel-devices.min.css';
 
 export const Landing: React.FC = () => {
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <img src="logo512.png" alt="" />
+        <Link href="/"><img src="logo512.png" alt="" /></Link> 
       </div>
       <Row>
         <Col xs={24} sm={12} md={12} lg={12}>
