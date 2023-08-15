@@ -1,8 +1,9 @@
-import { Button } from 'antd';
-import React, { useState, useEffect } from 'react';
+import { Button, message } from 'antd';
+import { useState, useEffect } from 'react';
 
 const InstallButton: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -10,7 +11,9 @@ const InstallButton: React.FC = () => {
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }
 
     return () => {
       window.removeEventListener(
@@ -21,20 +24,31 @@ const InstallButton: React.FC = () => {
   }, []);
 
   const handleInstallClick = () => {
+    if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+      return messageApi.warning('PWA not supported in browser environment.');
+    }
+
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult: any) => {
         if (choiceResult.outcome === 'accepted') {
-          console.log('PWA installation accepted');
+          messageApi.success('PWA installation accepted');
         } else {
-          console.log('PWA installation dismissed');
+          messageApi.error('PWA installation dismissed');
         }
         setDeferredPrompt(null);
       });
     }
   };
 
-  return <Button size='large' type='primary' onClick={handleInstallClick}>Install App</Button>;
+  return (
+    <>
+      {contextHolder}
+      <Button size="large" type="primary" onClick={handleInstallClick}>
+        Install App
+      </Button>
+    </>
+  );
 };
 
 export default InstallButton;
