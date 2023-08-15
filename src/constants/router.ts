@@ -54,6 +54,10 @@ const Pages = {
   login: {
     name: 'login',
     path: '/login'
+  },
+  landing: {
+    name: 'landing',
+    path: '/landing'
   }
 }
 

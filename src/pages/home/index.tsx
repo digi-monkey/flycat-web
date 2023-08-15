@@ -194,6 +194,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         <div className={styles.rightPanel}>
           <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
           <div className={styles.flycat}>
+            <Link href={Paths.landing}>Install mobile app (PWA)</Link>
             <h2>Flycat updates</h2>
             {updates.map((item, key) => (
               <div className={styles.item} key={key}>
