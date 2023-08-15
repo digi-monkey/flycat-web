@@ -475,6 +475,55 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       </div>
     );
 
+  const mobileActionBtnGroups =
+  myPublicKey === publicKey ? (
+    <div className={styles.btnGroup}>
+      <Icon
+        type="icon-Gear"
+        className={styles.icon}
+        onClick={() => {
+          router.push(Paths.setting + '?tabKey=preference');
+        }}
+      />
+      <Button
+        onClick={() => {
+          router.push(Paths.setting);
+        }}
+      >
+        Edit profile
+      </Button>
+    </div>
+  ) : (
+    <div className={styles.btnGroup}>
+      <Tooltip title={`Article RSS URL`}>
+        <Icon
+          type="icon-rss"
+          className={styles.icon}
+          onClick={() => router.push('/api/rss/' + publicKey, 'blank')}
+        />
+      </Tooltip>
+      <Tooltip title={`Zap The User`}>
+        <Icon
+          type="icon-bolt"
+          className={styles.icon}
+          onClick={async () => {
+            const lnUrl =
+              userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
+            if (lnUrl == null) {
+              return alert(
+                'no ln url, please tell the author to set up one.',
+              );
+            }
+            await payLnUrlInWebLn(lnUrl);
+          }}
+        />
+      </Tooltip>
+      <Button type="primary" onClick={followOrUnfollow.action}>
+        {followOrUnfollow.label}
+      </Button>
+    </div>
+  );
+
   return (
     <BaseLayout>
       <Left>
@@ -532,7 +581,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                       shortifyPublicKey(publicKey)}
                   </div>
                 </div>
-                <div>{actionBtnGroups}</div>
+                <div>{isMobile ? mobileActionBtnGroups : actionBtnGroups}</div>
               </div>
 
               <div className={styles.description}>
