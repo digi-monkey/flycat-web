@@ -28,7 +28,7 @@ export const Landing: React.FC = () => {
                 <a href="https://nostr.how/en/what-is-nostr">Nostr protocol</a>.
               </p>
               <p>
-                There is NO follower count, like button, private recommendation
+                There is no follower count, like button, private recommendation
                 algorithm and all the other bullshit components found in modern
                 social networks.{' '}
               </p>
