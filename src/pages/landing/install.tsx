@@ -53,7 +53,7 @@ const InstallButton: React.FC = () => {
     <>
       {contextHolder}
       <Button size="large" type="primary" onClick={handleInstallClick}>
-        Install App
+        Install PWA App
       </Button>
     </>
   );

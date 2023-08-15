@@ -29,8 +29,8 @@ export const Landing: React.FC = () => {
               </p>
               <p>
                 There is NO follower count, like button, private recommendation
-                algorithm and all the other bullshit components in the modern
-                social network platform.{' '}
+                algorithm and all the other bullshit components found in modern
+                social networks.{' '}
               </p>
               <p>
                 Your identity is just a crypto key pair controlled by yourself.
