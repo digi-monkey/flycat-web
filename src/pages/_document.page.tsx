@@ -23,6 +23,7 @@ export default class FlyCatDocument extends Document {
             name="apple-mobile-web-app-status-bar-style"
             content="default"
           />
+          <meta name="apple-touch-fullscreen" content="yes" />
           <meta name="apple-mobile-web-app-title" content="flycat" />
           <meta name="description" content="a beautiful nostr client" />
           <meta name="format-detection" content="telephone=no" />
