@@ -25,7 +25,9 @@ const InstallButton: React.FC = () => {
 
   const handleInstallClick = async () => {
     if (!('serviceWorker' in navigator && 'PushManager' in window)) {
-      return messageApi.warning('PWA not supported in browser environment.');
+      return messageApi.warning(
+        'Device Not supported. Please manually Tap the share button in your browser and select "Add to Home Screen" on iOS or "Install" on Android.',
+      );
     }
 
     if (deferredPrompt) {
