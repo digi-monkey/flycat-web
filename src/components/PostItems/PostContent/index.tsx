@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { maxStrings } from 'utils/common';
 import Icon from 'components/Icon';
+import { useRouter } from 'next/router';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -183,11 +184,12 @@ export interface SubPostItemProp {
 }
 
 export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
+  const router = useRouter();
   const clickUserProfile = () => {
-    window.location.href = `/user/${event.pubkey}`;
+    router.push(`/user/${event.pubkey}`);
   };
   const clickEventBody = () => {
-    window.location.href = `/event/${event.id}`;
+    router.push(`/event/${event.id}`);
   };
 
   return Nip23.isBlogPost(event) ? (
