@@ -23,21 +23,27 @@ const InstallButton: React.FC = () => {
     };
   }, []);
 
-  const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     if (!('serviceWorker' in navigator && 'PushManager' in window)) {
       return messageApi.warning('PWA not supported in browser environment.');
     }
 
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
+      try {
+        await deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+
         if (choiceResult.outcome === 'accepted') {
           messageApi.success('PWA installation accepted');
         } else {
           messageApi.error('PWA installation dismissed');
         }
         setDeferredPrompt(null);
-      });
+      } catch (error: any) {
+        messageApi.error(error.message);
+      }
+    } else {
+      return messageApi.error('deferredPrompt is null');
     }
   };
 
