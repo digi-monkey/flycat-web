@@ -31,7 +31,7 @@ const PcPadNav = ({ user, setOpenWrite }: { user?: EventSetMetadataContent, setO
     dispatch({
       type: 'LOGOUT',
     });
-    window.location.href = Paths.login;
+    router.push(Paths.login);
   }
   
   const userMenus = UserMenus.reduce((result, item) => {

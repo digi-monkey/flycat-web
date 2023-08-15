@@ -17,6 +17,7 @@ import { noticePubEventResult } from 'components/PubEventNotice';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
+import { useRouter } from 'next/router';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -33,6 +34,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 }) => {
   const { t } = useTranslation();
 
+  const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -96,7 +98,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   };
 
   const comment = async () => {
-    window.location.href = `/event/${ownerEvent.id}`;
+    router.push(`/event/${ownerEvent.id}`);
   };
 
   const bookmark = async () => {

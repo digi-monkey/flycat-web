@@ -36,7 +36,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
     dispatch({
       type: 'LOGOUT',
     });
-    window.location.href = Paths.login;
+    router.push(Paths.login);
   }
 
   const { t } = useTranslation();
