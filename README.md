@@ -22,9 +22,9 @@ Flycat 0.2.0 release 🎉🎉🎉
 
 ## Join
 
-Flycat is a open source project and would love to have a community building and maintaining it. We are looking for volunteers to eagerly solve issues, create pull requests and implementing new features.
+Flycat is a open source project and would love to have a community building and maintaining it. We are looking for volunteers to eagerly solve issues, create pull requests and implementing new features. Feel free to contribute or just talk to me about your ideas.
 
-Feel free to contribute or just talk to me about your ideas.
+check out [project development instructions](docs/develop.md)
 
 ## Fun Facts
 
