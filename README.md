@@ -4,6 +4,8 @@ open social network built on [Nostr protocol](https://github.com/nostr-protocol/
 
 Flycat 0.2.0 release 🎉🎉🎉
 
+We started to host a regular [design-call meeting](docs/develop.md#design-call) discussing the things to ship on flycat, it is fully open and anyone can participate. Recommend it as a great way to get involved!
+
 ## Install
 
 - [Install PWA app](https://flycat.club/landing)
