@@ -453,7 +453,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <Icon
             type="icon-rss"
             className={styles.icon}
-            onClick={() => router.push('/api/rss/' + publicKey, 'blank')}
+            onClick={() => router.push('/api/rss/' + publicKey)}
           />
         </Tooltip>
         <Tooltip title={`Zap The User`}>
@@ -499,7 +499,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <Icon
           type="icon-rss"
           className={styles.icon}
-          onClick={() => router.push('/api/rss/' + publicKey, 'blank')}
+          onClick={() => router.push('/api/rss/' + publicKey)}
         />
       </Tooltip>
       <Tooltip title={`Zap The User`}>
