@@ -6,7 +6,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { Button, Cascader, Modal, Tooltip, message } from 'antd';
+import { Button, Cascader, Divider, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { RelayModeSelectMenus } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
@@ -54,7 +54,7 @@ export function RelaySelector({
   const defaultGroup = useDefaultGroup();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const [openAbout, setOpenAbout] = useState(false);
+  const [openAboutRelayMode, setOpenAboutRelayMode] = useState(false);
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
   const [selectedValue, setSelectedValue] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
@@ -180,14 +180,6 @@ export function RelaySelector({
 
   const onChange = (value: string[] | any) => {
     if (!Array.isArray(value)) return;
-    if (value[0] === RelayModeSelectMenus.displayBenchmark) {
-      displayBenchmark();
-      return;
-    }
-    if (value[0] === RelayModeSelectMenus.aboutRelayMode) {
-      setOpenAbout(true);
-      return;
-    }
     if (value[0] === RelayModeSelectMenus.manageRelays) {
       router.push(Paths.relayManager);
       return;
@@ -267,8 +259,8 @@ export function RelaySelector({
         title={t('relaySelector.modal.title')}
         wrapClassName={styles.modal}
         footer={null}
-        open={openAbout}
-        onCancel={() => setOpenAbout(false)}
+        open={openAboutRelayMode}
+        onCancel={() => setOpenAboutRelayMode(false)}
         closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
       >
         <ul>
@@ -283,7 +275,7 @@ export function RelaySelector({
           ))}
         </ul>
         <div className={styles.footer}>
-          <Button type="primary" onClick={() => setOpenAbout(false)}>
+          <Button type="primary" onClick={() => setOpenAboutRelayMode(false)}>
             {t('relaySelector.modal.buttonText')}
           </Button>
         </div>

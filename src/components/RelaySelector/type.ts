@@ -1,29 +1,19 @@
 export enum RelayMode {
-  global = 'global',
-  auto = 'auto',
-  fastest = 'fastest',
+  group = 'global', // todo: rename this value to group
   rule = 'rule',
 }
 
 export enum RelayModeSelectMenus {
-  displayBenchmark = 'DisplayBenchmark',
-  aboutRelayMode = 'AboutRelayMode',
   manageRelays = 'ManageRelays',
 }
 
 export function toLabel(mode: RelayMode) {
   switch (mode) {
-    case RelayMode.global:
-      return 'Global';
-
-    case RelayMode.auto:
-      return 'Auto';
-
-    case RelayMode.fastest:
-      return 'Fastest';
+    case RelayMode.group:
+      return 'Relay Groups';
 
     case RelayMode.rule:
-      return 'Rule';
+      return 'Relay Scripts';
 
     default:
       throw new Error('unknown mode');
@@ -33,13 +23,7 @@ export function toLabel(mode: RelayMode) {
 export function toRelayMode(value: string) {
   switch (value) {
     case 'global':
-      return RelayMode.global;
-
-    case 'auto':
-      return RelayMode.auto;
-
-    case 'fastest':
-      return RelayMode.fastest;
+      return RelayMode.group;
 
     case 'rule':
       return RelayMode.rule;

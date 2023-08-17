@@ -19,7 +19,7 @@ export function useLoadSelectedRelays(
 
     if (selectedMode) {
       switch (selectedMode) {
-        case RelayMode.global:
+        case RelayMode.group:
           {
             if (selectedGroup) {
               const groupMap = groupStore.load();
@@ -30,21 +30,6 @@ export function useLoadSelectedRelays(
             }
           }
 
-          break;
-
-        case RelayMode.auto:
-          {
-            const relays = store.loadAutoRelayResult(myPublicKey) || [];
-            modeCb(relays);
-          }
-          break;
-
-        case RelayMode.fastest:
-          {
-            //todo
-            const relays = store.loadAutoRelayResult(myPublicKey) || [];
-            modeCb(relays);
-          }
           break;
 
         default:

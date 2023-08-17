@@ -15,7 +15,7 @@ export function useLoadSelectedStore(
     
     if (selectedMode) {
       const value =
-        selectedMode === RelayMode.global && selectedGroup
+        selectedMode === RelayMode.group && selectedGroup
           ? [selectedMode, selectedGroup]
           : [selectedMode];
           
