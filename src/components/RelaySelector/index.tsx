@@ -237,6 +237,8 @@ export function RelaySelector({
         defaultValue={[RelayMode.group, 'default']}
         className={styles.cascader}
         popupClassName={styles.popup}
+        expandIcon={<Icon type='icon-chevron-down' className={styles.expandIcon}/>}
+        suffixIcon={<Icon type='icon-chevron-down' className={styles.expandIcon}/>}
         options={[
           getDisabledTitle(),
           ...initModeOptions(relayGroupMap),
