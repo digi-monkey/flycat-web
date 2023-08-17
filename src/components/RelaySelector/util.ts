@@ -20,12 +20,8 @@ export function initRelayGroupOptions(groups: RelayGroupMap) {
 
 export function initModeOptions(groups: RelayGroupMap) {
   const mode: RelayModeSelectOption[] = [
-    {
-      value: RelayMode.group,
-      label: toLabel(RelayMode.group),
-      children: initRelayGroupOptions(groups),
-    },
-    { value: RelayMode.rule, label: toLabel(RelayMode.rule), disabled: true },
+    ...initRelayGroupOptions(groups),
+    { value: RelayMode.rule, label: toLabel(RelayMode.rule), disabled: true, children: [{value: "1", label:"1"}] },
   ];
   return mode;
 }
@@ -33,7 +29,7 @@ export function initModeOptions(groups: RelayGroupMap) {
 export function getDisabledTitle() {
   return {
     value: 'title',
-    label: 'Select Relays',
+    label: 'Relay Groups',
     disabled: true,
   };
 }

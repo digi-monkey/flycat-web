@@ -1,5 +1,5 @@
 export enum RelayMode {
-  group = 'global', // todo: rename this value to group
+  group = 'global', // todo: rename this value to group, some clients store this as global so will be breaking changed
   rule = 'rule',
 }
 
@@ -13,7 +13,7 @@ export function toLabel(mode: RelayMode) {
       return 'Relay Groups';
 
     case RelayMode.rule:
-      return 'Relay Scripts';
+      return 'Relay Scripts(coming)';
 
     default:
       throw new Error('unknown mode');
@@ -22,19 +22,19 @@ export function toLabel(mode: RelayMode) {
 
 export function toRelayMode(value: string) {
   switch (value) {
-    case 'global':
+    case RelayMode.group.toString():
       return RelayMode.group;
 
-    case 'rule':
+    case RelayMode.rule.toString():
       return RelayMode.rule;
 
     default:
-      throw new Error('unknown mode');
+      throw new Error('unknown mode ' + value);
   }
 }
 
 export interface RelayModeSelectOption {
-  value: RelayMode;
+  value: RelayMode | string;
   label: string;
   children?: (RelayGroupSelectOption | RelayScriptSelectOption)[];
   disabled?: boolean;

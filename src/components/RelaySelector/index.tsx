@@ -8,7 +8,7 @@ import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
 import { Button, Cascader, Divider, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { RelayModeSelectMenus } from './type';
+import { RelayMode, RelayModeSelectMenus, toLabel, toRelayMode } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import {
@@ -125,11 +125,8 @@ export function RelaySelector({
     }
 
     const id = data.id;
-    if (id === 'auto' || id === 'fastest') {
-      setSelectedValue([id]);
-    } else {
-      setSelectedValue(['global', id]);
-    }
+    // todo: change data structure to handle rule script mode
+    setSelectedValue([RelayMode.group, id]);
   });
 
   useEffect(() => {
@@ -184,6 +181,13 @@ export function RelaySelector({
       router.push(Paths.relayManager);
       return;
     }
+
+    // handle relay group
+    if(value.length === 1){
+      setSelectedValue([RelayMode.group, ...value]);
+      return;
+    }
+
     setSelectedValue(value);
   };
 
@@ -230,7 +234,7 @@ export function RelaySelector({
     <div className={classNames(styles.relaySelector, className)}>
       {contextHolder}
       <Cascader
-        defaultValue={['global', 'default']}
+        defaultValue={[RelayMode.group, 'default']}
         className={styles.cascader}
         popupClassName={styles.popup}
         options={[
@@ -243,7 +247,7 @@ export function RelaySelector({
         onChange={onChange}
         displayRender={label => (
           <>
-            <span className={styles.relayMode}>{label[0]}</span>
+            <span className={styles.relayMode}>{toLabel(toRelayMode(label[0]))}</span>
             {label.length > 1 && (
               <Tooltip placement="bottom" title={connectedUrlTooltip}>
                 <span className={styles.childrenItem}>
