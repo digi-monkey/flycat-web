@@ -1,4 +1,4 @@
-.root{
+.root {
   width: 100%;
   overflow: hidden;
 }
@@ -43,23 +43,57 @@
 
 .header {
   display: flex;
-  width: 975px;
+  justify-content: space-between;
+  width: auto;
   padding: 16px 20px;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  .icon {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-  }
-  .title {
-    cursor: pointer;
-    color: var(--neutral-09, #1e1e1e);
 
-    /* Subheader1-bold */
-    font-size: 16px;
-    font-family: Poppins;
-    font-weight: 600;
-    line-height: 24px;
+  .exploreTitle {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--basePadding2);
+    .icon {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .title {
+      cursor: pointer;
+      color: var(--neutral-09, #1e1e1e);
+
+      /* Subheader1-bold */
+      font-size: 16px;
+      font-family: Poppins;
+      font-weight: 600;
+      line-height: 24px;
+    }
+  }
+  .search {
+    :global {
+      .ant-input-affix-wrapper {
+        height: 40px;
+        border-radius: 50px;
+
+        &:hover {
+          border: none;
+          border-inline-end: none;
+          box-shadow: none;
+        }
+
+        &,
+        input {
+          background-color: var(--neutral-02);
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+
+          fill: var(--neutral-06);
+        }
+      }
+    }
   }
 }
