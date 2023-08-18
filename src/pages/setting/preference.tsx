@@ -1,10 +1,53 @@
-import { Divider, List, Select, Slider, Switch, Tag } from 'antd';
+import {
+  Button,
+  Divider,
+  List,
+  Modal,
+  Select,
+  Slider,
+  Switch,
+  Tag,
+} from 'antd';
+import { RelayGroup } from 'core/relay/group';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 export default function Preference() {
+  const myPublicKey = useReadonlyMyPublicKey();
+  const resetRelayGroups = () => {
+    Modal.confirm({
+      title: 'Restore Default Groups',
+      content:
+        'This will delete all the relay groups you created and can not be undone, are you sure?',
+      onOk() {
+        const groups = new RelayGroup(myPublicKey);
+        groups.store.clean();
+        Modal.destroyAll();
+      },
+      onCancel() {
+        Modal.destroyAll();
+      },
+    });
+  };
   return (
     <List size="large">
+      <Divider orientation="left">Relay Groups</Divider>
+
+      <List.Item
+        actions={[
+          <Button
+            key={'restore-groups'}
+            disabled={!myPublicKey || myPublicKey.length === 0}
+            onClick={resetRelayGroups}
+          >
+            Reset
+          </Button>,
+        ]}
+      >
+        Restore Default
+      </List.Item>
+
       <Divider orientation="left">
-        <Tag color="error">Page Under Construction 🚧</Tag>
+        <Tag color="error">Below Are Under Construction 🚧</Tag>
       </Divider>
 
       <Divider orientation="left">Notification</Divider>
