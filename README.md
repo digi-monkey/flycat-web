@@ -1,10 +1,14 @@
 # Flycat, A New Way to Exit Toxic Internet
 
-open social network built on [Nostr protocol](https://github.com/nostr-protocol/nips).
+Open social network built on [Nostr protocol](https://github.com/nostr-protocol/nips).
 
-Flycat 0.2.0 release 🎉🎉🎉
+## Lastest News
 
-We started to host a regular [design-call meeting](docs/develop.md#design-call) discussing the things to ship on flycat, it is fully open and anyone can participate. Recommend it as a great way to get involved!
+Flycat v0.2.x release 🎉🎉🎉
+
+Curious what will be next? Checkout our [Real Time Roadmap](https://github.com/users/digi-monkey/projects/1/views/1?sortedBy%5Bdirection%5D=asc&sortedBy%5BcolumnId%5D=53966968)!
+
+We also host a regular [design-call meeting](docs/develop.md#design-call) discussing the next things to ship on flycat, it is fully open and anyone can participate. Recommend it as a good way to get involved!
 
 ## Install
 
@@ -13,7 +17,7 @@ We started to host a regular [design-call meeting](docs/develop.md#design-call) 
 
 ## Main Differences
 
-- built-in relay selector for easy switching/managing different relay groups
+- built-in relay selector for easy switching/managing different relay groups and context
 - support gossip mode/auto relay discovering
 - no follower count, like button and private recommendation algorithm, non-addictive, peaceful light mode
 - browsing short-notes/articles/media-notes/highlights/global-notes in one client
@@ -22,9 +26,9 @@ We started to host a regular [design-call meeting](docs/develop.md#design-call) 
 - no database/custom backend/private caching server, self-hosted made pretty effortless
 - use SharedWorker to manage one global websocket connections pool across different web page/browser tabs
 
-## Join
+## Join Us, Why Not?
 
-Flycat is a open source project and would love to have a community building and maintaining it. We are looking for volunteers to eagerly solve issues, create pull requests and implementing new features. Feel free to contribute or just talk to me about your ideas.
+Flycat is a open-source project and would love to have a community building and maintaining it. We are looking for volunteers to eagerly solve issues, create pull requests and implementing new features. Feel free to contribute or just talk about your ideas.
 
 check out [project development instructions](docs/develop.md)
 
