@@ -222,25 +222,16 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   return (
     <>
       <Row>
-      <div className={styles.menuBtnGroups}>
-      <Button
-              type='primary'
-            >
-              + Create new group
-            </Button>
-            <Button
-            onClick={syncNip65Group}
-            >
-              Sync NIP-65 Relay List
-            </Button>
-            <Button
-             onClick={autoRelays}
-            >
-              Find Auto Relay List For Me
-            </Button>
-            </div>
+        <div className={styles.menuBtnGroups}>
+          <Button type="primary" onClick={createNewGroup}>
+            + Create new group
+          </Button>
+          <Button onClick={syncNip65Group}>Sync NIP-65 Relay List</Button>
+          <Button onClick={autoRelays}>Find Auto Relay List For Me</Button>
+        </div>
         {isMobile && (
           <div className={styles.mobileMenu}>
+            <div className={styles.title}>Your Groups</div>
             <Tabs items={mobileMenuItems} />
           </div>
         )}

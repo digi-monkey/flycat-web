@@ -49,12 +49,14 @@ export function RelayManager() {
   return (
     <BaseLayout>
       <Left>
-        <RelayMenu
+       <div className={styles.root}>
+       <RelayMenu
           setShowRelayPool={setShowRelayPool}
           showRelayPool={showRelayPool}
         />
         {!showRelayPool && <RelayGroup groups={groups} setGroups={setGroups} />}
         {showRelayPool && <RelayPoolManager groups={groups} setGroups={setGroups} />}
+        </div> 
       </Left>
     </BaseLayout>
   );

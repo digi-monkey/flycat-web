@@ -12,6 +12,7 @@ import { RelayPoolDatabase } from 'core/relay/pool/db';
 import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 
 import styles from './table.module.scss';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -28,6 +29,7 @@ interface BenchmarkResult {
 export type RelayTableItem = Relay & { key: string };
 
 const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays, groups, setGroups }) => {
+  const isMobile = useMatchMobile();
   const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
 
@@ -105,7 +107,27 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays, groups, setGroup
     },
   };
 
-  const columns = [
+  const columns = isMobile ? [
+    {
+      title: 'Url',
+      dataIndex: 'url',
+      key: 'url',
+      render: (url: string) => url.split('wss://'),
+    },
+    {
+      // Invisible column for displaying three-dot icon
+      dataIndex: 'actions',
+      key: 'actions',
+      className: 'actions-column',
+      width: 40,
+      render: (_, record) => (
+        <EllipsisOutlined
+          onClick={() => handleOpenModal(record)}
+          style={{ cursor: 'pointer' }}
+        />
+      ),
+    },
+  ] : [
     {
       title: 'Type',
       dataIndex: 'accessType',
@@ -242,7 +264,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({ relays, groups, setGroup
   };
 
   return (
-    <div>
+    <div className={styles.tableContainer}>
       <MultipleItemsPoolAction
         open={selectedRelays.length > 0}
         relays={selectedRelays}

@@ -105,6 +105,10 @@
       //overflow-x: scroll;
     }
   }
+  .title{
+    margin: var(--basePadding2) var(--basePadding5);
+    @include font-subheader1-bold;
+  }
 }
 
 .menuBtnGroups{
@@ -115,4 +119,5 @@
   align-items: center;
   gap: var(--basePadding2);
   padding-bottom: var(--basePadding5);
+  margin-top: var(--basePadding5);
 }
