@@ -26,7 +26,6 @@ export class RelayGroup {
     this.author = pubkey;
     this.store = new RelayGroupStorage(pubkey);
 
-    console.log('predefine:', predefine);
     // todo: this might be async when using other storeAdapter
     const loadMap = this.store.load() || new Map();
     const mergeMap = new Map(

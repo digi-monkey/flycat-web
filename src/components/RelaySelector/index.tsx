@@ -13,7 +13,6 @@ import {
   RelayFooterMenus,
   toLabel,
   toRelayMode,
-  isInFooterMenus,
 } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -29,12 +28,15 @@ import {
   initModeOptions,
   toConnectStatus,
 } from './util';
+import { normalizeWsUrl } from 'utils/common';
+import { ConnPool } from 'core/api/pool';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
-import { ConnPool } from 'core/api/pool';
 import classNames from 'classnames';
-import { normalizeWsUrl } from 'utils/common';
+import { NIP_65_RELAY_LIST } from 'constants/relay';
+import { createCallRelay } from 'core/worker/util';
+import { Nip65 } from 'core/nip/65';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -111,7 +113,9 @@ export function RelaySelector({
     });
   };
 
-  useLoadSelectedStore(myPublicKey, setSelectedCascaderMapRelay);
+  useLoadSelectedStore(myPublicKey, (value)=>{setSelectedCascaderMapRelay(value); if(value.length > 1){
+    setSelectCascaderOption([value[1]])
+  }});
   useGetSwitchRelay(
     myPublicKey,
     relayGroupMap,
@@ -145,6 +149,21 @@ export function RelaySelector({
     }
     setRelayGroupMap(groups.map);
   }, [defaultGroup]);
+
+  // fetch nip-65 relay list group if it is not there
+  useEffect(()=>{
+    if(!myPublicKey || myPublicKey.length === 0)return;
+    if(!worker)return;
+    const groups = new RelayGroup(myPublicKey);
+    if(groups.getGroupById(NIP_65_RELAY_LIST))return;
+
+    const callRelay = createCallRelay(newConn);
+    worker.subNip65RelayList({pks: [myPublicKey], callRelay, limit: 1}).iterating({cb: (event, relayUrl)=>{
+      
+      groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
+      setRelayGroupMap(groups.map);
+    }});
+  }, [worker, newConn]);
 
   useEffect(() => {
     if (newConnCallback) {
