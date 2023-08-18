@@ -9,6 +9,7 @@ import {
   Menu,
   Modal,
   Row,
+  Tabs,
   Tooltip,
   message,
 } from 'antd';
@@ -29,19 +30,21 @@ import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
 import { CallRelayType } from 'core/worker/type';
 import Link from 'next/link';
-import { updateGroupClassState, useLoadRelayGroup } from '../hooks/useLoadRelayGroup';
+import {
+  updateGroupClassState,
+  useLoadRelayGroup,
+} from '../hooks/useLoadRelayGroup';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 interface RelayGroupProp {
   groups: RelayGroupClass | undefined;
   setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
 }
 
-export const RelayGroup: React.FC<RelayGroupProp> = ({
-  groups,
-  setGroups
-}) => {
+export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
+  const isMobile = useMatchMobile();
   const { worker, newConn } = useCallWorker();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -61,7 +64,14 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
     }
 
     const selectedItems = groups.map.get(selectedGroupId) || [];
-    return <RelayGroupTable groups={groups} setGroups={setGroups} groupId={selectedGroupId} relays={selectedItems} />;
+    return (
+      <RelayGroupTable
+        groups={groups}
+        setGroups={setGroups}
+        groupId={selectedGroupId}
+        relays={selectedItems}
+      />
+    );
   };
 
   const addRelay = () => {
@@ -197,61 +207,51 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
     });
   };
 
+  const mobileMenuItems =
+    groups?.getAllGroupIds().map(groupId => {
+      return {
+        key: groupId,
+        label:
+          maxStrings(groupId, 12) +
+          ' (' +
+          groups.getGroupById(groupId)?.length +
+          ')',
+      };
+    }) || [];
+
   return (
     <>
       <Row>
-        <Col span={6}>
+      <div className={styles.menuBtnGroups}>
+      <Button
+              type='primary'
+            >
+              + Create new group
+            </Button>
+            <Button
+            onClick={syncNip65Group}
+            >
+              Sync NIP-65 Relay List
+            </Button>
+            <Button
+             onClick={autoRelays}
+            >
+              Find Auto Relay List For Me
+            </Button>
+            </div>
+        {isMobile && (
+          <div className={styles.mobileMenu}>
+            <Tabs items={mobileMenuItems} />
+          </div>
+        )}
+
+        <Col xs={0} sm={6}>
           {contextHolder}
           <Menu
-            mode="inline"
+            mode={isMobile ? 'horizontal' : 'inline'}
             selectedKeys={selectedGroupId ? [selectedGroupId.toString()] : []}
             className={styles.selectorMenu}
           >
-            <Menu.Item
-              icon={<Icon type="icon-repost" className={styles.icon} />}
-              key={'re-gen-auto-relay'}
-              onClick={autoRelays}
-              className={styles.btnMenu}
-            >
-              Auto Relays{' '}
-              <Tooltip title="Automatically find relays for you based on our algorithm">
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </Menu.Item>
-
-            <Menu.Item
-              key={'create-nip65-group-btn'}
-              icon={<Icon type="icon-repost" className={styles.icon} />}
-              className={styles.btnMenu}
-              onClick={syncNip65Group}
-            >
-              Nip65 Relay List{' '}
-              <Tooltip
-                title={
-                  <>
-                    <div>Sync your relay list from network</div>{' '}
-                    <Link
-                      href="https://github.com/nostr-protocol/nips/blob/master/65.md"
-                      target="_blank"
-                    >
-                      What is Nip-65
-                    </Link>
-                  </>
-                }
-              >
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </Menu.Item>
-
-            <Menu.Item
-              key={'create-new-group-btn'}
-              icon={<Icon type="icon-plus" className={styles.icon} />}
-              className={styles.btnMenu}
-              onClick={createNewGroup}
-            >
-              Create new group
-            </Menu.Item>
-
             {groups &&
               groups.getAllGroupIds().map(groupId => (
                 <Menu.Item
@@ -271,7 +271,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
               ))}
           </Menu>
         </Col>
-        <Col span={18}>
+        <Col xs={24} sm={18}>
           <div className={styles.rightHeader}>
             <div className={styles.selectedName}>
               {selectedGroupId

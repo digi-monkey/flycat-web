@@ -93,3 +93,26 @@
     }
   }
 }
+
+.mobileMenu{
+  width: 100%;
+  :global{
+    .ant-tabs-nav{
+      margin: 0px var(--basePadding5);
+    }
+    .ant-tabs-nav-list {
+      width: auto;
+      //overflow-x: scroll;
+    }
+  }
+}
+
+.menuBtnGroups{
+  width: 100%;
+  overflow-x: scroll;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--basePadding2);
+  padding-bottom: var(--basePadding5);
+}
