@@ -51,10 +51,6 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const [inputWsUrl, setInputWsUrl] = useState<string>();
 
-  const handleGroupSelect = (groupId: string) => {
-    setSelectedGroupId(groupId);
-  };
-
   const renderRightPanel = () => {
     if (selectedGroupId === null) {
       return;
@@ -226,13 +222,13 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
           <Button type="primary" onClick={createNewGroup}>
             + Create new group
           </Button>
-          <Button onClick={syncNip65Group}>Sync NIP-65 Relay List</Button>
+          <Button onClick={syncNip65Group}>Get NIP-65 Relay List</Button>
           <Button onClick={autoRelays}>Find Auto Relay List For Me</Button>
         </div>
         {isMobile && (
           <div className={styles.mobileMenu}>
             <div className={styles.title}>Your Groups</div>
-            <Tabs items={mobileMenuItems} />
+            <Tabs activeKey={selectedGroupId} defaultActiveKey={selectedGroupId} items={mobileMenuItems} onChange={setSelectedGroupId} />
           </div>
         )}
 
@@ -248,7 +244,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
                 <Menu.Item
                   key={groupId}
                   icon={<FolderOutlined className={styles.icon} />}
-                  onClick={() => handleGroupSelect(groupId)}
+                  onClick={() => setSelectedGroupId(groupId)}
                 >
                   <div className={styles.menuText}>
                     <span className={styles.name}>
