@@ -26,7 +26,7 @@ import styles from './index.module.scss';
 import { maxStrings } from 'utils/common';
 import { RelaySelectorStore } from 'components/RelaySelector/store';
 import { useCallWorker } from 'hooks/useWorker';
-import { NIP_65_RELAY_LIST } from 'constants/relay';
+import { AUTO_RECOMMEND_LIST, NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
 import { CallRelayType } from 'core/worker/type';
 import Link from 'next/link';
@@ -35,6 +35,7 @@ import {
   useLoadRelayGroup,
 } from '../hooks/useLoadRelayGroup';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import { createCallRelay } from 'core/worker/util';
 
 interface RelayGroupProp {
   groups: RelayGroupClass | undefined;
@@ -85,16 +86,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
 
     messageApi.info('try syncing Nip-65 Relay list from network..');
 
-    const callRelay =
-      newConn.length > 0
-        ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
-        : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+    const callRelay = createCallRelay(newConn);
 
     let event: Event | null = null;
     const dataStream = worker
@@ -136,6 +128,8 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   };
 
   const autoRelays = async () => {
+    if(!groups)return;
+
     const messageKey = 'autoRelay';
     const progressCb = (restCount: number) => {
       messageApi.open({
@@ -177,13 +171,9 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
     );
     progressEnd();
     if (pickRelays.length > 0) {
-      const store = new RelaySelectorStore();
-      store.saveAutoRelayResult(
-        myPublicKey,
-        pickRelays.map(r => {
+      groups.setGroup(AUTO_RECOMMEND_LIST, pickRelays.map(r => {
           return { url: r, read: true, write: true };
-        }),
-      );
+      }));
     }
     Modal.success({
       title: 'pick relays',
@@ -195,7 +185,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
           <Divider></Divider>
           <div>
             <strong>
-              Switch to Auto mode if you want to use the these relays
+              Look for your groups to find Auto Recommend List, if none, please refresh the page.
             </strong>
           </div>
         </>
@@ -227,7 +217,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
         </div>
         {isMobile && (
           <div className={styles.mobileMenu}>
-            <div className={styles.title}>Your Groups</div>
+            <div className={styles.title}>{mobileMenuItems.length} Groups</div>
             <Tabs activeKey={selectedGroupId} defaultActiveKey={selectedGroupId} items={mobileMenuItems} onChange={setSelectedGroupId} />
           </div>
         )}
