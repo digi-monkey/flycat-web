@@ -19,12 +19,12 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
   open,
   onCancel,
 }) => {
-  const [uiRelay, setUIRelay] = useState<Relay>(relay);
-  useEffect(() => {
-    if(!uiRelay)return;
+  const [uiRelay, setUIRelay] = useState<Relay>();
 
-    if (isRelayOutdate(uiRelay)) {
-      Nip11.updateRelays([uiRelay]).then(detail => {
+  useEffect(() => {
+    setUIRelay(relay);
+    if (isRelayOutdate(relay)) {
+      Nip11.updateRelays([relay]).then(detail => {
         if (detail.length > 0){
           const db = new RelayPoolDatabase();
           db.saveAll(detail);
@@ -32,11 +32,11 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
         }
       });
     }
-  }, [uiRelay]);
+  }, [relay]);
+
   return (
     <Modal
       title="Relay details"
-      key={uiRelay.url}
       open={open}
       onCancel={onCancel}
       footer={[
@@ -58,15 +58,15 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
             lineHeight: '22px',
           }}
         >
-          <Descriptions.Item label="Url">{uiRelay.url}</Descriptions.Item>
-          <Descriptions.Item label="About">{uiRelay.about}</Descriptions.Item>
+          <Descriptions.Item label="Url">{relay.url}</Descriptions.Item>
+          <Descriptions.Item label="About">{uiRelay?.about}</Descriptions.Item>
           <Descriptions.Item label="Status">
-            {uiRelay.isOnline ? 'Online' : 'Offline'}
+            {uiRelay?.isOnline ? 'Online' : 'Offline'}
           </Descriptions.Item>
 
           <Descriptions.Item label="Nips">
             <div className={styles.nips}>
-              {uiRelay.supportedNips?.map(n => (
+              {uiRelay?.supportedNips?.map(n => (
                 <Link
                   key={n}
                   href={`https://github.com/nostr-protocol/nips/blob/master/${displayTwoDigitNumber(
@@ -80,13 +80,13 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
           </Descriptions.Item>
           <Descriptions.Item label="Software">
             {' '}
-            {uiRelay.software}
+            {uiRelay?.software}
           </Descriptions.Item>
-          <Descriptions.Item label="Contact">{uiRelay.contact}</Descriptions.Item>
+          <Descriptions.Item label="Contact">{uiRelay?.contact}</Descriptions.Item>
           <Descriptions.Item label="Operator">
             <Space>
-              <Avatar src={uiRelay.operatorDetail?.picture} />
-              {uiRelay.operatorDetail?.name || '...'}
+              <Avatar src={uiRelay?.operatorDetail?.picture} />
+              {uiRelay?.operatorDetail?.name || '...'}
             </Space>
           </Descriptions.Item>
         </Descriptions>
