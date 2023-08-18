@@ -26,7 +26,6 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
   setGroups,
 }) => {
   const isMobile = useMatchMobile();
-  const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState<RelayTableItem[]>([]);
   const [selectRelays, setSelectRelays] = useState<Relay[]>([]);
 
@@ -54,7 +53,6 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
 
     let newRelays: Relay[] = relaysFromDb;
     if (outdatedRelays.length > 0) {
-      messageApi.loading(`update ${outdatedRelays.length} relays info..`);
       Nip11.getRelays(outdatedRelays).then(details => {
         newRelays = relaysFromDb.map(r => {
           if (details.map(d => d.url).includes(r.url)) {
@@ -63,18 +61,17 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
             return r;
           }
         });
-        messageApi.destroy();
 
         if (newRelays.length > 0) {
           db.saveAll(newRelays);
-        }
 
-        // todo: save relay update value
-        setData(
-          newRelays.map(r => {
-            return { ...r, ...{ key: r.url } };
-          }),
-        );
+          // todo: save relay update value
+          setData(
+            newRelays.map(r => {
+              return { ...r, ...{ key: r.url } };
+            }),
+          );
+        }
       });
     }
   };
@@ -130,7 +127,6 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
 
   return (
     <div style={{ width: '100%', overflow: 'hidden' }}>
-      {contextHolder}
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',

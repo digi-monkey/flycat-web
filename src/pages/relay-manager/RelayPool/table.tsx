@@ -37,6 +37,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
   const [messageApi, contextHolder] = message.useMessage();
   const [urls, setUrls] = useState<string[]>(relays.map(r => r.url));
   const [results, setResults] = useState<BenchmarkResult[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setResults(
@@ -48,9 +49,10 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [data, setData] = useState<RelayTableItem[]>([]);
-  const [relayDataSource, setRelayDataSource] = useState<Relay[]>(relays);
+  const [relayDataSource, setRelayDataSource] = useState<Relay[]>([]);
 
   const updateRelayMap = async () => {
+    setIsUpdating(true);
     const currentRelays = relays.slice(
       (currentPage - 1) * 10,
       currentPage * 10,
@@ -74,41 +76,40 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
         if (details.length > 0) {
           const db = new RelayPoolDatabase();
           db.saveAll(details);
+
+          const oldRelays =
+            relayDataSource.length > 0 ? relayDataSource : relays;
+          const newRelays = oldRelays.map(r => {
+            if (details.map(d => d.url).includes(r.url)) {
+              return details.filter(d => d.url === r.url)[0]!;
+            } else {
+              return r;
+            }
+          });
+
+          setRelayDataSource(newRelays);
+          setData(
+            newRelays.map(r => {
+              return { ...r, ...{ key: r.url } };
+            }),
+          );
         }
-
-        const oldRelays = relayDataSource.length > 0 ? relayDataSource : relays;
-        const newRelays = oldRelays.map(r => {
-          if (details.map(d => d.url).includes(r.url)) {
-            return details.filter(d => d.url === r.url)[0]!;
-          } else {
-            return r;
-          }
-        });
-
-        setRelayDataSource(newRelays);
-        setData(
-          newRelays.map(r => {
-            return { ...r, ...{ key: r.url } };
-          }),
-        );
         messageApi.destroy();
       });
     }
+    setIsUpdating(false);
   };
 
   useEffect(() => {
     if (relays.length === 0) return;
+    if(isUpdating)return;
     updateRelayMap();
-  }, [relays, currentPage]);
-
-  const handlePaginationChange = (pagination: number) => {
-    setCurrentPage(pagination);
-  };
+  }, [relays.length, currentPage]);
 
   const paginationConfig = {
     pageSize: 10,
     current: currentPage,
-    onChange: handlePaginationChange,
+    onChange: setCurrentPage,
   };
 
   const rowSelection = {
