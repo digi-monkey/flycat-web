@@ -301,7 +301,7 @@ export function RelayPage() {
           <Divider></Divider>
 
           <div className={styles.selector}>
-            <h4>Inspect relay</h4>
+            <h4>Inspect a relay from current group</h4>
             <Select
               showSearch
               placeholder="select relay to show detail"

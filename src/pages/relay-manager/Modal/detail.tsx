@@ -44,11 +44,11 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
           <Descriptions.Item label="Status">{relay.isOnline ? "Online" : "Offline"}</Descriptions.Item>
 
           <Descriptions.Item label="Nips">
-          <Space>
-            {relay.supportedNips?.map(n =>
-              <Link key={n} href={`https://github.com/nostr-protocol/nips/blob/master/${displayTwoDigitNumber(n)}.md`}>{displayTwoDigitNumber(n)}</Link>
-            )}
-            </Space>
+            <div className={styles.nips}>
+              {relay.supportedNips?.map(n =>
+                <Link key={n} href={`https://github.com/nostr-protocol/nips/blob/master/${displayTwoDigitNumber(n)}.md`}>{displayTwoDigitNumber(n)}</Link>
+              )}
+            </div>
           </Descriptions.Item>
           <Descriptions.Item label="Software">
             {' '}

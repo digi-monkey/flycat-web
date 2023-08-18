@@ -1,3 +1,13 @@
 .detailBox {
   padding: 12px 24px;
 }
+
+.nips {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: auto;
+  overflow-x: scroll;
+  gap: var(--basePadding2);
+  flex-wrap: wrap;
+}
