@@ -185,7 +185,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
           <Divider></Divider>
           <div>
             <strong>
-              Look for your groups to find Auto Recommend List, if none, please refresh the page.
+              New Auto-Recommend-List created! Please refresh the page to select and use it.
             </strong>
           </div>
         </>

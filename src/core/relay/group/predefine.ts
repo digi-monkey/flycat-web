@@ -1,6 +1,6 @@
 export const preDefineRelayGroups = [
   {
-    id: 'Japan-general',
+    id: 'japanese-general',
     urls: [
       'wss://relay-jp.nostr.wirednet.jp',
       'wss://nostr-paid.h3z.jp',
@@ -9,5 +9,4 @@ export const preDefineRelayGroups = [
     ],
   },
   { id: 'nostr-dev', urls: ['wss://relay.stoner.com'] },
-  { id: 'christ-only', urls: ['wss://christpill.nostr1.com'] },
 ];
