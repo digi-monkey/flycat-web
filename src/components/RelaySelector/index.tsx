@@ -62,8 +62,8 @@ export function RelaySelector({
 
   const [openAboutRelayMode, setOpenAboutRelayMode] = useState(false);
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedValue, setSelectedValue] = useState<string[]>();
-  const [selectOpt, setSelectOpt] = useState<string[]>();
+  const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] = useState<string[]>();
+  const [selectCascaderOption, setSelectCascaderOption] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
 
   const [messageApi, contextHolder] = message.useMessage();
@@ -111,11 +111,11 @@ export function RelaySelector({
     });
   };
 
-  useLoadSelectedStore(myPublicKey, setSelectedValue);
+  useLoadSelectedStore(myPublicKey, setSelectedCascaderMapRelay);
   useGetSwitchRelay(
     myPublicKey,
     relayGroupMap,
-    selectedValue,
+    selectedCascaderMapRelay,
     setSwitchRelays,
     progressCb,
     progressEnd,
@@ -133,7 +133,7 @@ export function RelaySelector({
 
     const id = data.id;
     // todo: change data structure to handle rule script mode
-    setSelectedValue([RelayMode.group, id]);
+    setSelectedCascaderMapRelay([RelayMode.group, id]);
   });
 
   useEffect(() => {
@@ -195,11 +195,12 @@ export function RelaySelector({
 
     // handle relay group
     if (value.length === 1) {
-      setSelectedValue([RelayMode.group, ...value]);
+      setSelectCascaderOption(value);
+      setSelectedCascaderMapRelay([RelayMode.group, ...value]);
       return;
     }
 
-    setSelectedValue(value);
+    setSelectedCascaderMapRelay(value);
   };
 
   const displayBenchmark = async () => {
@@ -247,7 +248,7 @@ export function RelaySelector({
     <div className={classNames(styles.relaySelector, className)}>
       {contextHolder}
       <Cascader
-        defaultValue={[RelayMode.group, 'default']}
+        defaultValue={['default']}
         className={styles.cascader}
         popupClassName={styles.popup}
         expandIcon={
@@ -262,22 +263,27 @@ export function RelaySelector({
           ...getFooterMenus(),
         ]}
         allowClear={false}
-        value={selectedValue}
+        value={selectCascaderOption}
         onChange={onChange}
-        displayRender={label => (
+        displayRender={_label => (
           <>
-            {!isInFooterMenus(label[0]) && (
-              <span className={styles.relayMode}>
-                {toLabel(toRelayMode(label[0]))}
-              </span>
-            )}
-            {label.length > 1 && (
+            <span className={styles.relayMode}>
+              {selectedCascaderMapRelay
+                ? toLabel(toRelayMode(selectedCascaderMapRelay[0]))
+                : toLabel(RelayMode.group)}
+            </span>
+            {
               <Tooltip placement="bottom" title={connectedUrlTooltip}>
                 <span className={styles.childrenItem}>
-                  {toConnectStatus(label[1], wsConnectStatus)}
+                  {toConnectStatus(
+                    selectedCascaderMapRelay && selectedCascaderMapRelay.length > 1
+                      ? selectedCascaderMapRelay[1]
+                      : 'default',
+                    wsConnectStatus,
+                  )}
                 </span>
               </Tooltip>
-            )}
+            }
           </>
         )}
       />
