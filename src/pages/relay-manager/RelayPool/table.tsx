@@ -302,6 +302,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
         rowClassName={rowClassName}
         dataSource={data}
         pagination={paginationConfig}
+        loading={data.length === 0}
       />
 
       {selectedRowData && (

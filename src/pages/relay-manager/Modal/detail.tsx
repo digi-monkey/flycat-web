@@ -22,13 +22,18 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
   const [uiRelay, setUIRelay] = useState<Relay>();
 
   useEffect(() => {
-    setUIRelay(relay);
+    if(relay.url !== uiRelay?.url){
+      setUIRelay(relay);
+    }
+
     if (isRelayOutdate(relay)) {
       Nip11.updateRelays([relay]).then(detail => {
         if (detail.length > 0){
           const db = new RelayPoolDatabase();
           db.saveAll(detail);
-          setUIRelay(detail[0]);
+          if(relay.url === uiRelay?.url){
+            setUIRelay(detail[0]);
+          }
         }
       });
     }
