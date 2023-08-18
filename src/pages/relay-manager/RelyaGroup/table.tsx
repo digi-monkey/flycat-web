@@ -43,6 +43,11 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
       }
       return relay;
     });
+    setData(
+      relaysFromDb.map(r => {
+        return { ...r, ...{ key: r.url } };
+      }),
+    );
     const outdatedRelays = relaysFromDb
       .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
       .map(r => r!.url);
@@ -50,27 +55,28 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
     let newRelays: Relay[] = relaysFromDb;
     if (outdatedRelays.length > 0) {
       messageApi.loading(`update ${outdatedRelays.length} relays info..`);
-      const details = await Nip11.getRelays(outdatedRelays);
-      newRelays = relaysFromDb.map(r => {
-        if (details.map(d => d.url).includes(r.url)) {
-          return details.filter(d => d.url === r.url)[0]!;
-        } else {
-          return r;
+      Nip11.getRelays(outdatedRelays).then(details => {
+        newRelays = relaysFromDb.map(r => {
+          if (details.map(d => d.url).includes(r.url)) {
+            return details.filter(d => d.url === r.url)[0]!;
+          } else {
+            return r;
+          }
+        });
+        messageApi.destroy();
+
+        if (newRelays.length > 0) {
+          db.saveAll(newRelays);
         }
+
+        // todo: save relay update value
+        setData(
+          newRelays.map(r => {
+            return { ...r, ...{ key: r.url } };
+          }),
+        );
       });
-      messageApi.destroy();
     }
-
-    if (newRelays.length > 0) {
-      db.saveAll(newRelays);
-    }
-
-    // todo: save relay update value
-    setData(
-      newRelays.map(r => {
-        return { ...r, ...{ key: r.url } };
-      }),
-    );
   };
 
   const columns: ColumnsType<RelayTableItem> = isMobile
