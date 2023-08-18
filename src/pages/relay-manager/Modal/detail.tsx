@@ -3,6 +3,10 @@ import { Relay } from 'core/relay/type';
 import styles from './detail.module.scss';
 import Link from 'next/link';
 import { displayTwoDigitNumber } from 'utils/common';
+import { useEffect, useState } from 'react';
+import { Nip11 } from 'core/nip/11';
+import { isRelayOutdate } from 'core/relay/util';
+import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 export interface RelayDetailModalProp {
   relay: Relay;
@@ -15,13 +19,33 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
   open,
   onCancel,
 }) => {
+  const [uiRelay, setUIRelay] = useState<Relay>();
+
+  useEffect(() => {
+    if(relay.url !== uiRelay?.url){
+      setUIRelay(relay);
+    }
+
+    if (isRelayOutdate(relay)) {
+      Nip11.updateRelays([relay]).then(detail => {
+        if (detail.length > 0){
+          const db = new RelayPoolDatabase();
+          db.saveAll(detail);
+          if(relay.url === uiRelay?.url){
+            setUIRelay(detail[0]);
+          }
+        }
+      });
+    }
+  }, [relay]);
+
   return (
     <Modal
       title="Relay details"
       open={open}
       onCancel={onCancel}
       footer={[
-        <Button key={"ok-btn"} type="primary" onClick={onCancel}>
+        <Button key={'ok-btn'} type="primary" onClick={onCancel}>
           Got it
         </Button>,
       ]}
@@ -40,25 +64,34 @@ export const RelayDetailModal: React.FC<RelayDetailModalProp> = ({
           }}
         >
           <Descriptions.Item label="Url">{relay.url}</Descriptions.Item>
-          <Descriptions.Item label="About">{relay.about}</Descriptions.Item>
-          <Descriptions.Item label="Status">{relay.isOnline ? "Online" : "Offline"}</Descriptions.Item>
+          <Descriptions.Item label="About">{uiRelay?.about}</Descriptions.Item>
+          <Descriptions.Item label="Status">
+            {uiRelay?.isOnline ? 'Online' : 'Offline'}
+          </Descriptions.Item>
 
           <Descriptions.Item label="Nips">
-          <Space>
-            {relay.supportedNips?.map(n =>
-              <Link key={n} href={`https://github.com/nostr-protocol/nips/blob/master/${displayTwoDigitNumber(n)}.md`}>{displayTwoDigitNumber(n)}</Link>
-            )}
-            </Space>
+            <div className={styles.nips}>
+              {uiRelay?.supportedNips?.map(n => (
+                <Link
+                  key={n}
+                  href={`https://github.com/nostr-protocol/nips/blob/master/${displayTwoDigitNumber(
+                    n,
+                  )}.md`}
+                >
+                  {displayTwoDigitNumber(n)}
+                </Link>
+              ))}
+            </div>
           </Descriptions.Item>
           <Descriptions.Item label="Software">
             {' '}
-            {relay.software}
+            {uiRelay?.software}
           </Descriptions.Item>
-          <Descriptions.Item label="Contact">{relay.contact}</Descriptions.Item>
-          <Descriptions.Item label="Operator" >
+          <Descriptions.Item label="Contact">{uiRelay?.contact}</Descriptions.Item>
+          <Descriptions.Item label="Operator">
             <Space>
-            <Avatar src={relay.operatorDetail?.picture} />
-            {relay.operatorDetail?.name || '...'}
+              <Avatar src={uiRelay?.operatorDetail?.picture} />
+              {uiRelay?.operatorDetail?.name || '...'}
             </Space>
           </Descriptions.Item>
         </Descriptions>

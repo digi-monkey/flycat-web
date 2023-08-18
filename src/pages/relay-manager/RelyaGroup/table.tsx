@@ -8,6 +8,7 @@ import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import type { ColumnsType } from 'antd/es/table';
 import { RelayGroup } from 'core/relay/group';
+import { useMatchMobile } from 'hooks/useMediaQuery';
 
 export type RelayTableItem = Relay & { key: string };
 
@@ -22,8 +23,9 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
   groupId,
   relays,
   groups,
-  setGroups
+  setGroups,
 }) => {
+  const isMobile = useMatchMobile();
   const [data, setData] = useState<RelayTableItem[]>([]);
   const [selectRelays, setSelectRelays] = useState<Relay[]>([]);
 
@@ -40,63 +42,91 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
       }
       return relay;
     });
+    setData(
+      relaysFromDb.map(r => {
+        return { ...r, ...{ key: r.url } };
+      }),
+    );
     const outdatedRelays = relaysFromDb
       .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
       .map(r => r!.url);
 
     let newRelays: Relay[] = relaysFromDb;
     if (outdatedRelays.length > 0) {
-      message.loading(`update ${outdatedRelays.length} relays info..`);
-      const details = await Nip11.getRelays(outdatedRelays);
-      newRelays = relaysFromDb.map(r => {
-        if (details.map(d => d.url).includes(r.url)) {
-          return details.filter(d => d.url === r.url)[0]!;
-        } else {
-          return r;
+      Nip11.getRelays(outdatedRelays).then(details => {
+        newRelays = relaysFromDb.map(r => {
+          if (details.map(d => d.url).includes(r.url)) {
+            return details.filter(d => d.url === r.url)[0]!;
+          } else {
+            return r;
+          }
+        });
+
+        if (newRelays.length > 0) {
+          db.saveAll(newRelays);
+
+          // todo: save relay update value
+          setData(
+            newRelays.map(r => {
+              return { ...r, ...{ key: r.url } };
+            }),
+          );
         }
       });
-      message.destroy();
     }
-
-    if (newRelays.length > 0) {
-      db.saveAll(newRelays);
-    }
-
-    // todo: save relay update value
-    setData(
-      newRelays.map(r => {
-        return { ...r, ...{ key: r.url } };
-      }),
-    );
   };
 
-  const columns: ColumnsType<RelayTableItem> = [
-    {
-      title: 'Type',
-      dataIndex: 'accessType',
-      key: 'accessType',
-    },
-    {
-      title: 'URL',
-      dataIndex: 'url',
-      key: 'url',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isOnline',
-      key: 'isOnline',
-      render: (isOnline: boolean) => (isOnline ? 'Online' : 'Offline'),
-    },
-    {
-      key: 'action',
-      render: (_, record) => (
-        <SingleItemAction groupId={groupId} relay={record} groups={groups} setGroups={setGroups} />
-      ),
-    },
-  ];
+  const columns: ColumnsType<RelayTableItem> = isMobile
+    ? [
+        {
+          title: 'URL',
+          dataIndex: 'url',
+          key: 'url',
+        },
+        {
+          key: 'action',
+          render: (_, record) => (
+            <SingleItemAction
+              groupId={groupId}
+              relay={record}
+              groups={groups}
+              setGroups={setGroups}
+            />
+          ),
+        },
+      ]
+    : [
+        {
+          title: 'Type',
+          dataIndex: 'accessType',
+          key: 'accessType',
+        },
+        {
+          title: 'URL',
+          dataIndex: 'url',
+          key: 'url',
+        },
+        {
+          title: 'Status',
+          dataIndex: 'isOnline',
+          key: 'isOnline',
+          render: (isOnline: boolean) => (isOnline ? 'Online' : 'Offline'),
+        },
+        {
+          key: 'action',
+          render: (_, record) => (
+            <SingleItemAction
+              groupId={groupId}
+              relay={record}
+              groups={groups}
+              setGroups={setGroups}
+            />
+          ),
+        },
+      ];
 
   return (
-    <>
+    <div style={{ width: '100%', overflow: 'hidden' }}>
       <Table<RelayTableItem>
         rowSelection={{
           type: 'checkbox',
@@ -118,7 +148,7 @@ const RelayGroupTable: React.FC<RelayGroupTableProp> = ({
         setGroups={setGroups}
         relays={selectRelays}
       />
-    </>
+    </div>
   );
 };
 

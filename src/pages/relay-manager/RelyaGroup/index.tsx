@@ -9,6 +9,7 @@ import {
   Menu,
   Modal,
   Row,
+  Tabs,
   Tooltip,
   message,
 } from 'antd';
@@ -25,32 +26,31 @@ import styles from './index.module.scss';
 import { maxStrings } from 'utils/common';
 import { RelaySelectorStore } from 'components/RelaySelector/store';
 import { useCallWorker } from 'hooks/useWorker';
-import { NIP_65_RELAY_LIST } from 'constants/relay';
+import { AUTO_RECOMMEND_LIST, NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
 import { CallRelayType } from 'core/worker/type';
 import Link from 'next/link';
-import { updateGroupClassState, useLoadRelayGroup } from '../hooks/useLoadRelayGroup';
+import {
+  updateGroupClassState,
+  useLoadRelayGroup,
+} from '../hooks/useLoadRelayGroup';
+import { useMatchMobile } from 'hooks/useMediaQuery';
+import { createCallRelay } from 'core/worker/util';
 
 interface RelayGroupProp {
   groups: RelayGroupClass | undefined;
   setGroups: Dispatch<SetStateAction<RelayGroupClass | undefined>>;
 }
 
-export const RelayGroup: React.FC<RelayGroupProp> = ({
-  groups,
-  setGroups
-}) => {
+export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
+  const isMobile = useMatchMobile();
   const { worker, newConn } = useCallWorker();
   const [messageApi, contextHolder] = message.useMessage();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const [inputWsUrl, setInputWsUrl] = useState<string>();
-
-  const handleGroupSelect = (groupId: string) => {
-    setSelectedGroupId(groupId);
-  };
 
   const renderRightPanel = () => {
     if (selectedGroupId === null) {
@@ -61,7 +61,14 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
     }
 
     const selectedItems = groups.map.get(selectedGroupId) || [];
-    return <RelayGroupTable groups={groups} setGroups={setGroups} groupId={selectedGroupId} relays={selectedItems} />;
+    return (
+      <RelayGroupTable
+        groups={groups}
+        setGroups={setGroups}
+        groupId={selectedGroupId}
+        relays={selectedItems}
+      />
+    );
   };
 
   const addRelay = () => {
@@ -79,16 +86,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
 
     messageApi.info('try syncing Nip-65 Relay list from network..');
 
-    const callRelay =
-      newConn.length > 0
-        ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
-        : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+    const callRelay = createCallRelay(newConn);
 
     let event: Event | null = null;
     const dataStream = worker
@@ -130,6 +128,8 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
   };
 
   const autoRelays = async () => {
+    if(!groups)return;
+
     const messageKey = 'autoRelay';
     const progressCb = (restCount: number) => {
       messageApi.open({
@@ -171,13 +171,9 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
     );
     progressEnd();
     if (pickRelays.length > 0) {
-      const store = new RelaySelectorStore();
-      store.saveAutoRelayResult(
-        myPublicKey,
-        pickRelays.map(r => {
+      groups.setGroup(AUTO_RECOMMEND_LIST, pickRelays.map(r => {
           return { url: r, read: true, write: true };
-        }),
-      );
+      }));
     }
     Modal.success({
       title: 'pick relays',
@@ -189,7 +185,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
           <Divider></Divider>
           <div>
             <strong>
-              Switch to Auto mode if you want to use the these relays
+              New Auto-Recommend-List created! Please refresh the page to select and use it.
             </strong>
           </div>
         </>
@@ -197,67 +193,48 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
     });
   };
 
+  const mobileMenuItems =
+    groups?.getAllGroupIds().map(groupId => {
+      return {
+        key: groupId,
+        label:
+          maxStrings(groupId, 12) +
+          ' (' +
+          groups.getGroupById(groupId)?.length +
+          ')',
+      };
+    }) || [];
+
   return (
     <>
       <Row>
-        <Col span={6}>
+        <div className={styles.menuBtnGroups}>
+          <Button type="primary" onClick={createNewGroup}>
+            + Create new group
+          </Button>
+          <Button onClick={syncNip65Group}>Get NIP-65 Relay List</Button>
+          <Button onClick={autoRelays}>Find Auto Relay List For Me</Button>
+        </div>
+        {isMobile && (
+          <div className={styles.mobileMenu}>
+            <div className={styles.title}>{mobileMenuItems.length} Groups</div>
+            <Tabs activeKey={selectedGroupId} defaultActiveKey={selectedGroupId} items={mobileMenuItems} onChange={setSelectedGroupId} />
+          </div>
+        )}
+
+        <Col xs={0} sm={6}>
           {contextHolder}
           <Menu
-            mode="inline"
+            mode={isMobile ? 'horizontal' : 'inline'}
             selectedKeys={selectedGroupId ? [selectedGroupId.toString()] : []}
             className={styles.selectorMenu}
           >
-            <Menu.Item
-              icon={<Icon type="icon-repost" className={styles.icon} />}
-              key={'re-gen-auto-relay'}
-              onClick={autoRelays}
-              className={styles.btnMenu}
-            >
-              Auto Relays{' '}
-              <Tooltip title="Automatically find relays for you based on our algorithm">
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </Menu.Item>
-
-            <Menu.Item
-              key={'create-nip65-group-btn'}
-              icon={<Icon type="icon-repost" className={styles.icon} />}
-              className={styles.btnMenu}
-              onClick={syncNip65Group}
-            >
-              Nip65 Relay List{' '}
-              <Tooltip
-                title={
-                  <>
-                    <div>Sync your relay list from network</div>{' '}
-                    <Link
-                      href="https://github.com/nostr-protocol/nips/blob/master/65.md"
-                      target="_blank"
-                    >
-                      What is Nip-65
-                    </Link>
-                  </>
-                }
-              >
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </Menu.Item>
-
-            <Menu.Item
-              key={'create-new-group-btn'}
-              icon={<Icon type="icon-plus" className={styles.icon} />}
-              className={styles.btnMenu}
-              onClick={createNewGroup}
-            >
-              Create new group
-            </Menu.Item>
-
             {groups &&
               groups.getAllGroupIds().map(groupId => (
                 <Menu.Item
                   key={groupId}
                   icon={<FolderOutlined className={styles.icon} />}
-                  onClick={() => handleGroupSelect(groupId)}
+                  onClick={() => setSelectedGroupId(groupId)}
                 >
                   <div className={styles.menuText}>
                     <span className={styles.name}>
@@ -271,7 +248,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({
               ))}
           </Menu>
         </Col>
-        <Col span={18}>
+        <Col xs={24} sm={18}>
           <div className={styles.rightHeader}>
             <div className={styles.selectedName}>
               {selectedGroupId

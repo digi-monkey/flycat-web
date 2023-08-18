@@ -86,7 +86,13 @@
   }
 }
 
+.expandIcon{
+  width: 24px;
+  height: 24px;
+}
+
 .popup{
+  min-width: 300px !important;
   background-color: initial;
   box-shadow: initial;
   overflow: initial;
@@ -143,7 +149,7 @@
         
           li:nth-last-child(3){
             border: {
-              top: 1px solid var(--neutral-02);
+              //top: 1px solid var(--neutral-02);
               bottom: 1px solid var(--neutral-02);
             };
           }
@@ -154,6 +160,7 @@
 }
 
 .modal{
+  width: 100%;
   ul{
     margin: 0;
     padding: 20px 56px 0 0;

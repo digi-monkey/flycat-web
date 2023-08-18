@@ -6,9 +6,14 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { Button, Cascader, Modal, Tooltip, message } from 'antd';
+import { Button, Cascader, Divider, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { RelayModeSelectMenus } from './type';
+import {
+  RelayMode,
+  RelayFooterMenus,
+  toLabel,
+  toRelayMode,
+} from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import {
@@ -23,12 +28,15 @@ import {
   initModeOptions,
   toConnectStatus,
 } from './util';
+import { normalizeWsUrl } from 'utils/common';
+import { ConnPool } from 'core/api/pool';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
-import { ConnPool } from 'core/api/pool';
 import classNames from 'classnames';
-import { normalizeWsUrl } from 'utils/common';
+import { NIP_65_RELAY_LIST } from 'constants/relay';
+import { createCallRelay } from 'core/worker/util';
+import { Nip65 } from 'core/nip/65';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -54,9 +62,10 @@ export function RelaySelector({
   const defaultGroup = useDefaultGroup();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const [openAbout, setOpenAbout] = useState(false);
+  const [openAboutRelayMode, setOpenAboutRelayMode] = useState(false);
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedValue, setSelectedValue] = useState<string[]>();
+  const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] = useState<string[]>();
+  const [selectCascaderOption, setSelectCascaderOption] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
 
   const [messageApi, contextHolder] = message.useMessage();
@@ -104,11 +113,13 @@ export function RelaySelector({
     });
   };
 
-  useLoadSelectedStore(myPublicKey, setSelectedValue);
+  useLoadSelectedStore(myPublicKey, (value)=>{setSelectedCascaderMapRelay(value); if(value.length > 1){
+    setSelectCascaderOption([value[1]])
+  }});
   useGetSwitchRelay(
     myPublicKey,
     relayGroupMap,
-    selectedValue,
+    selectedCascaderMapRelay,
     setSwitchRelays,
     progressCb,
     progressEnd,
@@ -125,11 +136,8 @@ export function RelaySelector({
     }
 
     const id = data.id;
-    if (id === 'auto' || id === 'fastest') {
-      setSelectedValue([id]);
-    } else {
-      setSelectedValue(['global', id]);
-    }
+    // todo: change data structure to handle rule script mode
+    setSelectedCascaderMapRelay([RelayMode.group, id]);
   });
 
   useEffect(() => {
@@ -141,6 +149,21 @@ export function RelaySelector({
     }
     setRelayGroupMap(groups.map);
   }, [defaultGroup]);
+
+  // fetch nip-65 relay list group if it is not there
+  useEffect(()=>{
+    if(!myPublicKey || myPublicKey.length === 0)return;
+    if(!worker)return;
+    const groups = new RelayGroup(myPublicKey);
+    if(groups.getGroupById(NIP_65_RELAY_LIST))return;
+
+    const callRelay = createCallRelay(newConn);
+    worker.subNip65RelayList({pks: [myPublicKey], callRelay, limit: 1}).iterating({cb: (event, relayUrl)=>{
+      
+      groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
+      setRelayGroupMap(groups.map);
+    }});
+  }, [worker, newConn]);
 
   useEffect(() => {
     if (newConnCallback) {
@@ -158,7 +181,11 @@ export function RelaySelector({
     if (switchRelays?.relays) {
       const keys = Array.from(wsConnectStatus.keys());
       for (const key of keys) {
-        if (!switchRelays.relays.map(r => normalizeWsUrl(r.url)).includes(normalizeWsUrl(key))) {
+        if (
+          !switchRelays.relays
+            .map(r => normalizeWsUrl(r.url))
+            .includes(normalizeWsUrl(key))
+        ) {
           wsConnectStatus.delete(key);
         }
       }
@@ -180,19 +207,19 @@ export function RelaySelector({
 
   const onChange = (value: string[] | any) => {
     if (!Array.isArray(value)) return;
-    if (value[0] === RelayModeSelectMenus.displayBenchmark) {
-      displayBenchmark();
-      return;
-    }
-    if (value[0] === RelayModeSelectMenus.aboutRelayMode) {
-      setOpenAbout(true);
-      return;
-    }
-    if (value[0] === RelayModeSelectMenus.manageRelays) {
+    if (value[0] === RelayFooterMenus.manageRelays) {
       router.push(Paths.relayManager);
       return;
     }
-    setSelectedValue(value);
+
+    // handle relay group
+    if (value.length === 1) {
+      setSelectCascaderOption(value);
+      setSelectedCascaderMapRelay([RelayMode.group, ...value]);
+      return;
+    }
+
+    setSelectedCascaderMapRelay(value);
   };
 
   const displayBenchmark = async () => {
@@ -228,9 +255,11 @@ export function RelaySelector({
 
   const connectedUrlTooltip = (
     <>
-      {getConnectedRelayUrl(wsConnectStatus).length > 0 ? getConnectedRelayUrl(wsConnectStatus).map(url => (
-        <li key={url}>{url}</li>
-      )) : "No connected relays"}
+      {getConnectedRelayUrl(wsConnectStatus).length > 0
+        ? getConnectedRelayUrl(wsConnectStatus).map(url => (
+            <li key={url}>{url}</li>
+          ))
+        : 'No connected relays'}
     </>
   );
 
@@ -238,27 +267,42 @@ export function RelaySelector({
     <div className={classNames(styles.relaySelector, className)}>
       {contextHolder}
       <Cascader
-        defaultValue={['global', 'default']}
+        defaultValue={['default']}
         className={styles.cascader}
         popupClassName={styles.popup}
+        expandIcon={
+          <Icon type="icon-chevron-down" className={styles.expandIcon} />
+        }
+        suffixIcon={
+          <Icon type="icon-chevron-down" className={styles.expandIcon} />
+        }
         options={[
           getDisabledTitle(),
           ...initModeOptions(relayGroupMap),
           ...getFooterMenus(),
         ]}
         allowClear={false}
-        value={selectedValue}
+        value={selectCascaderOption}
         onChange={onChange}
-        displayRender={label => (
+        displayRender={_label => (
           <>
-            <span className={styles.relayMode}>{label[0]}</span>
-            {label.length > 1 && (
+            <span className={styles.relayMode}>
+              {selectedCascaderMapRelay
+                ? toLabel(toRelayMode(selectedCascaderMapRelay[0]))
+                : toLabel(RelayMode.group)}
+            </span>
+            {
               <Tooltip placement="bottom" title={connectedUrlTooltip}>
                 <span className={styles.childrenItem}>
-                  {toConnectStatus(label[1], wsConnectStatus)}
+                  {toConnectStatus(
+                    selectedCascaderMapRelay && selectedCascaderMapRelay.length > 1
+                      ? selectedCascaderMapRelay[1]
+                      : 'default',
+                    wsConnectStatus,
+                  )}
                 </span>
               </Tooltip>
-            )}
+            }
           </>
         )}
       />
@@ -267,8 +311,8 @@ export function RelaySelector({
         title={t('relaySelector.modal.title')}
         wrapClassName={styles.modal}
         footer={null}
-        open={openAbout}
-        onCancel={() => setOpenAbout(false)}
+        open={openAboutRelayMode}
+        onCancel={() => setOpenAboutRelayMode(false)}
         closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
       >
         <ul>
@@ -283,7 +327,7 @@ export function RelaySelector({
           ))}
         </ul>
         <div className={styles.footer}>
-          <Button type="primary" onClick={() => setOpenAbout(false)}>
+          <Button type="primary" onClick={() => setOpenAboutRelayMode(false)}>
             {t('relaySelector.modal.buttonText')}
           </Button>
         </div>

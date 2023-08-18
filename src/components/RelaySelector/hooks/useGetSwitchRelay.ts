@@ -22,73 +22,6 @@ export function useGetSwitchRelay(
     const mode: RelayMode = toRelayMode(val[0]);
     const groupId = val[1];
 
-    if (mode === RelayMode.auto) {
-      const savedResult = store.loadAutoRelayResult(myPublicKey);
-      if (savedResult) {
-        return {
-          id: mode,
-          relays: savedResult,
-        };
-      }
-
-      const relayPool = new RelayPool();
-      const seeds =  relayPool.seeds;
-      const contactList = await OneTimeWebSocketClient.fetchContactList({pubkey: myPublicKey, relays: ['wss://relay.nostr.band']}) || [];
-      if(!contactList.includes(myPublicKey)){
-        contactList.push(myPublicKey);
-      }
-      const relays = await relayPool.getAutoRelay(seeds, contactList, myPublicKey, progressCb);
-      if(progressEnd){
-        progressEnd();
-      }
-
-      store.saveAutoRelayResult(
-        myPublicKey,
-        relays.map(r => {
-          return { url: r, read: true, write: true };
-        }),
-      );
-
-      return {
-        id: mode,
-        relays: relays.map(r => {
-          return {
-            url: r,
-            read: false,
-            write: true,
-          };
-        }),
-      };
-    }
-
-    if (mode === RelayMode.fastest) {
-      const savedResult = store.loadFastestRelayResult(myPublicKey);
-      if (savedResult && !isFastestRelayOutdated(savedResult.updated_at)) {
-        return {
-          id: mode,
-          relays: savedResult.relays,
-        };
-      }
-
-      const relayPool = new RelayPool();
-      const allRelays = await relayPool.getAllRelays();
-      const fastest = await RelayPool.getFastest(allRelays.map(r => r.url), progressCb);
-      if(progressEnd){
-        progressEnd();
-      }
-
-      const relays = [{ url: fastest[0], read: true, write: true }];
-      store.saveFastestRelayResult(
-        myPublicKey,
-        relays
-      );
-
-      return {
-        id: mode,
-        relays,
-      };
-    }
-
     if (mode === RelayMode.rule) {
       return {
         id: mode,
@@ -96,7 +29,7 @@ export function useGetSwitchRelay(
       };
     }
 
-    if (mode === RelayMode.global) {
+    if (mode === RelayMode.group) {
       if (!groupId) throw new Error('no selected group id');
 
       return {
