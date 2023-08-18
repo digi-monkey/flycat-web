@@ -1,7 +1,7 @@
 import { RelayGroupMap } from 'core/relay/group/type';
 import {
   RelayMode,
-  RelayModeSelectMenus,
+  RelayFooterMenus,
   RelayModeSelectOption,
   toLabel,
 } from './type';
@@ -37,7 +37,7 @@ export function getDisabledTitle() {
 export function getFooterMenus() {
   return [
     {
-      value: RelayModeSelectMenus.manageRelays,
+      value: RelayFooterMenus.manageRelays,
       label: 'Manage Relays..',
     },
   ];

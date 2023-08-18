@@ -3,8 +3,35 @@ export enum RelayMode {
   rule = 'rule',
 }
 
-export enum RelayModeSelectMenus {
+export enum RelayFooterMenus {
   manageRelays = 'ManageRelays',
+}
+
+export function footerMenuToLabel(menu: RelayFooterMenus) {
+  switch (menu) {
+    case RelayFooterMenus.manageRelays:
+      return 'Manage Relays..';
+    default:
+      throw new Error('unknown footer menu: ' + menu);
+  }
+}
+
+export function labelToFooterMenu(val: string) {
+  switch (val) {
+    case 'Manage Relays..':
+      return RelayFooterMenus.manageRelays;
+    default:
+      throw new Error('unknown footer menu: ' + val);
+  }
+}
+
+export function isInFooterMenus(value: string): value is RelayFooterMenus {
+  try {
+    const menu = labelToFooterMenu(value);
+    return Object.values(RelayFooterMenus).includes(menu as RelayFooterMenus);
+  } catch (error) {
+    return false;
+  }
 }
 
 export function toLabel(mode: RelayMode) {
@@ -16,7 +43,7 @@ export function toLabel(mode: RelayMode) {
       return 'Relay Scripts(coming)';
 
     default:
-      throw new Error('unknown mode');
+      throw new Error('unknown mode: ' + mode);
   }
 }
 
@@ -29,7 +56,7 @@ export function toRelayMode(value: string) {
       return RelayMode.rule;
 
     default:
-      throw new Error('unknown mode ' + value);
+      throw new Error('unknown mode: ' + value);
   }
 }
 
