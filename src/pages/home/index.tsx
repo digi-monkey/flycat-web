@@ -44,12 +44,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const myPublicKey = useMyPublicKey();
   const { worker, newConn } = useCallWorker();
   const isMobile = useMatchMobile();
-  const defaultTabValue = isLoggedIn ? 'follow' : 'global';
+  const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>();
-  const [selectTabKey, setSelectTabKey] = useState<string>(defaultTabValue);
+  const [selectTabKey, setSelectTabKey] = useState<string>(defaultTabActivateKey);
   const [selectFilter, setSelectFilter] = useState<string>('All');
 
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
@@ -198,7 +198,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
               { key: 'global', label: 'Global' },
             ]}
-            defaultValue={defaultTabValue}
+            defaultActiveKey={defaultTabActivateKey}
             onChange={key => setSelectTabKey(key)}
           />
         </div>
