@@ -15,32 +15,35 @@ import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
 
+export interface MsgSubProp {
+  msgFilter?: Filter;
+  isValidEvent?: (event: Event) => boolean; 
+  emptyDataReactNode?: React.ReactNode;
+}
+
 export interface MsgFeedProp {
-  msgFilter: Filter;
-  isValidEvent?: (event: Event) => boolean;
+  msgSubProp: MsgSubProp;
   worker: CallWorker | undefined;
   newConn: string[];
   userMap: UserMap;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
   eventMap: EventMap;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
-  emptyDataReactNode: React.ReactNode;
   maxMsgLength?: number;
 }
 
 export const MsgFeed: React.FC<MsgFeedProp> = ({
-  msgFilter,
-  isValidEvent,
+  msgSubProp,
   worker,
   newConn,
   userMap,
   setUserMap,
   eventMap,
   setEventMap,
-  emptyDataReactNode,
   maxMsgLength: _maxMsgLength
 }) => {
   const { t } = useTranslation();
+  const {msgFilter, isValidEvent, emptyDataReactNode} = msgSubProp;
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
@@ -76,6 +79,11 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       setMsgList([]);
     };
   }, []);
+
+  useEffect(()=>{
+    console.log("changed!");
+    setMsgList([]);
+  },[msgSubProp]);
 
   return (
     <>

@@ -1,30 +1,30 @@
 import { Paths } from 'constants/path';
 import { connect } from 'react-redux';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
-import { Button, Input, Segmented } from 'antd';
+import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import {
   ContactList,
   EventMap,
   Filter,
+  PublicKey,
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
-import { MsgFeed } from 'components/MsgFeed';
+import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 
 import styles from './index.module.scss';
-import PageTitle from 'components/PageTitle';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 
@@ -44,11 +44,15 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const myPublicKey = useMyPublicKey();
   const { worker, newConn } = useCallWorker();
   const isMobile = useMatchMobile();
+  const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>();
-  const [selectFilter, setSelectFilter] = useState<string>('Follow');
+  const [selectTabKey, setSelectTabKey] = useState<string>(defaultTabActivateKey);
+  const [selectFilter, setSelectFilter] = useState<string>('All');
+
+  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
 
   useSubContactList(myPublicKey, newConn, worker, setMyContactList);
 
@@ -95,45 +99,27 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     </>
   );
 
-  const filterMsg = (
-    <div className={styles.msgFilter}>
-      <Segmented
-        value={selectFilter}
-        onChange={val => setSelectFilter(val as string)}
-        options={['Follow', 'All', 'Article', 'Media']}
-      />
-    </div>
-  );
+  const onMsgFeedChanged = () => {
+    if (selectTabKey == null) return 'unknown tab key';
+    if (selectFilter == null) return 'unknown filter type';
 
-  const renderMsg = () => {
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
-    let emptyData: ReactNode | null = null;
-
-    if (selectFilter === 'Follow') {
-      const pks = myContactList?.keys || [];
-      msgFilter = {
-        limit: 50,
-        kinds: [
-          WellKnownEventKind.text_note,
-          WellKnownEventKind.article_highlight,
-          WellKnownEventKind.long_form,
-          WellKnownEventKind.reposts,
-        ],
-        authors: pks,
-      };
-      emptyData = emptyFollowReactData;
-    }
+    let emptyDataReactNode: ReactNode | null = null;
 
     if (selectFilter === 'All') {
+      const kinds = [
+        WellKnownEventKind.text_note,
+        WellKnownEventKind.article_highlight,
+        WellKnownEventKind.long_form,
+        WellKnownEventKind.reposts,
+      ];
       msgFilter = {
         limit: 50,
-        kinds: [
-          WellKnownEventKind.text_note,
-          WellKnownEventKind.article_highlight,
-          WellKnownEventKind.long_form,
-          WellKnownEventKind.reposts,
-        ],
+        kinds,
+      };
+      isValidEvent = (event: Event) => {
+        return kinds.includes(event.kind);
       };
     }
 
@@ -141,6 +127,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       msgFilter = {
         limit: 50,
         kinds: [WellKnownEventKind.long_form],
+      };
+      isValidEvent = (event: Event) => {
+        return event.kind === WellKnownEventKind.long_form;
       };
     }
 
@@ -159,36 +148,87 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
     if (msgFilter == null) return 'unknown filter';
 
-    return (
-      <MsgFeed
-        key={selectFilter}
-        msgFilter={msgFilter}
-        isValidEvent={isValidEvent}
-        worker={worker}
-        newConn={newConn}
-        setEventMap={setEventMap}
-        setUserMap={setUserMap}
-        eventMap={eventMap}
-        userMap={userMap}
-        emptyDataReactNode={emptyData}
-      />
+    const pks: PublicKey[] = [];
+    if (selectTabKey === 'follow') {
+      if (
+        myPublicKey == null ||
+        myPublicKey.length === 0 ||
+        myContactList == null
+      ) {
+        return console.debug('not login or no contact list');
+      }
+
+      const followings = myContactList.keys;
+      if (!followings.includes(myPublicKey)) {
+        followings.push(myPublicKey);
+      }
+      pks.push(...followings);
+      emptyDataReactNode = emptyFollowReactData;
+      if (pks.length > 0) {
+        msgFilter.authors = pks;
+      }
+    }
+
+    console.log(
+      'start sub msg.. !!!msgFilter: ',
+      msgFilter,
+      selectFilter,
+      selectTabKey,
+      isValidEvent,
     );
+
+    const msgSubProp: MsgSubProp = {
+      msgFilter,
+      isValidEvent,
+      emptyDataReactNode,
+    };
+    setMsgSubProp(prev => msgSubProp);
   };
+
+  useEffect(() => {
+    onMsgFeedChanged();
+  }, [selectFilter, selectTabKey, myContactList]);
 
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title={'Home'} right={isMobile ? '' : filterMsg} />
-        {isMobile ? (
-          <div className={styles.mobileFilter}>{filterMsg}</div>
-        ) : (
+        <div>
+          <Tabs
+            items={[
+              { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
+              { key: 'global', label: 'Global' },
+            ]}
+            defaultActiveKey={defaultTabActivateKey}
+            onChange={key => setSelectTabKey(key)}
+          />
+        </div>
+        {!isMobile && (
           <PubNoteTextarea
             pubSuccessCallback={(eventId, relayUrl) => {
               // todo
             }}
           />
         )}
-        {renderMsg()}
+        <div className={isMobile ? styles.mobileFilter : ''}>
+          <div className={styles.msgFilter}>
+            <Segmented
+              value={selectFilter}
+              onChange={val => setSelectFilter(val as string)}
+              options={['All', 'Article', 'Media']}
+            />
+          </div>
+        </div>
+
+        <MsgFeed
+          //key={selectFilter + selectTabKey + msgSubProp}
+          msgSubProp={msgSubProp}
+          worker={worker}
+          newConn={newConn}
+          setEventMap={setEventMap}
+          setUserMap={setUserMap}
+          eventMap={eventMap}
+          userMap={userMap}
+        />
       </Left>
       <Right>
         <div className={styles.rightPanel}>

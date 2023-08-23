@@ -9,10 +9,11 @@ import {
 } from 'pages/helper';
 import { EventWithSeen } from 'pages/type';
 import { Dispatch, SetStateAction, useEffect } from 'react';
+import { validateFilter } from '../util';
 
 export function useLoadMoreMsg({
   msgFilter,
-	isValidEvent,
+  isValidEvent,
   worker,
   msgList,
   setEventMap,
@@ -20,8 +21,8 @@ export function useLoadMoreMsg({
   maxMsgLength,
   loadMoreCount,
 }: {
-  msgFilter: Filter;
-	isValidEvent?: (event: Event) => boolean;
+  msgFilter?: Filter;
+  isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
   msgList: EventWithSeen[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
@@ -32,6 +33,7 @@ export function useLoadMoreMsg({
   useEffect(() => {
     if (!worker) return;
     if (loadMoreCount <= 1) return;
+    if (!msgFilter || !validateFilter(msgFilter)) return;
 
     const lastMsg = msgList.at(msgList.length - 1);
     if (!lastMsg) {
@@ -47,11 +49,11 @@ export function useLoadMoreMsg({
       cb: (event, relayUrl) => {
         onSetEventMap(event, setEventMap);
 
-				if(isValidEvent){
-					if(!isValidEvent(event)){
-						return;
-					}
-				}
+        if (isValidEvent) {
+          if (!isValidEvent(event)) {
+            return;
+          }
+        }
 
         if (maxMsgLength) {
           setMaxLimitEventWithSeenMsgList(
