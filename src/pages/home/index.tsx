@@ -49,7 +49,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [myContactList, setMyContactList] = useState<ContactList>();
-  const [selectTabKey, setSelectTabKey] = useState<string>(defaultTabActivateKey);
+  const [selectTabKey, setSelectTabKey] = useState<string>(
+    defaultTabActivateKey,
+  );
   const [selectFilter, setSelectFilter] = useState<string>('All');
 
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
@@ -150,15 +152,14 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
     const pks: PublicKey[] = [];
     if (selectTabKey === 'follow') {
-      if (
-        myPublicKey == null ||
-        myPublicKey.length === 0 ||
-        myContactList == null
-      ) {
-        return console.debug('not login or no contact list');
+      if (!isLoggedIn) {
+        return console.debug('not login');
+      }
+      if (myPublicKey == null || myPublicKey.length === 0) {
+        return console.debug('no my public key', myPublicKey);
       }
 
-      const followings = myContactList.keys;
+      const followings = myContactList?.keys || [];
       if (!followings.includes(myPublicKey)) {
         followings.push(myPublicKey);
       }
@@ -187,7 +188,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   useEffect(() => {
     onMsgFeedChanged();
-  }, [selectFilter, selectTabKey, myContactList]);
+  }, [selectFilter, selectTabKey, myContactList, myPublicKey]);
 
   return (
     <BaseLayout>
@@ -220,7 +221,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         </div>
 
         <MsgFeed
-          //key={selectFilter + selectTabKey + msgSubProp}
           msgSubProp={msgSubProp}
           worker={worker}
           newConn={newConn}
