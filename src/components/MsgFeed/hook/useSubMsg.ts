@@ -23,24 +23,31 @@ export function useSubMsg({
   setEventMap,
   maxMsgLength,
 }: {
-  msgFilter: Filter;
+  msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
-  setIsRefreshing:  Dispatch<SetStateAction<boolean>>; 
+  setIsRefreshing: Dispatch<SetStateAction<boolean>>;
   worker: CallWorker | undefined;
   newConn: string[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  setUserMap:  Dispatch<SetStateAction<UserMap>>; 
+  setUserMap: Dispatch<SetStateAction<UserMap>>;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
   const subMsg = async () => {
     if (!worker) return;
-    if (!validateFilter(msgFilter)) return;
+    if (!msgFilter || !validateFilter(msgFilter)) return;
     setIsRefreshing(true);
     const pks: string[] = [];
 
     const callRelay = createCallRelay(newConn);
-    console.debug("start sub msg..", newConn, msgFilter, callRelay);
+    console.debug(
+      'start sub msg..',
+      newConn,
+      msgFilter,
+      callRelay,
+      isValidEvent,
+      typeof isValidEvent,
+    );
     const dataStream = worker
       .subFilter({ filter: msgFilter, callRelay })
       .getIterator();
@@ -55,7 +62,7 @@ export function useSubMsg({
         }
       }
 
-      if(!pks.includes(event.pubkey)){
+      if (!pks.includes(event.pubkey)) {
         pks.push(event.pubkey);
       }
 
@@ -71,23 +78,30 @@ export function useSubMsg({
       }
     }
     dataStream.unsubscribe();
-    console.debug("finished sub msg!");
+    console.debug('finished sub msg!');
     setIsRefreshing(false);
 
     // sub user profiles
-    if(pks.length > 0){
-      worker?.subFilter({filter: {
-        kinds: [WellKnownEventKind.set_metadata],
-        authors: pks
-      }, callRelay}).iterating({cb: (event)=>{
-        onSetUserMap(event, setUserMap);
-      }})
+    if (pks.length > 0) {
+      worker
+        ?.subFilter({
+          filter: {
+            kinds: [WellKnownEventKind.set_metadata],
+            authors: pks,
+          },
+          callRelay,
+        })
+        .iterating({
+          cb: event => {
+            onSetUserMap(event, setUserMap);
+          },
+        });
     }
   };
 
   useEffect(() => {
     subMsg();
-  }, [worker, newConn]);
+  }, [worker, newConn, msgFilter]);
 }
 
 export async function subMsgAsync({
@@ -97,13 +111,14 @@ export async function subMsgAsync({
   setEventMap,
   maxMsgLength,
 }: {
-  msgFilter: Filter;
+  msgFilter?: Filter;
   worker: CallWorker | undefined;
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
   if (!worker) return;
+  if (!msgFilter || !validateFilter(msgFilter)) return;
 
   const callRelay = createCallRelay([]);
   const dataStream = worker
