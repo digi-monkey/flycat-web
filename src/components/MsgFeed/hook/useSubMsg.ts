@@ -65,17 +65,6 @@ export function useSubMsg({
       if (!pks.includes(event.pubkey)) {
         pks.push(event.pubkey);
       }
-
-      if (maxMsgLength) {
-        setMaxLimitEventWithSeenMsgList(
-          event,
-          relayUrl!,
-          setMsgList,
-          maxMsgLength,
-        );
-      } else {
-        setEventWithSeenMsgList(event, relayUrl!, setMsgList);
-      }
     }
     dataStream.unsubscribe();
     console.debug('finished sub msg!');

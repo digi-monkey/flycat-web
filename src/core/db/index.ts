@@ -60,7 +60,7 @@ export async function queryEvent(filter: Filter, relayUrls: string[]) {
     return event.created_at > startTime && event.created_at < endTime;
   };
   const defaultQuery = async (collection: Collection<DbEvent, IndexableType>) => {
-    return await collection.and(applyRelayAndTimeLimit).limit(maxEvents).sortBy('created_at')
+    return await collection.and(applyRelayAndTimeLimit).limit(maxEvents).reverse().sortBy('created_at');
   }
   const filterTags = (events: DbEvent[], filter: Filter) => {
     let result = events;

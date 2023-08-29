@@ -67,31 +67,10 @@ export function useSubContactList(
         ? { type: CallRelayType.all, data: [] }
         : { type: CallRelayType.batch, data: newConn };
 
-    const sub = worker.subContactList(
+    worker.subContactList(
       [myPublicKey],
       'userContactList',
       callRelay,
     );
-    sub.iterating({
-      cb: (event) => {
-        if (event.pubkey === myPublicKey) {
-          setMyContactList(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            const keys = (
-              event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[]
-            ).map(t => t[1]);
-            return {
-              keys,
-              created_at: event.created_at,
-            };
-          });
-        }
-      },
-    });
   }, [myPublicKey, newConn]);
 }

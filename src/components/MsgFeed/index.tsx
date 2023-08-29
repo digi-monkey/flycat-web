@@ -15,6 +15,10 @@ import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
 import { useLoadMsgFromDb } from './hook/useLoadFromDb';
+import { queryEvent } from 'core/db';
+import { DbEvent } from 'core/db/schema';
+import { validateFilter } from './util';
+import { useLiveQuery } from "dexie-react-hooks";
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -52,6 +56,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
 
+  /*
   useLoadMsgFromDb({
     msgFilter,
     isValidEvent,
@@ -62,6 +67,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setEventMap,
     maxMsgLength,
   });
+  */
 
   useSubMsg({
     msgFilter,
@@ -87,11 +93,18 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     loadMoreCount,
   });
 
+  const dbEvents = useLiveQuery(async () => {
+    if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) return [] as DbEvent[];
+    return await queryEvent(msgFilter, relayUrls);
+  }, [msgFilter], [] as DbEvent[]);
+
+
   useEffect(() => {
     return () => {
       setMsgList([]);
     };
   }, []);
+
 
   useEffect(() => {
     console.log("changed!");
@@ -125,11 +138,11 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           [styles.noData]: msgList.length === 0,
         })}
       >
-        {msgList.length > 0 && (
+        {dbEvents.length > 0 && (
           <>
             <div className={styles.msgList}>
               <PostItems
-                msgList={msgList}
+                msgList={dbEvents}
                 worker={worker!}
                 userMap={userMap}
                 relays={relayUrls}
