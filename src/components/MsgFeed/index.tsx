@@ -14,10 +14,11 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
+import { useLoadMsgFromDb } from './hook/useLoadFromDb';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
-  isValidEvent?: (event: Event) => boolean; 
+  isValidEvent?: (event: Event) => boolean;
   emptyDataReactNode?: React.ReactNode;
 }
 
@@ -43,7 +44,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   maxMsgLength: _maxMsgLength
 }) => {
   const { t } = useTranslation();
-  const {msgFilter, isValidEvent, emptyDataReactNode} = msgSubProp;
+  const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
@@ -51,17 +52,31 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
 
-  useSubMsg({
+  useLoadMsgFromDb({
     msgFilter,
     isValidEvent,
     setIsRefreshing,
     worker,
-    newConn,
     setMsgList,
     setUserMap,
     setEventMap,
     maxMsgLength,
   });
+
+  /*
+    useSubMsg({
+      msgFilter,
+      isValidEvent,
+      setIsRefreshing,
+      worker,
+      newConn,
+      setMsgList,
+      setUserMap,
+      setEventMap,
+      maxMsgLength,
+    });
+    */
+
   useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
   useLoadMoreMsg({
     msgFilter,
@@ -80,10 +95,10 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     };
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("changed!");
     setMsgList([]);
-  },[msgSubProp]);
+  }, [msgSubProp]);
 
   return (
     <>
