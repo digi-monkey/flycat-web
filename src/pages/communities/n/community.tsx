@@ -45,7 +45,7 @@ interface CommunityProps {
   setContributorCount?: Dispatch<SetStateAction<number>>;
   setMyPostCount?: Dispatch<SetStateAction<number>>;
   setMyUnApprovalPostCount?: Dispatch<SetStateAction<number>>;
-  setActionButton?: Dispatch<SetStateAction<ReactNode>>; 
+  setActionButton?: Dispatch<SetStateAction<ReactNode>>;
 }
 
 export function Community({
@@ -129,19 +129,19 @@ export function Community({
     );
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     const actionText =
-    myContactEvent && isFollowed(myContactEvent, target)
-      ? 'Unfollow'
-      : 'Follow';
-  const actionOnClick =
-    myContactEvent && isFollowed(myContactEvent, target) ? unfollow : follow;
-  const actionButton = (
-    <Button type="primary" onClick={actionOnClick} disabled={!signEvent}>
-      {actionText}
-    </Button>
-  );
-  setMyActionButton(actionButton);
+      myContactEvent && isFollowed(myContactEvent, target)
+        ? 'Unfollow'
+        : 'Follow';
+    const actionOnClick =
+      myContactEvent && isFollowed(myContactEvent, target) ? unfollow : follow;
+    const actionButton = (
+      <Button type="primary" onClick={actionOnClick} disabled={!signEvent}>
+        {actionText}
+      </Button>
+    );
+    setMyActionButton(actionButton);
   }, [myContactEvent])
 
   const getApprovalShortNoteId = async () => {
@@ -430,20 +430,20 @@ export function Community({
     setActiveTab(tabName);
   };
 
-  useEffect(()=>{
-    if(setPostCount){
+  useEffect(() => {
+    if (setPostCount) {
       setPostCount(msgList.length);
     }
-    if(setContributorCount){
+    if (setContributorCount) {
       setContributorCount(new Set(msgList.map(item => item.pubkey)).size)
     }
-    if(setMyPostCount){
+    if (setMyPostCount) {
       setMyPostCount(msgList.filter(item => item.pubkey === myPublicKey).length);
     }
   }, [msgList]);
 
-  useEffect(()=>{
-    if(setMyUnApprovalPostCount){
+  useEffect(() => {
+    if (setMyUnApprovalPostCount) {
       const unApprovalMsgList = allMsgList.filter(
         msg => !msgList.map(m => m.id).includes(msg.id),
       );
@@ -451,8 +451,8 @@ export function Community({
     }
   }, [allMsgList]);
 
-  useEffect(()=>{
-    if(myActionButton && setActionButton){
+  useEffect(() => {
+    if (myActionButton && setActionButton) {
       setActionButton(myActionButton);
     }
   }, [myActionButton]);
@@ -519,25 +519,22 @@ export function Community({
                     <div className={styles.msgTypeWrapper}>
                       <div className={styles.typeButtonContainer}>
                         <div
-                          className={`${styles.typeButton} ${
-                            activeTab === 'Latest' ? styles.typeActive : ''
-                          }`}
+                          className={`${styles.typeButton} ${activeTab === 'Latest' ? styles.typeActive : ''
+                            }`}
                           onClick={() => handleTabClick('Latest')}
                         >
                           Latest
                         </div>
                         <div
-                          className={`${styles.typeButton} ${
-                            activeTab === 'Hot' ? styles.typeActive : ''
-                          }`}
+                          className={`${styles.typeButton} ${activeTab === 'Hot' ? styles.typeActive : ''
+                            }`}
                           onClick={() => handleTabClick('Hot')}
                         >
                           Hot
                         </div>
                         <div
-                          className={`${styles.typeButton} ${
-                            activeTab === 'Long-Form' ? styles.typeActive : ''
-                          }`}
+                          className={`${styles.typeButton} ${activeTab === 'Long-Form' ? styles.typeActive : ''
+                            }`}
                           onClick={() => handleTabClick('Long-Form')}
                         >
                           Long-Form
@@ -581,12 +578,12 @@ export function Community({
                       extraMenu={
                         isModerator
                           ? [
-                              {
-                                label: 'approve this event',
-                                onClick: (event, message) =>
-                                  createApproval(event, message),
-                              },
-                            ]
+                            {
+                              label: 'approve this event',
+                              onClick: (event, message) =>
+                                createApproval(event, message),
+                            },
+                          ]
                           : []
                       }
                     />

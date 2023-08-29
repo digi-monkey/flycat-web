@@ -63,19 +63,17 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     maxMsgLength,
   });
 
-  /*
-    useSubMsg({
-      msgFilter,
-      isValidEvent,
-      setIsRefreshing,
-      worker,
-      newConn,
-      setMsgList,
-      setUserMap,
-      setEventMap,
-      maxMsgLength,
-    });
-    */
+  useSubMsg({
+    msgFilter,
+    isValidEvent,
+    setIsRefreshing,
+    worker,
+    newConn,
+    setMsgList,
+    setUserMap,
+    setEventMap,
+    maxMsgLength,
+  });
 
   useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
   useLoadMoreMsg({

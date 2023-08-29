@@ -144,7 +144,7 @@ const Explore = () => {
     if (!myPublicKey) return;
     if (myPublicKey && myPublicKey.length === 0) return;
 
-    updateMyContactEvent({worker, pk: myPublicKey, setMyContactEvent});
+    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
   }, [worker, myPublicKey, newConn]);
 
   useEffect(() => {
@@ -242,7 +242,7 @@ const Explore = () => {
               prefix={<Icon type="icon-search" />}
               onChange={e => setSearchName(e.target.value)}
             />
-            <Icon onClick={()=>router.push("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
+            <Icon onClick={() => router.push("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
           </div>
 
           <div className={styles.posts}>
@@ -268,12 +268,12 @@ const Explore = () => {
                   <div
                     className={styles.commCardListItem}
                     onClick={() =>
-                        router.push(
+                      router.push(
                         `/communities/n/` +
-                          Nip172.communityAddr({
-                            identifier: item.id,
-                            author: item.creator,
-                          }),
+                        Nip172.communityAddr({
+                          identifier: item.id,
+                          author: item.creator,
+                        }),
                       )
                     }
                   >

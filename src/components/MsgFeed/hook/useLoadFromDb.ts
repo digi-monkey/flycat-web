@@ -48,28 +48,37 @@ export function useLoadMsgFromDb({
       const events = await worker
         .queryFilterFromDb({ filter: msgFilter, relays });
 
-      setMsgList(events.filter(e => {
-        if (isValidEvent) {
-          return isValidEvent(e);
-        }
-        return true;
-      }));
       for (const event of events) {
         onSetEventMap(event, setEventMap);
         if (!pks.includes(event.pubkey)) {
           pks.push(event.pubkey);
+        }
+        for (const relay of event.seen) {
+          if (maxMsgLength) {
+            setMaxLimitEventWithSeenMsgList(event, relay, setMsgList, maxMsgLength);
+          } else {
+            setEventWithSeenMsgList(event, relay, setMsgList);
+          }
         }
       }
       console.debug('finished load msg!');
       setIsRefreshing(false);
 
       // sub user profiles
-      // todo
+      if (pks.length > 0) {
+        const events = await worker
+          ?.queryFilterFromDb({
+            filter: {
+              kinds: [WellKnownEventKind.set_metadata],
+              authors: pks,
+            },
+            relays,
+          });
+        for (const event of events) {
+          onSetUserMap(event, setUserMap);
+        }
+      }
     };
     loadMsg();
   }, [worker?.relayGroupId, worker, msgFilter]);
-
-  useEffect(() => {
-    console.log("worker?.relayGroupId are changing..", worker?.relayGroupId, worker?.relays)
-  }, [worker?.relayGroupId,])
 }

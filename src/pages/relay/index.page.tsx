@@ -82,7 +82,7 @@ export function RelayPage() {
         .iterating({
           cb: (event, relayUrl) => {
             if (event.pubkey !== myPublicKey) return;
-            if(event.kind === WellKnownEventKind.set_metadata){
+            if (event.kind === WellKnownEventKind.set_metadata) {
               onSetUserMap(event, setUserMap);
             }
             setEventWithSeenMsgList(event, relayUrl!, setMyMsgList);
@@ -148,9 +148,9 @@ export function RelayPage() {
     initRelays();
   }, []);
 
-  useEffect(()=>{
-    if(connectedWsUrls.length > 0 && selectRelay == null){
-     setSelectRelay(connectedWsUrls[0]);
+  useEffect(() => {
+    if (connectedWsUrls.length > 0 && selectRelay == null) {
+      setSelectRelay(connectedWsUrls[0]);
     }
   }, [connectedWsUrls]);
 

@@ -17,7 +17,7 @@ import {
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
-import { useSubContactList } from './hooks';
+import { useLoadContactList, useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 
 import Icon from 'components/Icon';
@@ -55,7 +55,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectFilter, setSelectFilter] = useState<string>('All');
 
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-
+  useLoadContactList(myPublicKey, worker, setMyContactList);
   useSubContactList(myPublicKey, newConn, worker, setMyContactList);
 
   // right test data

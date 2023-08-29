@@ -269,13 +269,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const callRelay: CallRelay =
       newConn.length > 0
         ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
+          type: CallRelayType.batch,
+          data: newConn,
+        }
         : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+          type: CallRelayType.connected,
+          data: [],
+        };
     worker
       ?.subContactList([publicKey], undefined, callRelay)
       ?.iterating({ cb: handleEvent });
@@ -370,13 +370,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     return isFollow
       ? {
-          label: 'unfollow',
-          action: () => _unfollowUser(publicKey),
-        }
+        label: 'unfollow',
+        action: () => _unfollowUser(publicKey),
+      }
       : {
-          label: 'follow',
-          action: () => _followUser(publicKey),
-        };
+        label: 'follow',
+        action: () => _followUser(publicKey),
+      };
   };
   const followOrUnfollow = buildFollowUnfollow(publicKey);
 
@@ -476,53 +476,53 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     );
 
   const mobileActionBtnGroups =
-  myPublicKey === publicKey ? (
-    <div className={styles.btnGroup}>
-      <Icon
-        type="icon-Gear"
-        className={styles.icon}
-        onClick={() => {
-          router.push(Paths.setting + '?tabKey=preference');
-        }}
-      />
-      <Button
-        onClick={() => {
-          router.push(Paths.setting);
-        }}
-      >
-        Edit profile
-      </Button>
-    </div>
-  ) : (
-    <div className={styles.btnGroup}>
-      <Tooltip title={`Article RSS URL`}>
+    myPublicKey === publicKey ? (
+      <div className={styles.btnGroup}>
         <Icon
-          type="icon-rss"
+          type="icon-Gear"
           className={styles.icon}
-          onClick={() => router.push('/api/rss/' + publicKey)}
-        />
-      </Tooltip>
-      <Tooltip title={`Zap The User`}>
-        <Icon
-          type="icon-bolt"
-          className={styles.icon}
-          onClick={async () => {
-            const lnUrl =
-              userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
-            if (lnUrl == null) {
-              return alert(
-                'no ln url, please tell the author to set up one.',
-              );
-            }
-            await payLnUrlInWebLn(lnUrl);
+          onClick={() => {
+            router.push(Paths.setting + '?tabKey=preference');
           }}
         />
-      </Tooltip>
-      <Button type="primary" onClick={followOrUnfollow.action}>
-        {followOrUnfollow.label}
-      </Button>
-    </div>
-  );
+        <Button
+          onClick={() => {
+            router.push(Paths.setting);
+          }}
+        >
+          Edit profile
+        </Button>
+      </div>
+    ) : (
+      <div className={styles.btnGroup}>
+        <Tooltip title={`Article RSS URL`}>
+          <Icon
+            type="icon-rss"
+            className={styles.icon}
+            onClick={() => router.push('/api/rss/' + publicKey)}
+          />
+        </Tooltip>
+        <Tooltip title={`Zap The User`}>
+          <Icon
+            type="icon-bolt"
+            className={styles.icon}
+            onClick={async () => {
+              const lnUrl =
+                userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
+              if (lnUrl == null) {
+                return alert(
+                  'no ln url, please tell the author to set up one.',
+                );
+              }
+              await payLnUrlInWebLn(lnUrl);
+            }}
+          />
+        </Tooltip>
+        <Button type="primary" onClick={followOrUnfollow.action}>
+          {followOrUnfollow.label}
+        </Button>
+      </div>
+    );
 
   return (
     <BaseLayout>
