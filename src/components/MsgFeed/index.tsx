@@ -14,11 +14,9 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
-import { useLoadMsgFromDb } from './hook/useLoadFromDb';
-import { queryEvent } from 'core/db';
 import { DbEvent } from 'core/db/schema';
-import { validateFilter } from './util';
 import { useLiveQuery } from "dexie-react-hooks";
+import { dbQuery } from 'core/db';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -80,14 +78,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     loadMoreCount,
   });
 
-  const dbEvents = useLiveQuery(async () => {
-    if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) return [] as DbEvent[];
-    const data = await queryEvent(msgFilter, relayUrls);
-    if (isValidEvent) {
-      return data.filter(e => isValidEvent(e));
-    }
-    return data;
-  }, [msgFilter, worker?.relayGroupId], [] as DbEvent[]);
+  const dbEvents = useLiveQuery(dbQuery.createEventQuerier(msgFilter || {}, relayUrls), [msgFilter, worker?.relayGroupId], [] as DbEvent[]);
 
   useEffect(() => {
     return () => {

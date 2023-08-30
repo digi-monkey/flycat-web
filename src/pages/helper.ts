@@ -2,8 +2,9 @@ import { Dispatch, SetStateAction } from 'react';
 import { RootState } from 'store/configureStore';
 import { EventWithSeen } from './type';
 import { Event } from 'core/nostr/Event';
-import { EventMap, EventSetMetadataContent, UserMap } from 'core/nostr/type';
+import { EventMap, EventSetMetadataContent, EventTags, PublicKey, Tags, UserMap } from 'core/nostr/type';
 import { deserializeMetadata } from 'core/nostr/content';
+import { isValidPublicKey } from 'utils/validator';
 
 export const loginMapStateToProps = (state: RootState) => {
   return {
@@ -177,4 +178,8 @@ export const onSetUserMap = (event: Event, setUserMap: Dispatch<SetStateAction<U
     });
     return newMap;
   });
+}
+
+export function parsePubKeyFromTags(tags: Tags){
+  return tags.filter(t => t[0] === EventTags.P && isValidPublicKey(t[1])).map(t => t[1] as PublicKey);
 }

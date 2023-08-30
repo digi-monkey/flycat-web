@@ -5,15 +5,12 @@ import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
-import { loginMapStateToProps } from 'pages/helper';
+import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import {
-  ContactList,
-  EventContactListPTag,
   EventMap,
-  EventTags,
   Filter,
   PublicKey,
   UserMap,
@@ -21,19 +18,19 @@ import {
 } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { Event } from 'core/nostr/Event';
+import { stringHasImageUrl } from 'utils/common';
+import { useMatchMobile } from 'hooks/useMediaQuery';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery } from 'core/db';
+import { DbEvent } from 'core/db/schema';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
-
-import styles from './index.module.scss';
-import { Event } from 'core/nostr/Event';
-import { stringHasImageUrl } from 'utils/common';
-
 import dynamic from 'next/dynamic';
-import { useMatchMobile } from 'hooks/useMediaQuery';
-import { queryEvent } from 'core/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import styles from './index.module.scss';
+
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -52,45 +49,24 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>();
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
   const [selectFilter, setSelectFilter] = useState<string>('All');
-
+  const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   useSubContactList(myPublicKey, newConn, worker);
 
-  useLiveQuery(async () => {
-    const filter: Filter = {
-      authors: [myPublicKey],
-      kinds: [WellKnownEventKind.contact_list],
-      limit: 50
-    }
-    const relayUrls = worker?.relays.map(r => r.url) || [];
-    const events = await queryEvent(filter, relayUrls);
-    console.log(events.length)
-    for (const event of events) {
-      if (event.pubkey === myPublicKey) {
-        setMyContactList(prev => {
-          if (prev && prev?.created_at >= event.created_at) {
-            return prev;
-          }
-
-          console.log("last contact event", event.id, event.tags.length)
-          const keys = (
-            event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]
-          ).map(t => t[1]);
-          return {
-            keys,
-            created_at: event.created_at,
-          };
-        });
+  const relayUrls = worker?.relays.map(r => r.url) || [];
+  useLiveQuery(
+    dbQuery.createContactEventQuerier(myPublicKey, relayUrls, events => {
+      if(events.length > 0){
+        setMyContactEvent(events[0]);
       }
-    }
-  }, [worker?.relayGroupId, myPublicKey]);
+    }),
+    [worker?.relayGroupId, myPublicKey],
+    [] as DbEvent[],
+  );
 
   // right test data
   const updates = [
@@ -193,7 +169,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         return console.debug('no my public key', myPublicKey);
       }
 
-      const followings = myContactList?.keys || [];
+      const followings: string[] = myContactEvent ? parsePubKeyFromTags(myContactEvent.tags) : [];
       if (!followings.includes(myPublicKey)) {
         followings.push(myPublicKey);
       }
@@ -217,12 +193,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       isValidEvent,
       emptyDataReactNode,
     };
-    setMsgSubProp(prev => msgSubProp);
+    setMsgSubProp(msgSubProp);
   };
 
   useEffect(() => {
     onMsgFeedChanged();
-  }, [selectFilter, selectTabKey, myContactList, myPublicKey]);
+  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey]);
 
   return (
     <BaseLayout>

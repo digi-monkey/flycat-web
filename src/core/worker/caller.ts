@@ -31,7 +31,6 @@ import {
 } from './sub';
 import { randomSubId } from 'utils/common';
 import { Nip65 } from 'core/nip/65';
-import { queryEvent } from 'core/db';
 
 export type OnWsConnStatus = (wsConnStatus: WsConnectStatus) => any;
 
@@ -184,10 +183,6 @@ export class CallWorker {
       data,
     };
     this.worker.port.postMessage(msg);
-  }
-
-  async queryFilterFromDb({ filter, relays }: { filter: Filter, relays: string[] }) {
-    return await queryEvent(filter, relays);
   }
 
   subFilter({
