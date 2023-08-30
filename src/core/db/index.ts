@@ -2,6 +2,7 @@ import Dexie, { Collection, IndexableType, Table } from 'dexie';
 import { Event } from "core/nostr/Event";
 import { DbEvent } from './schema';
 import { EventId, EventTags, Filter, Naddr } from 'core/nostr/type';
+import { normalizeWsUrl } from 'utils/common';
 
 const version = 1;
 
@@ -24,22 +25,21 @@ export const dbEventTable = dexieDb.event;
 export async function storeEvent(event: Event, relayUrl: string) {
   const record = await dbEventTable.get(event.id);
   if (record) {
-    console.log('Record found:', record);
     if (record.seen.includes(relayUrl)) {
-      return console.debug("already stored.");
+      return console.debug("already store: ", event.kind, record.seen, relayUrl, event.id);
     } else {
       const seen = record.seen;
       seen.push(relayUrl);
       const timestamp = Date.now();
       const updatedCount = await dbEventTable.update(event.id, { seen, timestamp });
       if (updatedCount > 0) {
-        console.debug('Record updated successfully');
+        console.debug('Record updated successfully', event.id);
       } else {
-        console.debug('Record not found or no changes made');
+        console.debug('Record not found or no changes made', event.id);
       }
     }
   } else {
-    console.debug('Record not found');
+    console.debug('New Record Added ', event.kind, event.id);
     await dbEventTable.add({
       ...event, ...{
         seen: [relayUrl],
@@ -52,15 +52,16 @@ export async function storeEvent(event: Event, relayUrl: string) {
 export async function queryEvent(filter: Filter, relayUrls: string[]) {
   const maxEvents = filter.limit || 50;
   const applyRelayAndTimeLimit = (event: DbEvent) => {
-    if (!relayUrls.some(relay => event.seen.includes(relay))) {
-      return false;
-    }
+    // const seenRelays = event.seen.map(r => normalizeWsUrl(r));
+    // if (!relayUrls.some(relay => seenRelays.includes(normalizeWsUrl(relay)))) {
+    //   return false;
+    // }
     const startTime = filter.since || 0;
     const endTime = filter.until || Date.now();
     return event.created_at > startTime && event.created_at < endTime;
   };
   const defaultQuery = async (collection: Collection<DbEvent, IndexableType>) => {
-    return await collection.and(applyRelayAndTimeLimit).limit(maxEvents).reverse().sortBy('created_at');
+    return await collection.and(applyRelayAndTimeLimit).reverse().limit(maxEvents).sortBy('created_at');
   }
   const filterTags = (events: DbEvent[], filter: Filter) => {
     let result = events;

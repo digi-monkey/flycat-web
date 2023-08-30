@@ -11,13 +11,15 @@ import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import {
   ContactList,
+  EventContactListPTag,
   EventMap,
+  EventTags,
   Filter,
   PublicKey,
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
-import { useLoadContactList, useSubContactList } from './hooks';
+import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 
 import Icon from 'components/Icon';
@@ -30,6 +32,8 @@ import { stringHasImageUrl } from 'utils/common';
 
 import dynamic from 'next/dynamic';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import { queryEvent } from 'core/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -55,8 +59,38 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectFilter, setSelectFilter] = useState<string>('All');
 
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-  useLoadContactList(myPublicKey, worker, setMyContactList);
-  useSubContactList(myPublicKey, newConn, worker, setMyContactList);
+  useSubContactList(myPublicKey, newConn, worker);
+
+  useLiveQuery(async () => {
+    const filter: Filter = {
+      authors: [myPublicKey],
+      kinds: [WellKnownEventKind.contact_list],
+      limit: 50
+    }
+    const relayUrls = worker?.relays.map(r => r.url) || [];
+    const events = await queryEvent(filter, relayUrls);
+    console.log(events.length)
+    for (const event of events) {
+      if (event.pubkey === myPublicKey) {
+        setMyContactList(prev => {
+          if (prev && prev?.created_at >= event.created_at) {
+            return prev;
+          }
+
+          console.log("last contact event", event.id, event.tags.length)
+          const keys = (
+            event.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+          return {
+            keys,
+            created_at: event.created_at,
+          };
+        });
+      }
+    }
+  }, [worker?.relayGroupId, myPublicKey]);
 
   // right test data
   const updates = [

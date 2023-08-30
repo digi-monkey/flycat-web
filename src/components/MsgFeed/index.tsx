@@ -56,19 +56,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
 
-  /*
-  useLoadMsgFromDb({
-    msgFilter,
-    isValidEvent,
-    setIsRefreshing,
-    worker,
-    setMsgList,
-    setUserMap,
-    setEventMap,
-    maxMsgLength,
-  });
-  */
-
   useSubMsg({
     msgFilter,
     isValidEvent,
@@ -95,9 +82,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   const dbEvents = useLiveQuery(async () => {
     if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) return [] as DbEvent[];
-    return await queryEvent(msgFilter, relayUrls);
-  }, [msgFilter], [] as DbEvent[]);
-
+    const data = await queryEvent(msgFilter, relayUrls);
+    if (isValidEvent) {
+      return data.filter(e => isValidEvent(e));
+    }
+    return data;
+  }, [msgFilter, worker?.relayGroupId], [] as DbEvent[]);
 
   useEffect(() => {
     return () => {
