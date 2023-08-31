@@ -388,7 +388,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <PostItems
           msgList={msgList}
           worker={worker!}
-          userMap={userMap}
           relays={[]}
         />
       ),
@@ -400,7 +399,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <PostItems
           msgList={articleMsgList}
           worker={worker!}
-          userMap={userMap}
           relays={relayUrls}
         />
       ),
@@ -416,7 +414,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
               stringHasImageUrl(e.content),
           )}
           worker={worker!}
-          userMap={userMap}
           relays={relayUrls}
         />
       ),

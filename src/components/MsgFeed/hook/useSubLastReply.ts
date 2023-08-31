@@ -16,16 +16,12 @@ import { Dispatch, SetStateAction, useEffect, useMemo } from 'react';
 export function useLastReplyEvent({
   msgList,
   worker,
-  userMap,
-  setUserMap,
 }: {
   msgList: EventWithSeen[];
   worker?: CallWorker;
-  userMap: UserMap;
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
 }) {
   const subEvent: EventId[] = msgList.map(e => e.id);
-  const subPks: PublicKey[] = Array.from(userMap.keys());
+  const subPks: PublicKey[] = [];
   
   const list = useMemo(()=>{return msgList}, [msgList.length]);
 
@@ -108,36 +104,6 @@ export function useLastReplyEvent({
       .subFilter({
         filter: { authors: newPks, kinds: [WellKnownEventKind.set_metadata] },
       })
-      .iterating({
-        cb: event => {
-          switch (event.kind) {
-            case WellKnownEventKind.set_metadata:
-              const metadata: EventSetMetadataContent = deserializeMetadata(
-                event.content,
-              );
-              setUserMap(prev => {
-                const newMap = new Map(prev);
-                const oldData = newMap.get(event.pubkey) as {
-                  created_at: number;
-                };
-                if (oldData && oldData.created_at > event.created_at) {
-                  // the new data is outdated
-                  return newMap;
-                }
-
-                newMap.set(event.pubkey, {
-                  ...metadata,
-                  ...{ created_at: event.created_at },
-                });
-                return newMap;
-              });
-              break;
-
-            default:
-              break;
-          }
-        },
-      });
 
     subEvent.push(...newIds);
     subPks.push(...newPks);

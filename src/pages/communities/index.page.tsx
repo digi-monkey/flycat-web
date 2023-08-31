@@ -204,7 +204,6 @@ const Explore = () => {
         <PostItems
           msgList={msgList.slice(0, 50)}
           worker={worker!}
-          userMap={userMap}
           relays={worker?.relays.map(r => r.url) || []}
         />
       );
@@ -215,7 +214,6 @@ const Explore = () => {
         <PostItems
           msgList={followCommMsgList.slice(0, 50)}
           worker={worker!}
-          userMap={userMap}
           relays={worker?.relays.map(r => r.url) || []}
         />
       );

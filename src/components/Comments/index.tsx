@@ -156,7 +156,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
         <ReplyEventInput
           worker={worker!}
           replyTo={rootEvent}
-          userMap={userMap}
           successCb={successCb}
         />
       </div>
@@ -165,7 +164,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
       <PostItems
         msgList={newPubReplyEvent}
         worker={worker!}
-        userMap={userMap}
         relays={worker?.relays.map(r => r.url) || []}
         showLastReplyToEvent={false}
       />
@@ -176,7 +174,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
             <PostItems
               msgList={[{ ...n.value, ...{ seen: [''] } }]}
               worker={worker!}
-              userMap={userMap}
               relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />
@@ -187,7 +184,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
                     <SubPostItem
                       key={c.value.id}
                       event={c.value}
-                      userMap={userMap}
                     />
                   ))}
                 </div>

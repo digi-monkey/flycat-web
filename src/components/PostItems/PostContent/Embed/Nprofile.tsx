@@ -5,9 +5,14 @@ import { shortifyPublicKey } from 'core/nostr/content';
 import { NprofileResult } from 'core/nip/21';
 
 import styles from './index.module.scss';
-import { UserMap } from 'core/nostr/type';
+import { EventSetMetadataContent, UserMap } from 'core/nostr/type';
+import { useState } from 'react';
+import { dbQuery } from 'core/db';
+import { seedRelays } from 'core/relay/pool/seed';
+import { DbEvent } from 'core/db/schema';
 
-export const Nprofile = (nprofile: NprofileResult, userMap: UserMap) => {
+export const Nprofile = (nprofile: NprofileResult, profileEvents: DbEvent[]) => {
+  const loadedUserProfile = profileEvents.filter(e => nprofile.decodedMetadata.pubkey === e.pubkey).map(e => JSON.parse(e.content) as EventSetMetadataContent).find(e => true);
   if (nprofile.profile) {
     return (
       <span>
@@ -30,8 +35,7 @@ export const Nprofile = (nprofile: NprofileResult, userMap: UserMap) => {
     );
   }
 
-  if (userMap.get(nprofile.key)) {
-    const profile = userMap.get(nprofile.key)!; 
+  if (loadedUserProfile) {
     return (
       <span>
       <a
@@ -39,15 +43,15 @@ export const Nprofile = (nprofile: NprofileResult, userMap: UserMap) => {
         target="_blank"
         className={styles.hoverLink}
       >
-        @{profile.name}
+        @{loadedUserProfile.name}
       </a>
       <div className={styles.refProfile}>
         <div className={styles.user}>
-          <Avatar src={profile.picture} alt="picture" /> @
-          {profile.name ||
+          <Avatar src={loadedUserProfile.picture} alt="picture" /> @
+          {loadedUserProfile.name ||
             shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
         </div>
-        <div>{profile.about}</div>
+        <div>{loadedUserProfile.about}</div>
       </div>
       </span> 
     );

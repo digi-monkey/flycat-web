@@ -350,7 +350,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           relays={relays}
           msgList={mentionMsgList}
           worker={worker!}
-          userMap={userMap}
         />
       </>
     ),
@@ -364,7 +363,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           relays={relays}
           msgList={repostMsgList}
           worker={worker!}
-          userMap={userMap}
         />
       </>
     ),
@@ -450,7 +448,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[postEvent!]}
                     worker={worker!}
-                    userMap={userMap}
                     relays={relays}
                     showFromCommunity={false}
                   />
@@ -530,7 +527,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[msg!]}
                     worker={worker!}
-                    userMap={userMap}
                     relays={relays}
                     showFromCommunity={false}
                     extraMenu={

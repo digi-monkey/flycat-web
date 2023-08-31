@@ -18,14 +18,12 @@ export function useSubMsg({
   setIsRefreshing,
   worker,
   newConn,
-  setUserMap,
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   setIsRefreshing: Dispatch<SetStateAction<boolean>>;
   worker: CallWorker | undefined;
   newConn: string[];
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
 }) {
   const subMsg = async () => {
     if (!worker) return;
@@ -71,11 +69,6 @@ export function useSubMsg({
           },
           callRelay,
         })
-        .iterating({
-          cb: event => {
-            onSetUserMap(event, setUserMap);
-          },
-        });
     }
   };
 

@@ -91,7 +91,6 @@ export const EventPage = () => {
               <PostItems
                 msgList={[rootEvent]}
                 worker={worker!}
-                userMap={userMap}
                 relays={relayUrls}
                 showLastReplyToEvent={true}
               />

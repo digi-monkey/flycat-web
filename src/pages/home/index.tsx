@@ -233,8 +233,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           msgSubProp={msgSubProp}
           worker={worker}
           newConn={newConn}
-          setUserMap={setUserMap}
-          userMap={userMap}
         />
       </Left>
       <Right>

@@ -10,6 +10,7 @@ import { getRandomIndex } from 'utils/common';
 import { CSSProperties, useEffect, useState } from 'react';
 import {
   EventMap,
+  EventSetMetadataContent,
   EventTags,
   Filter,
   UserMap,
@@ -21,16 +22,15 @@ import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
+import { seedRelays } from 'core/relay/pool/seed';
 
 interface PostArticleCommentProps {
-  userMap: UserMap;
   event: Event;
   worker: CallWorker;
   showReplyArticle?: boolean;
 }
 
 const PostArticleComment: React.FC<PostArticleCommentProps> = ({
-  userMap,
   event,
   worker,
   showReplyArticle = true,
@@ -41,6 +41,8 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
   const { pubkey, articleId } = Nip23.addrToPkAndId(addr);
   const router = useRouter();
 
+  const [loadedUserProfile, setLoadedUserProfile] =
+    useState<EventSetMetadataContent>();
   const [bgStyle, setBgStyle] = useState<CSSProperties | undefined>();
   useEffect(() => {
     // todo: how to load cover colors from global styles?
@@ -55,7 +57,19 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
     setBgStyle(dynamicStyle);
   }, []);
 
-  const author = userMap.get(pubkey);
+  const loadUserProfile = async () => {
+    // todo: set relay urls with correct one
+    const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+    if (profileEvent) {
+      const metadata = JSON.parse(
+        profileEvent.content,
+      ) as EventSetMetadataContent;
+      setLoadedUserProfile(metadata);
+    }
+  };
+  useEffect(()=>{
+    loadUserProfile();
+  }, [pubkey])
 
   const filter: Filter = {
     authors: [pubkey],
@@ -69,7 +83,6 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
   return (
     <>
       <PostContent
-        userMap={userMap}
         ownerEvent={event}
         worker={worker}
         showLastReplyToEvent={false}
@@ -90,8 +103,8 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
             </div>
             <div className={styles.info}>
               <div className={styles.user}>
-                <Avatar src={author?.picture} alt="picture" />
-                <span className={styles.name}>{author?.name || '...'}</span>
+                <Avatar src={loadedUserProfile?.picture} alt="picture" />
+                <span className={styles.name}>{loadedUserProfile?.name || '...'}</span>
               </div>
               <h1
                 className={classNames('f-truncate', styles.title)}

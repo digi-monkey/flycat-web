@@ -28,8 +28,6 @@ export interface MsgFeedProp {
   msgSubProp: MsgSubProp;
   worker: CallWorker | undefined;
   newConn: string[];
-  userMap: UserMap;
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
   maxMsgLength?: number;
 }
 
@@ -37,8 +35,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   msgSubProp,
   worker,
   newConn,
-  userMap,
-  setUserMap,
   maxMsgLength: _maxMsgLength
 }) => {
   const { t } = useTranslation();
@@ -56,10 +52,9 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setIsRefreshing,
     worker,
     newConn,
-    setUserMap,
   });
 
-  useLastReplyEvent({ msgList, worker, userMap, setUserMap });
+  useLastReplyEvent({ msgList, worker });
   useLoadMoreMsg({
     msgFilter,
     isValidEvent,
@@ -114,7 +109,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
               <PostItems
                 msgList={dbEvents}
                 worker={worker!}
-                userMap={userMap}
                 relays={relayUrls}
                 showLastReplyToEvent={true}
               />

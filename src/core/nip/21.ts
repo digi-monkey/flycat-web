@@ -9,8 +9,9 @@ import {
   Nip19DataType,
   Nip19ShareableDataType,
 } from './19';
-import { UserMap } from 'core/nostr/type';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
+import { dbQuery } from 'core/db';
+import { seedRelays } from 'core/relay/pool/seed';
 
 export interface NpubResult {
   key: string;
@@ -57,7 +58,6 @@ export class Nip21 {
   // todo: change for-loop to parallel and re-use connection on fallback relays
   static async transformNpub(
     content: string,
-    userMap: UserMap,
     fallbackRelays: string[],
   ) {
     const results: NpubResult[] = [];
@@ -75,10 +75,10 @@ export class Nip21 {
         | (EventSetMetadataContent & { created_at })
         | null = null;
 
-      const userMapItem = userMap.get(pubkey);
-      if (userMapItem) {
-        user = userMapItem;
-      }
+        const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+        if (profileEvent) {
+          user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
+        }
 
       if (!user) {
         const _user = await OneTimeWebSocketClient.fetchProfile({ pubkey, relays: fallbackRelays });
@@ -104,7 +104,6 @@ export class Nip21 {
 
   static async transformNprofile(
     content: string,
-    userMap: UserMap,
     fallbackRelays: string[],
   ) {
     const results: NprofileResult[] = [];
@@ -124,9 +123,9 @@ export class Nip21 {
         | (EventSetMetadataContent & { created_at })
         | null = null;
 
-      const userMapItem = userMap.get(pubkey);
-      if (userMapItem) {
-        user = userMapItem;
+      const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+      if (profileEvent) {
+        user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
       }
 
       if (!user) {

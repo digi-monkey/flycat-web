@@ -1,6 +1,6 @@
 import { Avatar, Button, Input, Popover, Tooltip } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { UserMap } from 'core/nostr/type';
+import { EventSetMetadataContent, UserMap } from 'core/nostr/type';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import {
@@ -12,7 +12,7 @@ import {
 import { RawEvent } from 'core/nostr/RawEvent';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { handleFileSelect } from 'components/PubNoteTextarea/util';
 import { useRouter } from 'next/router';
@@ -24,9 +24,10 @@ import Icon from 'components/Icon';
 import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Nip23 } from 'core/nip/23';
+import { dbQuery } from 'core/db';
+import { seedRelays } from 'core/relay/pool/seed';
 
 export interface ReplyEventInputProp {
-  userMap: UserMap;
   replyTo: EventWithSeen;
   worker: CallWorker;
   successCb?: (eventId: string, relayUrl: string[]) => any;
@@ -34,7 +35,6 @@ export interface ReplyEventInputProp {
 }
 export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   worker,
-  userMap,
   replyTo,
   successCb,
   isLoggedIn,
@@ -51,6 +51,25 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
+  const [loadedUserProfile, setLoadedUserProfile] =
+    useState<EventSetMetadataContent>();
+    
+  const loadUserProfile = async () => {
+    if(myPublicKey)return;
+    
+    // todo: set relay urls with correct one
+    const profileEvent = await dbQuery.profileEvent(myPublicKey, seedRelays);
+    if (profileEvent) {
+      const metadata = JSON.parse(
+        profileEvent.content,
+      ) as EventSetMetadataContent;
+      setLoadedUserProfile(metadata);
+    }
+  };
+
+  useEffect(()=>{
+    loadUserProfile();
+  }, [myPublicKey]);
 
   const submitComment = async () => {
     if (signEvent == null) return;
@@ -109,7 +128,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
         <div>
           <Avatar
             size={'large'}
-            src={userMap.get(myPublicKey)?.picture}
+            src={loadedUserProfile?.picture}
             alt="picture"
           />
         </div>

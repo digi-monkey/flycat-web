@@ -22,6 +22,44 @@ export class Query {
     }
   }
 
+	async profileEvents(pks: string[], relayUrls: string[]){
+		const filter: Filter = {
+			authors: pks,
+			kinds: [WellKnownEventKind.set_metadata],
+			limit: pks.length
+		}
+		const data = await this.matchFilterRelay(filter, relayUrls);	
+		return data;
+	}
+
+	async profileEvent(pk: string, relayUrls: string[]){
+		const filter: Filter = {
+			authors: [pk],
+			kinds: [WellKnownEventKind.set_metadata],
+			limit: 1
+		}
+		const data = await this.matchFilterRelay(filter, relayUrls);	
+		if(data.length === 0)return null;
+		return data[0];
+	}
+
+	createProfileEventQuerier(
+		pks: string[],
+    relayUrls: string[],
+  ): () => Promise<DbEvent[]> {
+    return async () => {
+			if(pks.length === 0)return [];
+		
+      const filter: Filter = {
+				authors: pks,
+				kinds: [WellKnownEventKind.set_metadata],
+				limit: pks.length
+      };
+      return await this.matchFilterRelay(filter, relayUrls);
+    };
+  }
+
+
 	createEventByIdQuerier(relayUrls: string[], eventId?: EventId){
 		return async () => {
 			if(!eventId){

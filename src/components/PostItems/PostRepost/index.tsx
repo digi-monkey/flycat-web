@@ -4,7 +4,7 @@ import PostUser from '../PostUser';
 import styles from '../index.module.scss';
 import { useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
-import { UserMap, EventMap } from 'core/nostr/type';
+import { UserMap, EventMap, EventSetMetadataContent } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { PostContent } from '../PostContent';
 import PostReactions from '../PostReactions';
@@ -16,17 +16,16 @@ import { Button } from 'antd';
 import { shortifyEventId } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery } from 'core/db';
+import { DbEvent } from 'core/db/schema';
 
 export interface PostRepostProp {
   event: Event;
   worker: CallWorker;
-  userMap: UserMap;
   showLastReplyToEvent?: boolean;
 }
 
 const PostRepost: React.FC<PostRepostProp> = ({
   event,
-  userMap,
   worker,
   showLastReplyToEvent,
 }) => {
@@ -58,7 +57,18 @@ const PostRepost: React.FC<PostRepostProp> = ({
     }
   }, [targetEventFromDb]);
 
-  const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
+  const pks = [event.pubkey];
+  if(targetEvent){
+    pks.push(targetEvent.pubkey);
+  }
+  const profileEvents = useLiveQuery(dbQuery.createProfileEventQuerier(pks, relayUrls), [pks], [] as DbEvent[]);
+  const getUser = (msg: EventWithSeen) => {
+    const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
+    if(!userEvent){
+      return null;
+    }
+    return JSON.parse(userEvent.content) as EventSetMetadataContent;
+  } 
 
   const tryReload = () => {
     const info = Nip18.getTargetEventIdRelay(event);
@@ -90,7 +100,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
           <div className={styles.content}>
             <PostContent
               ownerEvent={targetEvent}
-              userMap={userMap}
               worker={worker}
               showLastReplyToEvent={showLastReplyToEvent}
             />
@@ -98,7 +107,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
               ownerEvent={toUnSeenEvent(targetEvent)}
               worker={worker}
               seen={targetEvent.seen!}
-              userMap={userMap}
             />
           </div>
         </>
