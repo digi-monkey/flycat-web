@@ -14,8 +14,6 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
-import { DbEvent } from 'core/db/schema';
-import { useLiveQuery } from "dexie-react-hooks";
 import { dbQuery } from 'core/db';
 
 export interface MsgSubProp {

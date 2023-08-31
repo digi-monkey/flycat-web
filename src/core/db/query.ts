@@ -22,46 +22,10 @@ export class Query {
     }
   }
 
-	async profileEvents(pks: string[], relayUrls: string[]){
-		const filter: Filter = {
-			authors: pks,
-			kinds: [WellKnownEventKind.set_metadata],
-			limit: pks.length
-		}
-		const data = await this.matchFilterRelay(filter, relayUrls);	
-		return data;
-	}
-
-	async profileEvent(pk: string, relayUrls: string[]){
-		const filter: Filter = {
-			authors: [pk],
-			kinds: [WellKnownEventKind.set_metadata],
-			limit: 1
-		}
-		const data = await this.matchFilterRelay(filter, relayUrls);	
-		if(data.length === 0)return null;
-		return data[0];
-	}
-
-	createProfileEventQuerier(
-		pks: string[],
-    relayUrls: string[],
-  ): () => Promise<DbEvent[]> {
-    return async () => {
-			if(pks.length === 0)return [];
-		
-      const filter: Filter = {
-				authors: pks,
-				kinds: [WellKnownEventKind.set_metadata],
-				limit: pks.length
-      };
-      return await this.matchFilterRelay(filter, relayUrls);
-    };
-  }
-
 
 	createEventByIdQuerier(relayUrls: string[], eventId?: EventId){
 		return async () => {
+			console.log("EventByIdQuerier..")
 			if(!eventId){
 				return null;
 			}
@@ -77,27 +41,8 @@ export class Query {
 				return null;
 			}
 			return result[0];
-    };	
+    }; 
 	}
-
-  createContactEventQuerier(
-    publicKey: string,
-    relayUrls: string[],
-		callback?: (events: DbEvent[]) => any,
-  ): () => Promise<DbEvent[]> {
-    return async () => {
-      const filter: Filter = {
-        authors: [publicKey],
-        kinds: [WellKnownEventKind.contact_list],
-      };
-      const events = await this.matchFilterRelay(filter, relayUrls);
-      const result = events.sort((a, b) => b.created_at - a.created_at);
-			if(callback){
-				callback(result);
-			}
-			return result;
-    };
-  }
 
   createEventQuerier(
     msgFilter: Filter,
@@ -105,6 +50,7 @@ export class Query {
     isValidEvent?: ((event: Event) => boolean) | undefined,
   ): () => Promise<DbEvent[]> {
     return async () => {
+			console.log("EventQuerier..")
 			const result: DbEvent[] = [];
       if (!msgFilter || (msgFilter && !validateFilter(msgFilter))){
 				return result;

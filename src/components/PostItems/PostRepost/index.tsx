@@ -15,7 +15,7 @@ import { toUnSeenEvent } from 'core/nostr/util';
 import { Button } from 'antd';
 import { shortifyEventId } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 
 export interface PostRepostProp {
@@ -61,7 +61,10 @@ const PostRepost: React.FC<PostRepostProp> = ({
   if(targetEvent){
     pks.push(targetEvent.pubkey);
   }
-  const profileEvents = useLiveQuery(dbQuery.createProfileEventQuerier(pks, relayUrls), [pks], [] as DbEvent[]);
+  const profileEvents = useLiveQuery(async ()=>{
+    const events = await dexieDb.profileEvent.bulkGet(pks);
+    return events.filter(e => e != null) as DbEvent[];
+  }, [], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
     const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
     if(!userEvent){

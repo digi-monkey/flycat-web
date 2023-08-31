@@ -24,7 +24,7 @@ import Icon from 'components/Icon';
 import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Nip23 } from 'core/nip/23';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
 
 export interface ReplyEventInputProp {
@@ -58,7 +58,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
     if(myPublicKey)return;
     
     // todo: set relay urls with correct one
-    const profileEvent = await dbQuery.profileEvent(myPublicKey, seedRelays);
+    const profileEvent = await dexieDb.profileEvent.get(myPublicKey); 
     if (profileEvent) {
       const metadata = JSON.parse(
         profileEvent.content,

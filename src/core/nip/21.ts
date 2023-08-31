@@ -10,7 +10,7 @@ import {
   Nip19ShareableDataType,
 } from './19';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
 
 export interface NpubResult {
@@ -75,7 +75,7 @@ export class Nip21 {
         | (EventSetMetadataContent & { created_at })
         | null = null;
 
-        const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+        const profileEvent = await dexieDb.profileEvent.get(pubkey);
         if (profileEvent) {
           user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
         }
@@ -123,7 +123,7 @@ export class Nip21 {
         | (EventSetMetadataContent & { created_at })
         | null = null;
 
-      const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+      const profileEvent = await dexieDb.profileEvent.get(pubkey);
       if (profileEvent) {
         user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
       }

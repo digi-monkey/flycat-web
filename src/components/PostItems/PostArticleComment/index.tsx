@@ -20,7 +20,7 @@ import { PostContent } from '../PostContent';
 import { CallWorker } from 'core/worker/caller';
 import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { seedRelays } from 'core/relay/pool/seed';
 
@@ -59,7 +59,7 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
 
   const loadUserProfile = async () => {
     // todo: set relay urls with correct one
-    const profileEvent = await dbQuery.profileEvent(pubkey, seedRelays);
+    const profileEvent = await dexieDb.profileEvent.get(pubkey); 
     if (profileEvent) {
       const metadata = JSON.parse(
         profileEvent.content,

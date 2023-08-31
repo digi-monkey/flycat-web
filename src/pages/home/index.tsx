@@ -22,7 +22,7 @@ import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 
 import Icon from 'components/Icon';
@@ -58,11 +58,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const relayUrls = worker?.relays.map(r => r.url) || [];
   useLiveQuery(
-    dbQuery.createContactEventQuerier(myPublicKey, relayUrls, events => {
-      if(events.length > 0){
-        setMyContactEvent(events[0]);
-      }
-    }),
+    ()=>{
+      dexieDb.contactEvent.get(myPublicKey).then(event => {
+        if(event){
+          setMyContactEvent(event);
+        }
+      });
+    },
     [worker?.relayGroupId, myPublicKey],
     [] as DbEvent[],
   );

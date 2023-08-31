@@ -34,7 +34,7 @@ import { Paths } from 'constants/path';
 import { maxStrings } from 'utils/common';
 import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
 import { DbEvent } from 'core/db/schema';
 import {
@@ -77,7 +77,11 @@ export const PostContent: React.FC<PostContentProp> = ({
     if (!embedRef) return;
 
     const pks = getPubkeysFromEmbedRef(embedRef);
-    dbQuery.profileEvents(pks, relayUrls).then(setProfileEvents);
+    
+    dexieDb.profileEvent.bulkGet(pks).then(events => {
+      const data = events.filter(e => e!=null) as DbEvent[];
+      setProfileEvents(data);
+    });
     transformContent();
   }, [embedRef]);
 
@@ -220,8 +224,9 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
   const [loadedUserProfile, setLoadedUserProfile] =
     useState<EventSetMetadataContent>();
   const loadUserProfile = async () => {
+    console.log("...do..");
     // todo: set relay urls with correct one
-    const profileEvent = await dbQuery.profileEvent(event.pubkey, seedRelays);
+    const profileEvent = await dexieDb.profileEvent.get(event.pubkey);
     if (profileEvent) {
       const metadata = JSON.parse(
         profileEvent.content,
@@ -229,7 +234,9 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
       setLoadedUserProfile(metadata);
     }
   };
-  loadUserProfile();
+  useEffect(()=>{
+    loadUserProfile();
+  },[event])
 
   return Nip23.isBlogPost(event) ? (
     <PostArticle

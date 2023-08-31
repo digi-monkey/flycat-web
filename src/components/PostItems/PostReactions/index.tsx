@@ -22,7 +22,7 @@ import { noticePubEventResult } from 'components/PubEventNotice';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import { useRouter } from 'next/router';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
 
 interface PostReactionsProp {
@@ -72,10 +72,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
       zapEndpoint = await Nip57.getZapEndpointByTag(zapTag);
     } else {
       let profile: EventSetMetadataContent | undefined;
-      const profileEvent = await dbQuery.profileEvent(
-        ownerEvent.pubkey,
-        seedRelays,
-      );
+      const profileEvent = await dexieDb.profileEvent.get(ownerEvent.pubkey); 
       if (profileEvent) {
         const metadata = JSON.parse(
           profileEvent.content,

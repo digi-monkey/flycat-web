@@ -11,7 +11,7 @@ import {
   RelayResponseType,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { storeEvent } from 'core/db';
+import { dexieDb } from 'core/db';
 
 export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
   unsubscribe(): void;
@@ -81,7 +81,7 @@ export function createSubscriptionEventStream(
             clearTimeout(timeout!); // Clear the previous timeout
           }
           // store on db
-          storeEvent(event, webSocket.url);
+          dexieDb.store(event, webSocket.url);
           observer(false, event);
         }
         break;

@@ -19,8 +19,9 @@ import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery } from 'core/db';
+import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
+import { useMemo } from 'react';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -45,8 +46,11 @@ const PostItems: React.FC<PostItemsProps> = ({
   extraHeader
 }) => {
   const relayUrls = worker?.relays.map(r => r.url) || [];
-  const pks = msgList.map(m => m.pubkey);
-  const profileEvents = useLiveQuery(dbQuery.createProfileEventQuerier(pks, relayUrls), [pks], [] as DbEvent[]);
+  const pks = useMemo(()=>msgList.map(m => m.pubkey), [msgList]);
+  const profileEvents = useLiveQuery(async ()=>{
+    const events = await dexieDb.profileEvent.bulkGet(pks);
+    return events.filter(e => e != null) as DbEvent[];
+  }, [], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
     const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
     if(!userEvent){
