@@ -134,11 +134,11 @@ export class Query {
     const defaultQuery = async (
       collection: Collection<DbEvent, IndexableType>,
     ) => {
-      return await collection
+      return (await collection
         .and(applyRelayAndTimeLimit)
-        .reverse()
-        .limit(maxEvents)
-        .sortBy('created_at');
+        .sortBy('created_at'))
+				.slice(-maxEvents)
+				.reverse()
     };
     const filterTags = (events: DbEvent[], filter: Filter) => {
       let result = events;

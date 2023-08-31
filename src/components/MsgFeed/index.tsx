@@ -53,7 +53,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     worker,
     newConn,
   });
-
   useLastReplyEvent({ msgList, worker });
   useLoadMoreMsg({
     msgFilter,
@@ -65,18 +64,19 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     loadMoreCount,
   });
 
-  const dbEvents = useLiveQuery(dbQuery.createEventQuerier(msgFilter || {}, relayUrls), [msgFilter, worker?.relayGroupId], [] as DbEvent[]);
+  //const dbEvents = useLiveQuery(dbQuery.createEventQuerier(msgFilter || {}, relayUrls), [msgFilter, worker?.relayGroupId], [] as DbEvent[]).filter(e => isValidEvent ? isValidEvent(e) : true);
 
-  useEffect(() => {
-    return () => {
-      setMsgList([]);
-    };
-  }, []);
-
+  const onMsgList = async () => {
+    const events = await dbQuery.matchFilterRelay(msgFilter || {}, relayUrls);
+    console.log(events.length, relayUrls, msgFilter);
+    setMsgList(events);
+  }
 
   useEffect(() => {
     console.log("changed!");
     setMsgList([]);
+
+    onMsgList();
   }, [msgSubProp]);
 
   return (
@@ -103,11 +103,11 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           [styles.noData]: msgList.length === 0,
         })}
       >
-        {dbEvents.length > 0 && (
+        {msgList.length > 0 && (
           <>
             <div className={styles.msgList}>
               <PostItems
-                msgList={dbEvents}
+                msgList={msgList}
                 worker={worker!}
                 relays={relayUrls}
                 showLastReplyToEvent={true}
