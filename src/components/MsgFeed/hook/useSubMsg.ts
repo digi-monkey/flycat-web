@@ -18,20 +18,14 @@ export function useSubMsg({
   setIsRefreshing,
   worker,
   newConn,
-  setMsgList,
   setUserMap,
-  setEventMap,
-  maxMsgLength,
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   setIsRefreshing: Dispatch<SetStateAction<boolean>>;
   worker: CallWorker | undefined;
   newConn: string[];
-  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
-  maxMsgLength?: number;
 }) {
   const subMsg = async () => {
     if (!worker) return;
@@ -53,9 +47,6 @@ export function useSubMsg({
       .getIterator();
     for await (const data of dataStream) {
       const event = data.event;
-      const relayUrl = data.relayUrl!;
-      onSetEventMap(event, setEventMap);
-
       if (isValidEvent) {
         if (!isValidEvent(event)) {
           continue;
@@ -96,40 +87,15 @@ export function useSubMsg({
 export async function subMsgAsync({
   msgFilter,
   worker,
-  setMsgList,
-  setEventMap,
-  maxMsgLength,
 }: {
   msgFilter?: Filter;
   worker: CallWorker | undefined;
-  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
-  maxMsgLength?: number;
 }) {
   if (!worker) return;
   if (!msgFilter || !validateFilter(msgFilter)) return;
 
   const callRelay = createCallRelay([]);
-  const dataStream = worker
+  worker
     .subFilter({ filter: msgFilter, callRelay })
-    .getIterator();
-  for await (const data of dataStream) {
-    const event = data.event;
-    const relayUrl = data.relayUrl!;
-    onSetEventMap(event, setEventMap);
-
-    if (maxMsgLength) {
-      setMaxLimitEventWithSeenMsgList(
-        event,
-        relayUrl!,
-        setMsgList,
-        maxMsgLength,
-      );
-    } else {
-      setEventWithSeenMsgList(event, relayUrl!, setMsgList);
-    }
-  }
-
-  dataStream.unsubscribe();
   return;
 }

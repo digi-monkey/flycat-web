@@ -89,7 +89,6 @@ export const EventPage = () => {
           {rootEvent && (
             <>
               <PostItems
-                eventMap={eventMap}
                 msgList={[rootEvent]}
                 worker={worker!}
                 userMap={userMap}

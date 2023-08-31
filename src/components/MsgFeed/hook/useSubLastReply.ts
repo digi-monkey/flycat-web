@@ -17,13 +17,11 @@ export function useLastReplyEvent({
   msgList,
   worker,
   userMap,
-  setEventMap,
   setUserMap,
 }: {
   msgList: EventWithSeen[];
   worker?: CallWorker;
   userMap: UserMap;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
 }) {
   const subEvent: EventId[] = msgList.map(e => e.id);
@@ -94,21 +92,6 @@ export function useLastReplyEvent({
         },
         customId: 'replies-user',
       })
-      .iterating({
-        cb: event => {
-          setEventMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.id);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.id, event);
-            return newMap;
-          });
-        },
-      });
 
     if (articleReplies.length > 0) {
       worker
@@ -119,21 +102,6 @@ export function useLastReplyEvent({
           },
           customId: 'last-replies-long-form',
         })
-        .iterating({
-          cb: event => {
-            setEventMap(prev => {
-              const newMap = new Map(prev);
-              const oldData = newMap.get(event.id);
-              if (oldData && oldData.created_at > event.created_at) {
-                // the new data is outdated
-                return newMap;
-              }
-
-              newMap.set(event.id, event);
-              return newMap;
-            });
-          },
-        });
     }
 
     worker

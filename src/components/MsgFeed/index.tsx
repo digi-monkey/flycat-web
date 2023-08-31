@@ -30,8 +30,6 @@ export interface MsgFeedProp {
   newConn: string[];
   userMap: UserMap;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
-  eventMap: EventMap;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }
 
@@ -41,8 +39,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   newConn,
   userMap,
   setUserMap,
-  eventMap,
-  setEventMap,
   maxMsgLength: _maxMsgLength
 }) => {
   const { t } = useTranslation();
@@ -60,19 +56,15 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setIsRefreshing,
     worker,
     newConn,
-    setMsgList,
     setUserMap,
-    setEventMap,
-    maxMsgLength,
   });
 
-  useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
+  useLastReplyEvent({ msgList, worker, userMap, setUserMap });
   useLoadMoreMsg({
     msgFilter,
     isValidEvent,
     msgList,
     worker,
-    setEventMap,
     maxMsgLength,
     setMsgList,
     loadMoreCount,
@@ -104,9 +96,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
             await subMsgAsync({
               msgFilter,
               worker,
-              setMsgList,
-              setEventMap,
-              maxMsgLength,
             });
             setIsRefreshing(false);
           }}
@@ -127,7 +116,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
                 worker={worker!}
                 userMap={userMap}
                 relays={relayUrls}
-                eventMap={eventMap}
                 showLastReplyToEvent={true}
               />
             </div>

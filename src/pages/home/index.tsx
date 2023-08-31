@@ -47,7 +47,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
   const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
-  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
@@ -234,9 +233,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           msgSubProp={msgSubProp}
           worker={worker}
           newConn={newConn}
-          setEventMap={setEventMap}
           setUserMap={setUserMap}
-          eventMap={eventMap}
           userMap={userMap}
         />
       </Left>

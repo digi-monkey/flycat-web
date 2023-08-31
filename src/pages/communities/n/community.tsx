@@ -549,7 +549,6 @@ export function Community({
                       msgList={msgList}
                       worker={worker!}
                       userMap={userMap}
-                      eventMap={eventMap}
                       relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
                     />
@@ -572,7 +571,6 @@ export function Community({
                       msgList={unApprovalMsgList}
                       worker={worker!}
                       userMap={userMap}
-                      eventMap={eventMap}
                       relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
                       extraMenu={

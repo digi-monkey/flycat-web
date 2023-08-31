@@ -23,7 +23,6 @@ interface PostItemsProps {
   msgList: EventWithSeen[];
   worker: CallWorker;
   userMap: UserMap;
-  eventMap: EventMap;
   relays: string[];
   showLastReplyToEvent?: boolean;
   showFromCommunity?: boolean;
@@ -38,7 +37,6 @@ const PostItems: React.FC<PostItemsProps> = ({
   msgList,
   worker,
   userMap,
-  eventMap,
   relays,
   showLastReplyToEvent = true,
   showFromCommunity = true,
@@ -55,7 +53,6 @@ const PostItems: React.FC<PostItemsProps> = ({
             event={msg}
             userMap={userMap}
             worker={worker}
-            eventMap={eventMap}
             showLastReplyToEvent={showLastReplyToEvent}
             key={msg.id}
           />
@@ -82,7 +79,6 @@ const PostItems: React.FC<PostItemsProps> = ({
               ) : Nip23.isBlogCommentMsg(msg) ? (
                 <PostArticleComment
                   userMap={userMap}
-                  eventMap={eventMap}
                   event={msg}
                   worker={worker}
                   key={msg.id}
@@ -95,7 +91,6 @@ const PostItems: React.FC<PostItemsProps> = ({
                   ownerEvent={msg}
                   userMap={userMap}
                   worker={worker}
-                  eventMap={eventMap}
                   showLastReplyToEvent={showLastReplyToEvent}
                 />
               )}

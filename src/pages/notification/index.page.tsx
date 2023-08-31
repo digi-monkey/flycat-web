@@ -351,7 +351,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           msgList={mentionMsgList}
           worker={worker!}
           userMap={userMap}
-          eventMap={eventMap}
         />
       </>
     ),
@@ -366,7 +365,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           msgList={repostMsgList}
           worker={worker!}
           userMap={userMap}
-          eventMap={eventMap}
         />
       </>
     ),
@@ -453,7 +451,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     msgList={[postEvent!]}
                     worker={worker!}
                     userMap={userMap}
-                    eventMap={eventMap}
                     relays={relays}
                     showFromCommunity={false}
                   />
@@ -534,7 +531,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     msgList={[msg!]}
                     worker={worker!}
                     userMap={userMap}
-                    eventMap={eventMap}
                     relays={relays}
                     showFromCommunity={false}
                     extraMenu={

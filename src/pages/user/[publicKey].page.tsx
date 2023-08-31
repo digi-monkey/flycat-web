@@ -390,7 +390,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           worker={worker!}
           userMap={userMap}
           relays={[]}
-          eventMap={eventMap}
         />
       ),
     },
@@ -403,7 +402,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           worker={worker!}
           userMap={userMap}
           relays={relayUrls}
-          eventMap={eventMap}
         />
       ),
     },
@@ -420,7 +418,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           worker={worker!}
           userMap={userMap}
           relays={relayUrls}
-          eventMap={eventMap}
         />
       ),
     },

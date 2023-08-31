@@ -23,12 +23,12 @@ import PostArticle from '../PostArticle';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { maxStrings } from 'utils/common';
-import Icon from 'components/Icon';
 import { useRouter } from 'next/router';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery } from 'core/db';
 
 interface PostContentProp {
   ownerEvent: Event;
-  eventMap: EventMap;
   userMap: UserMap;
   worker: CallWorker;
   showLastReplyToEvent?: boolean;
@@ -36,7 +36,6 @@ interface PostContentProp {
 
 export const PostContent: React.FC<PostContentProp> = ({
   userMap,
-  eventMap,
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
@@ -46,7 +45,6 @@ export const PostContent: React.FC<PostContentProp> = ({
   const [relayUrls, setRelayUrls] = useState<string[]>([]);
   const [embedRef, setEmbedRef] = useState<any>();
   const [contentComponents, setContentComponents] = useState<any[]>([]);
-  const [lastReplyToEvent, setLastReplyToEvent] = useState<Event>();
   const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
 
   useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
@@ -69,11 +67,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     }
   }, [msgEvent.content]);
 
-  useEffect(() => {
-    if (lastReplyToEventId && eventMap.get(lastReplyToEventId)) {
-      setLastReplyToEvent(eventMap.get(lastReplyToEventId));
-    }
-  }, [eventMap, lastReplyToEventId]);
+  const lastRelayEventFromDb = useLiveQuery(dbQuery.createEventByIdQuerier(relayUrls, lastReplyToEventId), [lastReplyToEventId, relayUrls]);
 
   const transformContent = async () => {
     const { modifiedText } = normalizeContent(msgEvent.content);
@@ -98,8 +92,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     if (lastReply) {
       setLastReplyToEventId(lastReply.id);
 
-      if (eventMap.get(lastReply.id)) {
-        setLastReplyToEvent(eventMap.get(lastReply.id));
+      if (lastRelayEventFromDb) {
         return;
       }
 
@@ -110,7 +103,7 @@ export const PostContent: React.FC<PostContentProp> = ({
           relays: [lastReply.relay],
         });
         if (replyToEvent) {
-          setLastReplyToEvent(replyToEvent);
+          //setLastReplyToEvent(replyToEvent);
         }
       }
     }
@@ -119,11 +112,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   const tryReloadLastReplyEvent = () => {
     if (!lastReplyToEventId) return;
 
-    worker.subMsgByEventIds([lastReplyToEventId]).iterating({
-      cb: (event, url) => {
-        setLastReplyToEvent({ ...event, ...{ seen: [url!] } });
-      },
-    });
+    worker.subMsgByEventIds([lastReplyToEventId]);
   };
 
   const [expanded, setExpanded] = useState(false);
@@ -143,10 +132,10 @@ export const PostContent: React.FC<PostContentProp> = ({
     </div>
   );
 
-  const extraContent = <>{showLastReplyToEvent && lastReplyToEvent && (
-    <SubPostItem userMap={userMap} event={lastReplyToEvent} />
+  const extraContent = <>{showLastReplyToEvent && lastRelayEventFromDb && (
+    <SubPostItem userMap={userMap} event={lastRelayEventFromDb} />
   )}
-  {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
+  {showLastReplyToEvent && !lastRelayEventFromDb && lastReplyToEventId && (
     <div className={styles.replyEvent}>
       <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
         event@{shortifyEventId(lastReplyToEventId)}

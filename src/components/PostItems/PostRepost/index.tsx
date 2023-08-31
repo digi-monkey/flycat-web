@@ -14,12 +14,13 @@ import Icon from 'components/Icon';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { Button } from 'antd';
 import { shortifyEventId } from 'core/nostr/content';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery } from 'core/db';
 
 export interface PostRepostProp {
   event: Event;
   worker: CallWorker;
   userMap: UserMap;
-  eventMap: EventMap;
   showLastReplyToEvent?: boolean;
 }
 
@@ -27,7 +28,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
   event,
   userMap,
   worker,
-  eventMap,
   showLastReplyToEvent,
 }) => {
   const [targetEvent, setTargetMsg] = useState<EventWithSeen>();
@@ -47,15 +47,16 @@ const PostRepost: React.FC<PostRepostProp> = ({
     getRepostTargetEvent();
   }, [event]);
 
+  const relayUrls = worker.relays.map(r => r.url) || [];
+  const targetEventFromDb = useLiveQuery(dbQuery.createEventByIdQuerier(relayUrls, Nip18.getTargetEventIdRelay(event).id), [event, ]);
+
   useEffect(() => {
     if (targetEvent == null) {
-      const info = Nip18.getTargetEventIdRelay(event);
-      const target = eventMap.get(info.id);
-      if (target) {
-        setTargetMsg(target);
+      if (targetEventFromDb) {
+        setTargetMsg(targetEventFromDb);
       }
     }
-  }, [eventMap]);
+  }, [targetEventFromDb]);
 
   const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
 
@@ -91,7 +92,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
               ownerEvent={targetEvent}
               userMap={userMap}
               worker={worker}
-              eventMap={eventMap}
               showLastReplyToEvent={showLastReplyToEvent}
             />
             <PostReactions

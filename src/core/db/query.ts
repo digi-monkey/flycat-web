@@ -22,6 +22,26 @@ export class Query {
     }
   }
 
+	createEventByIdQuerier(relayUrls: string[], eventId?: EventId){
+		return async () => {
+			if(!eventId){
+				return null;
+			}
+
+      const filter: Filter = {
+				ids: [eventId],
+				limit: 1
+      };
+      const events = await this.matchFilterRelay(filter, relayUrls);
+			console.log("createEventByIdQuerier: ", events.length)
+      const result = events.sort((a, b) => b.created_at - a.created_at);
+			if(result.length === 0){
+				return null;
+			}
+			return result[0];
+    };	
+	}
+
   createContactEventQuerier(
     publicKey: string,
     relayUrls: string[],

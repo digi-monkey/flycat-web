@@ -465,7 +465,6 @@ export function RelayPage() {
                 msgList={myMsgList.slice(0, 20)}
                 worker={worker!}
                 userMap={userMap}
-                eventMap={eventMap}
                 relays={worker?.relays.map(r => r.url) || []}
               />
             </>

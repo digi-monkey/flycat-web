@@ -166,7 +166,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
         msgList={newPubReplyEvent}
         worker={worker!}
         userMap={userMap}
-        eventMap={eventMap}
         relays={worker?.relays.map(r => r.url) || []}
         showLastReplyToEvent={false}
       />
@@ -178,7 +177,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
               msgList={[{ ...n.value, ...{ seen: [''] } }]}
               worker={worker!}
               userMap={userMap}
-              eventMap={eventMap}
               relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />

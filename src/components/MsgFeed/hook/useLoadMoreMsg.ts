@@ -16,7 +16,6 @@ export function useLoadMoreMsg({
   isValidEvent,
   worker,
   msgList,
-  setEventMap,
   setMsgList,
   maxMsgLength,
   loadMoreCount,
@@ -26,7 +25,6 @@ export function useLoadMoreMsg({
   worker: CallWorker | undefined;
   msgList: EventWithSeen[];
   setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
   loadMoreCount: number;
 }) {
@@ -47,8 +45,6 @@ export function useLoadMoreMsg({
     const filter = { ...msgFilter, ...{ until: lastMsg.created_at } };
     worker.subFilter({ filter, callRelay }).iterating({
       cb: (event, relayUrl) => {
-        onSetEventMap(event, setEventMap);
-
         if (isValidEvent) {
           if (!isValidEvent(event)) {
             return;

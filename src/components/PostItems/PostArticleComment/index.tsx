@@ -11,15 +11,18 @@ import { CSSProperties, useEffect, useState } from 'react';
 import {
   EventMap,
   EventTags,
+  Filter,
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { PostContent } from '../PostContent';
 import { CallWorker } from 'core/worker/caller';
 import { useRouter } from 'next/router';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery } from 'core/db';
+import { DbEvent } from 'core/db/schema';
 
 interface PostArticleCommentProps {
-  eventMap: EventMap;
   userMap: UserMap;
   event: Event;
   worker: CallWorker;
@@ -27,7 +30,6 @@ interface PostArticleCommentProps {
 }
 
 const PostArticleComment: React.FC<PostArticleCommentProps> = ({
-  eventMap,
   userMap,
   event,
   worker,
@@ -55,24 +57,18 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
 
   const author = userMap.get(pubkey);
 
-  let articleEvent: Event | null = null;
-  // todo: the loop for eventMap is very expensive, maybe update the key structure or use an new map for long-form
-  eventMap.forEach((v, _k) => {
-    if (
-      v.pubkey === pubkey &&
-      v.kind === WellKnownEventKind.long_form &&
-      v.tags.filter(t => t[0] === EventTags.D && t[1] === articleId).length > 0
-    ) {
-      articleEvent = v;
-    }
-  });
-
-  const article = articleEvent ? Nip23.toArticle(articleEvent) : null;
+  const filter: Filter = {
+    authors: [pubkey],
+    kinds: [WellKnownEventKind.long_form],
+    "#d": [articleId]
+  }
+  const relayUrls = worker.relays.map(r => r.url) || [];
+  const articleEvent: DbEvent[] = useLiveQuery(dbQuery.createEventQuerier(filter, relayUrls), [articleId, relayUrls], []);
+  const article = articleEvent.length > 0 ? Nip23.toArticle(articleEvent[0]) : null;
 
   return (
     <>
       <PostContent
-        eventMap={eventMap}
         userMap={userMap}
         ownerEvent={event}
         worker={worker}

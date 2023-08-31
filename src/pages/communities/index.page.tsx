@@ -205,7 +205,6 @@ const Explore = () => {
           msgList={msgList.slice(0, 50)}
           worker={worker!}
           userMap={userMap}
-          eventMap={eventMap}
           relays={worker?.relays.map(r => r.url) || []}
         />
       );
@@ -217,7 +216,6 @@ const Explore = () => {
           msgList={followCommMsgList.slice(0, 50)}
           worker={worker!}
           userMap={userMap}
-          eventMap={eventMap}
           relays={worker?.relays.map(r => r.url) || []}
         />
       );
