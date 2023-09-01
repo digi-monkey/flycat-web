@@ -15,6 +15,9 @@ import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
 import { dbQuery } from 'core/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { DbEvent } from 'core/db/schema';
+import { validateFilter } from './util';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -62,40 +65,18 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     loadMoreCount,
   });
 
-  //const dbEvents = useLiveQuery(dbQuery.createEventQuerier(msgFilter || {}, relayUrls), [msgFilter, worker?.relayGroupId], [] as DbEvent[]).filter(e => isValidEvent ? isValidEvent(e) : true);
-
-  const onMsgList = async () => {
-    const events = await dbQuery.matchFilterRelay(msgFilter || {}, relayUrls);
-    console.log(events.length, relayUrls, msgFilter);
+  useLiveQuery(async () => {
+    if(!msgFilter || !validateFilter(msgFilter))return [] as DbEvent[];
+    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
+    if(isValidEvent){
+      events = events.filter(e => isValidEvent(e));
+    }
+    console.log("query: ", events.length, relayUrls, msgFilter);
     setMsgList(events);
-  }
-
-  useEffect(() => {
-    console.log("changed!");
-    setMsgList([]);
-
-    onMsgList();
-  }, [msgSubProp]);
+  }, [msgSubProp], [] as DbEvent[]);
 
   return (
     <>
-      <div className={styles.reloadFeedBtn}>
-        <Button
-          loading={isRefreshing}
-          type="link"
-          block
-          onClick={async () => {
-            setIsRefreshing(true);
-            await subMsgAsync({
-              msgFilter,
-              worker,
-            });
-            setIsRefreshing(false);
-          }}
-        >
-          Refresh timeline
-        </Button>
-      </div>
       <div
         className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0,
