@@ -1,4 +1,3 @@
-import { EventMap, UserMap } from 'core/nostr/type';
 import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
@@ -8,11 +7,9 @@ import { loginMapStateToProps } from 'pages/helper';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { useState, useEffect } from 'react';
-import { getLastEventIdFromETags } from 'core/nostr/util';
-import { _handleEvent } from './util';
-import { CallRelayType } from 'core/worker/type';
+import { createCallRelay } from 'core/worker/util';
+import { dexieDb } from 'core/db';
 
-import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import Comments from 'components/Comments';
 import PageTitle from 'components/PageTitle';
@@ -20,64 +17,26 @@ import Icon from 'components/Icon';
 
 export const EventPage = () => {
   const { t } = useTranslation();
-  const { eventId } = useRouter().query as { eventId: string };
   const router = useRouter();
+  const { eventId } = router.query as { eventId: string };
+  
   const { worker, newConn, wsConnectStatus } = useCallWorker();
-
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [eventMap, setEventMap] = useState<EventMap>(new Map());
-
-  const handleEvent = _handleEvent({
-    setUserMap,
-    eventId,
-    setRootEvent,
-    setEventMap,
-  });
 
   useEffect(() => {
     if (!worker) return;
 
     const callRelay =
-      newConn.length > 0
-        ? { type: CallRelayType.batch, data: newConn }
-        : { type: CallRelayType.connected, data: [] };
+      createCallRelay(newConn);
     worker
       .subMsgByEventIds([eventId], undefined, callRelay)
-      .iterating({ cb: handleEvent });
   }, [eventId, worker, newConn]);
 
-  useEffect(() => {
-    if (!rootEvent) return;
-    if (!worker) return;
+  useEffect(()=>{
+    dexieDb.event.get(eventId).then(setRootEvent);
+  }, [eventId]);
 
-    const lastId = getLastEventIdFromETags(rootEvent.tags);
-    if (lastId) {
-      const callRelay =
-        newConn.length > 0
-          ? { type: CallRelayType.batch, data: newConn }
-          : { type: CallRelayType.connected, data: [] };
-      worker
-        .subMsgByEventIds([lastId], undefined, callRelay)
-        .iterating({ cb: handleEvent });
-    }
-  }, [rootEvent?.id, newConn, worker]);
-
-  useEffect(() => {
-    if (!worker) return;
-
-    const pks = Array.from(eventMap.values()).map(e => e.pubkey);
-    if (pks.length > 0) {
-      const callRelay =
-        newConn.length > 0
-          ? { type: CallRelayType.batch, data: newConn }
-          : { type: CallRelayType.connected, data: [] };
-      worker
-        .subMetadata(pks, undefined, callRelay)
-        .iterating({ cb: handleEvent });
-    }
-  }, [eventMap.size, worker]);
-
+  
   const relayUrls = Array.from(wsConnectStatus.keys());
 
   return (

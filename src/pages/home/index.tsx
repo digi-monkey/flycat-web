@@ -10,10 +10,8 @@ import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import {
-  EventMap,
   Filter,
   PublicKey,
-  UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
@@ -47,7 +45,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
   const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
