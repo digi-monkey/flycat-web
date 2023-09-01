@@ -1,15 +1,11 @@
 import { Event } from 'core/nostr/Event';
-import { EventMap, Filter } from 'core/nostr/type';
+import { Filter } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { CallRelayType } from 'core/worker/type';
-import {
-  onSetEventMap,
-  setMaxLimitEventWithSeenMsgList,
-  setEventWithSeenMsgList,
-} from 'pages/helper';
-import { EventWithSeen } from 'pages/type';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { validateFilter } from '../util';
+import { DbEvent } from 'core/db/schema';
+import { dbQuery } from 'core/db';
 
 export function useLoadMoreMsg({
   msgFilter,
@@ -17,15 +13,13 @@ export function useLoadMoreMsg({
   worker,
   msgList,
   setMsgList,
-  maxMsgLength,
   loadMoreCount,
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
-  msgList: EventWithSeen[];
-  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  maxMsgLength?: number;
+  msgList: DbEvent[];
+  setMsgList: Dispatch<SetStateAction<DbEvent[]>>;
   loadMoreCount: number;
 }) {
   useEffect(() => {
@@ -45,23 +39,18 @@ export function useLoadMoreMsg({
     const filter = { ...msgFilter, ...{ until: lastMsg.created_at } };
     worker.subFilter({ filter, callRelay }).iterating({
       cb: (event, relayUrl) => {
-        if (isValidEvent) {
-          if (!isValidEvent(event)) {
-            return;
-          }
-        }
-
-        if (maxMsgLength) {
-          setMaxLimitEventWithSeenMsgList(
-            event,
-            relayUrl!,
-            setMsgList,
-            maxMsgLength * loadMoreCount,
-          );
-        } else {
-          setEventWithSeenMsgList(event, relayUrl!, setMsgList);
-        }
+        //
       },
     });
-  }, [msgFilter, worker, loadMoreCount]);
+
+    const relayUrls = worker.relays.map(r => r.url) || [];
+    dbQuery.matchFilterRelay(filter, relayUrls).then(events => {
+      if(isValidEvent){
+        setMsgList(prev => prev.concat(events.filter(e => isValidEvent(e))));
+      }else{
+        setMsgList(prev => prev.concat(events));
+      }
+      
+    })
+  }, [msgFilter, isValidEvent, worker, loadMoreCount]);
 }

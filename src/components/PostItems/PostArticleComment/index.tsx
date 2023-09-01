@@ -77,7 +77,7 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
     "#d": [articleId]
   }
   const relayUrls = worker.relays.map(r => r.url) || [];
-  const articleEvent: DbEvent[] = useLiveQuery(dbQuery.createEventQuerier(filter, relayUrls), [articleId, relayUrls], []);
+  const articleEvent: DbEvent[] = useLiveQuery(dbQuery.createEventQuerier(filter, relayUrls), [], []);
   const article = articleEvent.length > 0 ? Nip23.toArticle(articleEvent[0]) : null;
 
   return (

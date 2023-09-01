@@ -1,12 +1,10 @@
 import { Button } from 'antd';
 
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { EventWithSeen } from 'pages/type';
+import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
-import { EventMap, Filter, UserMap } from 'core/nostr/type';
+import { Filter } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
-import { subMsgAsync, useSubMsg } from './hook/useSubMsg';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +16,7 @@ import { dbQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
+import { useSubMsg } from './hook/useSubMsg';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -36,13 +35,13 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   msgSubProp,
   worker,
   newConn,
-  maxMsgLength: _maxMsgLength
+  maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
   const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
+  const [msgList, setMsgList] = useState<DbEvent[]>([]);
+  const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
 
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
@@ -50,9 +49,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useSubMsg({
     msgFilter,
     isValidEvent,
-    setIsRefreshing,
     worker,
-    newConn,
   });
   useLastReplyEvent({ msgList, worker });
   useLoadMoreMsg({
@@ -60,23 +57,59 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     isValidEvent,
     msgList,
     worker,
-    maxMsgLength,
     setMsgList,
     loadMoreCount,
   });
 
-  useLiveQuery(async () => {
-    if(!msgFilter || !validateFilter(msgFilter))return [] as DbEvent[];
+  useLiveQuery(
+    async () => {
+      if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+      if (msgList.length === 0) return [] as DbEvent[];
+
+      const filter = { ...msgFilter, ...{ since: msgList[0].created_at } };
+      let events = await dbQuery.matchFilterRelay(filter, relayUrls);
+      if (isValidEvent) {
+        events = events.filter(e => isValidEvent(e));
+      }
+      console.log('query diff: ', events.length, filter);
+      setNewComingMsg(prev => events.concat(prev));
+    },
+    [msgSubProp, msgList[0]],
+    [] as DbEvent[],
+  );
+
+  const query = async () => {
+    if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
     let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
-    if(isValidEvent){
+    if (isValidEvent) {
       events = events.filter(e => isValidEvent(e));
     }
-    console.log("query: ", events.length, relayUrls, msgFilter);
+    console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
-  }, [msgSubProp], [] as DbEvent[]);
+  };
+
+  useEffect(() => {
+    setNewComingMsg([]);
+    setMsgList([]);
+
+    query();
+  }, [msgFilter]);
+
+  const onClickNewMsg = () => {
+    setMsgList(prev => newComingMsg.concat(prev).slice(0, maxMsgLength));
+    setNewComingMsg([]);
+  };
 
   return (
     <>
+      {newComingMsg.length > 0 && (
+        <div className={styles.reloadFeedBtn}>
+          <Button onClick={onClickNewMsg} type="link">
+            Show {newComingMsg.length} new posts
+          </Button>
+        </div>
+      )}
+
       <div
         className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0,

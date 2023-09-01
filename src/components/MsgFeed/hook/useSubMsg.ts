@@ -1,7 +1,7 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { createCallRelay } from 'core/worker/util';
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
 import { dbQuery } from 'core/db';
@@ -9,16 +9,14 @@ import { dbQuery } from 'core/db';
 export function useSubMsg({
   msgFilter,
   isValidEvent,
-  setIsRefreshing,
   worker,
-  newConn,
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
-  setIsRefreshing: Dispatch<SetStateAction<boolean>>;
   worker: CallWorker | undefined;
-  newConn: string[];
 }) {
+  const [intervalId, setIntervalId] = useState<number>();
+
   const subMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
@@ -42,7 +40,6 @@ export function useSubMsg({
     }
     filter = {...msgFilter, since};
 
-    setIsRefreshing(true);
     const pks: string[] = [];
 
     const callRelay = createCallRelay([]);
@@ -70,12 +67,11 @@ export function useSubMsg({
     }
     dataStream.unsubscribe();
     console.debug('finished sub msg!');
-    setIsRefreshing(false);
 
     // sub user profiles
     if (pks.length > 0) {
       worker
-        ?.subFilter({
+        .subFilter({
           filter: {
             kinds: [WellKnownEventKind.set_metadata],
             authors: pks,
@@ -86,28 +82,18 @@ export function useSubMsg({
   };
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    if(intervalId){
+      clearInterval(intervalId); 
+    }
+
+    const id = setInterval(() => {
       subMsg();
     }, 5000); // Adjust the interval as needed (5000ms = 5 seconds)
+    setIntervalId(id);
 
     return () => {
       clearInterval(intervalId); // Clear the interval when the component unmounts
     };
-  }, []); // Empty dependency array ensures the effect runs only once
+  }, [msgFilter, isValidEvent]); // Empty dependency array ensures the effect runs only once
 }
 
-export async function subMsgAsync({
-  msgFilter,
-  worker,
-}: {
-  msgFilter?: Filter;
-  worker: CallWorker | undefined;
-}) {
-  if (!worker) return;
-  if (!msgFilter || !validateFilter(msgFilter)) return;
-
-  const callRelay = createCallRelay([]);
-  worker
-    .subFilter({ filter: msgFilter, callRelay })
-  return;
-}
