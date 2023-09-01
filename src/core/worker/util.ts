@@ -21,44 +21,9 @@ export async function getContactEvent({
   worker: CallWorker;
   pk: PublicKey;
 }) {
-  let event: Event | null = null;
-  const dataStream = worker.subContactList([pk]).getIterator();
-  for await (const data of dataStream) {
-    if (data.event.kind !== WellKnownEventKind.contact_list) continue;
-    if (data.event.pubkey !== pk) continue;
-
-    if (!event) {
-      event = data.event;
-      continue;
-    }
-
-    if (event.created_at < data.event.created_at) {
-      event = data.event;
-      continue;
-    }
-  }
-  return event;
-}
-
-export async function updateMyContactEvent({
-  worker,
-  pk,
-  setMyContactEvent,
-}: {
-  worker: CallWorker;
-  pk: PublicKey;
-  setMyContactEvent: Dispatch<SetStateAction<Event | undefined>>;
-}) {
-  const event = await getContactEvent({ worker: worker!, pk });
-  if (!event) return;
-
-  setMyContactEvent(prev => {
-    if (!prev) return event;
-
-    if (prev.created_at < event.created_at) return event;
-
-    return prev;
-  });
+  worker.subContactList([pk]).iterating({cb: ()=>{
+    //do nothing
+  }});
 }
 
 export function isFollowed(

@@ -27,8 +27,8 @@ import {
   createFollowContactEvent,
   createInitialFollowContactEvent,
   createUnFollowContactEvent,
+  getContactEvent,
   isFollowed,
-  updateMyContactEvent,
 } from 'core/worker/util';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { useRouter } from 'next/router';
@@ -86,7 +86,7 @@ export function Community({
     if (!worker) return;
     if (myPublicKey.length === 0) return;
 
-    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
+    getContactEvent({ worker, pk: myPublicKey });
   }, [myPublicKey, worker]);
 
   const target: { type: 'people' | 'hashTag' | 'community'; data: string } = {
@@ -114,7 +114,7 @@ export function Community({
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
     return noticePubEventResult(handler, () =>
-      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+      getContactEvent({ worker, pk: myPublicKey }),
     );
   };
   const unfollow = async () => {
@@ -125,7 +125,7 @@ export function Community({
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
     return noticePubEventResult(handler, () =>
-      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+      getContactEvent({ worker, pk: myPublicKey }),
     );
   };
 

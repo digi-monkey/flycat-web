@@ -9,26 +9,20 @@ import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import {
-  Filter,
-  PublicKey,
-  WellKnownEventKind,
-} from 'core/nostr/type';
+import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery, dexieDb } from 'core/db';
-import { DbEvent } from 'core/db/schema';
+import { contactQuery } from 'core/db';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -53,17 +47,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   useSubContactList(myPublicKey, newConn, worker);
 
-  const relayUrls = worker?.relays.map(r => r.url) || [];
   useLiveQuery(
-    ()=>{
-      dexieDb.contactEvent.get(myPublicKey).then(event => {
-        if(event){
-          setMyContactEvent(event);
-        }
-      });
-    },
-    [worker?.relayGroupId, myPublicKey],
-    [] as DbEvent[],
+    contactQuery.createContactByPubkeyQuerier(myPublicKey, setMyContactEvent),
+    [myPublicKey],
   );
 
   // right test data
@@ -167,7 +153,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         return console.debug('no my public key', myPublicKey);
       }
 
-      const followings: string[] = myContactEvent ? parsePubKeyFromTags(myContactEvent.tags) : [];
+      const followings: string[] = myContactEvent
+        ? parsePubKeyFromTags(myContactEvent.tags)
+        : [];
       if (!followings.includes(myPublicKey)) {
         followings.push(myPublicKey);
       }
@@ -228,11 +216,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           </div>
         </div>
 
-        <MsgFeed
-          msgSubProp={msgSubProp}
-          worker={worker}
-          newConn={newConn}
-        />
+        <MsgFeed msgSubProp={msgSubProp} worker={worker}/>
       </Left>
       <Right>
         <div className={styles.rightPanel}>

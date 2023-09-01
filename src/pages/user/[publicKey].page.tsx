@@ -4,18 +4,15 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { CommitCalendar } from 'components/CommitCalendar';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { CallRelay, CallRelayType } from 'core/worker/type';
 import {
   deserializeMetadata,
-  shortifyEventId,
   shortifyPublicKey,
 } from 'core/nostr/content';
-import { isEventPTag } from 'core/nostr/util';
 import {
   EventSetMetadataContent,
   WellKnownEventKind,
@@ -23,296 +20,179 @@ import {
   EventTags,
   EventContactListPTag,
   ContactInfo,
-  UserMap,
-  EventMap,
+  Filter,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { Avatar, Button, Input, Tabs, Tooltip, message } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
-import { useLastReplyEvent } from './hooks';
 import { Followings } from './followings';
 
 import styles from './index.module.scss';
-import PostItems from 'components/PostItems';
 import Icon from 'components/Icon';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
-import { EventWithSeen } from 'pages/type';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import {
+  createCallRelay,
   createFollowContactEvent,
   createInitialFollowContactEvent,
   createUnFollowContactEvent,
+  getContactEvent,
   isFollowed,
-  updateMyContactEvent,
 } from 'core/worker/util';
 import PageTitle from 'components/PageTitle';
+import { DbEvent } from 'core/db/schema';
+import { contactQuery, profileQuery } from 'core/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { isValidPublicKey } from 'utils/validator';
 
 type UserParams = {
   publicKey: PublicKey;
 };
 
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
-  const myPublicKey = useReadonlyMyPublicKey();
-  const isMobile = useMatchMobile();
-
   const router = useRouter();
+  const isMobile = useMatchMobile();
+  const myPublicKey = useReadonlyMyPublicKey();
+
   const { publicKey } = router.query as UserParams;
-
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [eventMap, setEventMap] = useState<EventMap>(new Map());
-  const [myContactEvent, setMyContactEvent] = useState<Event>();
-  const [userContactList, setUserContactList] = useState<ContactInfo>();
-  const [articleMsgList, setArticleMsgList] = useState<EventWithSeen[]>([]);
-  const [messageApi, contextHolder] = message.useMessage();
-
   const { worker, newConn } = useCallWorker();
 
-  function handleEvent(event: Event, relayUrl?: string) {
-    switch (event.kind) {
-      case WellKnownEventKind.set_metadata:
-        const metadata: EventSetMetadataContent = deserializeMetadata(
-          event.content,
-        );
-        setUserMap(prev => {
-          const newMap = new Map(prev);
-          const oldData = newMap.get(event.pubkey);
-          if (oldData && oldData.created_at > event.created_at) {
-            // the new data is outdated
-            return newMap;
-          }
-
-          newMap.set(event.pubkey, {
-            ...metadata,
-            ...{ created_at: event.created_at },
-          });
-          return newMap;
-        });
-        break;
-
-      case WellKnownEventKind.text_note:
-      case WellKnownEventKind.reposts:
-      case WellKnownEventKind.article_highlight:
-        setEventMap(prev => {
-          prev.set(event.id, event);
-          return prev;
-        });
-
-        if (event.pubkey === publicKey) {
-          setMsgList(oldArray => {
-            if (!oldArray.map(e => e.id).includes(event.id)) {
-              // do not add duplicated msg
-
-              // save event
-              const newItems = [
-                ...oldArray,
-                { ...event, ...{ seen: [relayUrl!] } },
-              ];
-              // sort by timestamp
-              const sortedItems = newItems.sort((a, b) =>
-                a.created_at >= b.created_at ? -1 : 1,
-              );
-              return sortedItems;
-            } else {
-              const id = oldArray.findIndex(s => s.id === event.id);
-              if (id === -1) return oldArray;
-
-              if (!oldArray[id].seen?.includes(relayUrl!)) {
-                oldArray[id].seen?.push(relayUrl!);
-              }
-            }
-            return oldArray;
-          });
-
-          // check if need to sub new user metadata
-          const newPks: string[] = [];
-          for (const t of event.tags) {
-            if (isEventPTag(t)) {
-              const pk = t[1];
-              if (userMap.get(pk) == null) {
-                newPks.push(pk);
-              }
-            }
-          }
-          if (newPks.length > 0) {
-            worker
-              ?.subMetadata(newPks, undefined, {
-                type: CallRelayType.single,
-                data: [relayUrl!],
-              })
-              ?.iterating({ cb: handleEvent });
-          }
-        }
-        break;
-
-      case WellKnownEventKind.contact_list:
-        if (event.pubkey === publicKey) {
-          setUserContactList(prev => {
-            if (prev && prev?.created_at >= event.created_at) {
-              return prev;
-            }
-
-            const keys = (
-              event.tags.filter(
-                t => t[0] === EventTags.P,
-              ) as EventContactListPTag[]
-            ).map(t => t[1]);
-            const list = new Map();
-            for (const t of event.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]) {
-              list.set(t[1], {
-                relayUrl: t[2],
-                name: t[3],
-              });
-            }
-            return {
-              keys,
-              created_at: event.created_at,
-              list,
-            };
-          });
-        }
-
-        break;
-
-      case WellKnownEventKind.long_form:
-        setEventMap(prev => {
-          prev.set(event.id, event);
-          return prev;
-        });
-
-        setArticleMsgList(oldArray => {
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [relayUrl!] } },
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            return sortedItems;
-          } else {
-            const id = oldArray.findIndex(s => s.id === event.id);
-            if (id === -1) return oldArray;
-
-            if (!oldArray[id].seen?.includes(relayUrl!)) {
-              oldArray[id].seen?.push(relayUrl!);
-            }
-          }
-          return oldArray;
-        });
-
-        setMsgList(oldArray => {
-          if (!oldArray.map(e => e.id).includes(event.id)) {
-            // do not add duplicated msg
-
-            // save event
-            const newItems = [
-              ...oldArray,
-              { ...event, ...{ seen: [relayUrl!] } },
-            ];
-            // sort by timestamp
-            const sortedItems = newItems.sort((a, b) =>
-              a.created_at >= b.created_at ? -1 : 1,
-            );
-            return sortedItems;
-          } else {
-            const id = oldArray.findIndex(s => s.id === event.id);
-            if (id === -1) return oldArray;
-
-            if (!oldArray[id].seen?.includes(relayUrl!)) {
-              oldArray[id].seen?.push(relayUrl!);
-            }
-          }
-          return oldArray;
-        });
-
-        // check if need to sub new user metadata
-        const newPks: string[] = [];
-        for (const t of event.tags) {
-          if (isEventPTag(t)) {
-            const pk = t[1];
-            if (userMap.get(pk) == null) {
-              newPks.push(pk);
-            }
-          }
-        }
-        if (newPks.length > 0) {
-          worker
-            ?.subMetadata(newPks, undefined, {
-              type: CallRelayType.single,
-              data: [relayUrl!],
-            })
-            ?.iterating({ cb: handleEvent });
-        }
-        break;
-
-      default:
-        break;
-    }
-  }
+  const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
+  const [myContactEvent, setMyContactEvent] = useState<DbEvent>();
+  const [userContactList, setUserContactList] = useState<ContactInfo>();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
+  const [activeTabKey, setActiveTabKey] = useState<string>('all');
 
   useEffect(() => {
-    // todo: validate publicKey
-    if (publicKey && publicKey.length === 0) return;
+    if (!isValidPublicKey(publicKey)) return;
+
+    profileQuery.getProfileByPubkey(publicKey).then(e => {
+      if (e != null) {
+        setUserProfile(deserializeMetadata(e.content));
+      }
+    });
+    contactQuery.getContactByPubkey(publicKey).then(e => {
+      if (e != null) {
+        setUserContactList(prev => {
+          if (prev && prev?.created_at >= e.created_at) {
+            return prev;
+          }
+
+          const keys = (
+            e.tags.filter(
+              t => t[0] === EventTags.P,
+            ) as EventContactListPTag[]
+          ).map(t => t[1]);
+          const list = new Map();
+          for (const t of e.tags.filter(
+            t => t[0] === EventTags.P,
+          ) as EventContactListPTag[]) {
+            list.set(t[1], {
+              relayUrl: t[2],
+              name: t[3],
+            });
+          }
+          return {
+            keys,
+            created_at: e.created_at,
+            list,
+          };
+        });
+      }
+    });
+  }, [publicKey]);
+
+  useLiveQuery(
+    contactQuery.createContactByPubkeyQuerier(myPublicKey, setMyContactEvent),
+    [myPublicKey],
+  );
+
+  const onMsgFeedChanged = () => {
+    if(!isValidPublicKey(publicKey))return 'invalid user public key';
+
+    let msgFilter: Filter | null = null;
+    let isValidEvent: ((event: Event) => boolean) | undefined;
+    const emptyDataReactNode: ReactNode | null = null;
+
+    if (activeTabKey === 'all') {
+      const kinds = [
+        WellKnownEventKind.text_note,
+        WellKnownEventKind.article_highlight,
+        WellKnownEventKind.long_form,
+        WellKnownEventKind.reposts,
+      ];
+      msgFilter = {
+        limit: 50,
+        kinds,
+      };
+      isValidEvent = (event: Event) => {
+        return kinds.includes(event.kind);
+      };
+    }
+
+    if (activeTabKey === 'longForm') {
+      msgFilter = {
+        limit: 50,
+        kinds: [WellKnownEventKind.long_form],
+      };
+      isValidEvent = (event: Event) => {
+        return event.kind === WellKnownEventKind.long_form;
+      };
+    }
+
+    if (activeTabKey === 'media') {
+      msgFilter = {
+        limit: 50,
+        kinds: [WellKnownEventKind.text_note],
+      };
+      isValidEvent = (event: Event) => {
+        return (
+          event.kind === WellKnownEventKind.text_note &&
+          stringHasImageUrl(event.content)
+        );
+      };
+    }
+
+    if (msgFilter == null) return 'unknown filter';
+
+    msgFilter.authors = [publicKey]; 
+
+    console.log(
+      'start sub msg.. !!!msgFilter: ',
+      msgFilter,
+      activeTabKey,
+      isValidEvent,
+    );
+
+    const msgSubProp: MsgSubProp = {
+      msgFilter,
+      isValidEvent,
+      emptyDataReactNode,
+    };
+    setMsgSubProp(msgSubProp);
+  };
+
+  useEffect(() => {
+    onMsgFeedChanged();
+  }, [activeTabKey, publicKey]);
+
+  useEffect(() => {
+    if (!isValidPublicKey(publicKey)) return;
+    if(!worker)return;
 
     const pks = [publicKey];
-    if (isLoggedIn && myPublicKey.length > 0) {
+    if (isLoggedIn && isValidPublicKey(myPublicKey)) {
       pks.push(myPublicKey);
     }
 
-    const callRelay: CallRelay =
-      newConn.length > 0
-        ? {
-          type: CallRelayType.batch,
-          data: newConn,
-        }
-        : {
-          type: CallRelayType.connected,
-          data: [],
-        };
-    worker
-      ?.subContactList([publicKey], undefined, callRelay)
-      ?.iterating({ cb: handleEvent });
-    worker
-      ?.subMetadata(pks, undefined, callRelay)
-      ?.iterating({ cb: handleEvent });
-    worker
-      ?.subMsg([publicKey], undefined, callRelay)
-      ?.iterating({ cb: handleEvent });
-    worker
-      ?.subNip23Posts({ pks: [publicKey], callRelay })
-      ?.iterating({ cb: handleEvent });
-  }, [newConn, publicKey]);
-
-  useEffect(() => {
-    if (!worker) return;
-    if (myPublicKey.length === 0) return;
-
-    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
-  }, [worker, myPublicKey]);
-
-  useEffect(() => {
-    if (!worker) return;
-    if (!userContactList || userContactList.keys.length === 0) return;
-
-    worker?.subMetadata(userContactList.keys)?.iterating({ cb: handleEvent });
-  }, [worker, userContactList?.keys]);
-
-  useLastReplyEvent({
-    msgList,
-    worker,
-    userMap,
-    setUserMap,
-    setEventMap,
-  });
-
-  const relayUrls = worker?.relays.map(r => r.url) || [];
+    const callRelay = createCallRelay(newConn);
+    worker.subContactList(pks, undefined, callRelay);
+    worker.subMetadata(pks, undefined, callRelay);
+  }, [worker, newConn, publicKey]);
 
   const _followUser = async (publicKey: string) => {
     if (signEvent == null) {
@@ -340,7 +220,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
     return noticePubEventResult(handler, () =>
-      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+      getContactEvent({ worker, pk: myPublicKey }),
     );
   };
   const _unfollowUser = async (publicKey: string) => {
@@ -358,10 +238,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
     return noticePubEventResult(handler, () =>
-      updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent }),
+      getContactEvent({ worker, pk: myPublicKey }),
     );
   };
-
   const buildFollowUnfollow = (publicKey: string) => {
     const isFollow =
       isLoggedIn &&
@@ -370,13 +249,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     return isFollow
       ? {
-        label: 'unfollow',
-        action: () => _unfollowUser(publicKey),
-      }
+          label: 'unfollow',
+          action: () => _unfollowUser(publicKey),
+        }
       : {
-        label: 'follow',
-        action: () => _followUser(publicKey),
-      };
+          label: 'follow',
+          action: () => _followUser(publicKey),
+        };
   };
   const followOrUnfollow = buildFollowUnfollow(publicKey);
 
@@ -384,39 +263,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     {
       label: `All`,
       key: 'all',
-      children: (
-        <PostItems
-          msgList={msgList}
-          worker={worker!}
-          relays={[]}
-        />
-      ),
     },
     {
       label: `Long-form`,
       key: 'longForm',
-      children: (
-        <PostItems
-          msgList={articleMsgList}
-          worker={worker!}
-          relays={relayUrls}
-        />
-      ),
     },
     {
       label: `Media`,
       key: 'media',
-      children: (
-        <PostItems
-          msgList={msgList.filter(
-            e =>
-              e.kind === WellKnownEventKind.text_note &&
-              stringHasImageUrl(e.content),
-          )}
-          worker={worker!}
-          relays={relayUrls}
-        />
-      ),
     },
   ];
 
@@ -455,8 +309,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             type="icon-bolt"
             className={styles.icon}
             onClick={async () => {
-              const lnUrl =
-                userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
+              const lnUrl = userProfile?.lud06 || userProfile?.lud16;
               if (lnUrl == null) {
                 return alert(
                   'no ln url, please tell the author to set up one.',
@@ -501,8 +354,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             type="icon-bolt"
             className={styles.icon}
             onClick={async () => {
-              const lnUrl =
-                userMap.get(publicKey)?.lud06 || userMap.get(publicKey)?.lud16;
+              const lnUrl = userProfile?.lud06 || userProfile?.lud16;
               if (lnUrl == null) {
                 return alert(
                   'no ln url, please tell the author to set up one.',
@@ -525,7 +377,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         {!isMobile && (
           <PageTitle
             title={
-              (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
+              (userProfile?.name || shortifyPublicKey(publicKey)) + "'s profile"
             }
             icon={
               <Icon
@@ -549,7 +401,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           <>
             <PageTitle
               title={
-                (userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)) + '\'s profile'
+                (userProfile?.name || shortifyPublicKey(publicKey)) +
+                "'s profile"
               }
               icon={
                 <Icon
@@ -566,28 +419,25 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                   <div className={styles.img}>
                     <Avatar
                       style={{ width: '100%', height: '100%' }}
-                      src={userMap.get(publicKey)?.picture}
+                      src={userProfile?.picture}
                       alt=""
                     />
                   </div>
                   <div className={styles.name}>
-                    {userMap.get(publicKey)?.name ||
-                      shortifyPublicKey(publicKey)}
+                    {userProfile?.name || shortifyPublicKey(publicKey)}
                   </div>
                 </div>
                 <div>{isMobile ? mobileActionBtnGroups : actionBtnGroups}</div>
               </div>
 
-              <div className={styles.description}>
-                {userMap.get(publicKey)?.about}
-              </div>
+              <div className={styles.description}>{userProfile?.about}</div>
             </div>
           </>
         )}
 
-        {userMap.get(publicKey)?.banner && (
+        {userProfile?.banner && (
           <div className={styles.banner}>
-            <img src={userMap.get(publicKey)?.banner} alt="" />
+            <img src={userProfile?.banner} alt="" />
           </div>
         )}
 
@@ -597,7 +447,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             centered
             items={tabItems}
             size={'large'}
+            activeKey={activeTabKey}
+            onChange={setActiveTabKey} 
           />
+
+          <MsgFeed msgSubProp={msgSubProp} worker={worker}/>
         </div>
       </Left>
       <Right>
@@ -606,16 +460,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             <div className={styles.img}>
               <Avatar
                 style={{ width: '100%', height: '100%' }}
-                src={userMap.get(publicKey)?.picture}
+                src={userProfile?.picture}
                 alt=""
               />
             </div>
             <div className={styles.name}>
-              {userMap.get(publicKey)?.name || shortifyPublicKey(publicKey)}
+              {userProfile?.name || shortifyPublicKey(publicKey)}
             </div>
-            <div className={styles.description}>
-              {userMap.get(publicKey)?.about}
-            </div>
+            <div className={styles.description}>{userProfile?.about}</div>
           </div>
         </div>
 
@@ -628,7 +480,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         <Followings
           buildFollowUnfollow={buildFollowUnfollow}
           pks={userContactList?.keys || []}
-          userMap={userMap}
+          worker={worker}
         />
       </Right>
     </BaseLayout>

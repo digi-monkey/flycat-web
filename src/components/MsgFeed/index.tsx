@@ -27,14 +27,12 @@ export interface MsgSubProp {
 export interface MsgFeedProp {
   msgSubProp: MsgSubProp;
   worker: CallWorker | undefined;
-  newConn: string[];
   maxMsgLength?: number;
 }
 
 export const MsgFeed: React.FC<MsgFeedProp> = ({
   msgSubProp,
   worker,
-  newConn,
   maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
@@ -93,7 +91,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setMsgList([]);
 
     query();
-  }, [msgFilter]);
+  }, [msgFilter, worker?.relayGroupId]);
 
   const onClickNewMsg = () => {
     setMsgList(prev => newComingMsg.concat(prev).slice(0, maxMsgLength));

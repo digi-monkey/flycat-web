@@ -21,8 +21,8 @@ import PageTitle from 'components/PageTitle';
 import styles from '../index.module.scss';
 import { SearchOutlined } from '@ant-design/icons';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { updateMyContactEvent } from 'core/worker/util';
 import { useRouter } from 'next/router';
+import { getContactEvent } from 'core/worker/util';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -86,7 +86,7 @@ const Explore = () => {
   useEffect(() => {
     if (!worker) return;
     if (myPublicKey.length === 0) return;
-    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
+    getContactEvent({ worker, pk: myPublicKey });
   }, [worker, myPublicKey]);
 
   const myFollowingCommunity = myContactEvent?.tags

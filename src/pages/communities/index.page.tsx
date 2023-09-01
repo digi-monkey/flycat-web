@@ -25,9 +25,9 @@ import Icon from 'components/Icon';
 import { EventWithSeen } from 'pages/type';
 import PostItems from 'components/PostItems';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
-import { updateMyContactEvent } from 'core/worker/util';
 import { setEventWithSeenMsgList } from 'pages/helper';
 import { useRouter } from 'next/router'
+import { getContactEvent } from 'core/worker/util';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -144,7 +144,7 @@ const Explore = () => {
     if (!myPublicKey) return;
     if (myPublicKey && myPublicKey.length === 0) return;
 
-    updateMyContactEvent({ worker, pk: myPublicKey, setMyContactEvent });
+    getContactEvent({ worker, pk: myPublicKey });
   }, [worker, myPublicKey, newConn]);
 
   useEffect(() => {

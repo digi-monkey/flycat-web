@@ -161,3 +161,70 @@ export class Query {
     return filterTags(events, filter);
   }
 }
+
+export class ContactQuery {
+	table: Table<DbEvent>;
+	constructor(table: Table<DbEvent>){
+		this.table = table;
+	}
+
+	getContactByPubkey(pubkey: string){
+		return this.table.get(pubkey);
+	}
+
+	createContactByPubkeyQuerier(pubkey: string, callback?: (event: DbEvent) => any){
+		return () => {
+			return this.table.get(pubkey).then(event => {
+        if(event){
+          if(callback){
+						callback(event);
+					}
+					return event;
+        }
+				return null;
+      });
+		}
+	}
+}
+
+export class ProfileQuery {
+	table: Table<DbEvent>;
+	constructor(table: Table<DbEvent>){
+		this.table = table;
+	}
+
+	getProfileByPubkey(pubkey: string){
+		return this.table.get(pubkey);
+	}
+
+	async getBatchProfiles(pubkeys: string[]){
+		const events = await this.table.bulkGet(pubkeys);
+		return events.filter(e => e!=null) as DbEvent[];
+	}
+
+	createProfileByPubkeyQuerier(pubkey: string, callback?: (event: DbEvent) => any){
+		return () => {
+			return this.table.get(pubkey).then(event => {
+        if(event){
+          if(callback){
+						callback(event);
+					}
+					return event;
+        }
+				return null;
+      });
+		}
+	}
+
+	createBatchProfileQuerier(pubkeys: string[], callback?: (events: DbEvent[]) => any){
+		return () => {
+			return this.table.bulkGet(pubkeys).then(events => {
+				const result = events.filter(e => e != null) as DbEvent[];
+        if(callback){
+					callback(result);
+				}
+				return result;
+      });
+		}
+	}	
+}
