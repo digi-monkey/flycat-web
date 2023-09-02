@@ -2,13 +2,7 @@ import { DbEvent } from './schema';
 import { Event } from 'core/nostr/Event';
 import { normalizeWsUrl } from 'utils/common';
 import { Collection, IndexableType, Table } from 'dexie';
-import {
-  EventId,
-  EventTags,
-  Filter,
-  Naddr,
-  WellKnownEventKind,
-} from 'core/nostr/type';
+import { EventId, EventTags, Filter, Naddr } from 'core/nostr/type';
 import { validateFilter } from 'components/MsgFeed/util';
 
 export class Query {
@@ -22,27 +16,26 @@ export class Query {
     }
   }
 
-
-	createEventByIdQuerier(relayUrls: string[], eventId?: EventId){
-		return async () => {
-			console.log("EventByIdQuerier..")
-			if(!eventId){
-				return null;
-			}
+  createEventByIdQuerier(relayUrls: string[], eventId?: EventId) {
+    return async () => {
+      console.log('EventByIdQuerier..');
+      if (!eventId) {
+        return null;
+      }
 
       const filter: Filter = {
-				ids: [eventId],
-				limit: 1
+        ids: [eventId],
+        limit: 1,
       };
       const events = await this.matchFilterRelay(filter, relayUrls);
-			console.log("createEventByIdQuerier: ", events.length)
+      console.log('createEventByIdQuerier: ', events.length);
       const result = events.sort((a, b) => b.created_at - a.created_at);
-			if(result.length === 0){
-				return null;
-			}
-			return result[0];
-    }; 
-	}
+      if (result.length === 0) {
+        return null;
+      }
+      return result[0];
+    };
+  }
 
   createEventQuerier(
     msgFilter: Filter,
@@ -50,12 +43,12 @@ export class Query {
     isValidEvent?: ((event: Event) => boolean) | undefined,
   ): () => Promise<DbEvent[]> {
     return async () => {
-			console.log("EventQuerier..")
-			const result: DbEvent[] = [];
-      if (!msgFilter || (msgFilter && !validateFilter(msgFilter))){
-				return result;
-			}
-        
+      console.log('EventQuerier..');
+      const result: DbEvent[] = [];
+      if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) {
+        return result;
+      }
+
       const data = await this.matchFilterRelay(msgFilter, relayUrls);
       if (isValidEvent) {
         return data.filter(e => isValidEvent(e));
@@ -80,11 +73,9 @@ export class Query {
     const defaultQuery = async (
       collection: Collection<DbEvent, IndexableType>,
     ) => {
-      return (await collection
-        .and(applyRelayAndTimeLimit)
-        .sortBy('created_at'))
-				.slice(-maxEvents)
-				.reverse()
+      return (
+        await collection.and(applyRelayAndTimeLimit).sortBy('created_at')
+      ).reverse();
     };
     const filterTags = (events: DbEvent[], filter: Filter) => {
       let result = events;
@@ -133,7 +124,7 @@ export class Query {
 
     if (filter.ids) {
       const query = this.table.where('id').anyOf(filter.ids);
-      return await defaultQuery(query);
+      return (await defaultQuery(query)).slice(0, maxEvents);
     }
 
     if (filter.authors && filter.kinds) {
@@ -142,89 +133,98 @@ export class Query {
       );
       const query = this.table.where('[pubkey+kind]').anyOf(compoundKeys);
       const events = await defaultQuery(query);
-      return filterTags(events, filter);
+      return filterTags(events, filter).slice(0, maxEvents);
     }
 
     if (filter.kinds) {
       const query = this.table.where('kind').anyOf(filter.kinds);
       const events = await defaultQuery(query);
-      return filterTags(events, filter);
+      return filterTags(events, filter).slice(0, maxEvents);
     }
 
     if (filter.authors) {
       const query = this.table.where('pubkey').anyOf(filter.authors);
       const events = await defaultQuery(query);
-      return filterTags(events, filter);
+      return filterTags(events, filter).slice(0, maxEvents);
     }
 
     const events = await defaultQuery(this.table.toCollection());
-    return filterTags(events, filter);
+    return filterTags(events, filter).slice(0, maxEvents);
   }
 }
 
 export class ContactQuery {
-	table: Table<DbEvent>;
-	constructor(table: Table<DbEvent>){
-		this.table = table;
-	}
+  table: Table<DbEvent>;
+  constructor(table: Table<DbEvent>) {
+    this.table = table;
+  }
 
-	getContactByPubkey(pubkey: string){
-		return this.table.get(pubkey);
-	}
+  getContactByPubkey(pubkey: string) {
+    return this.table.get(pubkey);
+  }
 
-	createContactByPubkeyQuerier(pubkey: string, callback?: (event: DbEvent) => any){
-		return () => {
-			return this.table.get(pubkey).then(event => {
-        if(event){
-          if(callback){
-						callback(event);
-					}
-					return event;
+  createContactByPubkeyQuerier(
+    pubkey: string,
+    callback?: (event: DbEvent) => any,
+  ) {
+    return () => {
+      return this.table.get(pubkey).then(event => {
+        if (event) {
+          if (callback) {
+            callback(event);
+          }
+          return event;
         }
-				return null;
+        return null;
       });
-		}
-	}
+    };
+  }
 }
 
 export class ProfileQuery {
-	table: Table<DbEvent>;
-	constructor(table: Table<DbEvent>){
-		this.table = table;
-	}
+  table: Table<DbEvent>;
+  constructor(table: Table<DbEvent>) {
+    this.table = table;
+  }
 
-	getProfileByPubkey(pubkey: string){
-		return this.table.get(pubkey);
-	}
+  getProfileByPubkey(pubkey: string) {
+    return this.table.get(pubkey);
+  }
 
-	async getBatchProfiles(pubkeys: string[]){
-		const events = await this.table.bulkGet(pubkeys);
-		return events.filter(e => e!=null) as DbEvent[];
-	}
+  async getBatchProfiles(pubkeys: string[]) {
+    const events = await this.table.bulkGet(pubkeys);
+    return events.filter(e => e != null) as DbEvent[];
+  }
 
-	createProfileByPubkeyQuerier(pubkey: string, callback?: (event: DbEvent) => any){
-		return () => {
-			return this.table.get(pubkey).then(event => {
-        if(event){
-          if(callback){
-						callback(event);
-					}
-					return event;
+  createProfileByPubkeyQuerier(
+    pubkey: string,
+    callback?: (event: DbEvent) => any,
+  ) {
+    return () => {
+      return this.table.get(pubkey).then(event => {
+        if (event) {
+          if (callback) {
+            callback(event);
+          }
+          return event;
         }
-				return null;
+        return null;
       });
-		}
-	}
+    };
+  }
 
-	createBatchProfileQuerier(pubkeys: string[], callback?: (events: DbEvent[]) => any){
-		return () => {
-			return this.table.bulkGet(pubkeys).then(events => {
-				const result = events.filter(e => e != null) as DbEvent[];
-        if(callback){
-					callback(result);
-				}
-				return result;
+  createBatchProfileQuerier(
+    pubkeys: string[],
+    callback?: (events: DbEvent[]) => any,
+  ) {
+    return () => {
+      return this.table.bulkGet(pubkeys).then(events => {
+        const result = events.filter(e => e != null) as DbEvent[];
+        if (callback) {
+          callback(result);
+        }
+        return result;
       });
-		}
-	}	
+    };
+  }
 }

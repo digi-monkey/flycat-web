@@ -4,124 +4,143 @@ import { useTranslation } from 'react-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { useLoadCommunities } from './hooks/useLoadCommunities';
 import { Event } from 'core/nostr/Event';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import {
-  EventMap,
-  EventSetMetadataContent,
   EventTags,
   Filter,
   Naddr,
-  UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { Avatar, Input, List, Tabs } from 'antd';
-import { deserializeMetadata } from 'core/nostr/content';
-import { useLoadProfiles } from './hooks/useLoadProfile';
+import { useLoadModeratorProfiles } from './hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
-import { EventWithSeen } from 'pages/type';
-import PostItems from 'components/PostItems';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
-import { setEventWithSeenMsgList } from 'pages/helper';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
+import { isValidPublicKey } from 'utils/validator';
+import { contactQuery, dbQuery } from 'core/db';
+import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const Explore = () => {
   const { t } = useTranslation();
   const myPublicKey = useMyPublicKey();
-  const router = useRouter()
+  const router = useRouter();
   const { worker, newConn } = useCallWorker();
 
   const [myContactEvent, setMyContactEvent] = useState<Event>();
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [eventMap, setEventMap] = useState<EventMap>(new Map());
   const [communities, setCommunities] = useState<Map<Naddr, CommunityMetadata>>(
     new Map(),
   );
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
-  const [followCommMsgList, setFollowCommMsgList] = useState<EventWithSeen[]>(
-    [],
-  );
   const [searchName, setSearchName] = useState<string>();
   const [selectTabKey, setSelectTabKey] = useState<string>('All Tribes');
+  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
 
-  const handleEvent = (event: Event, relayUrl?: string) => {
-    switch (event.kind) {
-      case WellKnownEventKind.set_metadata:
-        {
-          const metadata: EventSetMetadataContent = deserializeMetadata(
-            event.content,
-          );
-          setUserMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.pubkey) as { created_at: number };
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
+  useEffect(() => {
+    if (!worker) return;
+    if (!isValidPublicKey(myPublicKey)) return;
 
-            newMap.set(event.pubkey, {
-              ...metadata,
-              ...{ created_at: event.created_at },
-            });
-            return newMap;
-          });
+    getContactEvent({ worker, pk: myPublicKey });
+  }, [worker, myPublicKey, newConn]);
+
+  useEffect(() => {
+    if (isValidPublicKey(myPublicKey)) {
+      contactQuery.getContactByPubkey(myPublicKey).then(e => {
+        if (e) {
+          setMyContactEvent(e);
         }
-        break;
+      });
+    }
+  }, [myPublicKey]);
 
-      case Nip172.metadata_kind:
-        const metadata = Nip172.parseCommunityMetadata(event);
+  const onMsgFeedChanged = () => {
+    if (selectTabKey == null) return console.debug('unknown tab key');
+
+    let msgFilter: Filter | null = null;
+    let isValidEvent: ((event: Event) => boolean) | undefined;
+    const emptyDataReactNode: ReactNode | null = null;
+
+    if (selectTabKey === 'All Tribes') {
+      const addrs = Array.from(communities.keys());
+      if (addrs.length === 0) return;
+
+      msgFilter = {
+        kinds: [Nip172.approval_kind],
+        '#a': addrs,
+        limit: 50,
+      };
+      isValidEvent = (event: Event) => {
+        return event.kind === Nip172.approval_kind;
+      };
+    }
+
+    if (selectTabKey === 'Following') {
+      const addrs = myContactEvent?.tags
+        .filter(
+          t =>
+            t[0] === EventTags.A &&
+            (t[1] as string).startsWith(
+              `${WellKnownEventKind.community_metadata}:`,
+            ),
+        )
+        .map(t => t[1] as Naddr);
+      console.log("following: ", addrs)
+      if (!addrs || addrs.length === 0) {
+        return;
+      }
+      msgFilter = {
+        kinds: [Nip172.approval_kind],
+        '#a': addrs,
+        limit: 50,
+      };
+      isValidEvent = (event: Event) => {
+        return event.kind === Nip172.approval_kind;
+      };
+    }
+
+    if (msgFilter == null) return console.debug('unknown filter');
+
+    console.log(
+      'start sub msg.. !!!msgFilter: ',
+      msgFilter,
+      selectTabKey,
+      isValidEvent,
+    );
+
+    const msgSubProp: MsgSubProp = {
+      msgFilter,
+      isValidEvent,
+      emptyDataReactNode,
+    };
+    setMsgSubProp(msgSubProp);
+  };
+
+  useEffect(()=>{
+    onMsgFeedChanged();
+  }, [myContactEvent, selectTabKey, communities.size]);
+
+  useLiveQuery(async()=>{
+    const filter = Nip172.communitiesFilter();
+    filter.limit = 500;
+    const relayUrls = worker?.relays.map(r => r.url) || [];
+    if(relayUrls.length === 0)return;
+    const events = await dbQuery.matchFilterRelay(filter, relayUrls);
+    console.log("query comm:", filter, relayUrls, events);
+    const map = new Map();
+    for(const event of events){
+      const metadata = Nip172.parseCommunityMetadata(event);
         const addr = Nip172.communityAddr({
           identifier: metadata.id,
           author: metadata.creator,
         });
-        setCommunities(prev => {
-          const newMap = new Map(prev);
-          newMap.set(addr, metadata);
-          return newMap;
-        });
-        break;
-
-      case Nip172.approval_kind:
-        {
-          const approvedEvent = Nip172.parseNoteFromApproval(event);
-          if (approvedEvent) {
-            setMsgList(oldArray => {
-              if (!oldArray.map(e => e.id).includes(approvedEvent.id)) {
-                // do not add duplicated msg
-
-                // save event
-                const newItems = [
-                  ...oldArray,
-                  { ...approvedEvent, ...{ seen: [relayUrl!] } },
-                ];
-                // sort by timestamp
-                const sortedItems = newItems.sort((a, b) =>
-                  a.created_at >= b.created_at ? -1 : 1,
-                );
-                return sortedItems;
-              } else {
-                const id = oldArray.findIndex(s => s.id === approvedEvent.id);
-                if (id === -1) return oldArray;
-
-                if (!oldArray[id].seen?.includes(relayUrl!)) {
-                  oldArray[id].seen?.push(relayUrl!);
-                }
-              }
-              return oldArray;
-            });
-          }
-        }
-
-        break;
-
-      default:
-        break;
+        map.set(addr, metadata);
     }
-  };
+    setCommunities(map);
+  }, [worker?.relayGroupId]);
 
   useEffect(() => {
     if (communities.size > 0 && worker) {
@@ -135,23 +154,13 @@ const Explore = () => {
         .subFilter({
           filter,
         })
-        .iterating({ cb: handleEvent });
     }
   }, [communities, worker]);
 
   useEffect(() => {
-    if (!worker) return;
-    if (!myPublicKey) return;
-    if (myPublicKey && myPublicKey.length === 0) return;
-
-    getContactEvent({ worker, pk: myPublicKey });
-  }, [worker, myPublicKey, newConn]);
-
-  useEffect(() => {
     if (
       selectTabKey === 'Following' &&
-      myPublicKey &&
-      myPublicKey.length > 0 &&
+      isValidPublicKey(myPublicKey) &&
       worker &&
       myContactEvent
     ) {
@@ -172,24 +181,13 @@ const Explore = () => {
       worker
         .subFilter({
           filter,
-        })
-        .iterating({
-          cb: (event, relayUrl) => {
-            if (event.kind !== WellKnownEventKind.community_approval) return;
-            const targetEvent = Nip172.parseNoteFromApproval(event);
-            if (targetEvent)
-              setEventWithSeenMsgList(
-                targetEvent,
-                relayUrl!,
-                setFollowCommMsgList,
-              );
-          },
         });
+        console.log("sub following comm:", filter)
     }
   }, [myContactEvent, myPublicKey, worker, selectTabKey]);
 
-  useLoadCommunities({ worker, newConn, handleEvent });
-  useLoadProfiles({ worker, handleEvent, newConn, communities });
+  useLoadCommunities({ worker, newConn });
+  useLoadModeratorProfiles({ worker, newConn, communities });
 
   const tabsItems = ['All Tribes', 'Following'].map(name => {
     return {
@@ -197,28 +195,6 @@ const Explore = () => {
       label: name,
     };
   });
-
-  const renderContent = () => {
-    if (selectTabKey === 'All Tribes') {
-      return (
-        <PostItems
-          msgList={msgList.slice(0, 50)}
-          worker={worker!}
-          relays={worker?.relays.map(r => r.url) || []}
-        />
-      );
-    }
-
-    if (selectTabKey === 'Following') {
-      return (
-        <PostItems
-          msgList={followCommMsgList.slice(0, 50)}
-          worker={worker!}
-          relays={worker?.relays.map(r => r.url) || []}
-        />
-      );
-    }
-  };
 
   const commCardListData = Array.from(communities.keys())
     .filter(k =>
@@ -238,7 +214,11 @@ const Explore = () => {
               prefix={<Icon type="icon-search" />}
               onChange={e => setSearchName(e.target.value)}
             />
-            <Icon onClick={() => router.push("/communities/n/list")} className={styles.commList} type="icon-rule-mode" />
+            <Icon
+              onClick={() => router.push('/communities/n/list')}
+              className={styles.commList}
+              type="icon-rule-mode"
+            />
           </div>
 
           <div className={styles.posts}>
@@ -246,7 +226,7 @@ const Explore = () => {
               pagination={{
                 responsive: true,
                 simple: true,
-                defaultCurrent: 10,
+                defaultCurrent: 1,
                 total: commCardListData.length,
               }}
               grid={{
@@ -266,16 +246,16 @@ const Explore = () => {
                     onClick={() =>
                       router.push(
                         `/communities/n/` +
-                        Nip172.communityAddr({
-                          identifier: item.id,
-                          author: item.creator,
-                        }),
+                          Nip172.communityAddr({
+                            identifier: item.id,
+                            author: item.creator,
+                          }),
                       )
                     }
                   >
                     <Avatar size={'small'} src={item.image} />
                     <div className={styles.name}>
-                      {item.id.length > 0 ? item.id : 'unnamed'}
+                      {item?.id?.length > 0 ? item?.id : 'unnamed'}
                     </div>
                   </div>
                 </List.Item>
@@ -285,12 +265,12 @@ const Explore = () => {
             <Tabs
               items={tabsItems}
               defaultValue={selectTabKey}
+              activeKey={selectTabKey}
               onChange={val => setSelectTabKey(val)}
             />
           </div>
         </div>
-
-        {renderContent()}
+        <MsgFeed msgSubProp={msgSubProp} worker={worker} />
       </Left>
       <Right></Right>
     </BaseLayout>

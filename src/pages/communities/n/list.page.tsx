@@ -15,7 +15,7 @@ import {
 } from 'core/nostr/type';
 import { Button, Divider, Input, List, Tabs } from 'antd';
 import { deserializeMetadata } from 'core/nostr/content';
-import { useLoadProfiles } from '../hooks/useLoadProfile';
+import { useLoadModeratorProfiles } from '../hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
 import styles from '../index.module.scss';
@@ -80,8 +80,8 @@ const Explore = () => {
     }
   };
 
-  useLoadCommunities({ worker, newConn, handleEvent });
-  useLoadProfiles({ worker, handleEvent, newConn, communities });
+  useLoadCommunities({ worker, newConn });
+  useLoadModeratorProfiles({ worker, newConn, communities });
 
   useEffect(() => {
     if (!worker) return;

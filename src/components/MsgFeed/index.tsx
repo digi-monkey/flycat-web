@@ -2,7 +2,7 @@ import { Button } from 'antd';
 
 import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
-import { Filter } from 'core/nostr/type';
+import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
 import { useLastReplyEvent } from './hook/useSubLastReply';
@@ -65,12 +65,34 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
       if (msgList.length === 0) return [] as DbEvent[];
 
-      const filter = { ...msgFilter, ...{ since: msgList[0].created_at } };
+      const lastMsgItem = msgList[0];
+      const since = lastMsgItem.created_at; 
+      const filter = { ...msgFilter, since };
       let events = await dbQuery.matchFilterRelay(filter, relayUrls);
       if (isValidEvent) {
-        events = events.filter(e => isValidEvent(e));
+        events = events.filter(e => isValidEvent(e)).filter(e => {
+          if(e.kind === WellKnownEventKind.community_approval){
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if(targetEvent.created_at <= lastMsgItem.created_at){
+                return false;
+              }
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        });
       }
-      console.log('query diff: ', events.length, filter);
+      events = events.map(e => {
+        if(e.kind === WellKnownEventKind.community_approval){
+          const event = {...e, ...JSON.parse(e.content) as DbEvent};
+          return event;
+        }
+        return e;
+      });
+      events = mergeAndSortUniqueDbEvents(events, events);
+      console.log('query diff: ', events, events.length, filter);
       setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events, prev));
     },
     [msgSubProp, msgList[0]],
@@ -83,6 +105,14 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     if (isValidEvent) {
       events = events.filter(e => isValidEvent(e));
     }
+    events = events.map(e => {
+      if(e.kind === WellKnownEventKind.community_approval){
+        const event = {...e, ...JSON.parse(e.content) as DbEvent};
+        return event;
+      }
+      return e;
+    });
+    events = mergeAndSortUniqueDbEvents(events, events);
     console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
   };
