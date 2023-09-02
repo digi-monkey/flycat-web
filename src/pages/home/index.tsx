@@ -23,6 +23,7 @@ import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
+import { isValidPublicKey } from 'utils/validator';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -45,12 +46,20 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectFilter, setSelectFilter] = useState<string>('All');
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
+  const [isQueryContactEvent, setIsQueryContactEvent] = useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
 
-  useLiveQuery(
-    contactQuery.createContactByPubkeyQuerier(myPublicKey, setMyContactEvent),
-    [myPublicKey],
-  );
+  useLiveQuery(() => {
+    if (!isValidPublicKey(myPublicKey)) return;
+
+    contactQuery.getContactByPubkey(myPublicKey).then(e => {
+      if (e != null) {
+        setMyContactEvent(e);
+      }
+      setIsQueryContactEvent(true);
+    });
+    setMyContactEvent;
+  }, [myPublicKey]);
 
   // right test data
   const updates = [
@@ -216,7 +225,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           </div>
         </div>
 
-        <MsgFeed msgSubProp={msgSubProp} worker={worker}/>
+        <MsgFeed msgSubProp={msgSubProp} worker={worker} />
       </Left>
       <Right>
         <div className={styles.rightPanel}>

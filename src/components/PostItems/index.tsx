@@ -1,6 +1,5 @@
 import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
-import { EventMap, EventSetMetadataContent, UserMap } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
@@ -19,9 +18,10 @@ import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery, dexieDb } from 'core/db';
+import { dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { useMemo } from 'react';
+import { deserializeMetadata } from 'core/nostr/content';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
@@ -45,18 +45,17 @@ const PostItems: React.FC<PostItemsProps> = ({
   extraMenu,
   extraHeader
 }) => {
-  const relayUrls = worker?.relays.map(r => r.url) || [];
   const pks = useMemo(()=>msgList.map(m => m.pubkey), [msgList]);
   const profileEvents = useLiveQuery(async ()=>{
     const events = await dexieDb.profileEvent.bulkGet(pks);
     return events.filter(e => e != null) as DbEvent[];
   }, [], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
-    const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
+    const userEvent = profileEvents.find(e => e.pubkey === msg.pubkey);
     if(!userEvent){
       return null;
     }
-    return JSON.parse(userEvent.content) as EventSetMetadataContent;
+    return deserializeMetadata(userEvent.content);
   } 
 
   return (

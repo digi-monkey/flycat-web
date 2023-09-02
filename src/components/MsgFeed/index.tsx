@@ -17,6 +17,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
+import { mergeAndSortUniqueDbEvents } from 'utils/common';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -70,7 +71,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
         events = events.filter(e => isValidEvent(e));
       }
       console.log('query diff: ', events.length, filter);
-      setNewComingMsg(prev => events.concat(prev));
+      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events, prev));
     },
     [msgSubProp, msgList[0]],
     [] as DbEvent[],
@@ -87,6 +88,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   };
 
   useEffect(() => {
+    if(!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)return;
     setNewComingMsg([]);
     setMsgList([]);
 
@@ -94,7 +96,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   }, [msgFilter, worker?.relayGroupId]);
 
   const onClickNewMsg = () => {
-    setMsgList(prev => newComingMsg.concat(prev).slice(0, maxMsgLength));
+    setMsgList(prev => mergeAndSortUniqueDbEvents(newComingMsg, prev).slice(0, maxMsgLength));
     setNewComingMsg([]);
   };
 
