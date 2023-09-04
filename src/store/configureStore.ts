@@ -88,7 +88,7 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
 
       case LoginMode.joyId:
         return async () => {
-          return await JoyIdNostr.getPublickey();
+          return await JoyIdNostr.getPublicKey();
         };
       case LoginMode.dotbit:
         return async () => {
