@@ -4,7 +4,7 @@ import createSagaMiddleware from 'redux-saga';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { relayReducer } from './relayReducer';
 import { createReducer } from './reducers';
-import { createWrapper } from "next-redux-wrapper";
+import { createWrapper } from 'next-redux-wrapper';
 import { createInjectorsEnhancer } from 'redux-injectors';
 import {
   configureStore,
@@ -17,10 +17,17 @@ import {
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
   Signer,
-  GetPublicKey
+  GetPublicKey,
 } from './loginReducer';
-import { createWalletConnectGetPublicKey, createWalletConnectSignEvent} from 'core/evm/walletConnect';
-import { createMetamaskSignEvent, createMetamaskGetPublicKey } from 'core/evm/metamask';
+import {
+  createWalletConnectGetPublicKey,
+  createWalletConnectSignEvent,
+} from 'core/evm/walletConnect';
+import {
+  createMetamaskSignEvent,
+  createMetamaskGetPublicKey,
+} from 'core/evm/metamask';
+import { nostr as JoyIdNostr } from '@joyid/nostr';
 
 // Define the shape of your store state
 export interface RootState {
@@ -71,12 +78,17 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         return async () => state.loginReducer.publicKey!;
       case LoginMode.nip07Wallet:
         return async () => {
-          if(window.nostr){
-            alert("window.nostr is null");
-            throw new Error("window.nostr is null");
+          if (window.nostr) {
+            alert('window.nostr is null');
+            throw new Error('window.nostr is null');
           }
-          
+
           return await window.nostr!.getPublicKey();
+        };
+
+      case LoginMode.joyId:
+        return async () => {
+          return await JoyIdNostr.getPublickey();
         };
       case LoginMode.dotbit:
         return async () => {
@@ -101,10 +113,10 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         };
 
       case LoginMode.metamask:
-        return createMetamaskGetPublicKey(state.loginReducer.evmUsername); 
+        return createMetamaskGetPublicKey(state.loginReducer.evmUsername);
 
-        case LoginMode.walletConnect:
-          return createWalletConnectGetPublicKey(state.loginReducer.evmUsername); 
+      case LoginMode.walletConnect:
+        return createWalletConnectGetPublicKey(state.loginReducer.evmUsername);
 
       default:
         throw new Error('unsupported mode');
@@ -126,6 +138,11 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
           return await window.nostr!.signEvent(raw);
         };
 
+      case LoginMode.nip07Wallet:
+        return async (raw: RawEvent) => {
+          return await JoyIdNostr.signEvent(raw);
+        };
+
       case LoginMode.dotbit:
         return undefined;
 
@@ -135,9 +152,9 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
       case LoginMode.metamask:
         return createMetamaskSignEvent(state.loginReducer.evmUsername);
 
-        case LoginMode.walletConnect:
+      case LoginMode.walletConnect:
         return createWalletConnectSignEvent(state.loginReducer.evmUsername);
-         
+
       default:
         throw new Error('unsupported mode');
     }
@@ -182,11 +199,13 @@ export function writeStore(data: RootState) {
 
 export function readStore(): RootState | any {
   // next.js server window not
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const storedStateString = localStorage.getItem('store');
     let storedState: SavableRootState | undefined;
     try {
-      storedState = storedStateString ? JSON.parse(storedStateString) : undefined;
+      storedState = storedStateString
+        ? JSON.parse(storedStateString)
+        : undefined;
       if (storedState) {
         if (storedState.loginReducer.mode == null) {
           // patch for v0.1.0 version
@@ -231,7 +250,11 @@ export function configureAppStore() {
 
   const store = configureStore({
     reducer: rootReducer,
-    middleware: [...getDefaultMiddleware(), ...middlewares],
+    middleware: (getDefaultMiddleware) =>
+
+    [...getDefaultMiddleware({
+      serializableCheck: false,
+    }), ...middlewares],
     devTools: process.env.NODE_ENV !== 'production',
     enhancers,
     preloadedState: loadStore(),

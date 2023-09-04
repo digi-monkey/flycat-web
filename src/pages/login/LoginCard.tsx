@@ -11,7 +11,6 @@ import { isNip05DomainName } from 'core/nip/05';
 import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'core/nip/19';
 import { isDotBitName } from 'core/dotbit';
 import { Button, Divider, Input, message } from 'antd';
-import { nostr as JoyIdNostr } from '@joyid/nostr';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';

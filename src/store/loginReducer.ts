@@ -267,6 +267,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
 
     case LoginMode.joyId:{
       const pk = await joyIdNostr.getPublickey();
+      console.log("joyId pk: ", pk);
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 
