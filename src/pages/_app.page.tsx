@@ -8,6 +8,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { ConfigProvider } from 'antd';
 import { appWithTranslation } from 'next-i18next';
 import { ReactElement, ReactNode } from 'react';
+import { initConfig } from '@joyid/nostr';
 
 import Head from 'next/head';
 import theme from 'constants/theme';
@@ -22,6 +23,14 @@ type AppPropsWithLayout = AppProps & {
 
 const App = ({ Component, pageProps }: AppPropsWithLayout) => {
   const { store } = wrapper.useWrappedStore(pageProps);
+  initConfig({
+    // your app name
+    name: 'flycat',
+    // your app logo,
+    logo: 'https://flycat.club/logo512.png',
+    // optional, default to 'https://poc.joyid.dev'
+    joyidAppURL: 'https://poc.joyid.dev',
+  }); 
   return (
     <Provider store={store}>
       <ConfigProvider theme={theme}>

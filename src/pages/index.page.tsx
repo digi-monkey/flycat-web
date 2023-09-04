@@ -2,6 +2,7 @@ import HomePage from './home';
 import { NextSeo } from 'next-seo';
 import {serverSideTranslations} from "next-i18next/serverSideTranslations";
 
+
 export default function App() {
   return (
     <>

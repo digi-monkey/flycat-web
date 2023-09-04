@@ -60,6 +60,13 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
     doLogin(loginRequest);
   };
 
+  const signWithJoyId = async () => {
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.joyId,
+    };
+    doLogin(loginRequest);
+  };
+
   const signWithEthWallet = async () => setShowMetamaskSignInPopup(true);
 
   const signWithWalletConnect = async () => {
@@ -204,6 +211,11 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
         <Button className={styles.button} onClick={signWithNip07Wallet}>
           <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
           {t('loginForm.signWithNip07')}
+        </Button>
+
+        <Button className={styles.button} onClick={signWithJoyId}>
+          <img className={styles.icon} style={{transform: "scale(2)"}} src="./icon/joyid-logo.svg" />
+          {'JoyID'}
         </Button>
 
         <Button className={styles.button} onClick={signWithEthWallet}>
