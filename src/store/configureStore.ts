@@ -137,6 +137,11 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         return async (raw: RawEvent) => {
           return await window.nostr!.signEvent(raw);
         };
+      
+       case LoginMode.joyId:
+        return async (raw: RawEvent) => {
+          return await JoyIdNostr.signEvent(raw);
+        };
 
       case LoginMode.nip07Wallet:
         return async (raw: RawEvent) => {
