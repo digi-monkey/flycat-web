@@ -11,6 +11,7 @@ import { isNip05DomainName } from 'core/nip/05';
 import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'core/nip/19';
 import { isDotBitName } from 'core/dotbit';
 import { Button, Divider, Input, message } from 'antd';
+import { nostr as JoyIdNostr } from '@joyid/nostr';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
@@ -56,6 +57,13 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
 
     const loginRequest: LoginRequest = {
       mode: LoginMode.nip07Wallet,
+    };
+    doLogin(loginRequest);
+  };
+
+  const signWithJoyId = async () => {
+    const loginRequest: LoginRequest = {
+      mode: LoginMode.joyId,
     };
     doLogin(loginRequest);
   };
@@ -204,6 +212,11 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
         <Button className={styles.button} onClick={signWithNip07Wallet}>
           <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
           {t('loginForm.signWithNip07')}
+        </Button>
+
+        <Button className={styles.button} onClick={signWithJoyId}>
+          <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
+          {'JoyId'}
         </Button>
 
         <Button className={styles.button} onClick={signWithEthWallet}>

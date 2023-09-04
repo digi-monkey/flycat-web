@@ -12,7 +12,7 @@ import {
   getPublicKeyFromWalletConnectSignIn,
 } from 'core/evm/walletConnect';
 import { disconnectWagmi } from 'core/evm/wagmi/helper';
-
+import { nostr as joyIdNostr } from '@joyid/nostr';
 
 export enum LoginMode {
   local = 'local', // default
@@ -22,6 +22,7 @@ export enum LoginMode {
   nexus = 'nexus',
   dotbit = 'dotbit',
   nip05Domain = 'nip05',
+  joyId = 'joyid',
 }
 
 export enum LoginActionType {
@@ -261,6 +262,23 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         getPublicKey: getPublicKey,
         signEvent: createWalletConnectSignEvent(request.evmUsername),
         evmUsername: request.evmUsername,
+      };
+    }
+
+    case LoginMode.joyId:{
+      const pk = await joyIdNostr.getPublickey();
+      const isLoggedIn = pk != null && pk.length > 0;
+      saveTempMyPublicKey(pk);
+
+      return {
+        mode,
+        isLoggedIn: isLoggedIn,
+        getPublicKey: async () => {
+          return await joyIdNostr.getPublickey();
+        },
+        signEvent: async (raw: RawEvent) => {
+          return await joyIdNostr.signEvent(raw);
+        },
       };
     }
 

@@ -1816,6 +1816,11 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
+"@joyid/nostr@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@joyid/nostr/-/nostr-0.0.1.tgz#4de64530d0e9a19006eac9f82d1dd7eabbd53cf9"
+  integrity sha512-O9qVAe/Ck7Pw5Xz1SOKQTjgQQWNkjo8XIZHqic8hwRR6pQpsX57i/mniz3A8ndPH9fKvI8+/FPmIzfAisOiqNA==
+
 "@jridgewell/gen-mapping@^0.3.0", "@jridgewell/gen-mapping@^0.3.2":
   version "0.3.3"
   resolved "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz#7e02e6eb5df901aaedb08514203b096614024098"
