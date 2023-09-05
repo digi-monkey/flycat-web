@@ -1,7 +1,7 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { createCallRelay } from 'core/worker/util';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
 import { dbQuery } from 'core/db';
@@ -15,7 +15,8 @@ export function useSubMsg({
   isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
 }) {
-  const [intervalId, setIntervalId] = useState<number>();
+  const subIntervalSeconds = 8;
+  let intervalId: number | undefined;
 
   const subMsg = async () => {
     if (!worker) return;
@@ -81,19 +82,36 @@ export function useSubMsg({
     }
   };
 
-  useEffect(() => {
+  const clearProcess = () => {
     if(intervalId){
-      clearInterval(intervalId); 
+      clearInterval(intervalId);
+      console.debug("clear interval id", intervalId);
+      intervalId = undefined;
     }
+  }
 
-    const id = setInterval(() => {
-      subMsg();
-    }, 5000); // Adjust the interval as needed (5000ms = 5 seconds)
-    setIntervalId(id);
+  const startProcess = (seconds: number) => {
+    if(intervalId == null){
+      try {
+        const id = setInterval(() => {
+          subMsg();
+        }, seconds);
+        intervalId = id;
+        console.debug("add new interval id", id);
+      } catch (error: any) {
+        console.debug("add failed, ", error.message);
+      }
+    }
+  }
+
+  useEffect(() => {
+    clearProcess(); 
+    startProcess(subIntervalSeconds * 1000);
 
     return () => {
-      clearInterval(intervalId); // Clear the interval when the component unmounts
+      console.debug("component destroyed..");
+      clearProcess();
     };
-  }, [msgFilter, isValidEvent]); // Empty dependency array ensures the effect runs only once
+  }, [msgFilter]);
 }
 
