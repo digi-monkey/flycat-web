@@ -38,7 +38,7 @@ export class DexieDb extends Dexie {
 		}
 
 		const record = await this.profileEvent.get(event.pubkey);
-		if(record && record.created_at > event.created_at){
+		if(record && record.created_at >= event.created_at){
 			return;
 		}
 		return await this.save(event, relayUrl, this.profileEvent);
@@ -50,7 +50,7 @@ export class DexieDb extends Dexie {
 		}
 
 		const record = await this.contactEvent.get(event.pubkey);
-		if(record && record.created_at > event.created_at){
+		if(record && record.created_at >= event.created_at){
 			return;
 		}
 		return await this.save(event, relayUrl, this.contactEvent);
@@ -61,23 +61,24 @@ export class DexieDb extends Dexie {
 	}
 
 	private async save(event: Event, relayUrl: string, table: Table<DbEvent>){
-		const record = await table.get(event.id);
+		const primaryKey = (event.kind === WellKnownEventKind.contact_list || event.kind === WellKnownEventKind.set_metadata) ? event.pubkey : event.id;
+		const record = await table.get(primaryKey);
 		if (record) {
 			if (record.seen.includes(relayUrl)) {
-				return console.debug("already store: ", event.kind, record.seen, relayUrl, event.id);
+				return console.debug("already store: ", event.kind, record.seen, relayUrl, primaryKey);
 			} else {
 				const seen = record.seen;
 				seen.push(relayUrl);
 				const timestamp = Date.now();
-				const updatedCount = await table.update(event.id, { seen, timestamp });
+				const updatedCount = await table.update(primaryKey, { seen, timestamp });
 				if (updatedCount > 0) {
-					console.debug('Record updated successfully', event.id);
+					console.debug('Record updated successfully', primaryKey);
 				} else {
-					console.debug('Record not found or no changes made', event.id);
+					console.debug('Record not found or no changes made', primaryKey);
 				}
 			}
 		} else {
-			console.debug('New Record Added ', event.kind, event.id);
+			console.debug('New Record Added ', event.kind, primaryKey);
 			await table.add({
 				...event, ...{
 					seen: [relayUrl],
