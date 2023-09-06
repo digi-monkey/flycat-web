@@ -16,7 +16,6 @@ const PostContent = ({
   t,
 }) => {
   const myPublicKey = useReadonlyMyPublicKey();
-
   return (
     <div className={styles.postContent}>
       <div className={styles.postHeader}>
@@ -86,7 +85,7 @@ const PostContent = ({
             ),
           }}
         >
-          {content ?? ''}
+          {content ? content.replace(/\n\n/gi, "&nbsp; \n\n") : ''}
         </ReactMarkdown>
       </div>
 
