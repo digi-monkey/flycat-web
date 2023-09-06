@@ -8,11 +8,23 @@ import {
   Switch,
   Tag,
 } from 'antd';
+import { dexieDb } from 'core/db';
 import { RelayGroup } from 'core/relay/group';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useEffect, useState } from 'react';
 
 export default function Preference() {
   const myPublicKey = useReadonlyMyPublicKey();
+  const [storage, setStorage] = useState<number>(0);
+
+  useEffect(()=>{
+    updateStorage(); 
+  }, []);
+
+  const updateStorage = () => {
+    dexieDb.estimateSize().then(setStorage);
+  }
+
   const resetRelayGroups = () => {
     Modal.confirm({
       title: 'Restore Default Groups',
@@ -28,9 +40,27 @@ export default function Preference() {
       },
     });
   };
+
+  const clearLocalDb = () => {
+    Modal.confirm({
+      title: 'Delete Local Database',
+      content:
+        'This will delete all local cache data it will not effect usage though, continue?',
+      async onOk() {
+        await dexieDb.event.clear();
+        await dexieDb.profileEvent.clear();
+        await dexieDb.contactEvent.clear();
+        updateStorage();
+      },
+      onCancel() {
+        Modal.destroyAll();
+      },
+    });
+  }; 
+
   return (
     <List size="large">
-      <Divider orientation="left">Relay Groups</Divider>
+      <Divider orientation="left">General</Divider>
 
       <List.Item
         actions={[
@@ -39,11 +69,24 @@ export default function Preference() {
             disabled={!myPublicKey || myPublicKey.length === 0}
             onClick={resetRelayGroups}
           >
-            Reset
+            Restore
           </Button>,
         ]}
       >
-        Restore Default
+        Default Relay Groups
+      </List.Item>
+
+      <List.Item
+        actions={[
+          <Button
+            key={'data-cache'}
+            onClick={clearLocalDb}
+          >
+            Delete 
+          </Button>,
+        ]}
+      >
+        Local Database(<span>{storage} mb</span>)
       </List.Item>
 
       <Divider orientation="left">
