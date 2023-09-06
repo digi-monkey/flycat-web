@@ -17,13 +17,14 @@ import { stringHasImageUrl } from 'utils/common';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { contactQuery } from 'core/db';
+import { isValidPublicKey } from 'utils/validator';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-import { isValidPublicKey } from 'utils/validator';
+import { HomeFilterMsg, containsChinese, isPrimaryChineseText } from './filter';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -43,7 +44,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
-  const [selectFilter, setSelectFilter] = useState<string>('All');
+  const [selectFilter, setSelectFilter] = useState<HomeFilterMsg>(HomeFilterMsg.all);
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   const [isQueryContactEvent, setIsQueryContactEvent] = useState<boolean>(false);
@@ -112,7 +113,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     let isValidEvent: ((event: Event) => boolean) | undefined;
     let emptyDataReactNode: ReactNode | null = null;
 
-    if (selectFilter === 'All') {
+    if (selectFilter === HomeFilterMsg.all) {
       const kinds = [
         WellKnownEventKind.text_note,
         WellKnownEventKind.article_highlight,
@@ -128,7 +129,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       };
     }
 
-    if (selectFilter === 'Article') {
+    if (selectFilter === HomeFilterMsg.article) {
       msgFilter = {
         limit: 50,
         kinds: [WellKnownEventKind.long_form],
@@ -138,7 +139,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       };
     }
 
-    if (selectFilter === 'Media') {
+    if (selectFilter === HomeFilterMsg.media) {
       msgFilter = {
         limit: 50,
         kinds: [WellKnownEventKind.text_note],
@@ -147,6 +148,19 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         return (
           event.kind === WellKnownEventKind.text_note &&
           stringHasImageUrl(event.content)
+        );
+      };
+    }
+
+    if (selectFilter === HomeFilterMsg.zh) {
+      msgFilter = {
+        limit: 51,
+        kinds: [WellKnownEventKind.text_note],
+      };
+      isValidEvent = (event: Event) => {
+        return (
+          event.kind === WellKnownEventKind.text_note &&
+          isPrimaryChineseText(event.content)
         );
       };
     }
@@ -219,8 +233,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           <div className={styles.msgFilter}>
             <Segmented
               value={selectFilter}
-              onChange={val => setSelectFilter(val as string)}
-              options={['All', 'Article', 'Media']}
+              onChange={val => setSelectFilter(val as HomeFilterMsg)}
+              options={[HomeFilterMsg.all, HomeFilterMsg.article, HomeFilterMsg.media, HomeFilterMsg.zh]}
             />
           </div>
         </div>
