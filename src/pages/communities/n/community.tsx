@@ -609,6 +609,7 @@ export function Community({
               identifier: community.id,
               author: community.creator,
             })}
+            pubSuccessCallback={() => setOpenWrite(false)}
           />
         </Modal>
       </div>

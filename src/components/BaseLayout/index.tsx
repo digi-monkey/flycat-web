@@ -76,7 +76,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPa
       closeIcon={<Icon type='icon-cross' className={styles.modalCoseIcons} />}
     >
       <p>{t('baseLayout.modal.desc')}</p>
-      <PubNoteTextarea />
+      <PubNoteTextarea pubSuccessCallback={()=>setOpenWrite(false)}/>
     </Modal>
   </Container>;
 };
