@@ -331,16 +331,16 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const mentionMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.text_note,
-  ).slice(0,15);
+  ).slice(0, 15);
   const repostMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.reposts,
-  ).slice(0,15);
+  ).slice(0, 15);
   const zapMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.zap_receipt,
-  ).slice(0,15);
+  ).slice(0, 15);
   const newApproveMsgList = msgList.filter(
     e => e.kind === WellKnownEventKind.community_approval,
-  ).slice(0,15);
+  ).slice(0, 15);
 
   const mentionUI = useMemo(
     () => (
@@ -350,8 +350,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           relays={relays}
           msgList={mentionMsgList}
           worker={worker!}
-          userMap={userMap}
-          eventMap={eventMap}
         />
       </>
     ),
@@ -365,8 +363,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
           relays={relays}
           msgList={repostMsgList}
           worker={worker!}
-          userMap={userMap}
-          eventMap={eventMap}
         />
       </>
     ),
@@ -432,7 +428,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   onClick={() =>
                     router.push(
                       '/communities/n/' +
-                        encodeURIComponent(Nip172.communityAddr(community)),
+                      encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
                 >
@@ -452,8 +448,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[postEvent!]}
                     worker={worker!}
-                    userMap={userMap}
-                    eventMap={eventMap}
                     relays={relays}
                     showFromCommunity={false}
                   />
@@ -505,7 +499,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   onClick={() =>
                     router.push(
                       '/communities/n/' +
-                        encodeURIComponent(Nip172.communityAddr(community)),
+                      encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
                 >
@@ -533,20 +527,18 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[msg!]}
                     worker={worker!}
-                    userMap={userMap}
-                    eventMap={eventMap}
                     relays={relays}
                     showFromCommunity={false}
                     extraMenu={
                       isAlreadyApproved
                         ? []
                         : [
-                            {
-                              label: 'approve this event',
-                              onClick: (event, message) =>
-                                createApproval(event, message),
-                            },
-                          ]
+                          {
+                            label: 'approve this event',
+                            onClick: (event, message) =>
+                              createApproval(event, message),
+                          },
+                        ]
                     }
                   />
                 </>

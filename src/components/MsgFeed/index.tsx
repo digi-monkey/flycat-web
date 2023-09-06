@@ -1,12 +1,10 @@
 import { Button } from 'antd';
 
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { EventWithSeen } from 'pages/type';
+import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
-import { EventMap, Filter, UserMap } from 'core/nostr/type';
+import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
-import { subMsgAsync, useSubMsg } from './hook/useSubMsg';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
 import { useTranslation } from 'react-i18next';
@@ -14,39 +12,35 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
+import { dbQuery } from 'core/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { DbEvent } from 'core/db/schema';
+import { validateFilter } from './util';
+import { useSubMsg } from './hook/useSubMsg';
+import { mergeAndSortUniqueDbEvents } from 'utils/common';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
-  isValidEvent?: (event: Event) => boolean; 
+  isValidEvent?: (event: Event) => boolean;
   emptyDataReactNode?: React.ReactNode;
 }
 
 export interface MsgFeedProp {
   msgSubProp: MsgSubProp;
   worker: CallWorker | undefined;
-  newConn: string[];
-  userMap: UserMap;
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
-  eventMap: EventMap;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }
 
 export const MsgFeed: React.FC<MsgFeedProp> = ({
   msgSubProp,
   worker,
-  newConn,
-  userMap,
-  setUserMap,
-  eventMap,
-  setEventMap,
-  maxMsgLength: _maxMsgLength
+  maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
-  const {msgFilter, isValidEvent, emptyDataReactNode} = msgSubProp;
+  const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [msgList, setMsgList] = useState<EventWithSeen[]>([]);
+  const [msgList, setMsgList] = useState<DbEvent[]>([]);
+  const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
 
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
@@ -54,59 +48,98 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useSubMsg({
     msgFilter,
     isValidEvent,
-    setIsRefreshing,
     worker,
-    newConn,
-    setMsgList,
-    setUserMap,
-    setEventMap,
-    maxMsgLength,
   });
-  useLastReplyEvent({ msgList, worker, userMap, setUserMap, setEventMap });
+  useLastReplyEvent({ msgList, worker });
   useLoadMoreMsg({
     msgFilter,
     isValidEvent,
     msgList,
     worker,
-    setEventMap,
-    maxMsgLength,
     setMsgList,
     loadMoreCount,
   });
 
-  useEffect(() => {
-    return () => {
-      setMsgList([]);
-    };
-  }, []);
+  useLiveQuery(
+    async () => {
+      if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+      if (msgList.length === 0) return [] as DbEvent[];
 
-  useEffect(()=>{
-    console.log("changed!");
+      const lastMsgItem = msgList[0];
+      const since = lastMsgItem.created_at; 
+      const filter = { ...msgFilter, since };
+      let events = await dbQuery.matchFilterRelay(filter, relayUrls);
+      if (isValidEvent) {
+        events = events.filter(e => isValidEvent(e)).filter(e => {
+          if(e.kind === WellKnownEventKind.community_approval){
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if(targetEvent.created_at <= lastMsgItem.created_at){
+                return false;
+              }
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        });
+      }
+      events = events.map(e => {
+        if(e.kind === WellKnownEventKind.community_approval){
+          const event = {...e, ...JSON.parse(e.content) as DbEvent};
+          return event;
+        }
+        return e;
+      });
+      events = mergeAndSortUniqueDbEvents(events, events);
+      console.log('query diff: ', events, events.length, filter);
+      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events, prev));
+    },
+    [msgSubProp, msgList[0]],
+    [] as DbEvent[],
+  );
+
+  const query = async () => {
+    if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
+    if (isValidEvent) {
+      events = events.filter(e => isValidEvent(e));
+    }
+    events = events.map(e => {
+      if(e.kind === WellKnownEventKind.community_approval){
+        const event = {...e, ...JSON.parse(e.content) as DbEvent};
+        return event;
+      }
+      return e;
+    });
+    events = mergeAndSortUniqueDbEvents(events, events);
+    console.log('query: ', events.length, relayUrls, msgFilter);
+    setMsgList(events);
+  };
+
+  useEffect(() => {
+    if(!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)return;
+    setNewComingMsg([]);
     setMsgList([]);
-  },[msgSubProp]);
+
+    query();
+  }, [msgFilter, worker?.relayGroupId]);
+
+  const onClickNewMsg = () => {
+    setMsgList(prev => mergeAndSortUniqueDbEvents(newComingMsg, prev).slice(0, maxMsgLength));
+    setNewComingMsg([]);
+  };
 
   return (
     <>
-      <div className={styles.reloadFeedBtn}>
-        <Button
-          loading={isRefreshing}
-          type="link"
-          block
-          onClick={async () => {
-            setIsRefreshing(true);
-            await subMsgAsync({
-              msgFilter,
-              worker,
-              setMsgList,
-              setEventMap,
-              maxMsgLength,
-            });
-            setIsRefreshing(false);
-          }}
-        >
-          Refresh timeline
-        </Button>
-      </div>
+      {newComingMsg.length > 0 && (
+        <div className={styles.reloadFeedBtn}>
+          <Button onClick={onClickNewMsg} type="link">
+            Show {newComingMsg.length} new posts
+          </Button>
+        </div>
+      )}
+
       <div
         className={classNames(styles.home, {
           [styles.noData]: msgList.length === 0,
@@ -118,9 +151,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
               <PostItems
                 msgList={msgList}
                 worker={worker!}
-                userMap={userMap}
                 relays={relayUrls}
-                eventMap={eventMap}
                 showLastReplyToEvent={true}
               />
             </div>

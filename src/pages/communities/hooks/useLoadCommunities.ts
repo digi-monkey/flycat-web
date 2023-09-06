@@ -6,17 +6,15 @@ import { useEffect } from 'react';
 export function useLoadCommunities({
   worker,
   newConn,
-  handleEvent,
 }: {
   worker?: CallWorker;
   newConn: string[];
-  handleEvent: (event, relayUrl) => any;
 }) {
   useEffect(() => {
     if (!worker) return;
 
     const callRelay = createCallRelay(newConn);
     const filter = Nip172.communitiesFilter();
-    worker.subFilter({ filter, callRelay }).iterating({ cb: handleEvent });
+    worker.subFilter({ filter, callRelay });
   }, [newConn, worker]);
 }

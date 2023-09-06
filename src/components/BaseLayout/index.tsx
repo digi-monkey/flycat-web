@@ -13,6 +13,7 @@ import PcPadNav from './pc';
 import Container from 'components/Container';
 import classNames from 'classnames';
 import PubNoteTextarea from '../PubNoteTextarea';
+
 export interface BaseLayoutProps {
   children: React.ReactNode;
   silent?: boolean;
@@ -38,9 +39,7 @@ export const Right: React.FC<RightProps> = ({ children }) => <div>{children}</di
 
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPage }) => {
   const { t } = useTranslation();
-  const { userMap } = useUserInfo();
-  const myPublicKey = useReadonlyMyPublicKey();
-  const user = userMap.get(myPublicKey);
+  const { myProfile } = useUserInfo();
   const isMobile = useMatchMobile();
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
@@ -55,8 +54,8 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPa
 
   return <Container>
     {
-      isMobile ? <Mobile body={leftNodes} user={user} setOpenWrite={setOpenWrite} /> : <>
-        <PcPadNav user={user} setOpenWrite={setOpenWrite} />
+      isMobile ? <Mobile body={leftNodes} user={myProfile} setOpenWrite={setOpenWrite} /> : <>
+        <PcPadNav user={myProfile} setOpenWrite={setOpenWrite} />
         <main className={classNames(styles.pcPadMain, {
           [styles.rightExists]: rightNodes.length
         })}>

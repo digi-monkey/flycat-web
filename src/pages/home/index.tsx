@@ -5,31 +5,25 @@ import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
-import { loginMapStateToProps } from 'pages/helper';
+import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import {
-  ContactList,
-  EventMap,
-  Filter,
-  PublicKey,
-  UserMap,
-  WellKnownEventKind,
-} from 'core/nostr/type';
+import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { Event } from 'core/nostr/Event';
+import { stringHasImageUrl } from 'utils/common';
+import { useMatchMobile } from 'hooks/useMediaQuery';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { contactQuery } from 'core/db';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
-
-import styles from './index.module.scss';
-import { Event } from 'core/nostr/Event';
-import { stringHasImageUrl } from 'utils/common';
-
 import dynamic from 'next/dynamic';
-import { useMatchMobile } from 'hooks/useMediaQuery';
+import styles from './index.module.scss';
+import { isValidPublicKey } from 'utils/validator';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,17 +40,26 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
   const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
-  const [eventMap, setEventMap] = useState<EventMap>(new Map());
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [myContactList, setMyContactList] = useState<ContactList>();
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
   const [selectFilter, setSelectFilter] = useState<string>('All');
-
+  const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
+  const [isQueryContactEvent, setIsQueryContactEvent] = useState<boolean>(false);
+  useSubContactList(myPublicKey, newConn, worker);
 
-  useSubContactList(myPublicKey, newConn, worker, setMyContactList);
+  useLiveQuery(() => {
+    if (!isValidPublicKey(myPublicKey)) return;
+
+    contactQuery.getContactByPubkey(myPublicKey).then(e => {
+      if (e != null) {
+        setMyContactEvent(e);
+      }
+      setIsQueryContactEvent(true);
+    });
+    setMyContactEvent;
+  }, [myPublicKey]);
 
   // right test data
   const updates = [
@@ -159,7 +162,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         return console.debug('no my public key', myPublicKey);
       }
 
-      const followings = myContactList?.keys || [];
+      const followings: string[] = myContactEvent
+        ? parsePubKeyFromTags(myContactEvent.tags)
+        : [];
       if (!followings.includes(myPublicKey)) {
         followings.push(myPublicKey);
       }
@@ -183,12 +188,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       isValidEvent,
       emptyDataReactNode,
     };
-    setMsgSubProp(prev => msgSubProp);
+    setMsgSubProp(msgSubProp);
   };
 
   useEffect(() => {
     onMsgFeedChanged();
-  }, [selectFilter, selectTabKey, myContactList, myPublicKey]);
+  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey]);
 
   return (
     <BaseLayout>
@@ -220,15 +225,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           </div>
         </div>
 
-        <MsgFeed
-          msgSubProp={msgSubProp}
-          worker={worker}
-          newConn={newConn}
-          setEventMap={setEventMap}
-          setUserMap={setUserMap}
-          eventMap={eventMap}
-          userMap={userMap}
-        />
+        <MsgFeed msgSubProp={msgSubProp} worker={worker} />
       </Left>
       <Right>
         <div className={styles.rightPanel}>

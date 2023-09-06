@@ -1,61 +1,64 @@
-import { EventMap, Filter, UserMap, WellKnownEventKind } from 'core/nostr/type';
+import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { createCallRelay } from 'core/worker/util';
-import { EventWithSeen } from 'pages/type';
-import { Dispatch, SetStateAction, useEffect } from 'react';
-import {
-  onSetEventMap,
-  onSetUserMap,
-  setEventWithSeenMsgList,
-  setMaxLimitEventWithSeenMsgList,
-} from 'pages/helper';
+import { useEffect } from 'react';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
+import { dbQuery } from 'core/db';
 
 export function useSubMsg({
   msgFilter,
   isValidEvent,
-  setIsRefreshing,
   worker,
-  newConn,
-  setMsgList,
-  setUserMap,
-  setEventMap,
-  maxMsgLength,
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
-  setIsRefreshing: Dispatch<SetStateAction<boolean>>;
   worker: CallWorker | undefined;
-  newConn: string[];
-  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
-  maxMsgLength?: number;
 }) {
+  const subIntervalSeconds = 8;
+  let intervalId: number | undefined;
+
   const subMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
-    setIsRefreshing(true);
+
+    let since = msgFilter.since;
+
+    const relayUrls = worker.relays.map(r => r.url) || [];
+    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
+    if(isValidEvent){
+      events = events.filter(e => isValidEvent(e)).filter(e => e!=null);
+    }
+    if(events.length > 0){
+      if(since == null){
+        since = events[0].created_at;
+      }else{
+        if(since > events[0].created_at){
+          since = events[0].created_at; 
+        }
+      }
+    }else{
+      if(since == null){
+        since = 0;
+      }
+    }
+    const filter = {...msgFilter, since};
+
     const pks: string[] = [];
 
-    const callRelay = createCallRelay(newConn);
+    const callRelay = createCallRelay([]);
     console.debug(
       'start sub msg..',
-      newConn,
-      msgFilter,
+      filter,
       callRelay,
       isValidEvent,
       typeof isValidEvent,
     );
     const dataStream = worker
-      .subFilter({ filter: msgFilter, callRelay })
+      .subFilter({ filter, callRelay })
       .getIterator();
     for await (const data of dataStream) {
       const event = data.event;
-      const relayUrl = data.relayUrl!;
-      onSetEventMap(event, setEventMap);
-
       if (isValidEvent) {
         if (!isValidEvent(event)) {
           continue;
@@ -65,82 +68,55 @@ export function useSubMsg({
       if (!pks.includes(event.pubkey)) {
         pks.push(event.pubkey);
       }
-
-      if (maxMsgLength) {
-        setMaxLimitEventWithSeenMsgList(
-          event,
-          relayUrl!,
-          setMsgList,
-          maxMsgLength,
-        );
-      } else {
-        setEventWithSeenMsgList(event, relayUrl!, setMsgList);
-      }
     }
     dataStream.unsubscribe();
     console.debug('finished sub msg!');
-    setIsRefreshing(false);
 
     // sub user profiles
     if (pks.length > 0) {
       worker
-        ?.subFilter({
+        .subFilter({
           filter: {
             kinds: [WellKnownEventKind.set_metadata],
             authors: pks,
           },
           callRelay,
         })
-        .iterating({
-          cb: event => {
-            onSetUserMap(event, setUserMap);
-          },
-        });
     }
   };
 
-  useEffect(() => {
-    subMsg();
-  }, [worker, newConn, msgFilter]);
-}
-
-export async function subMsgAsync({
-  msgFilter,
-  worker,
-  setMsgList,
-  setEventMap,
-  maxMsgLength,
-}: {
-  msgFilter?: Filter;
-  worker: CallWorker | undefined;
-  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
-  maxMsgLength?: number;
-}) {
-  if (!worker) return;
-  if (!msgFilter || !validateFilter(msgFilter)) return;
-
-  const callRelay = createCallRelay([]);
-  const dataStream = worker
-    .subFilter({ filter: msgFilter, callRelay })
-    .getIterator();
-  for await (const data of dataStream) {
-    const event = data.event;
-    const relayUrl = data.relayUrl!;
-    onSetEventMap(event, setEventMap);
-
-    if (maxMsgLength) {
-      setMaxLimitEventWithSeenMsgList(
-        event,
-        relayUrl!,
-        setMsgList,
-        maxMsgLength,
-      );
-    } else {
-      setEventWithSeenMsgList(event, relayUrl!, setMsgList);
+  const clearProcess = () => {
+    if(intervalId){
+      clearInterval(intervalId);
+      console.debug("clear interval id", intervalId);
+      intervalId = undefined;
     }
   }
 
-  dataStream.unsubscribe();
-  return;
+  const startProcess = (seconds: number) => {
+    if(intervalId == null){
+      try {
+        // call first and then get iteration
+        subMsg();
+        const id = setInterval(() => {
+          subMsg();
+        }, seconds);
+        intervalId = id;
+        console.debug("add new interval id", id);
+      } catch (error: any) {
+        console.debug("add failed, ", error.message);
+      }
+    }
+  }
+
+  useEffect(() => {
+    clearProcess(); 
+    startProcess(subIntervalSeconds * 1000);
+
+    return () => {
+      console.debug("component destroyed..");
+      clearProcess();
+    };
+  }, [msgFilter]);
 }
+

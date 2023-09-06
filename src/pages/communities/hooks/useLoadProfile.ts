@@ -4,15 +4,13 @@ import { CallWorker } from 'core/worker/caller';
 import { createCallRelay } from 'core/worker/util';
 import { useEffect } from 'react';
 
-export function useLoadProfiles({
+export function useLoadModeratorProfiles({
   worker,
   newConn,
-  handleEvent,
   communities,
 }: {
   worker?: CallWorker;
   newConn: string[];
-  handleEvent: (event, relayUrl) => any;
   communities: Map<Naddr, CommunityMetadata>;
 }) {
   useEffect(() => {
@@ -27,6 +25,5 @@ export function useLoadProfiles({
       .flat() as string[];
     worker
       .subMetadata(pks, undefined, callRelay)
-      .iterating({ cb: handleEvent });
   }, [newConn, worker, communities]);
 }

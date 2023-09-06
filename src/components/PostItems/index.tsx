@@ -1,6 +1,5 @@
 import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
-import { EventMap, UserMap } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
@@ -18,12 +17,15 @@ import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dexieDb } from 'core/db';
+import { DbEvent } from 'core/db/schema';
+import { useMemo } from 'react';
+import { deserializeMetadata } from 'core/nostr/content';
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
   worker: CallWorker;
-  userMap: UserMap;
-  eventMap: EventMap;
   relays: string[];
   showLastReplyToEvent?: boolean;
   showFromCommunity?: boolean;
@@ -37,77 +39,82 @@ interface PostItemsProps {
 const PostItems: React.FC<PostItemsProps> = ({
   msgList,
   worker,
-  userMap,
-  eventMap,
   relays,
   showLastReplyToEvent = true,
   showFromCommunity = true,
   extraMenu,
   extraHeader
 }) => {
-  const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
+  const pks = useMemo(()=>msgList.map(m => m.pubkey), [msgList]);
+  const profileEvents = useLiveQuery(async ()=>{
+    const events = await dexieDb.profileEvent.bulkGet(pks);
+    return events.filter(e => e != null) as DbEvent[];
+  }, [msgList], [] as DbEvent[]);
+  const getUser = (msg: EventWithSeen) => {
+    const userEvent = profileEvents.find(e => e.pubkey === msg.pubkey);
+    if(!userEvent){
+      return null;
+    }
+    return deserializeMetadata(userEvent.content);
+  } 
 
   return (
     <>
       {msgList.map(msg =>
-        Nip18.isRepostEvent(msg) ? (
-          <PostRepost
-            event={msg}
-            userMap={userMap}
-            worker={worker}
-            eventMap={eventMap}
-            showLastReplyToEvent={showLastReplyToEvent}
-            key={msg.id}
-          />
-        ) : (
-          <div className={styles.post} key={msg.id}>
-            {extraHeader}
-            {showFromCommunity && <PostCommunityHeader event={msg} />}
-            <PostUser
-              publicKey={msg.pubkey}
-              avatar={getUser(msg)?.picture || ''}
-              name={getUser(msg)?.name}
-              time={msg.created_at}
+        {
+          
+          return Nip18.isRepostEvent(msg) ? (
+            <PostRepost
               event={msg}
-              extraMenu={extraMenu}
+              worker={worker}
+              showLastReplyToEvent={showLastReplyToEvent}
+              key={msg.id}
             />
-            <div className={styles.content}>
-              {Nip23.isBlogPost(msg) ? (
-                <PostArticle
-                  userAvatar={getUser(msg)?.picture || ''}
-                  userName={getUser(msg)?.name || ''}
-                  event={msg}
-                  key={msg.id}
-                />
-              ) : Nip23.isBlogCommentMsg(msg) ? (
-                <PostArticleComment
-                  userMap={userMap}
-                  eventMap={eventMap}
-                  event={msg}
-                  worker={worker}
-                  key={msg.id}
-                  showReplyArticle={showLastReplyToEvent}
-                />
-              ) : Nip9802.isBlogHighlightMsg(msg) ? (
-                <>HighlightMsg</>
-              ) : (
-                <PostContent
-                  ownerEvent={msg}
-                  userMap={userMap}
-                  worker={worker}
-                  eventMap={eventMap}
-                  showLastReplyToEvent={showLastReplyToEvent}
-                />
-              )}
-              <PostReactions
-                ownerEvent={toUnSeenEvent(msg)}
-                worker={worker}
-                seen={msg.seen!}
-                userMap={userMap}
+          ) : (
+            <div className={styles.post} key={msg.id}>
+              {extraHeader}
+              {showFromCommunity && <PostCommunityHeader event={msg} />}
+              <PostUser
+                publicKey={msg.pubkey}
+                avatar={getUser(msg)?.picture || ''}
+                name={getUser(msg)?.name}
+                time={msg.created_at}
+                event={msg}
+                extraMenu={extraMenu}
               />
+              <div className={styles.content}>
+                {Nip23.isBlogPost(msg) ? (
+                  <PostArticle
+                    userAvatar={getUser(msg)?.picture || ''}
+                    userName={getUser(msg)?.name || ''}
+                    event={msg}
+                    key={msg.id}
+                  />
+                ) : Nip23.isBlogCommentMsg(msg) ? (
+                  <PostArticleComment
+                    event={msg}
+                    worker={worker}
+                    key={msg.id}
+                    showReplyArticle={showLastReplyToEvent}
+                  />
+                ) : Nip9802.isBlogHighlightMsg(msg) ? (
+                  <>HighlightMsg</>
+                ) : (
+                  <PostContent
+                    ownerEvent={msg}
+                    worker={worker}
+                    showLastReplyToEvent={showLastReplyToEvent}
+                  />
+                )}
+                <PostReactions
+                  ownerEvent={toUnSeenEvent(msg)}
+                  worker={worker}
+                  seen={msg.seen!}
+                />
+              </div>
             </div>
-          </div>
-        ),
+          )
+        }
       )}
     </>
   );

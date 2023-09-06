@@ -1,15 +1,21 @@
-import { EventId, EventMap, EventTags } from 'core/nostr/type';
+import {
+  EventId,
+  EventSetMetadataContent,
+  EventTags,
+} from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
 import { Relay } from 'core/relay/type';
-import { extractEmbedRef } from './Embed/util';
+import {
+  EmbedRef,
+  extractEmbedRef,
+  getPubkeysFromEmbedRef,
+} from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
 import { Avatar, Button } from 'antd';
 import {
@@ -23,20 +29,18 @@ import PostArticle from '../PostArticle';
 import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { maxStrings } from 'utils/common';
-import Icon from 'components/Icon';
 import { useRouter } from 'next/router';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery, dexieDb } from 'core/db';
+import { DbEvent } from 'core/db/schema';
 
 interface PostContentProp {
   ownerEvent: Event;
-  eventMap: EventMap;
-  userMap: UserMap;
   worker: CallWorker;
   showLastReplyToEvent?: boolean;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
-  userMap,
-  eventMap,
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
@@ -44,10 +48,10 @@ export const PostContent: React.FC<PostContentProp> = ({
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
   const [relayUrls, setRelayUrls] = useState<string[]>([]);
-  const [embedRef, setEmbedRef] = useState<any>();
+  const [embedRef, setEmbedRef] = useState<EmbedRef>();
   const [contentComponents, setContentComponents] = useState<any[]>([]);
-  const [lastReplyToEvent, setLastReplyToEvent] = useState<Event>();
   const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
+  const [profileEvents, setProfileEvents] = useState<DbEvent[]>([]);
 
   useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
     setRelayUrls(r.map(r => r.url));
@@ -60,8 +64,14 @@ export const PostContent: React.FC<PostContentProp> = ({
   useEffect(() => {
     if (!embedRef) return;
 
+    const pks = getPubkeysFromEmbedRef(embedRef);
+
+    dexieDb.profileEvent.bulkGet(pks).then(events => {
+      const data = events.filter(e => e != null) as DbEvent[];
+      setProfileEvents(data);
+    });
     transformContent();
-  }, [embedRef, userMap]);
+  }, [embedRef]);
 
   useEffect(() => {
     if (showLastReplyToEvent) {
@@ -69,21 +79,21 @@ export const PostContent: React.FC<PostContentProp> = ({
     }
   }, [msgEvent.content]);
 
-  useEffect(() => {
-    if (lastReplyToEventId && eventMap.get(lastReplyToEventId)) {
-      setLastReplyToEvent(eventMap.get(lastReplyToEventId));
-    }
-  }, [eventMap, lastReplyToEventId]);
+  const lastReplyEventFromDb = useLiveQuery(
+    dbQuery.createEventByIdQuerier(relayUrls, lastReplyToEventId),
+    [relayUrls, lastReplyToEventId],
+  );
 
   const transformContent = async () => {
+    if (!embedRef) return;
     const { modifiedText } = normalizeContent(msgEvent.content);
-    const result = transformRefEmbed(modifiedText, embedRef, userMap);
+    const result = transformRefEmbed(modifiedText, embedRef, profileEvents);
     setContentComponents(result);
   };
 
   const extractFromContent = async () => {
     const { modifiedText } = normalizeContent(msgEvent.content);
-    const ref = await extractEmbedRef(modifiedText, userMap, relayUrls);
+    const ref = await extractEmbedRef(modifiedText, relayUrls);
     setEmbedRef(ref);
   };
 
@@ -98,32 +108,27 @@ export const PostContent: React.FC<PostContentProp> = ({
     if (lastReply) {
       setLastReplyToEventId(lastReply.id);
 
-      if (eventMap.get(lastReply.id)) {
-        setLastReplyToEvent(eventMap.get(lastReply.id));
+      if (lastReplyEventFromDb) {
         return;
       }
 
       // fallback
-      if (lastReply.relay && lastReply.relay !== '') {
-        const replyToEvent = await OneTimeWebSocketClient.fetchEvent({
-          eventId: lastReply.id,
-          relays: [lastReply.relay],
-        });
-        if (replyToEvent) {
-          setLastReplyToEvent(replyToEvent);
-        }
-      }
+      // if (lastReply.relay && lastReply.relay !== '') {
+      //   const replyToEvent = await OneTimeWebSocketClient.fetchEvent({
+      //     eventId: lastReply.id,
+      //     relays: [lastReply.relay],
+      //   });
+      //   if (replyToEvent) {
+      //     //setLastReplyToEvent(replyToEvent);
+      //   }
+      // }
     }
   };
 
   const tryReloadLastReplyEvent = () => {
     if (!lastReplyToEventId) return;
 
-    worker.subMsgByEventIds([lastReplyToEventId]).iterating({
-      cb: (event, url) => {
-        setLastReplyToEvent({ ...event, ...{ seen: [url!] } });
-      },
-    });
+    worker.subMsgByEventIds([lastReplyToEventId]);
   };
 
   const [expanded, setExpanded] = useState(false);
@@ -143,21 +148,6 @@ export const PostContent: React.FC<PostContentProp> = ({
     </div>
   );
 
-  const extraContent = <>{showLastReplyToEvent && lastReplyToEvent && (
-    <SubPostItem userMap={userMap} event={lastReplyToEvent} />
-  )}
-  {showLastReplyToEvent && !lastReplyToEvent && lastReplyToEventId && (
-    <div className={styles.replyEvent}>
-      <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
-        event@{shortifyEventId(lastReplyToEventId)}
-      </Link>
-      <Button onClick={tryReloadLastReplyEvent} type="link">
-        try reload
-      </Button>
-    </div>
-  )}
-  <MediaPreviews content={msgEvent.content} /></>
-
   return (
     <div>
       {expanded ? (
@@ -166,24 +156,47 @@ export const PostContent: React.FC<PostContentProp> = ({
         <div>
           <div
             ref={contentRef}
-            style={{ maxHeight: '100px', overflow: 'hidden'}}
+            style={{ maxHeight: '100px', overflow: 'hidden' }}
           >
             {content}
           </div>
-          {isOverflow && <Button className={styles.viewMore} type='link' onClick={toggleExpanded}> View More</Button>}
+          {isOverflow && (
+            <Button
+              className={styles.viewMore}
+              type="link"
+              onClick={toggleExpanded}
+            >
+              {' '}
+              View More
+            </Button>
+          )}
         </div>
       )}
-      {extraContent}
+      <>
+        {showLastReplyToEvent && lastReplyEventFromDb && (
+          <SubPostItem event={lastReplyEventFromDb} />
+        )}
+        {showLastReplyToEvent && !lastReplyEventFromDb && lastReplyToEventId && (
+          <div className={styles.replyEvent}>
+            <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
+              event@{shortifyEventId(lastReplyToEventId)}
+            </Link>
+            <Button onClick={tryReloadLastReplyEvent} type="link">
+              try reload
+            </Button>
+          </div>
+        )}
+        <MediaPreviews content={msgEvent.content} />
+      </>
     </div>
   );
 };
 
 export interface SubPostItemProp {
   event: Event;
-  userMap: UserMap;
 }
 
-export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
+export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
   const router = useRouter();
   const clickUserProfile = () => {
     router.push(`/user/${event.pubkey}`);
@@ -192,19 +205,35 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event, userMap }) => {
     router.push(`/event/${event.id}`);
   };
 
+  const [loadedUserProfile, setLoadedUserProfile] =
+    useState<EventSetMetadataContent>();
+  const loadUserProfile = async () => {
+    // todo: set relay urls with correct one
+    const profileEvent = await dexieDb.profileEvent.get(event.pubkey);
+    if (profileEvent) {
+      const metadata = JSON.parse(
+        profileEvent.content,
+      ) as EventSetMetadataContent;
+      setLoadedUserProfile(metadata);
+    }
+  };
+  useEffect(() => {
+    loadUserProfile();
+  }, [event]);
+
   return Nip23.isBlogPost(event) ? (
     <PostArticle
-      userAvatar={userMap.get(event.pubkey)?.picture || ''}
-      userName={userMap.get(event.pubkey)?.name || ''}
+      userAvatar={loadedUserProfile?.picture || ''}
+      userName={loadedUserProfile?.name || ''}
       event={event}
       key={event.id}
     />
   ) : (
     <div className={styles.replyEvent}>
       <div className={styles.user} onClick={clickUserProfile}>
-        <Avatar src={userMap.get(event.pubkey)?.picture} alt="picture" />
+        <Avatar src={loadedUserProfile?.picture} alt="picture" />
         <span className={styles.name}>
-          {userMap.get(event.pubkey)?.name || shortifyPublicKey(event.pubkey)}
+          {loadedUserProfile?.name || shortifyPublicKey(event.pubkey)}
         </span>
       </div>
       <div className={styles.content}>

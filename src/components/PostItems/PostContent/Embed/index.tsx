@@ -1,22 +1,14 @@
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
 
-import {
-  NpubResult,
-  NprofileResult,
-  NeventResult,
-  NoteResult,
-  NrelayResult,
-  NaddrResult,
-} from 'core/nip/21';
-
 import { Naddr } from './Naddr';
 import { Nevent } from './Nevent';
 import { Note } from './Note';
 import { Nprofile } from './Nprofile';
 import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
-import { UserMap } from 'core/nostr/type';
+import { EmbedRef } from './util';
+import { DbEvent } from 'core/db/schema';
 
 export const transformRefEmbed = (
   content: string,
@@ -27,35 +19,28 @@ export const transformRefEmbed = (
     notes,
     nprofiles,
     nrelays,
-  }: {
-    npubs?: NpubResult[];
-    nevents?: NeventResult[];
-    naddrs?: NaddrResult[];
-    notes?: NoteResult[];
-    nprofiles?: NprofileResult[];
-    nrelays?: NrelayResult[];
-  },
-  userMap: UserMap,
+  }: EmbedRef,
+  profileEvents: DbEvent[],
 ) => {
   let refTexts: string[] = [];
   let refComponents: any[] = [];
 
   if (npubs) {
     refTexts = refTexts.concat(npubs.map(n => n.key));
-    refComponents = refComponents.concat(npubs.map(n => Npub(n, userMap)));
+    refComponents = refComponents.concat(npubs.map(n => Npub(n, profileEvents)));
   }
   if (nevents) {
     refTexts = refTexts.concat(nevents.map(n => n.key));
-    refComponents = refComponents.concat(nevents.map(n => Nevent(n, userMap)));
+    refComponents = refComponents.concat(nevents.map(n => Nevent(n, profileEvents)));
   }
   if (notes) {
     refTexts = refTexts.concat(notes.map(n => n.key));
-    refComponents = refComponents.concat(notes.map(n => Note(n, userMap)));
+    refComponents = refComponents.concat(notes.map(n => Note(n, profileEvents)));
   }
   if (nprofiles) {
     refTexts = refTexts.concat(nprofiles.map(n => n.key));
     refComponents = refComponents.concat(
-      nprofiles.map(n => Nprofile(n, userMap)),
+      nprofiles.map(n => Nprofile(n, profileEvents)),
     );
   }
   if (naddrs) {

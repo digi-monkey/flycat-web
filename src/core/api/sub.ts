@@ -11,6 +11,7 @@ import {
   RelayResponseType,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
+import { dexieDb } from 'core/db';
 
 export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
   unsubscribe(): void;
@@ -79,6 +80,8 @@ export function createSubscriptionEventStream(
           } else {
             clearTimeout(timeout!); // Clear the previous timeout
           }
+          // store on db
+          dexieDb.store(event, webSocket.url);
           observer(false, event);
         }
         break;
@@ -130,14 +133,14 @@ export function createSubscriptionEventStream(
           const checkIfStarted = () => {
             const status = getSubIdStatus(id);
             if (status === SubIdStatus.pending && checker == null) {
-              checker = setInterval(()=>{
+              checker = setInterval(() => {
                 checkIfStarted();
               }, 500);
               return;
             }
 
             if (status === SubIdStatus.activated) {
-              if(checker)clearInterval(checker);
+              if (checker) clearInterval(checker);
               firstItemTimeout = setTimeout(() => {
                 isFirstItemTimeout = true;
                 resolve({ value: undefined as any, done: true });
@@ -146,7 +149,7 @@ export function createSubscriptionEventStream(
             }
 
             if (status === SubIdStatus.dropped) {
-              if(checker)clearInterval(checker);
+              if (checker) clearInterval(checker);
               if (firstItemTimeout) {
                 clearTimeout(firstItemTimeout);
               }

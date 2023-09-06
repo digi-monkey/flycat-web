@@ -4,13 +4,17 @@ import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { EventTags, EventZTag, WellKnownEventKind } from 'core/nostr/type';
+import {
+  EventSetMetadataContent,
+  EventTags,
+  EventZTag,
+  WellKnownEventKind,
+} from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import { Nip18 } from 'core/nip/18';
 import { Nip51 } from 'core/nip/51';
 import { Nip57 } from 'core/nip/57';
-import { UserMap } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
 import { noticePubEventResult } from 'components/PubEventNotice';
@@ -18,19 +22,19 @@ import { noticePubEventResult } from 'components/PubEventNotice';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import { useRouter } from 'next/router';
+import { dbQuery, dexieDb } from 'core/db';
+import { seedRelays } from 'core/relay/pool/seed';
 
 interface PostReactionsProp {
   ownerEvent: Event;
   worker: CallWorker;
   seen: string[];
-  userMap: UserMap;
 }
 
 const PostReactions: React.FC<PostReactionsProp> = ({
   ownerEvent,
   worker,
   seen,
-  userMap,
 }) => {
   const { t } = useTranslation();
 
@@ -47,7 +51,9 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     if (seen == null || seen[0] == null)
       return messageApi.error('repost required seen relay, not found!');
     if (ownerEvent.kind !== WellKnownEventKind.text_note)
-      return messageApi.error('non kind-1 repost feature are not available now, WIP');
+      return messageApi.error(
+        'non kind-1 repost feature are not available now, WIP',
+      );
 
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
@@ -65,7 +71,14 @@ const PostReactions: React.FC<PostReactionsProp> = ({
       const zapTag = zapTags[0] as EventZTag;
       zapEndpoint = await Nip57.getZapEndpointByTag(zapTag);
     } else {
-      const profile = userMap.get(ownerEvent.pubkey);
+      let profile: EventSetMetadataContent | undefined;
+      const profileEvent = await dexieDb.profileEvent.get(ownerEvent.pubkey); 
+      if (profileEvent) {
+        const metadata = JSON.parse(
+          profileEvent.content,
+        ) as EventSetMetadataContent;
+        profile = metadata;
+      }
       if (profile) zapEndpoint = await Nip57.getZapEndpointByProfile(profile);
       if (profile?.lud06) {
         lnurl = profile.lud06;

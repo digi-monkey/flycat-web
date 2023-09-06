@@ -4,7 +4,7 @@ import PostUser from '../PostUser';
 import styles from '../index.module.scss';
 import { useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
-import { UserMap, EventMap } from 'core/nostr/type';
+import { UserMap, EventMap, EventSetMetadataContent } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { PostContent } from '../PostContent';
 import PostReactions from '../PostReactions';
@@ -14,20 +14,19 @@ import Icon from 'components/Icon';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { Button } from 'antd';
 import { shortifyEventId } from 'core/nostr/content';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dbQuery, dexieDb } from 'core/db';
+import { DbEvent } from 'core/db/schema';
 
 export interface PostRepostProp {
   event: Event;
   worker: CallWorker;
-  userMap: UserMap;
-  eventMap: EventMap;
   showLastReplyToEvent?: boolean;
 }
 
 const PostRepost: React.FC<PostRepostProp> = ({
   event,
-  userMap,
   worker,
-  eventMap,
   showLastReplyToEvent,
 }) => {
   const [targetEvent, setTargetMsg] = useState<EventWithSeen>();
@@ -47,17 +46,32 @@ const PostRepost: React.FC<PostRepostProp> = ({
     getRepostTargetEvent();
   }, [event]);
 
+  const relayUrls = worker.relays.map(r => r.url) || [];
+  const targetEventFromDb = useLiveQuery(dbQuery.createEventByIdQuerier(relayUrls, Nip18.getTargetEventIdRelay(event).id), [event, ]);
+
   useEffect(() => {
     if (targetEvent == null) {
-      const info = Nip18.getTargetEventIdRelay(event);
-      const target = eventMap.get(info.id);
-      if (target) {
-        setTargetMsg(target);
+      if (targetEventFromDb) {
+        setTargetMsg(targetEventFromDb);
       }
     }
-  }, [eventMap]);
+  }, [targetEventFromDb]);
 
-  const getUser = (msg: EventWithSeen) => userMap.get(msg.pubkey);
+  const pks = [event.pubkey];
+  if(targetEvent){
+    pks.push(targetEvent.pubkey);
+  }
+  const profileEvents = useLiveQuery(async ()=>{
+    const events = await dexieDb.profileEvent.bulkGet(pks);
+    return events.filter(e => e != null) as DbEvent[];
+  }, [targetEvent], [] as DbEvent[]);
+  const getUser = (msg: EventWithSeen) => {
+    const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
+    if(!userEvent){
+      return null;
+    }
+    return JSON.parse(userEvent.content) as EventSetMetadataContent;
+  } 
 
   const tryReload = () => {
     const info = Nip18.getTargetEventIdRelay(event);
@@ -89,16 +103,13 @@ const PostRepost: React.FC<PostRepostProp> = ({
           <div className={styles.content}>
             <PostContent
               ownerEvent={targetEvent}
-              userMap={userMap}
               worker={worker}
-              eventMap={eventMap}
               showLastReplyToEvent={showLastReplyToEvent}
             />
             <PostReactions
               ownerEvent={toUnSeenEvent(targetEvent)}
               worker={worker}
               seen={targetEvent.seen!}
-              userMap={userMap}
             />
           </div>
         </>

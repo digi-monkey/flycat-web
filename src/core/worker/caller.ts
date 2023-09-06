@@ -98,10 +98,10 @@ export class CallWorker {
     };
 
     const that = this;
-    window.addEventListener('beforeunload', function () {
+    window.addEventListener('beforeunload', function() {
       that.closePort();
     });
-    window.addEventListener('unload', function () {
+    window.addEventListener('unload', function() {
       that.closePort();
     });
   }
@@ -239,7 +239,7 @@ export class CallWorker {
               const res = result?.value;
               if (res == null) continue;
 
-              if(typeof cb === "function"){
+              if (typeof cb === "function") {
                 cb(res.event, res.relayUrl);
               }
             }

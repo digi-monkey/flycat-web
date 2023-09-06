@@ -40,8 +40,6 @@ const Bookmark = () => {
       <PostItems
         msgList={selectFeed}
         worker={worker!}
-        userMap={userMap}
-        eventMap={eventMap}
         relays={[]}
       /> : <Empty />
     );

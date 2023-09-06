@@ -174,7 +174,6 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
               <PostReactions
                 worker={worker!}
                 ownerEvent={articleEvent!}
-                userMap={userMap}
                 seen={[]}
               />
 

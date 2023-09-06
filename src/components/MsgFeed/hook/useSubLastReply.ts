@@ -1,41 +1,31 @@
+import { dbEventTable, profileQuery } from 'core/db';
 import { Nip23 } from 'core/nip/23';
-import { deserializeMetadata } from 'core/nostr/content';
 import {
-  UserMap,
-  EventMap,
   EventId,
   PublicKey,
   EventTags,
   WellKnownEventKind,
-  EventSetMetadataContent,
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
-import { Dispatch, SetStateAction, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export function useLastReplyEvent({
   msgList,
   worker,
-  userMap,
-  setEventMap,
-  setUserMap,
 }: {
   msgList: EventWithSeen[];
   worker?: CallWorker;
-  userMap: UserMap;
-  setEventMap: Dispatch<SetStateAction<EventMap>>;
-  setUserMap: Dispatch<SetStateAction<UserMap>>;
 }) {
-  const subEvent: EventId[] = msgList.map(e => e.id);
-  const subPks: PublicKey[] = Array.from(userMap.keys());
-  
-  const list = useMemo(()=>{return msgList}, [msgList.length]);
+  const list = useMemo(() => {
+    return msgList;
+  }, [msgList]);
 
-  useEffect(() => {
+  const subLastReply = async () => {
     if (!worker) return;
-    if(msgList.length === 0)return;
+    if (list.length === 0) return;
 
-    const replies = msgList
+    const replies = list
       .map(msgEvent => {
         const lastReply = msgEvent.tags
           .filter(t => t[0] === EventTags.E)
@@ -49,7 +39,7 @@ export function useLastReplyEvent({
       .filter(r => r != null)
       .map(r => r!);
 
-    const articleReplies = msgList
+    const articleReplies = list
       .map(msgEvent => {
         const lastReply = msgEvent.tags
           .filter(
@@ -67,9 +57,15 @@ export function useLastReplyEvent({
       .filter(r => r != null)
       .map(r => r!);
 
-    const newIds = replies.filter(id => !subEvent.includes(id));
+    const newIds: EventId[] = [];
+    for (const id of replies) {
+      const isFound = await dbEventTable.get(id);
+      if (!isFound) {
+        newIds.push(id);
+      }
+    }
 
-    const userPks = msgList
+    const userPks = list
       .map(msgEvent => {
         const lastReply = msgEvent.tags
           .filter(t => t[0] === EventTags.P)
@@ -83,95 +79,42 @@ export function useLastReplyEvent({
       .filter(r => r != null)
       .map(r => r!);
 
-    const newPks = userPks.filter(pk => !subPks.includes(pk));
+    const newPks: PublicKey[] = [];
+    for (const pk of userPks) {
+      const isFound = await profileQuery.getProfileByPubkey(pk);
+      if (!isFound) {
+        newPks.push(pk);
+      }
+    }
 
-    console.debug("sub reply", msgList.length, newIds.length, newPks.length);
+    console.debug('sub reply: ', list.length, newIds.length, newPks.length);
 
-    worker
-      .subFilter({
+    if (newIds.length > 0) {
+      worker.subFilter({
         filter: {
           ids: newIds,
         },
-        customId: 'replies-user',
-      })
-      .iterating({
-        cb: event => {
-          setEventMap(prev => {
-            const newMap = new Map(prev);
-            const oldData = newMap.get(event.id);
-            if (oldData && oldData.created_at > event.created_at) {
-              // the new data is outdated
-              return newMap;
-            }
-
-            newMap.set(event.id, event);
-            return newMap;
-          });
-        },
+        customId: 'replies-event',
       });
-
-    if (articleReplies.length > 0) {
-      worker
-        .subFilter({
-          filter: {
-            '#d': articleReplies.map(a => a.articleId),
-            authors: articleReplies.map(a => a.pubkey),
-          },
-          customId: 'last-replies-long-form',
-        })
-        .iterating({
-          cb: event => {
-            setEventMap(prev => {
-              const newMap = new Map(prev);
-              const oldData = newMap.get(event.id);
-              if (oldData && oldData.created_at > event.created_at) {
-                // the new data is outdated
-                return newMap;
-              }
-
-              newMap.set(event.id, event);
-              return newMap;
-            });
-          },
-        });
+    }
+    if (newPks.length > 0) {
+      worker.subFilter({
+        filter: { authors: newPks, kinds: [WellKnownEventKind.set_metadata] },
+      });
     }
 
-    worker
-      .subFilter({
-        filter: { authors: newPks, kinds: [WellKnownEventKind.set_metadata] },
-      })
-      .iterating({
-        cb: event => {
-          switch (event.kind) {
-            case WellKnownEventKind.set_metadata:
-              const metadata: EventSetMetadataContent = deserializeMetadata(
-                event.content,
-              );
-              setUserMap(prev => {
-                const newMap = new Map(prev);
-                const oldData = newMap.get(event.pubkey) as {
-                  created_at: number;
-                };
-                if (oldData && oldData.created_at > event.created_at) {
-                  // the new data is outdated
-                  return newMap;
-                }
-
-                newMap.set(event.pubkey, {
-                  ...metadata,
-                  ...{ created_at: event.created_at },
-                });
-                return newMap;
-              });
-              break;
-
-            default:
-              break;
-          }
+    if (articleReplies.length > 0) {
+      worker.subFilter({
+        filter: {
+          '#d': articleReplies.map(a => a.articleId),
+          authors: articleReplies.map(a => a.pubkey),
         },
+        customId: 'last-replies-long-form',
       });
+    }
+  };
 
-    subEvent.push(...newIds);
-    subPks.push(...newPks);
+  useEffect(() => {
+    subLastReply();
   }, [worker, list]);
 }

@@ -1,4 +1,5 @@
 import { generateRandomBytes } from 'core/crypto';
+import { DbEvent } from 'core/db/schema';
 import { HexStr } from 'types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -64,4 +65,19 @@ export function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
   }
 
   return chunkedArray;
+}
+
+export function mergeAndSortUniqueDbEvents(array1: DbEvent[], array2: DbEvent[]): DbEvent[] {
+  // Merge the arrays while ensuring uniqueness based on the 'id' property
+  const mergedArray: DbEvent[] = [...array1, ...array2].reduce((uniqueArray: DbEvent[], currentItem) => {
+    if (!uniqueArray.some((item) => item.id === currentItem.id)) {
+      uniqueArray.push(currentItem);
+    }
+    return uniqueArray;
+  }, []);
+
+  // Sort the merged array by 'created_at' in descending order
+  mergedArray.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return mergedArray;
 }
