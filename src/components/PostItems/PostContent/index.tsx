@@ -1,11 +1,9 @@
 import {
   EventId,
-  EventMap,
   EventSetMetadataContent,
   EventTags,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { UserMap } from 'core/nostr/type';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -18,7 +16,6 @@ import {
 } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import { OneTimeWebSocketClient } from 'core/api/onetime';
 import styles from './index.module.scss';
 import { Avatar, Button } from 'antd';
 import {
@@ -35,16 +32,7 @@ import { maxStrings } from 'utils/common';
 import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
-import { seedRelays } from 'core/relay/pool/seed';
 import { DbEvent } from 'core/db/schema';
-import {
-  NpubResult,
-  NprofileResult,
-  NoteResult,
-  NeventResult,
-  NaddrResult,
-  NrelayResult,
-} from 'core/nip/21';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -77,9 +65,9 @@ export const PostContent: React.FC<PostContentProp> = ({
     if (!embedRef) return;
 
     const pks = getPubkeysFromEmbedRef(embedRef);
-    
+
     dexieDb.profileEvent.bulkGet(pks).then(events => {
-      const data = events.filter(e => e!=null) as DbEvent[];
+      const data = events.filter(e => e != null) as DbEvent[];
       setProfileEvents(data);
     });
     transformContent();
@@ -91,9 +79,9 @@ export const PostContent: React.FC<PostContentProp> = ({
     }
   }, [msgEvent.content]);
 
-  const lastRelayEventFromDb = useLiveQuery(
+  const lastReplyEventFromDb = useLiveQuery(
     dbQuery.createEventByIdQuerier(relayUrls, lastReplyToEventId),
-    [lastReplyToEventId, relayUrls],
+    [relayUrls, lastReplyToEventId],
   );
 
   const transformContent = async () => {
@@ -120,7 +108,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     if (lastReply) {
       setLastReplyToEventId(lastReply.id);
 
-      if (lastRelayEventFromDb) {
+      if (lastReplyEventFromDb) {
         return;
       }
 
@@ -160,25 +148,6 @@ export const PostContent: React.FC<PostContentProp> = ({
     </div>
   );
 
-  const extraContent = (
-    <>
-      {showLastReplyToEvent && lastRelayEventFromDb && (
-        <SubPostItem event={lastRelayEventFromDb} />
-      )}
-      {showLastReplyToEvent && !lastRelayEventFromDb && lastReplyToEventId && (
-        <div className={styles.replyEvent}>
-          <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
-            event@{shortifyEventId(lastReplyToEventId)}
-          </Link>
-          <Button onClick={tryReloadLastReplyEvent} type="link">
-            try reload
-          </Button>
-        </div>
-      )}
-      <MediaPreviews content={msgEvent.content} />
-    </>
-  );
-
   return (
     <div>
       {expanded ? (
@@ -203,7 +172,22 @@ export const PostContent: React.FC<PostContentProp> = ({
           )}
         </div>
       )}
-      {extraContent}
+      <>
+        {showLastReplyToEvent && lastReplyEventFromDb && (
+          <SubPostItem event={lastReplyEventFromDb} />
+        )}
+        {showLastReplyToEvent && !lastReplyEventFromDb && lastReplyToEventId && (
+          <div className={styles.replyEvent}>
+            <Link href={`${Paths.event + '/' + lastReplyToEventId}`}>
+              event@{shortifyEventId(lastReplyToEventId)}
+            </Link>
+            <Button onClick={tryReloadLastReplyEvent} type="link">
+              try reload
+            </Button>
+          </div>
+        )}
+        <MediaPreviews content={msgEvent.content} />
+      </>
     </div>
   );
 };
@@ -224,7 +208,6 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
   const [loadedUserProfile, setLoadedUserProfile] =
     useState<EventSetMetadataContent>();
   const loadUserProfile = async () => {
-    console.log("...do..");
     // todo: set relay urls with correct one
     const profileEvent = await dexieDb.profileEvent.get(event.pubkey);
     if (profileEvent) {
@@ -234,9 +217,9 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
       setLoadedUserProfile(metadata);
     }
   };
-  useEffect(()=>{
+  useEffect(() => {
     loadUserProfile();
-  },[event])
+  }, [event]);
 
   return Nip23.isBlogPost(event) ? (
     <PostArticle

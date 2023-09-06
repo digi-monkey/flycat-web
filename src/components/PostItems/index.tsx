@@ -49,7 +49,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   const profileEvents = useLiveQuery(async ()=>{
     const events = await dexieDb.profileEvent.bulkGet(pks);
     return events.filter(e => e != null) as DbEvent[];
-  }, [], [] as DbEvent[]);
+  }, [msgList], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
     const userEvent = profileEvents.find(e => e.pubkey === msg.pubkey);
     if(!userEvent){
