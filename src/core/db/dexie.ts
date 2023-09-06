@@ -82,7 +82,11 @@ export class DexieDb extends Dexie {
   }
 
   async storeEvent(event: Event, relayUrl: string) {
-    return await this.save(event, relayUrl, this.event);
+    try {
+			await this.save(event, relayUrl, this.event);
+		} catch (error: any) {
+			console.debug("store failed: ", error.message, event);
+		}
   }
 
   private async save(event: Event, relayUrl: string, table: Table<DbEvent>) {
