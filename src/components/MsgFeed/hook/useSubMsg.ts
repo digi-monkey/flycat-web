@@ -23,23 +23,26 @@ export function useSubMsg({
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
     let since = msgFilter.since;
-    let filter = msgFilter;
 
     const relayUrls = worker.relays.map(r => r.url) || [];
     let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
     if(isValidEvent){
-      events = events.filter(e => isValidEvent(e));
+      events = events.filter(e => isValidEvent(e)).filter(e => e!=null);
     }
     if(events.length > 0){
-      if(!since){
+      if(since == null){
         since = events[0].created_at;
       }else{
         if(since > events[0].created_at){
           since = events[0].created_at; 
         }
       }
+    }else{
+      if(since == null){
+        since = 0;
+      }
     }
-    filter = {...msgFilter, since};
+    const filter = {...msgFilter, since};
 
     const pks: string[] = [];
 
@@ -93,6 +96,8 @@ export function useSubMsg({
   const startProcess = (seconds: number) => {
     if(intervalId == null){
       try {
+        // call first and then get iteration
+        subMsg();
         const id = setInterval(() => {
           subMsg();
         }, seconds);
