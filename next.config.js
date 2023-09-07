@@ -1,5 +1,10 @@
+const million = require('million/compiler');
 const path = require('path');
 const { i18n } = require('./next-i18next.config.js');
+ 
+const millionConfig = {
+  auto: true,
+}
 
 const withPWA = require('next-pwa')({
   dest: 'public',
@@ -18,4 +23,4 @@ const nextConfig = {
   },
 }
 
-module.exports = withPWA(nextConfig);
+module.exports = withPWA(million.next(nextConfig, millionConfig));
