@@ -137,7 +137,7 @@ export const EditProfilePage = ({ commitId }) => {
 
   const items = [
     {
-      label: `Account`,
+      label: `Profile`,
       key: 'account',
       children: (
         <div className={styles.accountContainer}>

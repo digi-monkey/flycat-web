@@ -51,6 +51,10 @@ const Pages = {
     name: 'setting',
     path: '/setting'
   },
+  preference: {
+    name: 'preference',
+    path: '/setting?tabKey=preference', 
+  },
   login: {
     name: 'login',
     path: '/login'

@@ -20,6 +20,7 @@
 
       "profile": "Profile",
       "setting": "Settings",
+      "preference": "Preference",
       "signOut": "Sign out",
       "signIn": "Sign in",
       "backup": "Backup",
