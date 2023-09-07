@@ -1,12 +1,38 @@
+import { Filter, WellKnownEventKind } from "core/nostr/type";
+import { Event } from "core/nostr/Event";
+
 export enum HomeFilterMsg {
   all = 'All',
   article = 'Article',
   media = 'Media',
+	flycat = 'Flycat',
   zh = 'chinese',
 	foodstr = 'Foodstr',
 	nostr = 'Nostr',
 	dev = 'Dev',
 	bitcoin = 'Bitcoin'
+}
+
+export const FilterProps = {
+	"flycat": {
+		filter: {
+			kinds: [WellKnownEventKind.text_note],
+			limit: 10000,
+		} as Filter,
+		isValidEvent: (event: Event) => {
+			return event.kind === WellKnownEventKind.text_note && event.content.includes("flycat")
+		}
+	},
+	"foodstr": {
+		filter: {
+			kinds: [WellKnownEventKind.text_note],
+			"#t": ["foodstr"],
+			limit: 10000,
+		} as Filter,
+		isValidEvent: (event: Event) => {
+			return event.kind === WellKnownEventKind.text_note
+		}
+	}
 }
 
 export function containsChinese(text: string): boolean {

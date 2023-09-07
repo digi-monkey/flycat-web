@@ -24,7 +24,7 @@ import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-import { HomeFilterMsg, containsChinese, isPrimaryChineseText } from './filter';
+import { FilterProps, HomeFilterMsg, containsChinese, isPrimaryChineseText } from './filter';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -152,9 +152,19 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       };
     }
 
+    if (selectFilter === HomeFilterMsg.flycat) {
+      msgFilter = FilterProps.flycat.filter;
+      isValidEvent = FilterProps.flycat.isValidEvent; 
+    }
+
+    if (selectFilter === HomeFilterMsg.foodstr) {
+      msgFilter = FilterProps.foodstr.filter;
+      isValidEvent = FilterProps.foodstr.isValidEvent; 
+    }
+
     if (selectFilter === HomeFilterMsg.zh) {
       msgFilter = {
-        limit: 51,
+        limit: 50,
         kinds: [WellKnownEventKind.text_note],
       };
       isValidEvent = (event: Event) => {
