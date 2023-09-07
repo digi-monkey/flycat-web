@@ -3,6 +3,10 @@ export enum HomeFilterMsg {
   article = 'Article',
   media = 'Media',
   zh = 'chinese',
+	foodstr = 'Foodstr',
+	nostr = 'Nostr',
+	dev = 'Dev',
+	bitcoin = 'Bitcoin'
 }
 
 export function containsChinese(text: string): boolean {

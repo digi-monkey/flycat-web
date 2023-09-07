@@ -234,7 +234,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             <Segmented
               value={selectFilter}
               onChange={val => setSelectFilter(val as HomeFilterMsg)}
-              options={[HomeFilterMsg.all, HomeFilterMsg.article, HomeFilterMsg.media, HomeFilterMsg.zh]}
+              options={Object.values(HomeFilterMsg)}
             />
           </div>
         </div>
