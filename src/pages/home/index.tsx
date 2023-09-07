@@ -9,11 +9,10 @@ import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
+import { Filter, PublicKey } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { Event } from 'core/nostr/Event';
-import { stringHasImageUrl } from 'utils/common';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { contactQuery } from 'core/db';
@@ -24,7 +23,7 @@ import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-import { FilterProps, HomeFilterMsg, containsChinese, isPrimaryChineseText } from './filter';
+import { homeMsgFilters, HomeMsgFilterType } from './filter';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -44,10 +43,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
-  const [selectFilter, setSelectFilter] = useState<HomeFilterMsg>(HomeFilterMsg.all);
+  const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>(
+    HomeMsgFilterType.all,
+  );
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-  const [isQueryContactEvent, setIsQueryContactEvent] = useState<boolean>(false);
+  const [isQueryContactEvent, setIsQueryContactEvent] =
+    useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
 
   useLiveQuery(() => {
@@ -105,75 +107,15 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     </>
   );
 
-  const onMsgFeedChanged = () => {
+  const onMsgFilterChanged = () => {
     if (selectTabKey == null) return 'unknown tab key';
     if (selectFilter == null) return 'unknown filter type';
 
-    let msgFilter: Filter | null = null;
-    let isValidEvent: ((event: Event) => boolean) | undefined;
+    const msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
+    const isValidEvent = homeMsgFilters.find(
+      v => v.type === selectFilter,
+    )?.isValidEvent;
     let emptyDataReactNode: ReactNode | null = null;
-
-    if (selectFilter === HomeFilterMsg.all) {
-      const kinds = [
-        WellKnownEventKind.text_note,
-        WellKnownEventKind.article_highlight,
-        WellKnownEventKind.long_form,
-        WellKnownEventKind.reposts,
-      ];
-      msgFilter = {
-        limit: 50,
-        kinds,
-      };
-      isValidEvent = (event: Event) => {
-        return kinds.includes(event.kind);
-      };
-    }
-
-    if (selectFilter === HomeFilterMsg.article) {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.long_form],
-      };
-      isValidEvent = (event: Event) => {
-        return event.kind === WellKnownEventKind.long_form;
-      };
-    }
-
-    if (selectFilter === HomeFilterMsg.media) {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.text_note],
-      };
-      isValidEvent = (event: Event) => {
-        return (
-          event.kind === WellKnownEventKind.text_note &&
-          stringHasImageUrl(event.content)
-        );
-      };
-    }
-
-    if (selectFilter === HomeFilterMsg.flycat) {
-      msgFilter = FilterProps.flycat.filter;
-      isValidEvent = FilterProps.flycat.isValidEvent; 
-    }
-
-    if (selectFilter === HomeFilterMsg.foodstr) {
-      msgFilter = FilterProps.foodstr.filter;
-      isValidEvent = FilterProps.foodstr.isValidEvent; 
-    }
-
-    if (selectFilter === HomeFilterMsg.zh) {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.text_note],
-      };
-      isValidEvent = (event: Event) => {
-        return (
-          event.kind === WellKnownEventKind.text_note &&
-          isPrimaryChineseText(event.content)
-        );
-      };
-    }
 
     if (msgFilter == null) return 'unknown filter';
 
@@ -216,7 +158,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   };
 
   useEffect(() => {
-    onMsgFeedChanged();
+    onMsgFilterChanged();
   }, [selectFilter, selectTabKey, myContactEvent, myPublicKey]);
 
   return (
@@ -243,8 +185,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           <div className={styles.msgFilter}>
             <Segmented
               value={selectFilter}
-              onChange={val => setSelectFilter(val as HomeFilterMsg)}
-              options={Object.values(HomeFilterMsg)}
+              onChange={val => setSelectFilter(val as HomeMsgFilterType)}
+              options={homeMsgFilters.map(val => {
+                return {
+                  value: val.type,
+                  label: val.label,
+                };
+              })}
             />
           </div>
         </div>

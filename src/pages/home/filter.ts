@@ -1,83 +1,138 @@
-import { Filter, WellKnownEventKind } from "core/nostr/type";
-import { Event } from "core/nostr/Event";
+import { Filter, WellKnownEventKind } from 'core/nostr/type';
+import { Event } from 'core/nostr/Event';
+import { stringHasImageUrl } from 'utils/common';
 
-export enum HomeFilterMsg {
+const mixKinds = [
+  WellKnownEventKind.text_note,
+  WellKnownEventKind.article_highlight,
+  WellKnownEventKind.long_form,
+  WellKnownEventKind.reposts,
+];
+
+export enum HomeMsgFilterType {
   all = 'All',
   article = 'Article',
   media = 'Media',
-	flycat = 'Flycat',
-  zh = 'chinese',
-	foodstr = 'Foodstr',
-	nostr = 'Nostr',
-	dev = 'Dev',
-	bitcoin = 'Bitcoin'
+  flycat = 'Flycat',
+  zh = 'Chinese',
+  foodstr = 'Foodstr',
+  nostr = 'Nostr',
+  dev = 'Dev',
+  bitcoin = 'Bitcoin',
 }
 
-export const FilterProps = {
-	"flycat": {
-		filter: {
-			kinds: [WellKnownEventKind.text_note],
-			limit: 10000,
-		} as Filter,
-		isValidEvent: (event: Event) => {
-			return event.kind === WellKnownEventKind.text_note && event.content.includes("flycat")
-		}
-	},
-	"foodstr": {
-		filter: {
-			kinds: [WellKnownEventKind.text_note],
-			"#t": ["foodstr"],
-			limit: 10000,
-		} as Filter,
-		isValidEvent: (event: Event) => {
-			return event.kind === WellKnownEventKind.text_note
-		}
-	}
+export interface HomeMsgFilter {
+  type: HomeMsgFilterType;
+  label: string;
+  filter: Filter;
+  isValidEvent?: (event: Event) => boolean;
 }
 
-export function containsChinese(text: string): boolean {
-  // Regular expression to match Chinese characters (Simplified and Traditional)
-  const chineseRegex = /[\u4e00-\u9fa5]/;
-  // Check if the text contains any Chinese characters
-  return chineseRegex.test(text);
-}
+export const homeMsgFilters: HomeMsgFilter[] = [
+  {
+    type: HomeMsgFilterType.all,
+    label: 'All',
+    filter: {
+      limit: 50,
+      kinds: mixKinds,
+    },
+    isValidEvent: (event: Event) => {
+      return mixKinds.includes(event.kind);
+    },
+  },
+  {
+    type: HomeMsgFilterType.article,
+    label: 'Article',
+    filter: {
+      limit: 50,
+      kinds: [WellKnownEventKind.long_form],
+    },
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.long_form;
+    },
+  },
+  {
+    type: HomeMsgFilterType.media,
+    label: 'Media',
+    filter: {
+      limit: 50,
+      kinds: [WellKnownEventKind.text_note],
+    },
+    isValidEvent: (event: Event) => {
+      return (
+        event.kind === WellKnownEventKind.text_note &&
+        stringHasImageUrl(event.content)
+      );
+    },
+  },
+  {
+    type: HomeMsgFilterType.zh,
+    label: 'Chinese',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return (
+        event.kind === WellKnownEventKind.text_note &&
+        isChineseLang(event.content)
+      );
+    },
+  },
+  {
+    type: HomeMsgFilterType.foodstr,
+    label: '#Foodstr',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      '#t': ['foodstr'],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.text_note;
+    },
+  },
+  {
+    type: HomeMsgFilterType.bitcoin,
+    label: '#Bitcoin',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      '#t': ['bitcoin'],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.text_note;
+    },
+  },
+  {
+    type: HomeMsgFilterType.flycat,
+    label: 'Flycat',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return (
+        event.kind === WellKnownEventKind.text_note &&
+        event.content.includes('flycat')
+      );
+    },
+  },
+];
 
-export function containsJapanese(text: string): boolean {
-  // Regular expression to match Japanese characters (Hiragana, Katakana, and Kanji)
-  const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4e00-\u9fa5]/;
+export function isChineseLang(text: string) {
+  // Count the number of Kanji, Hiragana, and Katakana characters in the text
+  const kanjiCount = (text.match(/[\u4e00-\u9faf]/g) || []).length;
+  const hiraganaCount = (text.match(/[\u3040-\u309f]/g) || []).length;
+  const katakanaCount = (text.match(/[\u30a0-\u30ff]/g) || []).length;
 
-  // Check if the text contains any Japanese characters
-  return japaneseRegex.test(text);
-}
-
-export function isPrimaryChineseText(text: string): boolean {
-  // Check if the browser supports Intl.Segmenter
-  if (typeof Intl === 'undefined' || typeof Intl.Segmenter !== 'function') {
-    throw new Error('Intl.Segmenter is not supported in this environment.');
+  // Check if the text has more Kanji, Hiragana, or Katakana characters
+  if (kanjiCount > hiraganaCount && kanjiCount > katakanaCount) {
+    return true; //"Chinese";
+  } else if (hiraganaCount > kanjiCount && hiraganaCount > katakanaCount) {
+    return false; //"Japanese (Hiragana)";
+  } else if (katakanaCount > kanjiCount && katakanaCount > hiraganaCount) {
+    return false; //"Japanese (Katakana)";
+  } else {
+    return false; //"Uncertain";
   }
-
-  // Create a segmenter for Chinese text
-  const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
-
-  // Segment the input text
-  const segments = Array.from(segmenter.segment(text));
-
-  // Count the number of segments
-  const chineseSegmentCount = segments.filter((segment) => {
-    // Check if the segment contains Chinese characters (Unicode range)
-    return /[\u4E00-\u9FFF]/.test(segment.segment);
-  }).length;
-
-	const otherSegmentCount = segments.filter((segment) => {
-    // Check if the segment contains Chinese characters (Unicode range)
-    return !/[\u4E00-\u9FFF]/.test(segment.segment);
-  }).length; 
-
-  // Determine if it's primary Chinese text based on your criteria
-  // For example, you can consider it primary if the majority of segments are in Chinese
-  const isPrimary = chineseSegmentCount >= otherSegmentCount;
-
-	//console.log(segments, chineseSegmentCount, otherSegmentCount);
-
-  return chineseSegmentCount > 0;
 }
