@@ -11,6 +11,7 @@ export enum MenuId {
   profile = 'profile',
   drafts = 'drafts',
   settings = 'settings',
+  preference = 'preference',
   backup = 'backup',
   signOut = 'signOut',
   add = 'add'
@@ -41,7 +42,20 @@ export const NavMenus = [{
   icon: <Icon type="icon-notification" />,
   title: 'nav.menu.notifications',
   link: Paths.notification
-}];
+},
+{
+  id: MenuId.preference,
+  icon: <Icon type="icon-Gear" />,
+  title: 'nav.menu.preference',
+  link: Paths.preference
+},
+{
+  id: MenuId.profile,
+  icon: <Icon type="icon-user" />,
+  title: 'nav.menu.profile',
+  link: Paths.user
+}
+];
 
 export const UserMenus = [{
   id: MenuId.profile,
@@ -68,15 +82,14 @@ NavMenus[3],
 }];
 
 export const navClick = (item, myPublicKey, router, isLoggedIn, t) => {
-  let pathname = item.link;
-  const query = {};
+  let link = item.link;
 
   if (!isLoggedIn && [MenuId.notifications, MenuId.bookmarks].includes(item.id)) {
     message.warning(t('comment.login'));
     return;
   }
   
-  if (item.id === MenuId.profile) pathname = item.link + myPublicKey;
+  if (item.id === MenuId.profile) link = item.link + myPublicKey;
 
-  router.push({ pathname, query });
+  router.push(link);
 }
