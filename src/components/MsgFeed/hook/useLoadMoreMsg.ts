@@ -44,13 +44,8 @@ export function useLoadMoreMsg({
     });
 
     const relayUrls = worker.relays.map(r => r.url) || [];
-    dbQuery.matchFilterRelay(filter, relayUrls).then(events => {
-      if(isValidEvent){
-        setMsgList(prev => prev.concat(events.filter(e => isValidEvent(e))));
-      }else{
-        setMsgList(prev => prev.concat(events));
-      }
-      
+    dbQuery.matchFilterRelay(filter, relayUrls, isValidEvent).then(events => {
+      setMsgList(prev => prev.concat(events));
     })
   }, [msgFilter, isValidEvent, worker, loadMoreCount]);
 }

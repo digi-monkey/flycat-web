@@ -68,23 +68,20 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       const lastMsgItem = msgList[0];
       const since = lastMsgItem.created_at; 
       const filter = { ...msgFilter, since };
-      let events = await dbQuery.matchFilterRelay(filter, relayUrls);
-      if (isValidEvent) {
-        events = events.filter(e => isValidEvent(e)).filter(e => {
-          if(e.kind === WellKnownEventKind.community_approval){
-            try {
-              const targetEvent = JSON.parse(e.content);
-              if(targetEvent.created_at <= lastMsgItem.created_at){
-                return false;
-              }
-            } catch (error) {
+      let events = await dbQuery.matchFilterRelay(filter, relayUrls, isValidEvent);
+      events = events.filter(e => {
+        if(e.kind === WellKnownEventKind.community_approval){
+          try {
+            const targetEvent = JSON.parse(e.content);
+            if(targetEvent.created_at <= lastMsgItem.created_at){
               return false;
             }
+          } catch (error) {
+            return false;
           }
-          return true;
-        });
-      }
-      events = events.map(e => {
+        }
+        return true;
+      }).map(e => {
         if(e.kind === WellKnownEventKind.community_approval){
           const event = {...e, ...JSON.parse(e.content) as DbEvent};
           return event;
@@ -101,10 +98,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   const query = async () => {
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
-    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
-    if (isValidEvent) {
-      events = events.filter(e => isValidEvent(e));
-    }
+    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
     events = events.map(e => {
       if(e.kind === WellKnownEventKind.community_approval){
         const event = {...e, ...JSON.parse(e.content) as DbEvent};
