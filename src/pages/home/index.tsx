@@ -9,7 +9,7 @@ import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { Filter, PublicKey } from 'core/nostr/type';
+import { PublicKey } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { Event } from 'core/nostr/Event';
@@ -17,13 +17,14 @@ import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { contactQuery } from 'core/db';
 import { isValidPublicKey } from 'utils/validator';
+import { homeMsgFilters, HomeMsgFilterType } from './filter';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-import { homeMsgFilters, HomeMsgFilterType } from './filter';
+import _ from 'lodash';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -111,7 +112,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     if (selectTabKey == null) return 'unknown tab key';
     if (selectFilter == null) return 'unknown filter type';
 
-    const msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
+    let msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
+    msgFilter = msgFilter ? _.cloneDeep(msgFilter) : undefined;
     const isValidEvent = homeMsgFilters.find(
       v => v.type === selectFilter,
     )?.isValidEvent;
