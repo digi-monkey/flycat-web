@@ -141,12 +141,17 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setNewComingMsg([]);
   };
 
+  const onPullToRefresh = async () => {
+    if(!msgFilter || !validateFilter(msgFilter))return;
+    
+    worker?.subFilter({filter: msgFilter});
+    await query();  
+  }
+
   return (
     <>
       <PullToRefresh
-        onRefresh={async () => {
-          await query();
-        }}
+        onRefresh={onPullToRefresh}
         pullingText={"Pull to refresh"}
         refreshingText={"Refreshing.."}
         canReleaseText={"Release now to load new notes"}

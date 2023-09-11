@@ -49,7 +49,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-  const [isQueryContactEvent, setIsQueryContactEvent] =
+  const [alreadyQueryMyContact, setAlreadyQueryMyContact] =
     useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
 
@@ -57,10 +57,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     if (!isValidPublicKey(myPublicKey)) return;
 
     contactQuery.getContactByPubkey(myPublicKey).then(e => {
+      setAlreadyQueryMyContact(true);
       if (e != null) {
         setMyContactEvent(e);
       }
-      setIsQueryContactEvent(true);
     });
     setMyContactEvent;
   }, [myPublicKey]);
@@ -160,8 +160,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   };
 
   useEffect(() => {
+    if(!alreadyQueryMyContact)return;
+
     onMsgFilterChanged();
-  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey]);
+  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey, alreadyQueryMyContact]);
 
   return (
     <BaseLayout>
