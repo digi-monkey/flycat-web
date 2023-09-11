@@ -1,3 +1,6 @@
+'use client'
+// above is for antd-mobile polyfill
+
 import { Button } from 'antd';
 
 import { useEffect, useState } from 'react';
@@ -18,6 +21,7 @@ import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
+import { PullToRefresh } from 'antd-mobile';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -66,28 +70,34 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       if (msgList.length === 0) return [] as DbEvent[];
 
       const lastMsgItem = msgList[0];
-      const since = lastMsgItem.created_at; 
+      const since = lastMsgItem.created_at;
       const filter = { ...msgFilter, since };
-      let events = await dbQuery.matchFilterRelay(filter, relayUrls, isValidEvent);
-      events = events.filter(e => {
-        if(e.kind === WellKnownEventKind.community_approval){
-          try {
-            const targetEvent = JSON.parse(e.content);
-            if(targetEvent.created_at <= lastMsgItem.created_at){
+      let events = await dbQuery.matchFilterRelay(
+        filter,
+        relayUrls,
+        isValidEvent,
+      );
+      events = events
+        .filter(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if (targetEvent.created_at <= lastMsgItem.created_at) {
+                return false;
+              }
+            } catch (error) {
               return false;
             }
-          } catch (error) {
-            return false;
           }
-        }
-        return true;
-      }).map(e => {
-        if(e.kind === WellKnownEventKind.community_approval){
-          const event = {...e, ...JSON.parse(e.content) as DbEvent};
-          return event;
-        }
-        return e;
-      });
+          return true;
+        })
+        .map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
       events = mergeAndSortUniqueDbEvents(events, events);
       console.log('query diff: ', events, events.length, filter);
       setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events, prev));
@@ -98,10 +108,14 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   const query = async () => {
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
-    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
+    let events = await dbQuery.matchFilterRelay(
+      msgFilter,
+      relayUrls,
+      isValidEvent,
+    );
     events = events.map(e => {
-      if(e.kind === WellKnownEventKind.community_approval){
-        const event = {...e, ...JSON.parse(e.content) as DbEvent};
+      if (e.kind === WellKnownEventKind.community_approval) {
+        const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
         return event;
       }
       return e;
@@ -112,7 +126,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   };
 
   useEffect(() => {
-    if(!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)return;
+    if (!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)
+      return;
     setNewComingMsg([]);
     setMsgList([]);
 
@@ -120,51 +135,68 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   }, [msgFilter, worker?.relayGroupId]);
 
   const onClickNewMsg = () => {
-    setMsgList(prev => mergeAndSortUniqueDbEvents(newComingMsg, prev).slice(0, maxMsgLength));
+    setMsgList(prev =>
+      mergeAndSortUniqueDbEvents(newComingMsg, prev).slice(0, maxMsgLength),
+    );
     setNewComingMsg([]);
   };
 
+  const onPullToRefresh = async () => {
+    if(!msgFilter || !validateFilter(msgFilter))return;
+    
+    worker?.subFilter({filter: msgFilter});
+    await query();  
+  }
+
   return (
     <>
-      {newComingMsg.length > 0 && (
-        <div className={styles.reloadFeedBtn}>
-          <Button onClick={onClickNewMsg} type="link">
-            Show {newComingMsg.length} new posts
-          </Button>
-        </div>
-      )}
-
-      <div
-        className={classNames(styles.home, {
-          [styles.noData]: msgList.length === 0,
-        })}
+      <PullToRefresh
+        onRefresh={onPullToRefresh}
+        pullingText={"Pull to refresh"}
+        refreshingText={"Refreshing.."}
+        canReleaseText={"Release now to load new notes"}
+        completeText={"New notes Loaded!"}
       >
-        {msgList.length > 0 && (
-          <>
-            <div className={styles.msgList}>
-              <PostItems
-                msgList={msgList}
-                worker={worker!}
-                relays={relayUrls}
-                showLastReplyToEvent={true}
-              />
-            </div>
-            <Button
-              type="link"
-              block
-              onClick={() => setLoadMoreCount(prev => prev + 1)}
-            >
-              {t('home.loadMoreBtn')}
+        {newComingMsg.length > 0 && (
+          <div className={styles.reloadFeedBtn}>
+            <Button onClick={onClickNewMsg} type="link">
+              Show {newComingMsg.length} new posts
             </Button>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </>
+          </div>
         )}
-        {msgList.length === 0 && emptyDataReactNode}
-      </div>
+
+        <div
+          className={classNames(styles.home, {
+            [styles.noData]: msgList.length === 0,
+          })}
+        >
+          {msgList.length > 0 && (
+            <>
+              <div className={styles.msgList}>
+                <PostItems
+                  msgList={msgList}
+                  worker={worker!}
+                  relays={relayUrls}
+                  showLastReplyToEvent={true}
+                />
+              </div>
+              <Button
+                type="link"
+                block
+                onClick={() => setLoadMoreCount(prev => prev + 1)}
+              >
+                {t('home.loadMoreBtn')}
+              </Button>
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+            </>
+          )}
+          {msgList.length === 0 && emptyDataReactNode}
+        </div>
+      </PullToRefresh>
     </>
   );
 };

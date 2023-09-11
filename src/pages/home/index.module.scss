@@ -215,6 +215,8 @@
       background: var(--primary-03, #c0e085);
     }
   }
+
+  overflow-x: scroll;
 }
 
 .mobileFilter {
@@ -229,6 +231,8 @@
     }
     .ant-segmented-item {
       flex: 1;
+      padding: 2px 5px;
     }
   }
+  overflow-x: scroll;
 }

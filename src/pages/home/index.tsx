@@ -9,21 +9,22 @@ import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
+import { PublicKey } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { Event } from 'core/nostr/Event';
-import { stringHasImageUrl } from 'utils/common';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { contactQuery } from 'core/db';
+import { isValidPublicKey } from 'utils/validator';
+import { homeMsgFilters, HomeMsgFilterType } from './filter';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
-import { isValidPublicKey } from 'utils/validator';
+import _ from 'lodash';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -43,23 +44,29 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [selectTabKey, setSelectTabKey] = useState<string>(
     defaultTabActivateKey,
   );
-  const [selectFilter, setSelectFilter] = useState<string>('All');
+  const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>(
+    HomeMsgFilterType.all,
+  );
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-  const [isQueryContactEvent, setIsQueryContactEvent] = useState<boolean>(false);
+  const [alreadyQueryMyContact, setAlreadyQueryMyContact] =
+    useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
 
   useLiveQuery(() => {
-    if (!isValidPublicKey(myPublicKey)) return;
+    if(!isLoggedIn){
+      setAlreadyQueryMyContact(true);
+      return;
+    }
 
+    if (!isValidPublicKey(myPublicKey)) return;
     contactQuery.getContactByPubkey(myPublicKey).then(e => {
+      setAlreadyQueryMyContact(true);
       if (e != null) {
         setMyContactEvent(e);
       }
-      setIsQueryContactEvent(true);
     });
-    setMyContactEvent;
-  }, [myPublicKey]);
+  }, [isLoggedIn, myPublicKey]);
 
   // right test data
   const updates = [
@@ -104,52 +111,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     </>
   );
 
-  const onMsgFeedChanged = () => {
+  const onMsgFilterChanged = () => {
     if (selectTabKey == null) return 'unknown tab key';
     if (selectFilter == null) return 'unknown filter type';
 
-    let msgFilter: Filter | null = null;
-    let isValidEvent: ((event: Event) => boolean) | undefined;
+    let msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
+    msgFilter = msgFilter ? _.cloneDeep(msgFilter) : undefined;
+    const isValidEvent = homeMsgFilters.find(
+      v => v.type === selectFilter,
+    )?.isValidEvent;
     let emptyDataReactNode: ReactNode | null = null;
-
-    if (selectFilter === 'All') {
-      const kinds = [
-        WellKnownEventKind.text_note,
-        WellKnownEventKind.article_highlight,
-        WellKnownEventKind.long_form,
-        WellKnownEventKind.reposts,
-      ];
-      msgFilter = {
-        limit: 50,
-        kinds,
-      };
-      isValidEvent = (event: Event) => {
-        return kinds.includes(event.kind);
-      };
-    }
-
-    if (selectFilter === 'Article') {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.long_form],
-      };
-      isValidEvent = (event: Event) => {
-        return event.kind === WellKnownEventKind.long_form;
-      };
-    }
-
-    if (selectFilter === 'Media') {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.text_note],
-      };
-      isValidEvent = (event: Event) => {
-        return (
-          event.kind === WellKnownEventKind.text_note &&
-          stringHasImageUrl(event.content)
-        );
-      };
-    }
 
     if (msgFilter == null) return 'unknown filter';
 
@@ -192,8 +163,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   };
 
   useEffect(() => {
-    onMsgFeedChanged();
-  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey]);
+    if(!alreadyQueryMyContact)return;
+
+    onMsgFilterChanged();
+  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey, alreadyQueryMyContact]);
 
   return (
     <BaseLayout>
@@ -219,8 +192,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
           <div className={styles.msgFilter}>
             <Segmented
               value={selectFilter}
-              onChange={val => setSelectFilter(val as string)}
-              options={['All', 'Article', 'Media']}
+              onChange={val => setSelectFilter(val as HomeMsgFilterType)}
+              options={homeMsgFilters.map(val => {
+                return {
+                  value: val.type,
+                  label: val.label,
+                };
+              })}
             />
           </div>
         </div>

@@ -16,6 +16,7 @@ const nextConfig = {
     includePaths: [path.resolve(__dirname, 'src')],
     prependData: `@import 'styles/mixin.scss';`,
   },
+  transpilePackages: ['antd-mobile'],
 }
 
 module.exports = withPWA(nextConfig);

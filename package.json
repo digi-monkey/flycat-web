@@ -33,6 +33,7 @@
     "@wagmi/chains": "0.2.15",
     "@wagmi/core": "0.10.8",
     "antd": "5.4.6",
+    "antd-mobile": "5.32.2",
     "axios": "0.27.2",
     "bech32": "2.0.0",
     "browser-image-compression": "2.0.2",
