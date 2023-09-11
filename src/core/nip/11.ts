@@ -68,8 +68,7 @@ export class Nip11 {
   static async getRelayInformation(url: string) {
     try {
       const httpUrl = url
-        .replace(/^wss?:\/\//, 'https://')
-        .replace(/^ws?:\/\//, 'http://');
+        .replace(/^ws(s?):\/\//, 'http$1://');
 
       const response = await axios.get<RelayInformation>(httpUrl, {
         headers: {
