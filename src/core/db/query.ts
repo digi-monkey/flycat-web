@@ -49,17 +49,13 @@ export class Query {
         return result;
       }
 
-      const data = await this.matchFilterRelay(msgFilter, relayUrls);
-      if (isValidEvent) {
-        return data.filter(e => isValidEvent(e));
-      }
-      return data;
+      return await this.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
     };
   }
 
-  async matchFilterRelay(filter: Filter, relayUrls: string[]) {
-    const maxEvents = filter.limit || this.defaultMaxLimit;
-    const applyRelayAndTimeLimit = (event: DbEvent) => {
+  async matchFilterRelay(filter: Filter, relayUrls: string[], isValidEvent?: (event: Event) => boolean) {
+    const maxLimit = filter.limit || this.defaultMaxLimit;
+    const applyRelayAndTimeRange = (event: DbEvent) => {
       const seenRelays = event.seen.map(r => normalizeWsUrl(r));
       if (
         !relayUrls.some(relay => seenRelays.includes(normalizeWsUrl(relay)))
@@ -74,7 +70,7 @@ export class Query {
       collection: Collection<DbEvent, IndexableType>,
     ) => {
       return (
-        await collection.and(applyRelayAndTimeLimit).sortBy('created_at')
+        await collection.and(applyRelayAndTimeRange).sortBy('created_at')
       ).reverse();
     };
     const filterTags = (events: DbEvent[], filter: Filter) => {
@@ -121,10 +117,16 @@ export class Query {
       }
       return result;
     };
+    const applyMaxLimit = (events: DbEvent[]) => {
+      if(isValidEvent){
+        return events.filter(e => isValidEvent(e)).filter(e => e!=null).slice(0, maxLimit);
+      }
+      return events.slice(0, maxLimit);
+    }
 
     if (filter.ids) {
       const query = this.table.where('id').anyOf(filter.ids);
-      return (await defaultQuery(query)).slice(0, maxEvents);
+      return applyMaxLimit((await defaultQuery(query)));
     }
 
     if (filter.authors && filter.kinds) {
@@ -133,23 +135,23 @@ export class Query {
       );
       const query = this.table.where('[pubkey+kind]').anyOf(compoundKeys);
       const events = await defaultQuery(query);
-      return filterTags(events, filter).slice(0, maxEvents);
+      return applyMaxLimit(filterTags(events, filter));
     }
 
     if (filter.kinds) {
       const query = this.table.where('kind').anyOf(filter.kinds);
       const events = await defaultQuery(query);
-      return filterTags(events, filter).slice(0, maxEvents);
+      return applyMaxLimit(filterTags(events, filter));
     }
 
     if (filter.authors) {
       const query = this.table.where('pubkey').anyOf(filter.authors);
       const events = await defaultQuery(query);
-      return filterTags(events, filter).slice(0, maxEvents);
+      return applyMaxLimit(filterTags(events, filter));
     }
 
     const events = await defaultQuery(this.table.toCollection());
-    return filterTags(events, filter).slice(0, maxEvents);
+    return applyMaxLimit(filterTags(events, filter));
   }
 }
 

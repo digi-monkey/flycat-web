@@ -25,10 +25,7 @@ export function useSubMsg({
     let since = msgFilter.since;
 
     const relayUrls = worker.relays.map(r => r.url) || [];
-    let events = await dbQuery.matchFilterRelay(msgFilter, relayUrls);
-    if(isValidEvent){
-      events = events.filter(e => isValidEvent(e)).filter(e => e!=null);
-    }
+    const events = await dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
     if(events.length > 0){
       if(since == null){
         since = events[0].created_at;
