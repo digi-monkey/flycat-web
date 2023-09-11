@@ -54,16 +54,19 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   useSubContactList(myPublicKey, newConn, worker);
 
   useLiveQuery(() => {
-    if (!isValidPublicKey(myPublicKey)) return;
+    if(!isLoggedIn){
+      setAlreadyQueryMyContact(true);
+      return;
+    }
 
+    if (!isValidPublicKey(myPublicKey)) return;
     contactQuery.getContactByPubkey(myPublicKey).then(e => {
       setAlreadyQueryMyContact(true);
       if (e != null) {
         setMyContactEvent(e);
       }
     });
-    setMyContactEvent;
-  }, [myPublicKey]);
+  }, [isLoggedIn, myPublicKey]);
 
   // right test data
   const updates = [
