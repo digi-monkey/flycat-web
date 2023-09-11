@@ -72,7 +72,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     label: 'Chinese',
     filter: {
       kinds: [WellKnownEventKind.text_note],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return (
@@ -87,7 +86,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['foodstr'],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
@@ -99,7 +97,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['bitcoin'],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
@@ -111,7 +108,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['photography'],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
@@ -123,7 +119,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['art'],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
@@ -134,7 +129,6 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     label: 'Flycat',
     filter: {
       kinds: [WellKnownEventKind.text_note],
-      limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
       return (
