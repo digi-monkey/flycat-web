@@ -9,7 +9,7 @@
     "@emoji-mart/react": "1.1.1",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
-    "@joyid/nostr": "0.0.3",
+    "@joyid/nostr": "0.1.0",
     "@noble/hashes": "1.1.5",
     "@noble/secp256k1": "1.7.0",
     "@reduxjs/toolkit": "1.7.1",
