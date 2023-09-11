@@ -19,6 +19,8 @@ export enum HomeMsgFilterType {
   nostr = 'Nostr',
   dev = 'Dev',
   bitcoin = 'Bitcoin',
+  photography = 'Photography',
+  art = 'Art',
 }
 
 export interface HomeMsgFilter {
@@ -97,6 +99,30 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['bitcoin'],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.text_note;
+    },
+  },
+  {
+    type: HomeMsgFilterType.photography,
+    label: '#Photography',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      '#t': ['photography'],
+      limit: 50,
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.text_note;
+    },
+  },
+  {
+    type: HomeMsgFilterType.art,
+    label: '#Art',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      '#t': ['art'],
       limit: 50,
     } as Filter,
     isValidEvent: (event: Event) => {
