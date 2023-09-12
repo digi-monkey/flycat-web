@@ -11,19 +11,18 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { payLnUrlInWebLn } from 'core/lighting/lighting';
+import { sendPaymentInWebLn } from 'core/lighting/lighting';
 import { Nip18 } from 'core/nip/18';
 import { Nip51 } from 'core/nip/51';
 import { Nip57 } from 'core/nip/57';
 import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { useRouter } from 'next/router';
+import { dexieDb } from 'core/db';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
-import { useRouter } from 'next/router';
-import { dbQuery, dexieDb } from 'core/db';
-import { seedRelays } from 'core/relay/pool/seed';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -93,7 +92,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const rawEvent = Nip57.createRequest({ relays, receipt, e, lnurl });
     const event = await signEvent(rawEvent);
     const eventStr = encodeURI(JSON.stringify(event));
-    const amount = 210000;
+    const amount = 21000; // 21 sats
 
     const api = lnurl
       ? `${zapEndpoint}?amount=${amount}&nostr=${eventStr}&lnurl=${lnurl}`
@@ -101,7 +100,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const response = await fetch(api);
     const data = await response.json();
     if (data.pr) {
-      payLnUrlInWebLn(data.pr);
+      sendPaymentInWebLn(data.pr);
     } else {
       messageApi.error(
         `something seems wrong with the zap endpoint response data`,
