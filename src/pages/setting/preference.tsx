@@ -1,6 +1,7 @@
 import {
   Button,
   Divider,
+  Input,
   List,
   Modal,
   Select,
@@ -87,6 +88,19 @@ export default function Preference() {
         ]}
       >
         Local Database(<span>{storage} mb</span>)
+      </List.Item>
+
+      <List.Item
+        actions={[
+          <Input
+            key={'zap-amount'}
+            disabled
+            value={"21 sats"}
+            size='small'
+          />
+        ]}
+      >
+        Zap Amount
       </List.Item>
 
       <Divider orientation="left">
