@@ -9,10 +9,7 @@ import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import {
-  deserializeMetadata,
-  shortifyPublicKey,
-} from 'core/nostr/content';
+import { deserializeMetadata, shortifyPublicKey } from 'core/nostr/content';
 import {
   EventSetMetadataContent,
   WellKnownEventKind,
@@ -83,9 +80,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           }
 
           const keys = (
-            e.tags.filter(
-              t => t[0] === EventTags.P,
-            ) as EventContactListPTag[]
+            e.tags.filter(t => t[0] === EventTags.P) as EventContactListPTag[]
           ).map(t => t[1]);
           const list = new Map();
           for (const t of e.tags.filter(
@@ -112,7 +107,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   );
 
   const onMsgFeedChanged = () => {
-    if(!isValidPublicKey(publicKey))return 'invalid user public key';
+    if (!isValidPublicKey(publicKey)) return 'invalid user public key';
 
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
@@ -159,7 +154,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     if (msgFilter == null) return 'unknown filter';
 
-    msgFilter.authors = [publicKey]; 
+    msgFilter.authors = [publicKey];
 
     console.log(
       'start sub msg.. !!!msgFilter: ',
@@ -182,7 +177,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   useEffect(() => {
     if (!isValidPublicKey(publicKey)) return;
-    if(!worker)return;
+    if (!worker) return;
 
     const pks = [publicKey];
     if (isLoggedIn && isValidPublicKey(myPublicKey)) {
@@ -392,6 +387,12 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
                 <Input
                   placeholder="Search"
                   prefix={<Icon type="icon-search" />}
+                  onPressEnter={value => {
+                    const keyword = value.currentTarget.value;
+                    if (keyword) {
+                      router.push(Paths.search + `?keyword=${keyword}`);
+                    }
+                  }}
                 />
               </div>
             }
@@ -448,10 +449,10 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             items={tabItems}
             size={'large'}
             activeKey={activeTabKey}
-            onChange={setActiveTabKey} 
+            onChange={setActiveTabKey}
           />
 
-          <MsgFeed msgSubProp={msgSubProp} worker={worker}/>
+          <MsgFeed msgSubProp={msgSubProp} worker={worker} />
         </div>
       </Left>
       <Right>

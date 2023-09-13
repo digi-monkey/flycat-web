@@ -59,6 +59,10 @@ const Pages = {
     name: 'login',
     path: '/login'
   },
+  search: {
+    name: 'search',
+    path: '/search'
+  },
   landing: {
     name: 'landing',
     path: '/landing'

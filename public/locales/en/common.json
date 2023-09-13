@@ -29,7 +29,8 @@
       "communities": "Communities",
       "relays": "Relays",
       "bookmarks": "Bookmarks",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "search": "Search"
     }
   },
   "home": {

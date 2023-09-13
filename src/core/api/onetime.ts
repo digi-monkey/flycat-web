@@ -3,11 +3,13 @@ import {
   WellKnownEventKind,
   EventSetMetadataContent,
   EventTags,
-  EventPTag
+  EventPTag,
+  Filter
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { ConnPool } from 'core/api/pool';
 import { WS } from 'core/api/ws';
+import { mergeAndSortUniqueDbEvents } from 'utils/common';
 
 // the main websocket handler is in the shared-worker across all the pages(see worker/worker0.ts worker1.ts callWorker.ts)
 // this one time websocket client is used in only some temp data fetching
@@ -180,4 +182,28 @@ export class OneTimeWebSocketClient {
 
     return event;
   } 
+
+  static async fetchEventByFilter({
+    filter,
+    relays,
+  }: {
+    filter: Filter;
+    relays: string[];
+  }) {
+    const pool = new ConnPool();
+    pool.addConnections(relays);
+    const fn = async (ws: WS) => {
+      const dataStream = ws.subFilter(filter);
+      const result: Event[] = [];
+      for await (const event of dataStream) {
+        if (!result.map(r => r.id).includes(event.id)) {
+          result.push(event);
+        }
+      }
+      dataStream.unsubscribe();
+      return result;
+    };
+    const results = (await pool.executeConcurrently(fn)).flat(1) as any;
+    return mergeAndSortUniqueDbEvents(results, results);
+  }
 }
