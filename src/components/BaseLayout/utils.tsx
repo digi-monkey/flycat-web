@@ -14,7 +14,8 @@ export enum MenuId {
   preference = 'preference',
   backup = 'backup',
   signOut = 'signOut',
-  add = 'add'
+  add = 'add',
+  search = 'search',
 }
 
 export const NavMenus = [{
@@ -37,7 +38,14 @@ export const NavMenus = [{
   icon: <Icon type="icon-bookmark" />,
   title: 'nav.menu.bookmarks',
   link: Paths.bookmarks
-}, {
+}, 
+{
+  id: MenuId.search,
+  icon: <Icon type="icon-search" />,
+  title: 'nav.menu.search',
+  link: Paths.search
+},
+{
   id: MenuId.notifications,
   icon: <Icon type="icon-notification" />,
   title: 'nav.menu.notifications',
@@ -64,6 +72,12 @@ export const UserMenus = [{
   link: Paths.user
 }, 
 NavMenus[3],
+{
+  id: MenuId.search,
+  icon: <Icon type="icon-search" />,
+  title: 'nav.menu.search',
+  link: Paths.search
+},
 ,{
   id: MenuId.drafts,
   icon: <Icon type="icon-Draft" />,
