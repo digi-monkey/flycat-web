@@ -35,9 +35,7 @@ import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import Link from 'next/link';
 import { Nip172 } from 'core/nip/172';
-import { recommendRelays } from './recommend';
 import { kindToReadable } from 'core/nostr/util';
-import { MsgFeed } from 'components/MsgFeed';
 
 export function RelayPage() {
   const router = useRouter();

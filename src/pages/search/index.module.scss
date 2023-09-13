@@ -1,0 +1,34 @@
+.root {
+  padding: 0 var(--basePadding5);
+  :global {
+    .ant-input-affix-wrapper {
+      margin: var(--basePadding4) 0;
+      height: 40px;
+      border-radius: 50px;
+
+      &:hover {
+        border: none;
+        border-inline-end: none;
+        box-shadow: none;
+      }
+
+      &,
+      input {
+        background-color: var(--neutral-02);
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+
+        fill: var(--neutral-06);
+      }
+    }
+  }
+
+  > a {
+    margin-bottom: var(--basePadding3);
+    color: var(--primary-06);
+    text-decoration: none;
+  }
+}

@@ -207,7 +207,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       </Left>
       <Right>
         <div className={styles.rightPanel}>
-          <Input placeholder="Search" prefix={<Icon type="icon-search" />} />
+          <Input placeholder="Search" prefix={<Icon type="icon-search" />} onPressEnter={(value) => {
+            const keyword = value.currentTarget.value;
+            if(keyword){
+              router.push(Paths.search + `?keyword=${keyword}`);
+            } 
+          }}/>
           <div className={styles.flycat}>
             <Link href={Paths.landing}>Install mobile app (PWA)</Link>
             <h2>Flycat updates</h2>

@@ -141,6 +141,7 @@ export interface Filter {
   since?: number;
   until?: number;
   limit?: number;
+  search?: string;
 }
 
 export type Tags = (

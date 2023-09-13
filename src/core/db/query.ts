@@ -4,6 +4,7 @@ import { normalizeWsUrl } from 'utils/common';
 import { Collection, IndexableType, Table } from 'dexie';
 import { EventId, EventTags, Filter, Naddr } from 'core/nostr/type';
 import { validateFilter } from 'components/MsgFeed/util';
+import { deserializeMetadata } from 'core/nostr/content';
 
 export class Query {
   private readonly table: Table<DbEvent>;
@@ -53,11 +54,17 @@ export class Query {
     };
   }
 
-  async matchFilterRelay(filter: Filter, relayUrls: string[], isValidEvent?: (event: Event) => boolean) {
+  // pass [] to allow for any relay urls
+  async matchFilterRelay(
+    filter: Filter,
+    relayUrls: string[],
+    isValidEvent?: (event: Event) => boolean,
+  ) {
     const maxLimit = filter.limit || this.defaultMaxLimit;
     const applyRelayAndTimeRange = (event: DbEvent) => {
       const seenRelays = event.seen.map(r => normalizeWsUrl(r));
       if (
+        relayUrls.length > 0 &&
         !relayUrls.some(relay => seenRelays.includes(normalizeWsUrl(relay)))
       ) {
         return false;
@@ -118,15 +125,18 @@ export class Query {
       return result;
     };
     const applyMaxLimit = (events: DbEvent[]) => {
-      if(isValidEvent){
-        return events.filter(e => isValidEvent(e)).filter(e => e!=null).slice(0, maxLimit);
+      if (isValidEvent) {
+        return events
+          .filter(e => isValidEvent(e))
+          .filter(e => e != null)
+          .slice(0, maxLimit);
       }
       return events.slice(0, maxLimit);
-    }
+    };
 
     if (filter.ids) {
       const query = this.table.where('id').anyOf(filter.ids);
-      return applyMaxLimit((await defaultQuery(query)));
+      return applyMaxLimit(await defaultQuery(query));
     }
 
     if (filter.authors && filter.kinds) {
@@ -228,5 +238,34 @@ export class ProfileQuery {
         return result;
       });
     };
+  }
+
+  filter(fn: (obj: DbEvent) => boolean) {
+    return this.table.filter(fn).toArray();
+  }
+
+  createFilterQuerier(fn: (obj: DbEvent) => boolean) {
+    return () => {
+      return this.table.filter(fn).toArray();
+    };
+  }
+
+  createFilterByKeyWord(keyword?: string) {
+    const fn = (e: DbEvent) => (keyword ? e.content.includes(keyword) : false);
+    return this.createFilterQuerier(fn);
+  }
+
+  createFilterByName(name?: string) {
+    const fn = (e: DbEvent) => {
+      if (!name) return false;
+
+      try {
+        const profile = deserializeMetadata(e.content);
+        return profile.display_name.includes(name) || profile.name.includes(name);
+      } catch (error) {
+        return false;
+      }
+    };
+    return this.createFilterQuerier(fn);
   }
 }
