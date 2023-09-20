@@ -16,6 +16,7 @@ export enum MenuId {
   signOut = 'signOut',
   add = 'add',
   search = 'search',
+  about = 'about',
 }
 
 export const NavMenus = [{
@@ -62,6 +63,12 @@ export const NavMenus = [{
   icon: <Icon type="icon-user" />,
   title: 'nav.menu.profile',
   link: Paths.user
+},
+{
+  id: MenuId.about,
+  icon: <Icon type="icon-emoji" />,
+  title: 'nav.menu.about',
+  link: Paths.about
 }
 ];
 
@@ -88,7 +95,14 @@ NavMenus[3],
   icon: <Icon type="icon-Gear" />,
   title: 'nav.menu.setting',
   link: Paths.setting
-}, {
+},
+{
+  id: MenuId.about,
+  icon: <Icon type="icon-emoji" />,
+  title: 'nav.menu.about',
+  link: Paths.about
+},
+{
   id: MenuId.signOut,
   icon: <Icon type="icon-Move-out" />,
   title: 'nav.menu.signOut',

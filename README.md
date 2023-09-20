@@ -6,9 +6,7 @@ Open social network built on [Nostr protocol](https://github.com/nostr-protocol/
 
 Flycat v0.2.x release 🎉🎉🎉
 
-Curious what will be next? Checkout our [Real Time Roadmap](https://github.com/users/digi-monkey/projects/1/views/1?sortedBy%5Bdirection%5D=asc&sortedBy%5BcolumnId%5D=53966968)!
-
-We also host a regular [design-call meeting](docs/develop.md#design-call) discussing the next things to ship on flycat, it is fully open and anyone can participate. Recommend it as a good way to get involved!
+Curious what will be next? Checkout our [Real Time Roadmap](https://github.com/users/digi-monkey/projects/1/views/4?sliceBy%5BcolumnId%5D=53966968)!
 
 ## Install
 

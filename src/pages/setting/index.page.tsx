@@ -17,12 +17,11 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { Avatar, Button, Form, Input, Tabs } from 'antd';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { useRouter } from 'next/router';
 
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
 import Preference from './preference';
-import About from './about';
-import { useRouter } from 'next/router';
 import Key from './key';
 
 const { TextArea } = Input;
@@ -229,11 +228,6 @@ export const EditProfilePage = ({ commitId }) => {
       ),
     },
     {
-      label: 'Keys',
-      key: 'keys',
-      children: <Key />,
-    },
-    {
       label: `Preference`,
       key: 'preference',
       children: (
@@ -243,9 +237,9 @@ export const EditProfilePage = ({ commitId }) => {
       ),
     },
     {
-      label: 'About',
-      key: 'about',
-      children: <About commitId={commitId} />,
+      label: 'Keys',
+      key: 'keys',
+      children: <Key />,
     },
   ];
 

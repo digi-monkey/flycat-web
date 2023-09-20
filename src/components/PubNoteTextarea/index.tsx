@@ -32,6 +32,7 @@ interface Props {
   signEvent?: SignEvent;
   pubSuccessCallback?: (eventId: string, relayUrl: string[]) => any;
   activeCommunity?: Naddr;
+  initText?: string;
 }
 
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
@@ -48,6 +49,7 @@ const PubNoteTextarea: React.FC<Props> = ({
   signEvent,
   pubSuccessCallback,
   activeCommunity,
+  initText
 }) => {
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -72,6 +74,12 @@ const PubNoteTextarea: React.FC<Props> = ({
       setSelectedCommunity(activeCommunity);
     }
   }, [activeCommunity])
+
+  useEffect(()=>{
+    if(initText){
+      setText(initText);
+    }
+  }, [])
 
   return (
     <div

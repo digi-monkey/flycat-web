@@ -8,6 +8,6 @@ assignees: digi-monkey
 
 ## Version Tag
 
-- [ ] Release call
+- [ ] Commit changes
 - [ ] Bump version
 - [ ] Release notes
