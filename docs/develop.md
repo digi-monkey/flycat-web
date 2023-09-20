@@ -38,15 +38,3 @@ We use [project kanban](https://github.com/users/digi-monkey/projects/1) to mana
 ## Contributing
 
 A good way to start contributing is to check the [github issues](https://github.com/digi-monkey/flycat-web/issues) labeling with `good first issue`.
-
-## Design Call
-
-Every week, right before a regular release iteration start, we host a regular design call meeting, the meeting is fully open. anyone can join and discuss if they want.
-
-The meeting is mainly focus on:
-
-- things planning to ship in that week
-- new contributors self-introduce, asking question about the project or development
-- users feedback
-
-The meeting is tentatively scheduled for 1:00 PM UTC+8 hosted on [meet.jit.si](https://meet.jit.si/). Check out [flycat official account](https://flycat.club/user/f60140bb15e3f8e6a6032a557dcde4b900d52f315799b35052e625333a5cd904) for meeting link.

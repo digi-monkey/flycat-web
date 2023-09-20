@@ -66,6 +66,10 @@ const Pages = {
   landing: {
     name: 'landing',
     path: '/landing'
+  },
+  about: {
+    name: 'about',
+    path: '/about'
   }
 }
 
