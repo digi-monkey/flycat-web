@@ -9,17 +9,11 @@ import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
 import { EmbedRef } from './util';
 import { DbEvent } from 'core/db/schema';
+import { textWithHashtags } from './hashTags';
 
 export const transformRefEmbed = (
   content: string,
-  {
-    npubs,
-    nevents,
-    naddrs,
-    notes,
-    nprofiles,
-    nrelays,
-  }: EmbedRef,
+  { npubs, nevents, naddrs, notes, nprofiles, nrelays }: EmbedRef,
   profileEvents: DbEvent[],
 ) => {
   let refTexts: string[] = [];
@@ -27,15 +21,21 @@ export const transformRefEmbed = (
 
   if (npubs) {
     refTexts = refTexts.concat(npubs.map(n => n.key));
-    refComponents = refComponents.concat(npubs.map(n => Npub(n, profileEvents)));
+    refComponents = refComponents.concat(
+      npubs.map(n => Npub(n, profileEvents)),
+    );
   }
   if (nevents) {
     refTexts = refTexts.concat(nevents.map(n => n.key));
-    refComponents = refComponents.concat(nevents.map(n => Nevent(n, profileEvents)));
+    refComponents = refComponents.concat(
+      nevents.map(n => Nevent(n, profileEvents)),
+    );
   }
   if (notes) {
     refTexts = refTexts.concat(notes.map(n => n.key));
-    refComponents = refComponents.concat(notes.map(n => Note(n, profileEvents)));
+    refComponents = refComponents.concat(
+      notes.map(n => Note(n, profileEvents)),
+    );
   }
   if (nprofiles) {
     refTexts = refTexts.concat(nprofiles.map(n => n.key));
@@ -52,7 +52,7 @@ export const transformRefEmbed = (
     refComponents = refComponents.concat(nrelays.map(n => Nrelay(n)));
   }
 
-  let textComponents: any[] = [content];
+  let textComponents: any[] = [textWithHashtags(content)];
   if (refTexts.length > 0) {
     const delimiters = refTexts;
     const pattern = new RegExp(delimiters.join('|'));
@@ -60,7 +60,9 @@ export const transformRefEmbed = (
     // Split the string based on the substrings
     textComponents = content
       .split(pattern)
-      .map((text, index) => <span key={text + index}>{text}</span>);
+      .map((text, index) => (
+        <span key={text + index}>{textWithHashtags(text)}</span>
+      ));
   }
 
   // Find the maximum length between the two arrays
