@@ -18,6 +18,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { contactQuery } from 'core/db';
 import { isValidPublicKey } from 'utils/validator';
 import { homeMsgFilters, HomeMsgFilterType } from './filter';
+import {
+  getLastSelectedTabKeyAndFilter,
+  updateLastSelectedTabKeyAndFilter,
+} from './util';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
@@ -39,14 +43,32 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const myPublicKey = useMyPublicKey();
   const { worker, newConn } = useCallWorker();
   const isMobile = useMatchMobile();
-  const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
 
-  const [selectTabKey, setSelectTabKey] = useState<string>(
-    defaultTabActivateKey,
-  );
-  const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>(
-    HomeMsgFilterType.all,
-  );
+  const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
+  const defaultSelectedFilter = HomeMsgFilterType.all;
+  const [selectTabKey, setSelectTabKey] = useState<string>();
+  const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>();
+
+  useEffect(() => {
+    const lastSelected = getLastSelectedTabKeyAndFilter();
+    if (lastSelected.selectedTabKey) {
+      setSelectTabKey(lastSelected.selectedTabKey);
+    } else {
+      setSelectTabKey(defaultTabActivateKey);
+    }
+    if (lastSelected.selectedFilter) {
+      setSelectFilter(lastSelected.selectedFilter as HomeMsgFilterType);
+    } else {
+      setSelectFilter(defaultSelectedFilter);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectFilter && selectTabKey) {
+      updateLastSelectedTabKeyAndFilter(selectTabKey, selectFilter);
+    }
+  }, [selectFilter, selectTabKey]);
+
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   const [alreadyQueryMyContact, setAlreadyQueryMyContact] =
@@ -54,7 +76,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   useSubContactList(myPublicKey, newConn, worker);
 
   useLiveQuery(() => {
-    if(!isLoggedIn){
+    if (!isLoggedIn) {
       setAlreadyQueryMyContact(true);
       return;
     }
@@ -163,10 +185,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   };
 
   useEffect(() => {
-    if(!alreadyQueryMyContact)return;
+    if (!alreadyQueryMyContact) return;
 
     onMsgFilterChanged();
-  }, [selectFilter, selectTabKey, myContactEvent, myPublicKey, alreadyQueryMyContact]);
+  }, [
+    selectFilter,
+    selectTabKey,
+    myContactEvent,
+    myPublicKey,
+    alreadyQueryMyContact,
+  ]);
 
   return (
     <BaseLayout>
@@ -177,7 +205,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
               { key: 'global', label: 'Global' },
             ]}
-            defaultActiveKey={defaultTabActivateKey}
+            activeKey={selectTabKey}
             onChange={key => setSelectTabKey(key)}
           />
         </div>
@@ -207,12 +235,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       </Left>
       <Right>
         <div className={styles.rightPanel}>
-          <Input placeholder="Search" prefix={<Icon type="icon-search" />} onPressEnter={(value) => {
-            const keyword = value.currentTarget.value;
-            if(keyword){
-              router.push(Paths.search + `?keyword=${keyword}`);
-            } 
-          }}/>
+          <Input
+            placeholder="Search"
+            prefix={<Icon type="icon-search" />}
+            onPressEnter={value => {
+              const keyword = value.currentTarget.value;
+              if (keyword) {
+                router.push(Paths.search + `?keyword=${keyword}`);
+              }
+            }}
+          />
           <div className={styles.flycat}>
             <Link href={Paths.landing}>Install mobile app (PWA)</Link>
             <h2>Flycat updates</h2>
