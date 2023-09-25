@@ -4,6 +4,7 @@ import { ImageProvider, compressImage} from 'core/api/img';
 import { EventTags, Naddr, Tags, WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { DecodedNprofileResult, Nip19 } from 'core/nip/19';
 
 export const makeInvoice = async (setText) => {
   if (typeof window?.webln === 'undefined') {
@@ -103,6 +104,9 @@ export const handleSubmitText = async (
 ) => {
   formEvt.preventDefault();
 
+  const pTagPubKeys = Object.values(selectMention).map(nprofile => (Nip19.decodeShareable(nprofile.slice(6)).data as DecodedNprofileResult).pubkey);
+  const hashTags = extractHashTags(text);
+  
   const newText = replaceKeysWithPrefix(selectMention, text);
   let textWithAttachImgs = newText;
   for (const url of attachImgs) {
@@ -113,10 +117,14 @@ export const handleSubmitText = async (
   if(!worker)return alert('worker is null');
   if (signEvent == null) return alert('no sign method!');
 
-  const tags: Tags = [];
+  let tags: Tags = pTagPubKeys.map(pk => [EventTags.P, pk]);
   if(selectedCommunity){
     tags.push([EventTags.A, selectedCommunity, '']);
   }
+  if(hashTags.length > 0){
+    tags = tags.concat(hashTags.map(t => [EventTags.T, t.substring(1)]));// remove #
+  }
+  
   const rawEvent = new RawEvent(
     myPublicKey,
     WellKnownEventKind.text_note,
@@ -130,4 +138,10 @@ export const handleSubmitText = async (
   setText('');
   setAttachImgs([]);
 };
+
+export function extractHashTags(text: string): string[]{
+  const hashtagRegex = /(#\S+)/g;
+  const matches = text.match(hashtagRegex);
+  return matches || [];
+}
 
