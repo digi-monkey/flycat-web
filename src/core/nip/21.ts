@@ -62,9 +62,8 @@ export class Nip21 {
   ) {
     const results: NpubResult[] = [];
 
-    const match = /nostr:npub\S*\b/g.exec(content);
+    const match = content.match(/nostr:npub\S*\b/g);
     if (match == null || match?.length === 0) return results;
-
     const transform = async (key: string) => {
       const npub = key.split(':')[1];
       const { type, data: pubkey } = Nip19.decode(npub);
@@ -108,7 +107,7 @@ export class Nip21 {
   ) {
     const results: NprofileResult[] = [];
 
-    const match = /nostr:nprofile\S*\b/g.exec(content);
+    const match = content.match(/nostr:nprofile\S*\b/g);
     if (match == null || match?.length === 0) return results;
 
     const transform = async (key: string) => {
@@ -160,7 +159,7 @@ export class Nip21 {
   static async transformNote(content: string, fallbackRelays: string[]) {
     const results: NoteResult[] = [];
 
-    const match = /nostr:note\S*\b/g.exec(content);
+    const match = content.match(/nostr:note\S*\b/g);
     if (match == null || match?.length === 0) return results;
 
     const transform = async (key: string) => {
@@ -193,7 +192,7 @@ export class Nip21 {
   static async transformNevent(content: string) {
     const results: NeventResult[] = [];
 
-    const match = /nostr:nevent\S*\b/g.exec(content);
+    const match = content.match(/nostr:nevent\S*\b/g);
     if (match == null || match?.length === 0) return results;
 
     const transform = async (key: string) => {
@@ -227,7 +226,7 @@ export class Nip21 {
   static async transformNaddr(content: string, fallbackRelays: string[]) {
     const results: NaddrResult[] = [];
 
-    const match = /nostr:naddr\S*\b/g.exec(content);
+    const match = content.match(/nostr:naddr\S*\b/g);
     if (match == null || match?.length === 0) return results;
 
     const transform = async (key: string) => {
@@ -277,7 +276,7 @@ export class Nip21 {
   static async transformNrelay(content: string) {
     const results: NrelayResult[] = [];
 
-    const match = /nostr:nrelay\S*\b/g.exec(content);
+    const match = content.match(/nostr:nrelay\S*\b/g);
     if (match == null || match?.length === 0) return results;
 
     const transform = async (key: string) => {
