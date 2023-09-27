@@ -9,12 +9,8 @@ import classNames from 'classnames';
 import { getRandomIndex } from 'utils/common';
 import { CSSProperties, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { profileQuery } from 'core/db';
-import { DbEvent } from 'core/db/schema';
-import { deserializeMetadata } from 'core/nostr/content';
-import { EventSetMetadataContent } from 'core/nostr/type';
-import { profile } from 'console';
 import { useUserProfile } from 'hooks/useUserProfile';
+import { isNip05DomainName } from 'core/nip/05';
 
 interface PostArticleProps {
   userAvatar: string;
@@ -35,7 +31,7 @@ const PostArticle: React.FC<PostArticleProps> = ({
   const authorProfile = useUserProfile(author);
   
   const buildArticleUrl = ()=>{
-    if(authorProfile?.nip05){ // check .bit too?
+    if(authorProfile?.nip05 && isNip05DomainName(authorProfile?.nip05)){ // check .bit too?
       return `/post/${authorProfile.nip05}/${articleId}`;
     }
     return Nip23.addrToUrl(addr);

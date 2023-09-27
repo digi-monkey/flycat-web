@@ -6,14 +6,21 @@ import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { useTimeSince } from 'hooks/useTimeSince';
 import Icon from 'components/Icon';
-import { copyToClipboard } from 'utils/common';
+import {
+  copyToClipboard,
+  requestPublicKeyFromNip05DomainName,
+} from 'utils/common';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { EventWithSeen } from 'pages/type';
 import { Event } from 'core/nostr/Event';
+import { useEffect, useState } from 'react';
+import { isValidPublicKey } from 'utils/validator';
+import { isNip05DomainName } from 'core/nip/05';
 
 interface PostUserProps {
   publicKey: string;
   avatar: string;
+  nip05name?: string;
   name: string | React.ReactNode;
   descNodes?: React.ReactNode;
   child?: boolean;
@@ -29,6 +36,7 @@ const PostUser: React.FC<PostUserProps> = ({
   publicKey,
   avatar,
   name,
+  nip05name,
   time,
   descNodes,
   event,
@@ -99,6 +107,14 @@ const PostUser: React.FC<PostUserProps> = ({
       });
     }
   }
+  const [userUrl, setUserUrl] = useState<string>(`${Paths.user + publicKey}`);
+  
+  useEffect(() => {
+    if (nip05name && isNip05DomainName(nip05name)) {
+      // todo: find a better way to validate and cache the result for nip05 before use it
+      setUserUrl(`${Paths.user + nip05name}`);
+    }
+  }, [nip05name]);
 
   return (
     <div
@@ -107,14 +123,14 @@ const PostUser: React.FC<PostUserProps> = ({
       })}
     >
       <div className={styles.user}>
-        <Link href={`${Paths.user + publicKey}`}>
+        <Link href={userUrl}>
           <Avatar src={avatar} alt="picture" />
         </Link>
         <div className={styles.info}>
           {typeof name === 'string' ? (
-            <Link href={`${Paths.user + publicKey}`}>{name}</Link>
+            <Link href={userUrl}>{name}</Link>
           ) : (
-            <Link href={`${Paths.user + publicKey}`}>{'...'}</Link>
+            <Link href={userUrl}>{'...'}</Link>
           )}
           {!child && (
             <p>
