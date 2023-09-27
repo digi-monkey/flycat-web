@@ -2,6 +2,9 @@ import { generateRandomBytes } from 'core/crypto';
 import { DbEvent } from 'core/db/schema';
 import { HexStr } from 'types';
 import { v4 as uuidv4 } from 'uuid';
+import { isValidPublicKey } from './validator';
+import { isNip05DomainName } from 'core/nip/05';
+import { getPublicKeyFromDotBit, isDotBitName } from 'core/dotbit';
 
 export const getDraftId = () => uuidv4();
 
@@ -13,9 +16,9 @@ export function getRandomIndex(array: any[]) {
   return Math.floor(Math.random() * array.length);
 }
 
-export const stringHasImageUrl = (str) => {
+export const stringHasImageUrl = str => {
   const imageUrlRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i;
-  return str.split(' ').some((word) => imageUrlRegex.test(word));
+  return str.split(' ').some(word => imageUrlRegex.test(word));
 };
 
 export function maxStrings(str: string, maxLen = 100) {
@@ -29,7 +32,7 @@ export function maxStrings(str: string, maxLen = 100) {
   }
 }
 
-export function getBaseUrl(str: string){
+export function getBaseUrl(str: string) {
   const url = new URL(str);
   const baseUrl = url.hostname;
   return baseUrl;
@@ -67,17 +70,90 @@ export function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
   return chunkedArray;
 }
 
-export function mergeAndSortUniqueDbEvents(array1: DbEvent[], array2: DbEvent[]): DbEvent[] {
+export function mergeAndSortUniqueDbEvents(
+  array1: DbEvent[],
+  array2: DbEvent[],
+): DbEvent[] {
   // Merge the arrays while ensuring uniqueness based on the 'id' property
-  const mergedArray: DbEvent[] = [...array1, ...array2].reduce((uniqueArray: DbEvent[], currentItem) => {
-    if (!uniqueArray.some((item) => item.id === currentItem.id)) {
-      uniqueArray.push(currentItem);
-    }
-    return uniqueArray;
-  }, []);
+  const mergedArray: DbEvent[] = [...array1, ...array2].reduce(
+    (uniqueArray: DbEvent[], currentItem) => {
+      if (!uniqueArray.some(item => item.id === currentItem.id)) {
+        uniqueArray.push(currentItem);
+      }
+      return uniqueArray;
+    },
+    [],
+  );
 
   // Sort the merged array by 'created_at' in descending order
-  mergedArray.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  mergedArray.sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 
   return mergedArray;
+}
+
+export async function parsePublicKeyFromUserIdentifier(
+  userId: string | undefined,
+) {
+  if (userId) {
+    if (isValidPublicKey(userId)) {
+      return userId;
+    }
+
+    if (isNip05DomainName(userId)) {
+      const pk = requestPublicKeyFromNip05DomainName(userId);
+      if (isValidPublicKey(pk)) {
+        return pk;
+      }
+    }
+
+    if (isDotBitName(userId)) {
+      const pk = requestPublicKeyFromDotBit(userId);
+      if (isValidPublicKey(pk)) {
+        return pk;
+      }
+    }
+  }
+  return null;
+}
+
+export async function requestPublicKeyFromDotBit(
+  didAlias: string,
+): Promise<string> {
+  if (!didAlias.endsWith('.bit')) {
+    throw new Error('dotbit alias must ends with .bit');
+  }
+
+  const pk = await getPublicKeyFromDotBit(didAlias);
+  if (pk == null) {
+    throw new Error('nostr key value not found in' + didAlias);
+  }
+  return pk;
+}
+
+export async function requestPublicKeyFromNip05DomainName(
+  domainName: string,
+): Promise<string> {
+  if (!domainName.includes('@')) {
+    throw new Error('invalid domain name! not including @');
+  }
+
+  const username = domainName.split('@')[0];
+  const website = domainName.split('@')[1];
+
+  const response = await fetch(
+    `https://${website}/.well-known/nostr.json?name=${username}`,
+  );
+  const data = await response.json();
+  if (data == null || data.names == null) {
+    throw new Error('invalid domain for nip05 ' + domainName);
+  }
+  const pk = data.names[username];
+  if (pk == null) {
+    throw new Error('invalid username for nip05 ' + domainName);
+  }
+
+  return pk;
 }

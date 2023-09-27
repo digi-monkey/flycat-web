@@ -44,6 +44,7 @@ import { contactQuery, profileQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { isValidPublicKey } from 'utils/validator';
+import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -54,7 +55,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const { publicKey } = router.query as UserParams;
+  const { publicKey: userIdentifier } = router.query as UserParams;
+  const publicKey = usePubkeyFromRouterQuery(userIdentifier);
   const { worker, newConn } = useCallWorker();
 
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();

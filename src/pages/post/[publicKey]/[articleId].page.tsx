@@ -24,6 +24,8 @@ import Icon from 'components/Icon';
 import { Button, Input } from 'antd';
 import Comments from 'components/Comments';
 import PageTitle from 'components/PageTitle';
+import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
+import { parsePublicKeyFromUserIdentifier } from 'utils/common';
 
 type UserParams = {
   publicKey: string;
@@ -34,7 +36,8 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const router = useRouter();
   const { t } = useTranslation();
   const query = useRouter().query as UserParams;
-  const { publicKey } = query;
+  const { publicKey: userIdentifier } = query;
+  const publicKey = usePubkeyFromRouterQuery(userIdentifier);
   const articleId = decodeURIComponent(query.articleId);
   const { worker, newConn } = useCallWorker();
 
@@ -154,12 +157,17 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       </Head>
       <BaseLayout silent={true}>
         <Left>
-          <PageTitle title="Article" icon={<Icon
+          <PageTitle
+            title="Article"
+            icon={
+              <Icon
                 onClick={() => router.back()}
                 width={24}
                 height={24}
                 type="icon-arrow-left"
-              />} />
+              />
+            }
+          />
           <div className={styles.postContainer}>
             <div className={styles.post}>
               <PostContent
@@ -241,7 +249,16 @@ export const getStaticProps = async ({
   params: { publicKey: string; articleId: string };
   locale: string;
 }) => {
-  const { publicKey, articleId } = params;
+  const { publicKey: userId, articleId } = params;
+  const publicKey = await parsePublicKeyFromUserIdentifier(userId);
+  if (!publicKey) {
+    return {
+      props: {
+        preArticle: null,
+        ...(await serverSideTranslations(locale, ['common'])),
+      },
+    };
+  }
 
   const filter = Nip23.filter({
     authors: [publicKey as string],

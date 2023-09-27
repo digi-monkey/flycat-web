@@ -1,6 +1,5 @@
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { getPublicKeyFromDotBit } from 'core/dotbit';
 import {
   createMetamaskSignEvent,
   createMetamaskGetPublicKey,
@@ -13,6 +12,7 @@ import {
 } from 'core/evm/walletConnect';
 import { disconnectWagmi } from 'core/evm/wagmi/helper';
 import { nostr as joyIdNostr, logout as joyIdLogout} from '@joyid/nostr';
+import { requestPublicKeyFromDotBit, requestPublicKeyFromNip05DomainName } from 'utils/common';
 
 export enum LoginMode {
   local = 'local', // default
@@ -307,43 +307,4 @@ export function loadTempMyPublicKey() {
 
 export function clearTempMyPublicKey() {
   if (loadTempMyPublicKey() != null) localStorage.removeItem(tempMyPkItemKey);
-}
-
-export async function requestPublicKeyFromDotBit(
-  didAlias: string,
-): Promise<string> {
-  if (!didAlias.endsWith('.bit')) {
-    throw new Error('dotbit alias must ends with .bit');
-  }
-
-  const pk = await getPublicKeyFromDotBit(didAlias);
-  if (pk == null) {
-    throw new Error('nostr key value not found in' + didAlias);
-  }
-  return pk;
-}
-
-export async function requestPublicKeyFromNip05DomainName(
-  domainName: string,
-): Promise<string> {
-  if (!domainName.includes('@')) {
-    throw new Error('invalid domain name! not including @');
-  }
-
-  const username = domainName.split('@')[0];
-  const website = domainName.split('@')[1];
-
-  const response = await fetch(
-    `https://${website}/.well-known/nostr.json?name=${username}`,
-  );
-  const data = await response.json();
-  if (data == null || data.names == null) {
-    throw new Error('invalid domain for nip05 ' + domainName);
-  }
-  const pk = data.names[username];
-  if (pk == null) {
-    throw new Error('invalid username for nip05 ' + domainName);
-  }
-
-  return pk;
 }

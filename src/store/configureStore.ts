@@ -14,11 +14,13 @@ import {
 import {
   LoginMode,
   loginReducer,
-  requestPublicKeyFromDotBit,
-  requestPublicKeyFromNip05DomainName,
   Signer,
   GetPublicKey,
 } from './loginReducer';
+import {
+  requestPublicKeyFromDotBit,
+  requestPublicKeyFromNip05DomainName
+} from 'utils/common';
 import {
   createWalletConnectGetPublicKey,
   createWalletConnectSignEvent,

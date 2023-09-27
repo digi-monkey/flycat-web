@@ -9,6 +9,8 @@ import classNames from 'classnames';
 import { getRandomIndex } from 'utils/common';
 import { CSSProperties, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useUserProfile } from 'hooks/useUserProfile';
+import { isNip05DomainName } from 'core/nip/05';
 
 interface PostArticleProps {
   userAvatar: string;
@@ -26,6 +28,14 @@ const PostArticle: React.FC<PostArticleProps> = ({
   const article = Nip23.toArticle(event);
   const { pubKey: author, id: articleId, title, image, summary } = article;
   const addr = Nip23.getAddr(author, articleId);
+  const authorProfile = useUserProfile(author);
+  
+  const buildArticleUrl = ()=>{
+    if(authorProfile?.nip05 && isNip05DomainName(authorProfile?.nip05)){ // check .bit too?
+      return `/post/${authorProfile.nip05}/${articleId}`;
+    }
+    return Nip23.addrToUrl(addr);
+  }
 
   const [bgStyle, setBgStyle] = useState<CSSProperties | undefined>();
   useEffect(() => {
@@ -45,7 +55,7 @@ const PostArticle: React.FC<PostArticleProps> = ({
     <div
       className={styles.article}
       style={bgStyle}
-      onClick={() =>  router.push(Nip23.addrToUrl(addr))}
+      onClick={() =>  router.push(buildArticleUrl())}
     >
       {image && <img src={image} alt={title || ''} />}
       <div className={styles.content}>

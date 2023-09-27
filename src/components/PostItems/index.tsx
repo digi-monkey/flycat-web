@@ -75,6 +75,7 @@ const PostItems: React.FC<PostItemsProps> = ({
               {extraHeader}
               {showFromCommunity && <PostCommunityHeader event={msg} />}
               <PostUser
+                nip05name={getUser(msg)?.nip05}
                 publicKey={msg.pubkey}
                 avatar={getUser(msg)?.picture || ''}
                 name={getUser(msg)?.name}
