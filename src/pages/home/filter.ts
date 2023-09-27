@@ -22,6 +22,7 @@ export enum HomeMsgFilterType {
   bitcoin = 'Bitcoin',
   photography = 'Photography',
   art = 'Art',
+  meme = 'Meme',
 }
 
 export interface HomeMsgFilter {
@@ -87,6 +88,17 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     filter: {
       kinds: [WellKnownEventKind.text_note],
       '#t': ['foodstr'],
+    } as Filter,
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.text_note;
+    },
+  },
+  {
+    type: HomeMsgFilterType.meme,
+    label: '#Meme',
+    filter: {
+      kinds: [WellKnownEventKind.text_note],
+      '#t': ['meme'],
     } as Filter,
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
