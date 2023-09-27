@@ -6,6 +6,7 @@ import Link from 'next/link';
 import styles from './index.module.scss';
 import ReactMarkdown from 'react-markdown';
 import { Avatar, Button } from 'antd';
+import { isValidPublicKey } from 'utils/validator';
 
 const PostContent = ({
   article,
@@ -67,8 +68,8 @@ const PostContent = ({
                   {/*todo: fix to follow/unfollow*/}
                 </Link>
               )}
-              {publicKey === myPublicKey && (
-                <Link href={`${Paths.edit + publicKey}/${articleId}`}>
+              {isValidPublicKey(publicKey) && publicKey === myPublicKey && (
+                <Link href={`${Paths.edit}${publicKey}/${articleId}`}>
                   <Button>{'Edit this post'}</Button>
                 </Link>
               )}
