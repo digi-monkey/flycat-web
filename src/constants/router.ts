@@ -73,7 +73,7 @@ const Pages = {
   },
   hashTags: {
     name: 'hashTags',
-    path: '/hashTags/'
+    path: '/hashtags/'
   }
 }
 
