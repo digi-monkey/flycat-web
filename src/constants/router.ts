@@ -70,6 +70,10 @@ const Pages = {
   about: {
     name: 'about',
     path: '/about'
+  },
+  hashTags: {
+    name: 'hashTags',
+    path: '/hashTags/'
   }
 }
 

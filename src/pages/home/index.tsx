@@ -29,6 +29,8 @@ import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
 import styles from './index.module.scss';
 import _ from 'lodash';
+import { trendingTags } from './hashtags';
+import { updates } from './updates';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -89,24 +91,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       }
     });
   }, [isLoggedIn, myPublicKey]);
-
-  // right test data
-  const updates = [
-    {
-      content: '[4.13] Generating rss/json feed for...',
-      isNew: true,
-    },
-    {
-      content: '[4.12] ogp on blog post',
-      isNew: false,
-    },
-  ];
-  const trending = [
-    { tag: 'Nostr', url: Paths.home },
-    { tag: 'Nip', url: Paths.home },
-    { tag: 'Bitcoin', url: Paths.home },
-    { tag: 'Zapping', url: Paths.home },
-  ];
 
   const emptyFollowReactData = (
     <>
@@ -249,18 +233,20 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             <Link href={Paths.landing}>Install mobile app (PWA)</Link>
             <h2>Flycat updates</h2>
             {updates.map((item, key) => (
-              <div className={styles.item} key={key}>
-                <p>{item.content}</p>
-                {item.isNew && <span>New</span>}
-              </div>
+              <Link href={item.url} key={key}>
+                <div className={styles.item}>
+                  <p>{item.content}</p>
+                  {item.isNew && <span>New</span>}
+                </div>
+              </Link>
             ))}
-            <Link href={Paths.home}>Learn more</Link>
+            <Link href={'https://github.com/digi-monkey/flycat-web/releases'}>Learn more</Link>
           </div>
 
           <div className={styles.trending}>
             <h2>Trending hashtags</h2>
-            {trending.map((item, key) => (
-              <Link href={item.url} key={key}>
+            {trendingTags.map((item, key) => (
+              <Link href={Paths.hashTags + item.value} key={key}>
                 #{item.tag}
               </Link>
             ))}
