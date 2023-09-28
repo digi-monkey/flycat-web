@@ -17,6 +17,14 @@ const nextConfig = {
     prependData: `@import 'styles/mixin.scss';`,
   },
   transpilePackages: ['antd-mobile'],
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/nostr.json',
+        destination: '/api/.well-known/nostr.json',
+      },
+    ];
+  },
 }
 
 module.exports = withPWA(nextConfig);
