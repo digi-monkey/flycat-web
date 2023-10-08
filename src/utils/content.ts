@@ -1,4 +1,3 @@
-import { Event } from 'core/nostr/Event';
 import { Nip19 } from 'core/nip/19';
 
 export enum ContentType {

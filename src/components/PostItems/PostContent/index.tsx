@@ -33,6 +33,7 @@ import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
+import { isNsfwEvent } from 'utils/validator';
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -186,7 +187,7 @@ export const PostContent: React.FC<PostContentProp> = ({
             </Button>
           </div>
         )}
-        <MediaPreviews content={msgEvent.content} />
+        <MediaPreviews isNsfw={isNsfwEvent(msgEvent)} content={msgEvent.content} />
       </>
     </div>
   );

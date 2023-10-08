@@ -1,3 +1,6 @@
+import { Event } from "core/nostr/Event";
+import { EventTags } from "core/nostr/type";
+
 export function isValidPublicKey(key: any): boolean {
   return (
     typeof key === 'string' && key.length === 64 && /^[0-9a-fA-F]+$/.test(key)
@@ -67,4 +70,8 @@ export function isValidJSONStr(str: string) {
     console.debug(error.message);
     return false;
   }
+}
+
+export function isNsfwEvent(event: Event){
+  return event.tags.find(t => t[0] === EventTags.T && typeof t[1] === "string" && t[1].toLowerCase() === "nsfw") !== undefined;
 }
