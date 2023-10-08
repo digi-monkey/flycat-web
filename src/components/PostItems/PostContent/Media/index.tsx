@@ -10,9 +10,10 @@ import styles from './index.module.scss';
 
 export interface PreviewsProp {
   content: string;
+  isNsfw?: boolean;
 }
 
-export function MediaPreviews({ content }: PreviewsProp) {
+export function MediaPreviews({ content, isNsfw }: PreviewsProp) {
   const {
     lnUrls,
     bolt11Invoices,
@@ -30,6 +31,7 @@ export function MediaPreviews({ content }: PreviewsProp) {
             [styles.w100]: imageUrls.length === 1,
             [styles.w50]: [2, 4, 8].includes(imageUrls.length),
             [styles.w33]: ![1, 2, 4, 8].includes(imageUrls.length),
+            [styles.blur]: isNsfw === true
           })}
         >
           {imageUrls.map((url,index) => (

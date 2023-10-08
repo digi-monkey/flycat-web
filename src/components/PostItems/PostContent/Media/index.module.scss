@@ -22,6 +22,10 @@
   margin: 0;
   width: 100%;
 
+  &.blur{
+    filter: blur(10px);
+  }
+
   li {
     display: inline-block;
     box-sizing: border-box;
