@@ -88,13 +88,13 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
     const callRelay =
       newConn.length > 0
         ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
+          type: CallRelayType.batch,
+          data: newConn,
+        }
         : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+          type: CallRelayType.connected,
+          data: [],
+        };
 
     worker
       .subMetadata([publicKey as string], undefined, callRelay)

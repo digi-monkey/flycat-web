@@ -7,7 +7,7 @@ import { NostrFilterMessage } from './types';
 import EventEmitter from 'events';
 import { randomSubId } from 'utils/common';
 
-export class WorkerEventEmitter extends EventEmitter {}
+export class WorkerEventEmitter extends EventEmitter { }
 
 export const workerEventEmitter = new WorkerEventEmitter();
 
@@ -17,7 +17,7 @@ class GroupedAsyncGenerator<T, K> {
     (value: IteratorResult<T, any>) => void
   >();
 
-  constructor(private messageStream: () => AsyncGenerator<T>) {}
+  constructor(private messageStream: () => AsyncGenerator<T>) { }
 
   async *getGenerator(key: K): AsyncGenerator<T, any, undefined> {
     while (true) {

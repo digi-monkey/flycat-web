@@ -42,7 +42,7 @@ export default function NaddrCommunity() {
 
   const [postCount, setPostCount] = useState<number>(0);
   const [contributorCount, setContributorCount] = useState<number>(0);
-  const [myPostCount, setMyPostCount] = useState<number>(0); 
+  const [myPostCount, setMyPostCount] = useState<number>(0);
   const [myUnApprovalPostCount, setMyUnApprovalPostCount] = useState<number>(0);
   const [actionButton, setActionButtom] = useState<ReactNode>();
 
@@ -114,13 +114,13 @@ export default function NaddrCommunity() {
     formattedText = [];
     for (let i = 0; i < parts.length; i += 2) {
       formattedText.push(
-          <p key={i}>
-            {parts[i]}{parts[i + 1]}
-          </p>
+        <p key={i}>
+          {parts[i]}{parts[i + 1]}
+        </p>
       );
     }
   }
-  
+
   return (
     <BaseLayout>
       <Left>
@@ -155,18 +155,18 @@ export default function NaddrCommunity() {
           </div>
           <div className={styles.rightPanelHeader}>Moderators</div>
           <div className={styles.avatarContainer}>
-                <Avatar.Group maxCount={5}>
-                  {community?.moderators.map(pk => (
-                    <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
-                      <a href={'/user/' + pk}>
-                        <Avatar src={userMap.get(pk)?.picture} />
-                      </a>
-                    </Tooltip>
-                  ))}
-                </Avatar.Group>
+            <Avatar.Group maxCount={5}>
+              {community?.moderators.map(pk => (
+                <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
+                  <a href={'/user/' + pk}>
+                    <Avatar src={userMap.get(pk)?.picture} />
+                  </a>
+                </Tooltip>
+              ))}
+            </Avatar.Group>
           </div>
           <div className={styles.rightPanelHeader}>Rules</div>
-          <div>{ formattedText }</div>
+          <div>{formattedText}</div>
           <div className={styles.calendarRecord}>
             <div className={styles.recordHeader}>My Record</div>
             <div className={styles.recordTime}>

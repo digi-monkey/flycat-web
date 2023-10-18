@@ -31,9 +31,9 @@ export function useBookmarkListFeed({
   setEventMap: Dispatch<SetStateAction<EventMap>>;
   maxMsgLength?: number;
 }) {
-	const myPublicKey = useReadonlyMyPublicKey();
+  const myPublicKey = useReadonlyMyPublicKey();
   const [feed, setFeed] = useState<EventWithSeen[]>([]);
-	const [bookmarkEvent, setBookmarkEvent] = useState<Event>();
+  const [bookmarkEvent, setBookmarkEvent] = useState<Event>();
 
   const handleEvent = (event: Event, relayUrl?: string) => {
     switch (event.kind) {
@@ -63,7 +63,7 @@ export function useBookmarkListFeed({
           prev.set(event.id, event);
           return prev;
         });
-        
+
         setFeed(oldArray => {
           if (
             oldArray.length > maxMsgLength &&
@@ -77,9 +77,9 @@ export function useBookmarkListFeed({
 
             // check if need to sub new user metadata
             const newPks: string[] = [];
-						if (userMap.get(event.pubkey) == null) {
-							newPks.push(event.pubkey);
-						}
+            if (userMap.get(event.pubkey) == null) {
+              newPks.push(event.pubkey);
+            }
             for (const t of event.tags) {
               if (isEventPTag(t)) {
                 const pk = t[1];
@@ -122,16 +122,16 @@ export function useBookmarkListFeed({
         });
         break;
 
-			case WellKnownEventKind.bookmark_list:
-				if(bookmarkEvent == null){
-					setBookmarkEvent(event);
-					return;
-				}
-				if(event.created_at > bookmarkEvent.created_at){
-					setBookmarkEvent(event);
-					return;
-				}
-				break;
+      case WellKnownEventKind.bookmark_list:
+        if (bookmarkEvent == null) {
+          setBookmarkEvent(event);
+          return;
+        }
+        if (event.created_at > bookmarkEvent.created_at) {
+          setBookmarkEvent(event);
+          return;
+        }
+        break;
 
       default:
         break;
@@ -148,11 +148,11 @@ export function useBookmarkListFeed({
     const limit = 50;
     const filter: Filter = {
       limit,
-			authors: [myPublicKey],
+      authors: [myPublicKey],
       kinds: [WellKnownEventKind.bookmark_list],
-			'#d': [Nip51.publicNoteBookmarkIdentifier]
+      '#d': [Nip51.publicNoteBookmarkIdentifier]
     }
-    const sub = worker.subFilter({filter, callRelay})!;
+    const sub = worker.subFilter({ filter, callRelay })!;
 
     sub.iterating({ cb: handleEvent });
   };
@@ -161,12 +161,12 @@ export function useBookmarkListFeed({
     getFeed(newConn);
   }, [newConn, worker]);
 
-	useEffect(()=>{
-		if(!bookmarkEvent)return;
+  useEffect(() => {
+    if (!bookmarkEvent) return;
 
-		const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
-		worker?.subFilter({filter: {ids: events}})?.iterating({cb: handleEvent});
-	}, [bookmarkEvent]);
+    const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
+    worker?.subFilter({ filter: { ids: events } })?.iterating({ cb: handleEvent });
+  }, [bookmarkEvent]);
 
   return feed;
 }

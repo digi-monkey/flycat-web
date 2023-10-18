@@ -15,28 +15,30 @@ export function useWorker(setUserMap, setArticle, setIsRestore) {
   const query = useRouter().query as Query;
   const { publicKey } = query;
   const articleId = decodeURIComponent(query.articleId);
-  
+
   useEffect(() => {
     if (newConn.length === 0 || !publicKey || !articleId) {
       setIsRestore(true);
       return;
     }
-  
+
     const filter = Nip23.filter({
       authors: [publicKey],
       articleIds: [articleId],
     });
     worker
-      ?.subFilter({filter, callRelay: {
-        type: CallRelayType.batch,
-        data: newConn,
-      }})
+      ?.subFilter({
+        filter, callRelay: {
+          type: CallRelayType.batch,
+          data: newConn,
+        }
+      })
       ?.iterating({ cb: handleEvent(publicKey, setUserMap, setArticle) });
   }, [newConn]);
 }
 
 export function useArticle(
-  article, 
+  article,
   setTitle,
   setSummary,
   setContent,
@@ -59,22 +61,22 @@ export function useArticle(
       image = '',
       summary = '',
     } = article;
-  
+
     setSlug(id || slug);
     setTitle(title);
     setImage(image);
     setSummary(summary);
     setContent(content);
-  
+
     if (dirs) {
       setDirs((typeof dirs === "string" ? [dirs] : dirs).join('/'));
     }
     if (hashTags) {
       setHashTags(hashTags);
-      setPredefineHashTags( hashTags.map(t => ({ id: t, text: t })) );
+      setPredefineHashTags(hashTags.map(t => ({ id: t, text: t })));
     }
   }, [
-    article, 
+    article,
     setTitle,
     setSummary,
     setContent,

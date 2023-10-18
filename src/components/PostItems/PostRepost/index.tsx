@@ -47,7 +47,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
   }, [event]);
 
   const relayUrls = worker.relays.map(r => r.url) || [];
-  const targetEventFromDb = useLiveQuery(dbQuery.createEventByIdQuerier(relayUrls, Nip18.getTargetEventIdRelay(event).id), [event, ]);
+  const targetEventFromDb = useLiveQuery(dbQuery.createEventByIdQuerier(relayUrls, Nip18.getTargetEventIdRelay(event).id), [event,]);
 
   useEffect(() => {
     if (targetEvent == null) {
@@ -58,20 +58,20 @@ const PostRepost: React.FC<PostRepostProp> = ({
   }, [targetEventFromDb]);
 
   const pks = [event.pubkey];
-  if(targetEvent){
+  if (targetEvent) {
     pks.push(targetEvent.pubkey);
   }
-  const profileEvents = useLiveQuery(async ()=>{
+  const profileEvents = useLiveQuery(async () => {
     const events = await dexieDb.profileEvent.bulkGet(pks);
     return events.filter(e => e != null) as DbEvent[];
   }, [targetEvent], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
     const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
-    if(!userEvent){
+    if (!userEvent) {
       return null;
     }
     return JSON.parse(userEvent.content) as EventSetMetadataContent;
-  } 
+  }
 
   const tryReload = () => {
     const info = Nip18.getTargetEventIdRelay(event);

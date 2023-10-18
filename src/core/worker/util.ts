@@ -21,9 +21,11 @@ export async function getContactEvent({
   worker: CallWorker;
   pk: PublicKey;
 }) {
-  worker.subContactList([pk]).iterating({cb: ()=>{
-    //do nothing
-  }});
+  worker.subContactList([pk]).iterating({
+    cb: () => {
+      //do nothing
+    }
+  });
 }
 
 export function isFollowed(
@@ -146,7 +148,7 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'people') {
     const tags = newEvent.tags.filter(
-      t => (t[0]!== EventTags.P) ||  (t[0] === EventTags.P && t[1] !== target.data),
+      t => (t[0] !== EventTags.P) || (t[0] === EventTags.P && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;
@@ -154,7 +156,7 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'hashTag') {
     const tags = newEvent.tags.filter(
-      t => (t[0]!== EventTags.T) || (t[0] === EventTags.T && t[1] !== target.data),
+      t => (t[0] !== EventTags.T) || (t[0] === EventTags.T && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;
@@ -162,7 +164,7 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'community') {
     const tags = newEvent.tags.filter(
-      t => (t[0]!== EventTags.A) || (t[0] === EventTags.A && t[1] !== target.data),
+      t => (t[0] !== EventTags.A) || (t[0] === EventTags.A && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;

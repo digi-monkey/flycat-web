@@ -36,9 +36,9 @@ export function useLoadContacts({
 }) {
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector((state: RootState) => state.loginReducer.isLoggedIn);
-  
+
   const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [userContactList, setUserContactList] = useState<{ keys: PublicKey[]; created_at: number }>({ keys:[], created_at: 0 });
+  const [userContactList, setUserContactList] = useState<{ keys: PublicKey[]; created_at: number }>({ keys: [], created_at: 0 });
 
   function handleEvent(event: Event, relayUrl?: string) {
     if (event.kind === WellKnownEventKind.set_metadata) {
@@ -90,7 +90,7 @@ export function useLoadContacts({
       ?.iterating({ cb: handleEvent });
   }, [newConn, myPublicKey]);
 
-  return {userMap, userContactList};
+  return { userMap, userContactList };
 }
 
 export function useSetMentions(
@@ -101,7 +101,7 @@ export function useSetMentions(
 
   // todo: this render too many times, maybe just set value before user typing
   useEffect(() => {
-    if(userMap.size === 0)return;
+    if (userMap.size === 0) return;
 
     setMentionsValue([]);
     const mentions = Array.from(userMap.entries())?.filter(u => u[0] !== myPublicKey).reduce((result, [pk, user]) => {
@@ -116,8 +116,8 @@ export function useSetMentions(
       });
       return result;
     }, [] as IMentions[]);
-    if(mentions.length > 0)
-    setMentionsValue(mentions);
+    if (mentions.length > 0)
+      setMentionsValue(mentions);
   }, [userMap.size]);
 }
 
