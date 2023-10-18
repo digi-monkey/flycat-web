@@ -2,12 +2,7 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "webworker"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -24,10 +19,7 @@
     "baseUrl": "./src",
     "incremental": true
   },
-  "include": [
-    "src",
-    "public/locales"
-  ],
+  "include": ["src", "public/locales", "wasm/pkg"],
   "ts-node": {
     "compilerOptions": {
       "esModuleInterop": true,
@@ -37,7 +29,5 @@
       "allowSyntheticDefaultImports": true
     }
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

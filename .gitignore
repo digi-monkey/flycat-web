@@ -26,3 +26,5 @@ template
 .next
 
 tsconfig.tsbuildinfo
+
+wasm/target

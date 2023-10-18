@@ -25,13 +25,13 @@ export function useSubReplyEvents({
     const callRelay =
       newConn.length > 0
         ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
+          type: CallRelayType.batch,
+          data: newConn,
+        }
         : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+          type: CallRelayType.connected,
+          data: [],
+        };
 
     switch (rootEvent.kind) {
       case WellKnownEventKind.text_note:
@@ -92,13 +92,13 @@ export function useSubUserMetadata({
     const callRelay =
       newConn.length > 0
         ? {
-            type: CallRelayType.batch,
-            data: newConn,
-          }
+          type: CallRelayType.batch,
+          data: newConn,
+        }
         : {
-            type: CallRelayType.connected,
-            data: [],
-          };
+          type: CallRelayType.connected,
+          data: [],
+        };
     const pks = [myPublicKey, ...unknownPks];
     if (!pks.includes(rootEvent.pubkey)) {
       pks.push(rootEvent.pubkey);

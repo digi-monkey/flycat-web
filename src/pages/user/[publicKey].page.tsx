@@ -21,7 +21,7 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Input, Tabs, Tooltip, message } from 'antd';
+import { Avatar, Button, Divider, Input, Tabs, Tooltip, message } from 'antd';
 import { stringHasImageUrl } from 'utils/common';
 import { Followings } from './followings';
 
@@ -45,6 +45,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
+import AnswerMachine from './answerMachine.page';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -246,13 +247,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     return isFollow
       ? {
-          label: 'unfollow',
-          action: () => _unfollowUser(publicKey),
-        }
+        label: 'unfollow',
+        action: () => _unfollowUser(publicKey),
+      }
       : {
-          label: 'follow',
-          action: () => _followUser(publicKey),
-        };
+        label: 'follow',
+        action: () => _followUser(publicKey),
+      };
   };
   const followOrUnfollow = buildFollowUnfollow(publicKey);
 
@@ -485,6 +486,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           pks={userContactList?.keys || []}
           worker={worker}
         />
+
+        <Divider></Divider>
+        <AnswerMachine pubkey={publicKey} />
       </Right>
     </BaseLayout>
   );

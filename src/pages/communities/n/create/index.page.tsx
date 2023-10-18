@@ -128,12 +128,12 @@ export default function CreateCommunity() {
     noticePubEventResult(handler);
     router.push(
       '/communities/n/' +
-        encodeURIComponent(
-          Nip172.communityAddr({
-            identifier: metadata.id,
-            author: metadata.creator,
-          }),
-        ),
+      encodeURIComponent(
+        Nip172.communityAddr({
+          identifier: metadata.id,
+          author: metadata.creator,
+        }),
+      ),
     );
   };
 
