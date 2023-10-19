@@ -1,3 +1,5 @@
+import { franc } from "franc-min";
+
 const selectedTabKeyStorageKey = 'home-selected-tab-key';
 const selectedFilterStorageKey = 'home-selected-filter';
 
@@ -23,7 +25,7 @@ export function isChineseLang(text: string) {
 
   // Check if the text has more Kanji, Hiragana, or Katakana characters
   if (kanjiCount > hiraganaCount && kanjiCount > katakanaCount) {
-    return true; //"Chinese";
+    return franc(text) === 'cmn' ? true : false;
   } else if (hiraganaCount > kanjiCount && hiraganaCount > katakanaCount) {
     return false; //"Japanese (Hiragana)";
   } else if (katakanaCount > kanjiCount && katakanaCount > hiraganaCount) {
