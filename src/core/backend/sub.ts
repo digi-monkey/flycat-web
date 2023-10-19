@@ -1,7 +1,7 @@
 import { isEventSubResponse } from 'core/nostr/util';
 import { Filter, EventSubResponse } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { Pool } from 'core/backend/pool';
+import { ConnPool as Pool } from 'core/api/pool';
 import { waitUntilNip23RelayConnected, timeout } from 'core/backend/util';
 import { seedRelays } from 'core/relay/pool/seed';
 
@@ -16,9 +16,9 @@ export const callSubFilter = async ({
 }) => {
   // vercel will make each api handler as a serverless function,
   // so no need to reuse pool instance
-  const pool = new Pool(seedRelays);
+  const pool = new Pool();
   try {
-    await waitUntilNip23RelayConnected(pool);
+    pool.addConnections(seedRelays);
   } catch (error) {
     console.debug('wait for at least one connect but time out');
   }
