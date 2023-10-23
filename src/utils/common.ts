@@ -103,14 +103,14 @@ export async function parsePublicKeyFromUserIdentifier(
     }
 
     if (isNip05DomainName(userId)) {
-      const pk = requestPublicKeyFromNip05DomainName(userId);
+      const pk = await requestPublicKeyFromNip05DomainName(userId);
       if (isValidPublicKey(pk)) {
         return pk;
       }
     }
 
     if (isDotBitName(userId)) {
-      const pk = requestPublicKeyFromDotBit(userId);
+      const pk = await requestPublicKeyFromDotBit(userId);
       if (isValidPublicKey(pk)) {
         return pk;
       }
