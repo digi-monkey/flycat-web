@@ -18,32 +18,32 @@ export class ConnPool {
 
   // Add a new WebSocket connection URL to the pool
   addConnections(urls: string[]) {
-    if(urls.length === 0)return;
-    // note: since the executeConcurrently will modify the urls(splice), 
-    // the original urls must be copied instead of passing. 
+    if (urls.length === 0) return;
+    // note: since the executeConcurrently will modify the urls(splice),
+    // the original urls must be copied instead of passing.
     this.urls = [...this.urls, ...urls];
-    
+
     let available = this.maxConnection - this.activeConn.getSize();
     let index = 0;
-    while(available > 0 && index < urls.length){
+    while (available > 0 && index < urls.length) {
       this.activeConn.addItem(urls[index]);
       available--;
       index++
     }
 
-    while(index < urls.length){
+    while (index < urls.length) {
       this.pendingConn.enqueue(urls[index]);
       index++;
     }
   }
 
-  private async execute(url: string, fnWithTimeout: (ws: WS) => Promise<any>, db: RelayPoolDatabase, progressCb?: (restCount: number) => any){
-    if(progressCb){
+  private async execute(url: string, fnWithTimeout: (ws: WS) => Promise<any>, db: RelayPoolDatabase, progressCb?: (restCount: number) => any) {
+    if (progressCb) {
       progressCb(this.activeConn.getSize() + this.pendingConn.size())
     }
 
     try {
-      const ws = await connectWebSocket(url);  
+      const ws = await connectWebSocket(url);
       await fnWithTimeout(ws);
       //db.incrementSuccessCount(url);
       ws.close();
@@ -53,7 +53,7 @@ export class ConnPool {
     } finally {
       this.activeConn.removeItem(url);
       const next = this.pendingConn.dequeue();
-      if(next){
+      if (next) {
         this.activeConn.addItem(next);
         await this.execute(next, fnWithTimeout, db, progressCb);
       }
@@ -82,7 +82,7 @@ export class ConnPool {
 
       try {
         await Promise.race([dataPromise, timeoutPromise]);
-      }catch(error: any){
+      } catch (error: any) {
         console.debug(error);
       } finally {
         ws.close();
@@ -94,26 +94,26 @@ export class ConnPool {
     });
 
     await Promise.all(requestPromises);
-    return results.filter(r => r!=null);
+    return results.filter(r => r != null);
   }
 
-  private async benchmark(url: string, getTime: (p: {url: string, t?: number, isFailed: boolean})=>any, db: RelayPoolDatabase, progressCb?: (restCount: number) => any){
-    if(progressCb){
+  private async benchmark(url: string, getTime: (p: { url: string, t?: number, isFailed: boolean }) => any, db: RelayPoolDatabase, progressCb?: (restCount: number) => any) {
+    if (progressCb) {
       progressCb(this.activeConn.getSize() + this.pendingConn.size())
     }
 
     try {
       const time = await wsConnectMilsec(url);
       //db.incrementSuccessCount(url);
-      getTime({url, t: time, isFailed: false});
+      getTime({ url, t: time, isFailed: false });
     } catch (error) {
       console.debug('ws error: ', error);
       //db.incrementFailureCount(url);
-      getTime({url, isFailed: false});
+      getTime({ url, isFailed: false });
     } finally {
       this.activeConn.removeItem(url);
       const next = this.pendingConn.dequeue();
-      if(next){
+      if (next) {
         this.activeConn.addItem(next);
         await this.benchmark(next, getTime, db, progressCb);
       }
@@ -122,11 +122,11 @@ export class ConnPool {
 
   public async benchmarkConcurrently(
     progressCb?: (restCount: number) => any
-  ): Promise<{url: string, t?: number, isFailed: boolean}[]> {
-    const results: {url: string, t?: number, isFailed: boolean}[] = [];
+  ): Promise<{ url: string, t?: number, isFailed: boolean }[]> {
+    const results: { url: string, t?: number, isFailed: boolean }[] = [];
     const db = new RelayPoolDatabase();
 
-    const getTime = async (res: {url: string, t?: number, isFailed: boolean}) => {
+    const getTime = async (res: { url: string, t?: number, isFailed: boolean }) => {
       results.push(res);
     };
 
@@ -135,7 +135,7 @@ export class ConnPool {
     });
 
     await Promise.all(requestPromises);
-    return results.filter(r => r!=null);
+    return results.filter(r => r != null);
   }
 }
 
@@ -149,7 +149,7 @@ function getTimeoutPromise(timeoutMs: number, msg: string) {
 
 export function connectWebSocket(url: string, timeoutMs = 5000): Promise<WS> {
   return new Promise((resolve, reject) => {
-    const socket = new WS(url,10,false);
+    const socket = new WS(url, 10, false);
 
     socket._ws.onopen = () => {
       resolve(socket);
@@ -173,7 +173,7 @@ export function connectWebSocket(url: string, timeoutMs = 5000): Promise<WS> {
 export function wsConnectMilsec(url: string, timeoutMs = 5000): Promise<number> {
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
-    const socket = new WS(url,10,false);
+    const socket = new WS(url, 10, false);
 
     socket._ws.onopen = () => {
       const endTime = performance.now();

@@ -2,7 +2,6 @@ import { UserMap } from 'core/nostr/type';
 import { useRouter } from 'next/router';
 import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
-import { callSubFilter } from 'core/backend/sub';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'core/nip/23';
 import { Nip08, RenderFlag } from 'core/nip/08';
@@ -26,6 +25,7 @@ import Comments from 'components/Comments';
 import PageTitle from 'components/PageTitle';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import { parsePublicKeyFromUserIdentifier } from 'utils/common';
+import { getArticle } from 'core/api/article';
 
 type UserParams = {
   publicKey: string;
@@ -260,15 +260,10 @@ export const getStaticProps = async ({
     };
   }
 
-  const filter = Nip23.filter({
-    authors: [publicKey as string],
-    articleIds: [articleId as string],
-    overrides: { limit: 1 },
-  });
-  const events = await callSubFilter({ filter, eventLimit: 1 });
   let article: Article | null = null;
-  if (events.length > 0) {
-    article = Nip23.toArticle(events[0]);
+  const e = await getArticle(publicKey, articleId);
+  if (e != null) {
+    article = Nip23.toArticle(e);
     article = Object.fromEntries(
       Object.entries(article).filter(([key, value]) => value !== undefined), // undefined value key must be omit in order to serialize
     ) as Article;
