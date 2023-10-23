@@ -11,9 +11,8 @@ import { isValidPublicKey } from 'utils/validator';
 const PostContent = ({
   article,
   publicKey,
-  userMap,
+  userProfile,
   articleId,
-  content,
   t,
 }) => {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -37,7 +36,7 @@ const PostContent = ({
               <div className={styles.img}>
                 <Link href={Paths.user + publicKey}>
                   <Avatar
-                    src={userMap.get(publicKey)?.picture}
+                    src={userProfile?.picture}
                     style={{ width: '100%', height: '100%' }}
                   />
                 </Link>
@@ -45,7 +44,7 @@ const PostContent = ({
               <div className={styles.text}>
                 <div className={styles.username}>
                   <Link href={Paths.user + publicKey}>
-                    {userMap.get(publicKey)?.name}
+                    {userProfile?.name}
                   </Link>
                 </div>
                 <div className={styles.time}>
@@ -86,7 +85,7 @@ const PostContent = ({
             ),
           }}
         >
-          {content ? content.replace(/\n\n/gi, "&nbsp; \n\n") : ''}
+          {article.content.replace(/\n\n/gi, "&nbsp; \n\n")}
         </ReactMarkdown>
       </div>
 

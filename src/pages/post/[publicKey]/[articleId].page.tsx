@@ -1,15 +1,11 @@
-import { UserMap } from 'core/nostr/type';
 import { useRouter } from 'next/router';
-import { CallRelayType } from 'core/worker/type';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
 import { Article, Nip23 } from 'core/nip/23';
-import { Nip08, RenderFlag } from 'core/nip/08';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { useEffect, useMemo, useState } from 'react';
-import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
+import { useEffect, useState } from 'react';
+import { EventSetMetadataContent } from 'core/nostr/type';
 import { toTimeString } from './util';
 
 import styles from './index.module.scss';
@@ -26,6 +22,9 @@ import PageTitle from 'components/PageTitle';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import { parsePublicKeyFromUserIdentifier } from 'utils/common';
 import { getArticle } from 'core/api/article';
+import { isValidPublicKey } from 'utils/validator';
+import { dbQuery, profileQuery } from 'core/db';
+import { deserializeMetadata } from 'core/nostr/content';
 
 type UserParams = {
   publicKey: string;
@@ -41,86 +40,49 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
   const articleId = decodeURIComponent(query.articleId);
   const { worker, newConn } = useCallWorker();
 
-  const [userMap, setUserMap] = useState<UserMap>(new Map());
-  const [article, setArticle] = useState<Article>();
-  const [articleEvent, setArticleEvent] = useState<Event>();
-
-  function handleEvent(event: Event, relayUrl?: string) {
-    if (event.kind === WellKnownEventKind.set_metadata) {
-      const metadata: EventSetMetadataContent = JSON.parse(event.content);
-      setUserMap(prev => {
-        const newMap = new Map(prev);
-        const oldData = newMap.get(event.pubkey);
-        if (oldData && oldData.created_at > event.created_at) return newMap;
-
-        newMap.set(event.pubkey, {
-          ...metadata,
-          ...{ created_at: event.created_at },
-        });
-        return newMap;
-      });
-      return;
-    }
-
-    if (event.kind === WellKnownEventKind.long_form) {
-      if (event.pubkey !== publicKey) return;
-      const article = Nip23.toArticle(event);
-      setArticle(prevArticle => {
-        if (!prevArticle || article?.updated_at >= prevArticle.updated_at) {
-          return article;
-        }
-        return prevArticle;
-      });
-      setArticleEvent(prev => {
-        if (!prev || prev?.created_at < event.created_at) {
-          return event;
-        }
-        return prev;
-      });
-      return;
-    }
-  }
+  const [article, setArticle] = useState<Article | undefined>(preArticle);
+  const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
 
   useEffect(() => {
-    if (newConn.length === 0) return;
-    if (!worker) return;
+    if (!isValidPublicKey(publicKey)) return;
 
-    const callRelay =
-      newConn.length > 0
-        ? {
-          type: CallRelayType.batch,
-          data: newConn,
-        }
-        : {
-          type: CallRelayType.connected,
-          data: [],
-        };
-
-    worker
-      .subMetadata([publicKey as string], undefined, callRelay)
-      .iterating({ cb: handleEvent });
-
-    const filter = Nip23.filter({
-      authors: [publicKey as string],
-      articleIds: [articleId as string],
+    profileQuery.getProfileByPubkey(publicKey).then(e => {
+      if (e != null) {
+        setUserProfile(deserializeMetadata(e.content));
+      } else {
+        worker?.subMetadata([publicKey as string], undefined);
+      }
     });
-    worker
-      .subFilter({ filter, customId: 'article-data', callRelay })
-      .iterating({ cb: handleEvent });
-  }, [worker, newConn, publicKey]);
+  }, [publicKey]);
 
-  const content = useMemo(() => {
-    if (articleEvent == null) return;
+  useEffect(() => {
+    if (!preArticle) {
+      const filter = Nip23.filter({
+        authors: [publicKey as string],
+        articleIds: [articleId as string],
+      });
+      dbQuery
+        .matchFilterRelay(filter, worker?.relays.map(r => r.url) || [])
+        .then(evets => {
+          if (evets.length === 0) {
+            worker?.subFilter({ filter, customId: 'article-data' });
+          }
 
-    const event = articleEvent;
-    event.content = Nip08.replaceMentionPublickey(
-      event,
-      userMap,
-      RenderFlag.Markdown,
-    );
-    event.content = Nip08.replaceMentionEventId(event, RenderFlag.Markdown);
-    return event.content;
-  }, [articleEvent, userMap]);
+          for (const event of evets) {
+            const article = Nip23.toArticle(event);
+            setArticle(prevArticle => {
+              if (
+                !prevArticle ||
+                article?.updated_at >= prevArticle.updated_at
+              ) {
+                return article;
+              }
+              return prevArticle;
+            });
+          }
+        });
+    }
+  }, [preArticle, publicKey]);
 
   return (
     <>
@@ -170,29 +132,29 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
           />
           <div className={styles.postContainer}>
             <div className={styles.post}>
-              <PostContent
-                article={article}
-                publicKey={publicKey}
-                userMap={userMap}
-                articleId={articleId}
-                content={content}
-                t={t}
-              />
+              {article && (
+                <PostContent
+                  article={preArticle ?? article}
+                  publicKey={publicKey}
+                  userProfile={userProfile}
+                  articleId={articleId}
+                  t={t}
+                />
+              )}
 
-              <PostReactions
-                worker={worker!}
-                ownerEvent={articleEvent!}
-                seen={[]}
-              />
+              {article && (
+                <PostReactions
+                  worker={worker!}
+                  ownerEvent={Nip23.articleToEvent(article)}
+                  seen={[]}
+                />
+              )}
 
               <div className={styles.info}>
                 <div className={styles.author}>
                   <div className={styles.picture}>
                     <Link href={Paths.user + publicKey}>
-                      <img
-                        src={userMap.get(publicKey)?.picture}
-                        alt={userMap.get(publicKey)?.name}
-                      />
+                      <img src={userProfile?.picture} alt={userProfile?.name} />
                     </Link>
                   </div>
 
@@ -200,16 +162,14 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                     className={styles.name}
                     onClick={() => router.push(Paths.user + publicKey, 'blank')}
                   >
-                    {userMap.get(publicKey)?.name}
+                    {userProfile?.name}
                   </div>
 
                   <div className={styles.btnContainer}>
                     <Button
                       className={styles.btn}
                       onClick={async () => {
-                        const lnUrl =
-                          userMap.get(publicKey)?.lud06 ||
-                          userMap.get(publicKey)?.lud16;
+                        const lnUrl = userProfile?.lud06 || userProfile?.lud16;
                         if (lnUrl == null) {
                           return alert(
                             'no ln url, please tell the author to set up one.',
@@ -228,9 +188,9 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
                 </div>
               </div>
             </div>
-            {articleEvent && (
+            {article && (
               <Comments
-                rootEvent={articleEvent}
+                rootEvent={Nip23.articleToEvent(article)}
                 className={styles.commentContainer}
               />
             )}
