@@ -51,8 +51,8 @@ export class OneTimeWebSocketClient {
       }
     }, results[0]);
 
-		if(profileEvent == null)return null;
-		
+    if (profileEvent == null) return null;
+
     const user: EventSetMetadataContent = JSON.parse(profileEvent.content);
     return user;
   }
@@ -94,9 +94,9 @@ export class OneTimeWebSocketClient {
       }
     }, results[0]);
 
-		if(newestContactListEvent == null)return null;
-		
-   return newestContactListEvent.tags.filter(t => t[0] === EventTags.P).map(t => (t as EventPTag)[1]);
+    if (newestContactListEvent == null) return null;
+
+    return newestContactListEvent.tags.filter(t => t[0] === EventTags.P).map(t => (t as EventPTag)[1]);
   }
 
   static async fetchEvent({
@@ -181,7 +181,7 @@ export class OneTimeWebSocketClient {
     }, results[0]);
 
     return event;
-  } 
+  }
 
   static async fetchEventByFilter({
     filter,

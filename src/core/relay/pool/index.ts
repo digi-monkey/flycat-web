@@ -72,26 +72,26 @@ export class RelayPool {
     return this.relays;
   }
 
-  static async benchmark(urls: string[], progressCb?: (rest:number)=>any): Promise<BenchmarkResult> {
+  static async benchmark(urls: string[], progressCb?: (rest: number) => any): Promise<BenchmarkResult> {
     const results: BenchmarkResult = {};
 
     const pool = new ConnPool();
     pool.addConnections(urls);
     const res = await pool.benchmarkConcurrently(progressCb);
-    for(const r of res){
-      results[r.url] = {benchmark: r.t || 100000000000, isFailed: r.isFailed}
+    for (const r of res) {
+      results[r.url] = { benchmark: r.t || 100000000000, isFailed: r.isFailed }
     }
-     return results;
+    return results;
   }
 
-  static async getFastest(urls: string[], progressCb?: (rest:number)=>any) {
+  static async getFastest(urls: string[], progressCb?: (rest: number) => any) {
     const start = performance.now();
     const benchmarkMap = await this.benchmark(urls, progressCb);
     const sorted = Object.entries(benchmarkMap).sort(
       (a, b) => a[1].benchmark - b[1].benchmark,
     );
     const end = performance.now();
-    console.log("benchmark: ", sorted, "take time(seconds):", (end-start)/1000);
+    console.log("benchmark: ", sorted, "take time(seconds):", (end - start) / 1000);
     return sorted[0];
   }
 

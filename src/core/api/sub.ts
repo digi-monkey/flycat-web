@@ -81,7 +81,9 @@ export function createSubscriptionEventStream(
             clearTimeout(timeout!); // Clear the previous timeout
           }
           // store on db
-          dexieDb.store(event, webSocket.url);
+          if (typeof window !== "undefined")
+            dexieDb.store(event, webSocket.url);
+
           observer(false, event);
         }
         break;

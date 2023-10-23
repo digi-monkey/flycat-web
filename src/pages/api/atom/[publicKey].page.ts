@@ -16,7 +16,7 @@ export default async function handler(
     kinds: [WellKnownEventKind.long_form],
     limit: 50,
   };
-  const events = await callSubFilter({filter});
+  const events = await callSubFilter({ filter });
   const feed = eventToFeed(events, publicKey).atom1();
   res.setHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
   return res.status(200).send(feed);
