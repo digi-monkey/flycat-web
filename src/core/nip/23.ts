@@ -261,6 +261,55 @@ export class Nip23 {
     return article;
   }
 
+  static articleToEvent(article: Article): Event {
+    const slug = article.id;
+    let tags: Tags = [];
+    tags.push([
+      EventTags.D,
+      slug,
+    ]);
+    tags.push([
+      Nip23ArticleMetaTags.published_at,
+      JSON.stringify(article.published_at),
+    ]);
+
+    if (article.title) {
+      tags.push([Nip23ArticleMetaTags.title, article.title]);
+    }
+    if (article.image) {
+      tags.push([Nip23ArticleMetaTags.image, article.image]);
+    }
+    if (article.summary) {
+      tags.push([Nip23ArticleMetaTags.summary, article.summary]);
+    }
+    if (article.dirs && article.dirs.length > 0) {
+      tags.push(article.dirs);
+    }
+    if (article.hashTags && article.hashTags.length > 0) {
+      for (const t of article.hashTags) {
+        tags.push([EventTags.T, t]);
+      }
+    }
+    if (article.naddr && article.naddr.length > 0) {
+      for (const a of article.naddr) {
+        tags.push([EventTags.A, a, '']);
+      }
+    }
+    if (article.otherTags && article.otherTags.length > 0) {
+      tags = tags.concat(article.otherTags);
+    }
+    const event: Event = {
+      id: article.eventId,
+      pubkey: article.pubKey,
+      created_at: article.updated_at,
+      kind: this.kind,
+      sig: article.sig,
+      content: article.content,
+      tags
+    }
+    return event;
+  }
+
   static randomArticleId() {
     return generateRandomBytes(4).slice(2);
   }
