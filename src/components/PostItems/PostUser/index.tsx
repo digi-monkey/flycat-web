@@ -108,7 +108,7 @@ const PostUser: React.FC<PostUserProps> = ({
     }
   }
   const [userUrl, setUserUrl] = useState<string>(`${Paths.user + publicKey}`);
-  
+
   useEffect(() => {
     if (nip05name && isNip05DomainName(nip05name)) {
       // todo: find a better way to validate and cache the result for nip05 before use it

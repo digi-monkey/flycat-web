@@ -18,7 +18,7 @@ import {
   SubscriptionId
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import WebSocket, {MessageEvent, CloseEvent, OpenEvent, ErrorEvent} from 'ws';
+import WebSocket, { MessageEvent, CloseEvent, OpenEvent, ErrorEvent } from 'ws';
 import { randomSubId } from 'utils/common';
 
 export interface NodeWsApiHandler {
@@ -48,7 +48,7 @@ export class NodeWsApi {
     }
 
     this.ws = new WebSocket(url);
-		this.updateListeners(url, wsHandler);
+    this.updateListeners(url, wsHandler);
     this.maxSub = maxSub;
     this.maxKeepAlive = maxKeepAlive;
     this.maxInstant = maxSub - maxKeepAlive;
@@ -69,7 +69,7 @@ export class NodeWsApi {
       this.handleResponse(evt, wsHandler?.onMsgHandler);
     };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = () => {console.log(this.ws.url, "closed")};
+    this.ws.onclose = () => { console.log(this.ws.url, "closed") };
   }
 
   isDuplicatedFilter(

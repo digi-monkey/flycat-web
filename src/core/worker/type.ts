@@ -77,9 +77,9 @@ export type FromProducerMsg =
   | { type: FromProducerMsgType.portId; data: PortIdMsg }
   | { type: FromProducerMsgType.relayInfo; data: RelayInfoMsg }
   | {
-      type: FromProducerMsgType.relaySwitchedAlert;
-      data: RelaySwitchAlertMsg;
-    }
+    type: FromProducerMsgType.relaySwitchedAlert;
+    data: RelaySwitchAlertMsg;
+  }
   | { type: FromProducerMsgType.subEnd; data: SubEndMsg };
 
 export enum FromProducerMsgType {

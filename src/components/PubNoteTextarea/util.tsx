@@ -1,6 +1,6 @@
 import { SignEvent } from 'store/loginReducer';
 import { CallWorker } from 'core/worker/caller';
-import { ImageProvider, compressImage} from 'core/api/img';
+import { ImageProvider, compressImage } from 'core/api/img';
 import { EventTags, Naddr, Tags, WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { noticePubEventResult } from 'components/PubEventNotice';
@@ -29,7 +29,7 @@ export const handleImgUpload = async (
   blob: Blob,
   fileName: string,
   imgType: string,
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>, 
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>,
   setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const file = new File([blob], fileName, { type: imgType });
@@ -57,8 +57,8 @@ export const handleImgUpload = async (
 };
 
 export const handleFileSelect = (
-  event: React.ChangeEvent<HTMLInputElement>, 
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>, 
+  event: React.ChangeEvent<HTMLInputElement>,
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>,
   setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   setIsUploading(true);
@@ -93,7 +93,7 @@ export const handleSubmitText = async (
   formEvt: React.FormEvent,
   text: string,
   attachImgs: string[],
-  setText: React.Dispatch<React.SetStateAction<string>>, 
+  setText: React.Dispatch<React.SetStateAction<string>>,
   setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>,
   selectMention: object,
   signEvent: SignEvent | undefined,
@@ -106,7 +106,7 @@ export const handleSubmitText = async (
 
   const pTagPubKeys = Object.values(selectMention).map(nprofile => (Nip19.decodeShareable(nprofile.slice(6)).data as DecodedNprofileResult).pubkey);
   const hashTags = extractHashTags(text);
-  
+
   const newText = replaceKeysWithPrefix(selectMention, text);
   let textWithAttachImgs = newText;
   for (const url of attachImgs) {
@@ -114,17 +114,17 @@ export const handleSubmitText = async (
   }
 
   // publish
-  if(!worker)return alert('worker is null');
+  if (!worker) return alert('worker is null');
   if (signEvent == null) return alert('no sign method!');
 
   let tags: Tags = pTagPubKeys.map(pk => [EventTags.P, pk]);
-  if(selectedCommunity){
+  if (selectedCommunity) {
     tags.push([EventTags.A, selectedCommunity, '']);
   }
-  if(hashTags.length > 0){
+  if (hashTags.length > 0) {
     tags = tags.concat(hashTags.map(t => [EventTags.T, t.substring(1)]));// remove #
   }
-  
+
   const rawEvent = new RawEvent(
     myPublicKey,
     WellKnownEventKind.text_note,
@@ -133,15 +133,14 @@ export const handleSubmitText = async (
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
-  noticePubEventResult(handler, pubSuccessCallback); 
+  noticePubEventResult(handler, pubSuccessCallback);
 
   setText('');
   setAttachImgs([]);
 };
 
-export function extractHashTags(text: string): string[]{
+export function extractHashTags(text: string): string[] {
   const hashtagRegex = /(#\S+)/g;
   const matches = text.match(hashtagRegex);
   return matches || [];
 }
-

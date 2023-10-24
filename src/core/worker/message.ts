@@ -27,8 +27,8 @@ export const createPortOnMessageListener = ({
         {
           console.log('SWITCH_RELAYS', res.data.switchRelays, pool.switchRelays);
           const data = res.data;
-          if(data.switchRelays.relays.length === 0)return;
-          if(data.switchRelays.id === pool.switchRelays.id)return console.log("no need to switch");
+          if (data.switchRelays.relays.length === 0) return;
+          if (data.switchRelays.id === pool.switchRelays.id) return console.log("no need to switch");
 
           pool.doSwitchRelays(data.switchRelays!);
 
