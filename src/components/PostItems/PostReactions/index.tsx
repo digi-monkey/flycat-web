@@ -71,7 +71,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
       zapEndpoint = await Nip57.getZapEndpointByTag(zapTag);
     } else {
       let profile: EventSetMetadataContent | undefined;
-      const profileEvent = await dexieDb.profileEvent.get(ownerEvent.pubkey); 
+      const profileEvent = await dexieDb.profileEvent.get(ownerEvent.pubkey);
       if (profileEvent) {
         const metadata = JSON.parse(
           profileEvent.content,

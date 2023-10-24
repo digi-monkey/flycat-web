@@ -53,12 +53,12 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
   const [loadedUserProfile, setLoadedUserProfile] =
     useState<EventSetMetadataContent>();
-    
+
   const loadUserProfile = async () => {
-    if(myPublicKey)return;
-    
+    if (myPublicKey) return;
+
     // todo: set relay urls with correct one
-    const profileEvent = await dexieDb.profileEvent.get(myPublicKey); 
+    const profileEvent = await dexieDb.profileEvent.get(myPublicKey);
     if (profileEvent) {
       const metadata = JSON.parse(
         profileEvent.content,
@@ -67,7 +67,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     loadUserProfile();
   }, [myPublicKey]);
 

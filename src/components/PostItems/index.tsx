@@ -45,77 +45,76 @@ const PostItems: React.FC<PostItemsProps> = ({
   extraMenu,
   extraHeader
 }) => {
-  const pks = useMemo(()=>msgList.map(m => m.pubkey), [msgList]);
-  const profileEvents = useLiveQuery(async ()=>{
+  const pks = useMemo(() => msgList.map(m => m.pubkey), [msgList]);
+  const profileEvents = useLiveQuery(async () => {
     const events = await dexieDb.profileEvent.bulkGet(pks);
     return events.filter(e => e != null) as DbEvent[];
   }, [msgList], [] as DbEvent[]);
   const getUser = (msg: EventWithSeen) => {
     const userEvent = profileEvents.find(e => e.pubkey === msg.pubkey);
-    if(!userEvent){
+    if (!userEvent) {
       return null;
     }
     return deserializeMetadata(userEvent.content);
-  } 
+  }
 
   return (
     <>
-      {msgList.map(msg =>
-        {
-          
-          return Nip18.isRepostEvent(msg) ? (
-            <PostRepost
+      {msgList.map(msg => {
+
+        return Nip18.isRepostEvent(msg) ? (
+          <PostRepost
+            event={msg}
+            worker={worker}
+            showLastReplyToEvent={showLastReplyToEvent}
+            key={msg.id}
+          />
+        ) : (
+          <div className={styles.post} key={msg.id}>
+            {extraHeader}
+            {showFromCommunity && <PostCommunityHeader event={msg} />}
+            <PostUser
+              nip05name={getUser(msg)?.nip05}
+              publicKey={msg.pubkey}
+              avatar={getUser(msg)?.picture || ''}
+              name={getUser(msg)?.name}
+              time={msg.created_at}
               event={msg}
-              worker={worker}
-              showLastReplyToEvent={showLastReplyToEvent}
-              key={msg.id}
+              extraMenu={extraMenu}
             />
-          ) : (
-            <div className={styles.post} key={msg.id}>
-              {extraHeader}
-              {showFromCommunity && <PostCommunityHeader event={msg} />}
-              <PostUser
-                nip05name={getUser(msg)?.nip05}
-                publicKey={msg.pubkey}
-                avatar={getUser(msg)?.picture || ''}
-                name={getUser(msg)?.name}
-                time={msg.created_at}
-                event={msg}
-                extraMenu={extraMenu}
-              />
-              <div className={styles.content}>
-                {Nip23.isBlogPost(msg) ? (
-                  <PostArticle
-                    userAvatar={getUser(msg)?.picture || ''}
-                    userName={getUser(msg)?.name || ''}
-                    event={msg}
-                    key={msg.id}
-                  />
-                ) : Nip23.isBlogCommentMsg(msg) ? (
-                  <PostArticleComment
-                    event={msg}
-                    worker={worker}
-                    key={msg.id}
-                    showReplyArticle={showLastReplyToEvent}
-                  />
-                ) : Nip9802.isBlogHighlightMsg(msg) ? (
-                  <>HighlightMsg</>
-                ) : (
-                  <PostContent
-                    ownerEvent={msg}
-                    worker={worker}
-                    showLastReplyToEvent={showLastReplyToEvent}
-                  />
-                )}
-                <PostReactions
-                  ownerEvent={toUnSeenEvent(msg)}
-                  worker={worker}
-                  seen={msg.seen!}
+            <div className={styles.content}>
+              {Nip23.isBlogPost(msg) ? (
+                <PostArticle
+                  userAvatar={getUser(msg)?.picture || ''}
+                  userName={getUser(msg)?.name || ''}
+                  event={msg}
+                  key={msg.id}
                 />
-              </div>
+              ) : Nip23.isBlogCommentMsg(msg) ? (
+                <PostArticleComment
+                  event={msg}
+                  worker={worker}
+                  key={msg.id}
+                  showReplyArticle={showLastReplyToEvent}
+                />
+              ) : Nip9802.isBlogHighlightMsg(msg) ? (
+                <>HighlightMsg</>
+              ) : (
+                <PostContent
+                  ownerEvent={msg}
+                  worker={worker}
+                  showLastReplyToEvent={showLastReplyToEvent}
+                />
+              )}
+              <PostReactions
+                ownerEvent={toUnSeenEvent(msg)}
+                worker={worker}
+                seen={msg.seen!}
+              />
             </div>
-          )
-        }
+          </div>
+        )
+      }
       )}
     </>
   );

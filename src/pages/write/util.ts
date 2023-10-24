@@ -114,7 +114,7 @@ export const publish = async (
   setPublishedToast(true);
   delLocalSave(articleParams.did);
 
-	noticePubEventResult(handler);
+  noticePubEventResult(handler);
 
   setTimeout(() => router.push({ pathname }), 6500);
 };

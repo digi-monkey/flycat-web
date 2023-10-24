@@ -1,7 +1,7 @@
 'use client'
 // above is for antd-mobile polyfill
 
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 
 import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
@@ -22,6 +22,7 @@ import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { PullToRefresh } from 'antd-mobile';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -142,11 +143,24 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   };
 
   const onPullToRefresh = async () => {
-    if(!msgFilter || !validateFilter(msgFilter))return;
-    
-    worker?.subFilter({filter: msgFilter});
-    await query();  
+    if (!msgFilter || !validateFilter(msgFilter)) return;
+
+    worker?.subFilter({ filter: msgFilter });
+    await query();
   }
+
+  const onBroadcastEvent = async (event: Event, msg: typeof message) => {
+    if (!worker) return msg.error("worker not found.");
+    const pubHandler = worker.pubEvent(event);
+    noticePubEventResult(pubHandler);
+  }
+
+  const extraMenu = [
+    {
+      label: "broadcast",
+      onClick: onBroadcastEvent
+    }
+  ]
 
   return (
     <>
@@ -178,6 +192,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
                   worker={worker!}
                   relays={relayUrls}
                   showLastReplyToEvent={true}
+                  extraMenu={extraMenu}
                 />
               </div>
               <Button
