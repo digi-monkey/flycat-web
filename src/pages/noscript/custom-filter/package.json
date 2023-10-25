@@ -1,0 +1,14 @@
+{
+  "name": "filter",
+  "version": "0.1.0",
+  "files": [
+    "filter.wasm",
+    "filter.js",
+    "filter.d.ts"
+  ],
+  "module": "filter.js",
+  "types": "filter.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
