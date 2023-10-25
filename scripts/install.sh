@@ -11,4 +11,7 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -y
 echo "Building wasm..."
 wasm-pack build wasm/ --target web
 
+echo "Bump wasm pkg version.."
+yarn upgrade wasm
+
 echo "Installation script completed."
