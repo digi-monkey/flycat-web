@@ -25,6 +25,7 @@ const Example: React.FC = () => {
         tags: []
       }
       //await anotherInit();
+      //await init();
       console.log("is_valid_event(event): ", is_valid_event(event), fibonacci);
     } catch (error) {
       console.error('Error initializing WebAssembly module:', error);
