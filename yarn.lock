@@ -13161,7 +13161,7 @@ warning@^4.0.3:
     loose-envify "^1.0.0"
 
 "wasm@file:./wasm/pkg":
-  version "0.1.0"
+  version "0.1.1"
 
 watchpack@^2.4.0:
   version "2.4.0"

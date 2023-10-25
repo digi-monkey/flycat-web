@@ -110,9 +110,7 @@
     "web-vitals": "2.1.2"
   },
   "scripts": {
-    "wasm:add": "cd wasm && rustc --crate-type cdylib --target wasm32-unknown-unknown -C lto -C opt-level=z -o add.wasm examples/add.rs",
     "wasm:profile": "cd wasm && rustc --crate-type cdylib --target wasm32-unknown-unknown -C lto -C opt-level=z -o profile.wasm examples/profile.rs",
-    "move:profile": "mv wasm/profile.wasm public/",
     "dev": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next dev",
     "build:wasm": "cd wasm && wasm-pack build --target web && cd ..",
     "build": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next build",
