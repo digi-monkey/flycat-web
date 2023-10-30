@@ -9,6 +9,11 @@ body {
   scroll-behavior: smooth;
 }
 
+// Fix antd-mobile body style without impacting all pages
+body {
+  --adm-color-background: var(--neutral-01);
+}
+
 .swal2-container {
   z-index: 10000 !important;
 }
