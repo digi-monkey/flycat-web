@@ -214,8 +214,8 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
         </Button>
 
         <Button className={styles.button} onClick={signWithJoyId}>
-          <img className={styles.icon} style={{transform: "scale(2)"}} src="./icon/joyid-logo.svg" />
-          {'JoyID (testnet)'}
+          <img className={styles.icon} src="./icon/joyid-passkey.png" />
+          {'(Mainnet)'}
         </Button>
 
         <Button className={styles.button} onClick={signWithEthWallet}>
