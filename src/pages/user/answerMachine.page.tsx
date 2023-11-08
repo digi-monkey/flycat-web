@@ -1,4 +1,3 @@
-import { Avatar } from 'antd';
 import { dbQuery, profileQuery } from 'core/db';
 import { Nip188 } from 'core/nip/188';
 import { deserializeMetadata } from 'core/nostr/content';
@@ -20,7 +19,7 @@ const AnswerMachine: React.FC<{ pubkey: string }> = ({ pubkey }) => {
   const queryCode = async () => {
     if (!worker) return;
     const identifire = "wasm:profile:get_string";
-    const filter = Nip188.createQueryNoscriptFilter([pubkey], identifire);
+    const filter = Nip188.createQueryNoscriptFilterById([pubkey], identifire);
     worker.subFilter({ filter });
 
     const relayUrl = worker.relays.map(r => r.url);

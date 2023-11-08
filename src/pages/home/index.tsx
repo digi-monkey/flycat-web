@@ -7,7 +7,7 @@ import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useTranslation } from 'next-i18next';
 import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
 import { LoginMode, SignEvent } from 'store/loginReducer';
-import { Button, Input, Segmented, Tabs } from 'antd';
+import { Badge, Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { PublicKey } from 'core/nostr/type';
 import { useSubContactList } from './hooks';
@@ -31,6 +31,8 @@ import styles from './index.module.scss';
 import _ from 'lodash';
 import { trendingTags } from './hashtags';
 import { updates } from './updates';
+import PageTitle from 'components/PageTitle';
+import { CustomFilter } from './custom-filter';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -50,6 +52,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const defaultSelectedFilter = HomeMsgFilterType.all;
   const [selectTabKey, setSelectTabKey] = useState<string>();
   const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>();
+  const [selectNoscriptFilter, setSelectNoscriptFilter] = useState<HomeMsgFilterType>();
+
 
   useEffect(() => {
     const lastSelected = getLastSelectedTabKeyAndFilter();
@@ -120,6 +124,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const onMsgFilterChanged = () => {
     if (selectTabKey == null) return 'unknown tab key';
     if (selectFilter == null) return 'unknown filter type';
+    if(selectTabKey === "custom") return;
 
     let msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
     msgFilter = msgFilter ? _.cloneDeep(msgFilter) : undefined;
@@ -183,16 +188,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   return (
     <BaseLayout>
       <Left>
-        <div>
-          <Tabs
-            items={[
-              { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
-              { key: 'global', label: 'Global' },
-            ]}
-            activeKey={selectTabKey}
-            onChange={key => setSelectTabKey(key)}
-          />
-        </div>
+        <PageTitle title='Home'/>
         {!isMobile && (
           <PubNoteTextarea
             pubSuccessCallback={(eventId, relayUrl) => {
@@ -200,9 +196,22 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             }}
           />
         )}
+        <div>
+          <Tabs
+            items={[
+              { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
+              { key: 'global', label: 'Global' },
+              { key: 'custom', label: <span>
+              Custom
+            </span>,  },
+            ]}
+            activeKey={selectTabKey}
+            onChange={key => setSelectTabKey(key)}
+          />
+        </div>
         <div className={isMobile ? styles.mobileFilter : ''}>
           <div className={styles.msgFilter}>
-            <Segmented
+            {selectTabKey === 'custom' ? <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp}/> : <Segmented
               value={selectFilter}
               onChange={val => setSelectFilter(val as HomeMsgFilterType)}
               options={homeMsgFilters.map(val => {
@@ -211,7 +220,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
                   label: val.label,
                 };
               })}
-            />
+            />}
           </div>
         </div>
 

@@ -486,9 +486,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           pks={userContactList?.keys || []}
           worker={worker}
         />
-
-        <Divider></Divider>
-        <AnswerMachine pubkey={publicKey} />
+        
+       {/*
+          <Divider></Divider>
+          <AnswerMachine pubkey={publicKey} />
+       */} 
       </Right>
     </BaseLayout>
   );

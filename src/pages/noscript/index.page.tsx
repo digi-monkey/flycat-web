@@ -1,70 +1,118 @@
-import { UploadOutlined } from "@ant-design/icons";
-import { Button, message, Upload } from "antd";
-import { BaseLayout, Left } from "components/BaseLayout";
-import PageTitle from "components/PageTitle";
-import { noticePubEventResult } from "components/PubEventNotice";
-import { Nip188 } from "core/nip/188";
-import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
-import { useCallWorker } from "hooks/useWorker";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "store/configureStore";
+import { BaseLayout, Left, Right } from 'components/BaseLayout';
+import { WasmFileUpload } from './upload';
+import { useCallWorker } from 'hooks/useWorker';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { Nip188 } from 'core/nip/188';
+import { useEffect, useState } from 'react';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { Input } from 'antd';
+import { Filter } from 'core/nostr/type';
+import { validateFilter } from 'components/MsgFeed/util';
+
 import styles from './index.module.scss';
+import PageTitle from 'components/PageTitle';
+import Link from 'next/link';
 
 export function NoscriptManger() {
-  const identifire = "wasm:profile:get_string";
+  const profileIdentifier = 'wasm:profile:get_string';
+  const filterIdentifier = 'wasm:msg:filter';
+  const profileBtnText = 'upload profile .wasm file';
+  const filterBtnText = 'upload custom filter .wasm file';
 
-  const { worker, newConn } = useCallWorker();
   const myPublicKey = useReadonlyMyPublicKey();
-  const signEvent = useSelector(
-    (state: RootState) => state.loginReducer.signEvent,
-  );
 
-  const customRequest = async ({ file, onSuccess, onError }) => {
-    const reader = new FileReader();
+  const { worker } = useCallWorker();
 
-    reader.onload = async (event: ProgressEvent<FileReader>) => {
-      if (!signEvent || !worker) {
-        const err = new Error("signEvent or worker is undefined.")
-        onError(err);
-        message.error(err.message);
-        return;
-      }
-      try {
-        if (event.target && event.target.result instanceof ArrayBuffer) {
-          const arrayBuffer = event.target.result;
-          const codeStr = Nip188.arrayBufferToBase64(arrayBuffer);
-          console.log("wasm code str: ", codeStr);
-          const rawEvent = Nip188.createNoscript(arrayBuffer, identifire);
-          const pubEvent = await signEvent(rawEvent);
-          const handler = worker.pubEvent(pubEvent);
-          noticePubEventResult(handler);
-          onSuccess();
-          message.success(`${file.name} file uploaded and read successfully`);
-        } else {
-          throw new Error('Invalid file format');
-        }
-      } catch (error) {
-        onError(error);
-        message.error(`${file.name} file upload failed.`);
-      }
-    };
+  const findFilterNoscript = async () => {
+    if (!myPublicKey) return;
+    if (!worker) return;
 
-    reader.readAsArrayBuffer(file);
+    const filter = Nip188.createQueryNoscriptFilter([myPublicKey], 1);
+    console.log('filter', filter);
+    worker.subFilter({ filter }).iterating({
+      cb: (event, relay) => {
+        console.log('get event: ', event, relay);
+      },
+    });
   };
 
-  return <BaseLayout>
-    <Left>
-      <PageTitle title="Nostr Scripts(wasm)" />
-      <div className={styles.root}>
-        <h4>Profile Answering Scripts</h4>
-        <Upload customRequest={customRequest as any}>
-          <Button icon={<UploadOutlined />}>upload .wasm file</Button>
-        </Upload>
-      </div>
-    </Left>
-  </BaseLayout>
+  useEffect(() => {
+    findFilterNoscript();
+  }, [myPublicKey, worker]);
+
+  const [inputFilter, setInputFilter] = useState<Filter>();
+  const [msgFilterScriptId, setMsgFilterScriptId] = useState<string>();
+  const [msgFilterScriptDescription, setMsgFilterScriptDescription] =
+    useState<string>();
+  const isDisabled =
+    !inputFilter || !validateFilter(inputFilter) || !msgFilterScriptId;
+
+  const handleInputFilterChange = e => {
+    const filterStr = e.target.value;
+    try {
+      const filter = JSON.parse(filterStr);
+      if (validateFilter(filter)) {
+        setInputFilter(filter);
+      } else {
+        setInputFilter(undefined);
+      }
+    } catch (error: any) {
+      console.error(error.message);
+      setInputFilter(undefined);
+    }
+  };
+
+  return (
+    <BaseLayout>
+      <Left>
+        <PageTitle title="Nostr Scripts(experiment)" />
+        <div className={styles.root}>
+          {/*
+          <h4>Profile Answering Scripts</h4>
+          <WasmFileUpload
+            identifier={profileIdentifier}
+            worker={worker}
+            btnText={profileBtnText}
+          />
+          */}
+
+          <div style={{ color: 'gray', marginBottom: '10px' }}>
+            This is a experiment feature. A nostr script is just a piece of wasm
+            bytecode stored on relay, composed by users instead of flycat or any
+            other platforms/clients. You can put arbitrary logic on the nostr script. 
+            Below is a simple use case, costuming a timeline via nostr scripts.
+          </div>
+
+          <h4>Custom Timeline Scripts</h4>
+          <Input
+            placeholder="script id(the d tag)"
+            onChange={e => setMsgFilterScriptId(e.target.value)}
+          />
+          <Input
+            placeholder="script description, what is your script about"
+            onChange={e => setMsgFilterScriptDescription(e.target.value)}
+          />
+          <Input.TextArea
+            placeholder="paste filter json here"
+            autoSize={{ minRows: 6, maxRows: 10 }}
+            onChange={handleInputFilterChange}
+          />
+          <WasmFileUpload
+            identifier={msgFilterScriptId || ''}
+            worker={worker}
+            btnText={filterBtnText}
+            disabled={isDisabled}
+            extraTags={Nip188.createNoscriptMsgFilterTag(
+              inputFilter || {},
+              msgFilterScriptDescription,
+            )}
+          />
+          <p>How to create a script? Check out <Link href="https://github.com/digi-monkey/flycat-web/blob/master/docs/noscript.md#custom-timeline-script">here</Link></p>
+        </div>
+      </Left>
+      <Right></Right>
+    </BaseLayout>
+  );
 }
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
