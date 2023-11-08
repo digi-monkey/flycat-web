@@ -46,7 +46,7 @@ export function Search() {
   };
   const isValidEvent = (e: Event) => {
     if (!keyword) return false;
-    return e.content.includes(keyword);
+    return e.content.toLowerCase().includes(keyword.toLowerCase());
   };
   const queryOnLocalDB = async () => {
     setIsQuerying(true);
@@ -61,7 +61,7 @@ export function Search() {
 
   const events = useLiveQuery(queryOnLocalDB, [keyword], [] as DbEvent[]);
   const profiles = useLiveQuery(
-    profileQuery.createFilterByName(keyword),
+    profileQuery.createFilterByKeyword(keyword),
     [keyword],
     [] as DbEvent[],
   );

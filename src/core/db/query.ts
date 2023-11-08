@@ -5,6 +5,9 @@ import { Collection, IndexableType, Table } from 'dexie';
 import { EventId, EventTags, Filter, Naddr } from 'core/nostr/type';
 import { validateFilter } from 'components/MsgFeed/util';
 import { deserializeMetadata } from 'core/nostr/content';
+import { Nip19, Nip19DataType } from 'core/nip/19';
+import { isValidPublicKey } from 'utils/validator';
+import { isNip05DomainName } from 'core/nip/05';
 
 export class Query {
   private readonly table: Table<DbEvent>;
@@ -255,13 +258,20 @@ export class ProfileQuery {
     return this.createFilterQuerier(fn);
   }
 
-  createFilterByName(name?: string) {
+  createFilterByKeyword(keyword?: string) {
     const fn = (e: DbEvent) => {
-      if (!name) return false;
+      if (!keyword) return false;
 
+      const lowercase = keyword.toLowerCase().trim();
+      if(isValidPublicKey(lowercase) || lowercase.startsWith("npub")){
+        return e.pubkey.toLowerCase() === lowercase || Nip19.encode(e.pubkey, Nip19DataType.Npubkey).toLowerCase() === lowercase;
+      }
       try {
         const profile = deserializeMetadata(e.content);
-        return profile.display_name.includes(name) || profile.name.includes(name);
+        if(isNip05DomainName(lowercase)){
+          return profile.nip05.toLowerCase().trim() === lowercase;
+        }
+        return profile.display_name.toLowerCase().includes(lowercase) || profile.name.toLowerCase().includes(lowercase) || profile.about.toLowerCase().includes(lowercase);
       } catch (error) {
         return false;
       }
