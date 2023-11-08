@@ -22,7 +22,6 @@ export class Query {
 
   createEventByIdQuerier(relayUrls: string[], eventId?: EventId) {
     return async () => {
-      console.log('EventByIdQuerier..');
       if (!eventId) {
         return null;
       }
@@ -32,7 +31,6 @@ export class Query {
         limit: 1,
       };
       const events = await this.matchFilterRelay(filter, relayUrls);
-      console.log('createEventByIdQuerier: ', events.length);
       const result = events.sort((a, b) => b.created_at - a.created_at);
       if (result.length === 0) {
         return null;
@@ -47,7 +45,6 @@ export class Query {
     isValidEvent?: ((event: Event) => boolean) | undefined,
   ): () => Promise<DbEvent[]> {
     return async () => {
-      console.log('EventQuerier..');
       const result: DbEvent[] = [];
       if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) {
         return result;
