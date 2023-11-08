@@ -68,10 +68,17 @@ export function Search() {
 
   const subQueryToRelays = async (keyword: string) => {
     console.log('to search: ', keyword);
-    const filter = { search: keyword, limit: 50 };
+    const filter = { search: `${keyword} sort:popular`, limit: 50 };
     const pool = new ConnPool();
     pool.addConnections(searchRelays);
-    const fn = async (ws: WS) => ws.subFilter(filter);
+    const fn = async (ws: WS) => {
+      const dataStream = ws.subFilter(filter);
+      const result: any[] = [];
+      for await(const data of dataStream){
+        result.push(data);
+      }
+      return result;
+    };
     await pool.executeConcurrently(fn);
   };
 
