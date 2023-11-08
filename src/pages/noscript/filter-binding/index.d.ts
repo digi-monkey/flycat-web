@@ -1,27 +1,9 @@
-/* tslint:disable */
-/* eslint-disable */
-/**
-* @param {string} name
-* @returns {string}
-*/
-export function greet(name: string): string;
-/**
-* @param {number} n
-* @returns {number}
-*/
-export function fibonacci(n: number): number;
-/**
-* @param {any} event
-* @returns {boolean}
-*/
 export function is_valid_event(event: any): boolean;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly greet: (a: number, b: number, c: number) => void;
-  readonly fibonacci: (a: number) => number;
   readonly is_valid_event: (a: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
@@ -49,4 +31,3 @@ export function initSync(module: SyncInitInput): InitOutput;
 *
 * @returns {Promise<InitOutput>}
 */
-export default function __wbg_init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
