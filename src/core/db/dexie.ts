@@ -2,6 +2,8 @@ import Dexie, { Table } from 'dexie';
 import { DbEvent } from './schema';
 import { Event } from 'core/nostr/Event';
 import { WellKnownEventKind } from 'core/nostr/type';
+import { Nip01 } from 'core/nip/01';
+import { getEventDTagId } from 'core/nostr/util';
 
 const version = 1;
 
@@ -32,11 +34,11 @@ export class DexieDb extends Dexie {
   }
 
   async estimateSize() {
-		const event = await this.estimateTableSize(this.event);
-		const profile = await this.estimateTableSize(this.profileEvent);
-		const contact = await this.estimateTableSize(this.contactEvent);
-		return event + profile + contact;
-	}
+    const event = await this.estimateTableSize(this.event);
+    const profile = await this.estimateTableSize(this.profileEvent);
+    const contact = await this.estimateTableSize(this.contactEvent);
+    return event + profile + contact;
+  }
 
   private async estimateTableSize(table: Table, sizePerItem?: number) {
     const recordCount = await table.count();
@@ -54,7 +56,7 @@ export class DexieDb extends Dexie {
       return await this.storeProfileEvent(event, relayUrl);
     }
 
-    return this.storeEvent(event, relayUrl);
+    return await this.storeEvent(event, relayUrl);
   }
 
   async storeProfileEvent(event: Event, relayUrl: string) {
@@ -83,13 +85,133 @@ export class DexieDb extends Dexie {
 
   async storeEvent(event: Event, relayUrl: string) {
     try {
-			await this.save(event, relayUrl, this.event);
-		} catch (error: any) {
-			console.debug("store failed: ", error.message, event);
-		}
+      await this.save(event, relayUrl, this.event);
+    } catch (error: any) {
+      console.debug('store failed: ', error.message, event);
+    }
+  }
+
+  async fixTableDuplicatedData(table: Table<DbEvent>) {
+    const events = await table
+      .filter(e => Nip01.isParameterizedREplaceableEvent(e))
+      .toArray();
+
+    const findDuplicateStrings = (arr: string[]): string[] => {
+      const uniqueSet = new Set<string>();
+      const duplicates: string[] = [];
+
+      arr.forEach(item => {
+        if (uniqueSet.has(item) && !duplicates.includes(item)) {
+          duplicates.push(item);
+        } else {
+          uniqueSet.add(item);
+        }
+      });
+
+      return duplicates;
+    };
+
+    const data = events.map(
+      e => e.pubkey + ':' + e.kind + ':' + getEventDTagId(e.tags),
+    );
+    const keys = findDuplicateStrings(data);
+
+    for (const key of keys) {
+      const d = events
+        .filter(
+          e => e.pubkey + ':' + e.kind + ':' + getEventDTagId(e.tags) === key,
+        )
+        .sort((a, b) => b.created_at - a.created_at);
+      const duplicatedIds = d.slice(1).map(e => e.id);
+      await table.bulkDelete(duplicatedIds);
+    }
+    return keys.length;
+  }
+
+  private async saveParameterizedReplaceableEvent(
+    event: Event,
+    relayUrl: string,
+    table: Table<DbEvent>,
+  ) {
+    if (!Nip01.isParameterizedREplaceableEvent(event))
+      throw new Error(
+        'not a ParameterizedReplaceableEvent, kind: ' + event.kind,
+      );
+
+    const primaryKey = event.id;
+    const record = await table.get(primaryKey);
+    if (record) {
+      if (record.seen.includes(relayUrl)) {
+        return console.debug(
+          'already store: ',
+          event.kind,
+          record.seen,
+          relayUrl,
+          primaryKey,
+        );
+      } else {
+        const seen = record.seen;
+        seen.push(relayUrl);
+        const timestamp = Date.now();
+        const updatedCount = await table.update(primaryKey, {
+          seen,
+          timestamp,
+        });
+        if (updatedCount > 0) {
+          console.debug('Record updated successfully', primaryKey);
+        } else {
+          console.debug('Record not found or no changes made', primaryKey);
+        }
+      }
+      return;
+    }
+
+    const replaceableRecords = await table
+      .filter(
+        e =>
+          e.pubkey === event.pubkey &&
+          e.kind === event.kind &&
+          getEventDTagId(e.tags) === getEventDTagId(event.tags),
+      )
+      .sortBy('created_at');
+
+    if (replaceableRecords.length === 0) {
+      console.debug('New Record Added ', event.kind, primaryKey);
+      await table.add({
+        ...event,
+        ...{
+          seen: [relayUrl],
+          timestamp: Date.now(),
+        },
+      });
+      return;
+    }
+
+    // replace with the new one and delete the outdated one
+    if (event.created_at > replaceableRecords[0].created_at) {
+      await table.bulkDelete(replaceableRecords.map(r => r.id));
+      console.debug('Old Record Deleted ', replaceableRecords.length);
+
+      console.debug('New Record Added ', event.kind, primaryKey);
+      await table.add({
+        ...event,
+        ...{
+          seen: [relayUrl],
+          timestamp: Date.now(),
+        },
+      });
+    }
   }
 
   private async save(event: Event, relayUrl: string, table: Table<DbEvent>) {
+    if (Nip01.isParameterizedREplaceableEvent(event)) {
+      return await this.saveParameterizedReplaceableEvent(
+        event,
+        relayUrl,
+        table,
+      );
+    }
+
     const primaryKey =
       event.kind === WellKnownEventKind.contact_list ||
       event.kind === WellKnownEventKind.set_metadata
