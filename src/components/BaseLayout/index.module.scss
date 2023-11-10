@@ -1,4 +1,4 @@
-.pcPadNav{
+.pcPadNav {
   padding-right: var(--basePadding5);
   position: sticky;
   top: 0;
@@ -9,14 +9,14 @@
     padding-right: initial;
   }
 
-  .logo{
+  .logo {
     padding: var(--basePadding4) var(--basePadding5);
 
-    a{
+    a {
       display: inline-block;
     }
 
-    img{
+    img {
       width: 40px;
       height: 40px;
       object-fit: contain;
@@ -24,48 +24,41 @@
     }
   }
 
-  ul{
+  ul {
     padding: 0;
     margin: 0;
     margin-top: var(--basePadding7);
     list-style: none;
 
-    li{
+    li,
+    a {
       display: flex;
+      text-decoration: none;
       align-items: center;
       height: 56px;
       border-radius: 50px;
       cursor: pointer;
-      span{
+      span {
         @include font-subheader1;
         color: var(--neutral-09);
-      }
-      padding: {
-        left: var(--basePadding5);
-        right: var(--basePadding5);
       }
 
       @include for-pad {
         justify-content: center;
       }
 
-
-      &:hover{
-        background-color: var(--hover-color);
-      }
-
-      &.active{
-        svg{
+      &.active {
+        svg {
           fill: var(--neutral-09);
         }
-        span{
+        span {
           @include font-subheader1-bold;
           color: var(--neutral-09);
         }
       }
 
       :global {
-        .ant-dropdown-trigger{
+        .ant-dropdown-trigger {
           @include for-desktop {
             display: flex;
             width: 100%;
@@ -81,14 +74,14 @@
           }
         }
       }
-      
-      svg{
+
+      svg {
         width: 24px;
         height: 24px;
         fill: var(--neutral-06);
       }
 
-      >span{
+      > span {
         margin-left: var(--basePadding3);
         color: var(--neutral-06);
 
@@ -97,9 +90,19 @@
         }
       }
     }
+
+    li {
+      &:hover {
+        background-color: var(--hover-color);
+      }
+      padding: {
+        left: var(--basePadding5);
+        right: var(--basePadding5);
+      }
+    }
   }
 
-  button{
+  button {
     height: 44px;
     margin-top: var(--basePadding6);
 
@@ -111,7 +114,7 @@
       align-items: center;
       margin-left: var(--basePadding5);
 
-      svg{
+      svg {
         width: 24px;
         height: 24px;
         fill: var(--neutral-white);
@@ -120,51 +123,51 @@
   }
 }
 
-.pcPadNavUserMenu{
+.pcPadNavUserMenu {
   :global {
-    .ant-dropdown-menu{
+    .ant-dropdown-menu {
       border-radius: var(--baseBorderRadius8);
 
-      &:empty{
+      &:empty {
         display: none;
       }
     }
 
-    .ant-dropdown-menu-item{
+    .ant-dropdown-menu-item {
       height: 40px;
       line-height: 40px;
 
-      svg{
+      svg {
         width: 24px;
         height: 24px;
       }
     }
   }
-  li{
+  li {
     @include font-label;
   }
 }
 
-.pcPadMain{
+.pcPadMain {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   //column-gap: var(--gapWidth);
-  grid-template-areas: "left left left left left left left left left";
+  grid-template-areas: 'left left left left left left left left left';
   @include for-pad {
     grid-template-columns: repeat(7, 1fr);
     grid-template-areas: none;
   }
 
-  &.rightExists{
-    grid-template-areas: "left left left left left left right right right";
+  &.rightExists {
+    grid-template-areas: 'left left left left left left right right right';
 
     @include for-pad {
-      grid-template-areas: "left left left left left left left left left";
+      grid-template-areas: 'left left left left left left left left left';
       grid-template-areas: none;
     }
   }
 
-  .left{
+  .left {
     grid-area: left;
     @include for-pad {
       grid-area: initial;
@@ -172,7 +175,7 @@
     }
   }
 
-  .right{
+  .right {
     height: 100%;
     border-left: 1px solid var(--neutral-02);
     padding-left: var(--basePadding5);
@@ -185,24 +188,24 @@
   }
 }
 
-.modal{
-  .modalCoseIcons{
+.modal {
+  .modalCoseIcons {
     width: 24px;
     height: 24px;
   }
-  :global{
-    .ant-modal-content{
-      @include for-mobile{
+  :global {
+    .ant-modal-content {
+      @include for-mobile {
         padding: var(--basePadding2);
       }
     }
   }
 }
 
-.mobile{
+.mobile {
   grid-column: span 4;
 
-  header{
+  header {
     position: sticky;
     top: 0;
     left: 0;
@@ -217,7 +220,7 @@
     backdrop-filter: blur(5px);
 
     :global {
-      .ant-avatar{
+      .ant-avatar {
         width: 32px;
         height: 32px;
       }
@@ -227,24 +230,24 @@
       width: 32px;
       height: 32px;
     }
-    
-    svg{
+
+    svg {
       width: 24px;
       height: 24px;
     }
 
-    div:first-of-type{
+    div:first-of-type {
       margin-top: 0px;
       width: 100%;
       padding: 0px;
     }
   }
-  main{
+  main {
     padding: {
       bottom: calc(var(--basePadding5) * 5);
     }
   }
-  footer{
+  footer {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -259,23 +262,22 @@
       right: var(--basePadding4);
     }
 
-    
-    ul{
+    ul {
       display: flex;
       list-style: none;
       padding: 0;
       justify-content: space-between;
       align-items: flex-end;
 
-      li{
+      li {
         &.active {
-          svg{
+          svg {
             fill: var(--neutral-09);
           }
         }
 
-        &.add{
-          span{
+        &.add {
+          span {
             display: inline-block;
             background-color: var(--primary-06);
             border-radius: var(--baseBorderRadius8);
@@ -290,7 +292,7 @@
           }
         }
 
-        svg{
+        svg {
           width: 20px;
           height: 20px;
           fill: var(--neutral-06);
@@ -300,7 +302,7 @@
   }
 }
 
-.mobileDrawer{
+.mobileDrawer {
   padding: var(--basePadding4);
 
   .close {
@@ -310,12 +312,12 @@
   }
 
   .userTitle {
-    h1{
+    h1 {
       @include font-header3;
     }
   }
 
-  ul{
+  ul {
     padding: 0;
     margin: 0;
     list-style: none;
@@ -325,13 +327,13 @@
         top: var(--basePadding4);
         bottom: var(--basePadding4);
       }
-      svg{
+      svg {
         width: 24px;
         height: 24px;
         vertical-align: middle;
       }
 
-      &:last-child{
+      &:last-child {
         position: absolute;
         bottom: 0;
         width: 100%;
@@ -341,7 +343,7 @@
   }
 
   :global {
-    .ant-drawer-body{
+    .ant-drawer-body {
       padding: 0;
       position: relative;
     }
