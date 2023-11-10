@@ -24,11 +24,11 @@ Curious what will be next? Checkout our [Real Time Roadmap](https://github.com/u
 - no database/custom backend/private caching server, self-hosted made pretty effortless
 - use SharedWorker to manage one global websocket connections pool across different web page/browser tabs
 
-## Join Us, Why Not?
+## Development
 
 Flycat is a open-source project and would love to have a community building and maintaining it. We are looking for volunteers to eagerly solve issues, create pull requests and implementing new features. Feel free to contribute or just talk about your ideas.
 
-check out [project development instructions](docs/develop.md)
+[Get Started](docs/develop.md)
 
 ## Fun Facts
 
