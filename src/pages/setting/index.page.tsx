@@ -19,10 +19,14 @@ import { Avatar, Button, Form, Input, Tabs } from 'antd';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useRouter } from 'next/router';
 
+import dynamic from 'next/dynamic';
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
-import Preference from './preference';
 import Key from './key';
+
+  const Preference = dynamic(() => import('./preference'), {
+    ssr: false,
+  });
 
 const { TextArea } = Input;
 
