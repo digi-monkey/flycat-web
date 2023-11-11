@@ -5,8 +5,8 @@ import { WellKnownEventKind } from 'core/nostr/type';
 import { Nip01 } from 'core/nip/01';
 import { getEventDTagId } from 'core/nostr/util';
 
-const version = 1;
-
+export const version = 1;
+export const dbName = 'nostrDatabase';
 export class DexieDb extends Dexie {
   // 'event' is added by dexie when declaring the stores()
   // We just tell the typing system this is the case
@@ -15,7 +15,7 @@ export class DexieDb extends Dexie {
   contactEvent!: Table<DbEvent>;
 
   constructor() {
-    super('nostrDatabase');
+    super(dbName);
     this.version(version).stores({
       event: 'id, pubkey, kind, created_at, [pubkey+kind]', // Primary key and indexed props
       profileEvent: 'pubkey, id, create_at',
