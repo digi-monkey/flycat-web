@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { PublicKey } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { createCallRelay } from 'core/worker/util';
+import { isValidPublicKey } from 'utils/validator';
 
 export function useSubContactList(
   myPublicKey: PublicKey,
@@ -10,16 +10,12 @@ export function useSubContactList(
 ) {
   useEffect(() => {
     if (!worker) return;
-    if (!myPublicKey || myPublicKey.length === 0) return;
+    if (!isValidPublicKey(myPublicKey)) return;
 
-    const callRelay = createCallRelay(newConn);
-
-    worker
-      .subContactList([myPublicKey], 'userContactList', callRelay)
-      .iterating({
-        cb: (event, relayUrl) => {
-          console.debug('sub contact: ', relayUrl, event);
-        },
-      });
-  }, [myPublicKey, newConn]);
+    worker.subContactList([myPublicKey], 'userContactList').iterating({
+      cb: (event, relayUrl) => {
+        console.debug('sub contact: ', relayUrl, event);
+      },
+    });
+  }, [myPublicKey, worker]);
 }
