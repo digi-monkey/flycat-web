@@ -12,7 +12,6 @@ import { handleFileSelect, handleSubmitText } from './util';
 import {
   IMentions,
   useLoadCommunities,
-  useLoadContacts,
   useSetMentions,
 } from './hooks';
 
@@ -65,9 +64,8 @@ const PubNoteTextarea: React.FC<Props> = ({
   const [mentionsFocus, setMentionsFocus] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Naddr>();
 
-  const { userMap } = useLoadContacts({ worker, newConn });
   const communities = useLoadCommunities({ worker, newConn });
-  useSetMentions(setMentionsValue, userMap);
+  useSetMentions(setMentionsValue);
 
   useEffect(()=>{
     if(activeCommunity){
