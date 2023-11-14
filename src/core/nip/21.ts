@@ -10,7 +10,7 @@ import {
   Nip19ShareableDataType,
 } from './19';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
-import { dbQuery, dexieDb } from 'core/db';
+import { dbEventTable, dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
 
 export interface NpubResult {
@@ -167,7 +167,10 @@ export class Nip21 {
       const { type, data: eventId } = Nip19.decode(encodedData);
       if (type !== Nip19DataType.EventId) return null;
 
-      const noteEvent = await OneTimeWebSocketClient.fetchEvent({
+      let noteEvent: Event | undefined | null = null;
+      noteEvent = await dbEventTable.get(eventId);
+      if(!noteEvent)
+      noteEvent = await OneTimeWebSocketClient.fetchEvent({
         eventId,
         relays: fallbackRelays,
       });
@@ -201,7 +204,10 @@ export class Nip21 {
       if (type !== Nip19ShareableDataType.Nevent) return null;
 
       const decodedMetadata = _data as DecodedNeventResult;
-      const noteEvent = await OneTimeWebSocketClient.fetchEvent({
+      let noteEvent: Event | undefined | null = null;
+      noteEvent = await dbEventTable.get(decodedMetadata.id);
+      if(!noteEvent)
+      noteEvent = await OneTimeWebSocketClient.fetchEvent({
         eventId: decodedMetadata.id,
         relays: decodedMetadata.relays,
       });
