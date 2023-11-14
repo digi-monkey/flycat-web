@@ -1,4 +1,4 @@
-import { Collapse, Modal, Progress } from 'antd';
+import { Collapse, Modal, Progress, message } from 'antd';
 import { PubEventResultStream } from 'core/worker/sub';
 import { PubEventResultMsg } from 'core/worker/type';
 
@@ -55,15 +55,27 @@ export async function noticePubEventResult(
 
   const pubResult = await exec();
 
-  
-
-  instance.update({
-    title: `Publish event to ${relayCount} relays`,
+  instance.destroy();
+  const key = 'pub-result';
+  message.info({
+    key,
+    icon: <span></span>,
     content: (
-      <div>
-        <div className={styles.eventId}>
-          <Link href={'/event/' + pubStream.eventId}>view full note</Link>
+      <div className={styles.messageContainer}>
+        <div className={styles.title}>
+          <h3>
+            Publish <Link href={'/event/' + pubStream.eventId}>note</Link> to {relayCount}{' '}
+            relays
+          </h3>
+          <button
+            onClick={() => message.destroy(key)}
+            className={styles.closeButton}
+          >
+            <Icon type="icon-cross" width={24} height={24} />
+          </button>
         </div>
+
+        <div className={styles.eventId}></div>
         <Collapse>
           <Panel header="Expand relay detail" key="1">
             <div>
@@ -79,7 +91,7 @@ export async function noticePubEventResult(
                     </li>
                   );
                 })}
-                <hr />
+              <hr />
               {pubResult
                 .filter(res => !res.isSuccess)
                 .map(res => {
@@ -95,12 +107,6 @@ export async function noticePubEventResult(
             </div>
           </Panel>
         </Collapse>
-        <button
-          onClick={() => Modal.destroyAll()}
-          className={styles.closeButton}
-        >
-          <Icon type="icon-cross" width={24} height={24} />
-        </button>
       </div>
     ),
   });
@@ -113,103 +119,4 @@ function calculatePercentage(finishedCount: number, totalCount: number) {
   let percentage = (finishedCount / totalCount) * 100;
   percentage = +percentage.toFixed(0);
   return percentage;
-}
-
-export async function testNotice() {
-  const relayCount = 7;
-  const instance = Modal.info({
-    title: `Publish event to ${4}/${relayCount} relays`,
-    icon: null,
-    content: (
-      <Progress percent={calculatePercentage(4, relayCount)} showInfo={false} />
-    ),
-    okButtonProps: { style: { display: 'none' } },
-  });
-
-  const eventId = '0xfekdasfjjsjdf12';
-  const pubResult = [
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: false,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: true,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: true,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: false,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: true,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relaymkkpllllllllkkoioiiiiiii1.com',
-      isSuccess: false,
-      reason: 'no active subscription',
-    },
-    {
-      relayUrl: 'wss://relay1.com',
-      isSuccess: false,
-      reason: 'invalid event kind',
-    },
-  ];
-
-  instance.update({
-    title: `Publish event to ${relayCount} relays`,
-    content: (
-      <div>
-        <div className={styles.eventId}>
-          <Link href={'/event/' + eventId}>view full note</Link>
-        </div>
-        <Collapse>
-          <Panel header="Expand relay detail" key="1">
-            <div>
-              {pubResult
-                .filter(res => res.isSuccess)
-                .map(res => {
-                  return (
-                    <li key={res.relayUrl} className={styles.item}>
-                      <span className={styles.success}>
-                        <span>{res.relayUrl}</span>
-                        <span>{'☑️'}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-                <hr />
-              {pubResult
-                .filter(res => !res.isSuccess)
-                .map(res => {
-                  return (
-                    <li key={res.relayUrl} className={styles.item}>
-                      <span className={styles.failed}>
-                        <span>{res.relayUrl}</span>
-                        <span>{res.reason}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-            </div>
-          </Panel>
-        </Collapse>
-        <button
-          onClick={() => Modal.destroyAll()}
-          className={styles.closeButton}
-        >
-          <Icon type="icon-cross" width={24} height={24} />
-        </button>
-      </div>
-    ),
-  });
 }
