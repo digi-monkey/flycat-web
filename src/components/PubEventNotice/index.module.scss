@@ -2,18 +2,48 @@
   font-size: 14px;
   font-weight: 600;
   margin: var(--basePadding2) 0px;
-  border-bottom: 1px solid var(--neutral-02);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .item {
   display: flex;
   justify-content: space-between;
   margin: var(--basePadding2) 0px;
-  
+
   .success {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
     color: var(--primary-06);
   }
   .failed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
     color: var(--red-06);
+  }
+}
+
+.progress {
+  max-width: 100%;
+}
+
+.messageContainer{
+  width: 400px;
+  max-width: 100%;
+  text-align: left;
+
+  .title{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }

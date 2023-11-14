@@ -135,7 +135,7 @@ export const EditProfilePage = ({ commitId }) => {
     const rawEvent = await Nostr.newProfileRawEvent(data);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler);
+    noticePubEventResult(worker.relays.length, handler);
   };
 
   const items = [

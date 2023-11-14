@@ -482,7 +482,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             );
             const event = await signEvent(rawEvent);
             const handle = worker.pubEvent(event);
-            noticePubEventResult(handle);
+            noticePubEventResult(worker.relays.length, handle);
           };
           const header = (
             <div className={styles.approvalHeader}>

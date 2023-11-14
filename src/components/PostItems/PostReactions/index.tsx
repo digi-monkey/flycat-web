@@ -57,7 +57,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler);
+    noticePubEventResult(worker.relays.length, handler);
   };
 
   const zap = async () => {
@@ -131,7 +131,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const event = await signEvent(rawEvent);
 
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler);
+    noticePubEventResult(worker.relays.length, handler);
     setIsBookMarking(false);
   };
 

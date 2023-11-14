@@ -217,7 +217,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(handler, () =>
+    return noticePubEventResult(worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -235,7 +235,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     });
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(handler, () =>
+    return noticePubEventResult(worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };

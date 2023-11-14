@@ -39,7 +39,7 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worke
           console.log("raw event:", rawEvent);
           const pubEvent = await signEvent(rawEvent);
           const handler = worker.pubEvent(pubEvent);
-          noticePubEventResult(handler);
+          noticePubEventResult(worker.relays.length, handler);
           onSuccess();
           message.success(`${file.name} file uploaded and read successfully`);
         } else {

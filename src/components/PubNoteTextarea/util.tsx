@@ -133,7 +133,7 @@ export const handleSubmitText = async (
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
-  noticePubEventResult(handler, pubSuccessCallback);
+  noticePubEventResult(worker.relays.length, handler, pubSuccessCallback);
 
   setText('');
   setAttachImgs([]);

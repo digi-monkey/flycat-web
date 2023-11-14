@@ -1,89 +1,122 @@
-import { Modal, message } from 'antd';
+import { Collapse, Modal, Progress, message } from 'antd';
 import { PubEventResultStream } from 'core/worker/sub';
-import { shortifyEventId } from 'core/nostr/content';
-import { CopyText } from 'components/CopyText/CopyText';
-
-import styles from './index.module.scss';
 import { PubEventResultMsg } from 'core/worker/type';
 
+import styles from './index.module.scss';
+import Link from 'next/link';
+import Icon from 'components/Icon';
+
+const { Panel } = Collapse;
+
 export async function noticePubEventResult(
-  handler: PubEventResultStream,
+  relayCount: number,
+  pubStream: PubEventResultStream,
   successCb?: (eventId: string, successRelays: string[]) => any,
-  lightMode = true,
 ) {
+  const instance = Modal.info({
+    title: `Publish event to ${0}/${relayCount} relays`,
+    icon: null,
+    content: (
+      <Progress percent={calculatePercentage(0, relayCount)} showInfo={false} />
+    ),
+    okButtonProps: { style: { display: 'none' } },
+  });
+
   const exec = async () => {
+    let index = 0;
     const pubResult: PubEventResultMsg[] = [];
-    const result: React.JSX.Element[] = [];
-    for await (const h of handler) {
-      pubResult.push(h);
-      const item = (
-        <li key={h.relayUrl} className={styles.item}>
-          <span>{h.relayUrl}</span>
-          <span className={h.isSuccess ? styles.success : styles.failed}>
-            {h.isSuccess && 'success'}
-            {!h.isSuccess && h.reason}
-          </span>
-        </li>
-      );
-      result.push(item);
+    for await (const result of pubStream) {
+      pubResult.push(result);
+
+      // update ui
+      index++;
+      instance.update({
+        title: `Publish event to ${index}/${relayCount} relays`,
+        icon: null,
+        content: (
+          <Progress
+            percent={calculatePercentage(index, relayCount)}
+            showInfo={false}
+          />
+        ),
+        okButtonProps: { style: { display: 'none' } },
+      });
     }
-    handler.unsubscribe();
+    pubStream.unsubscribe();
 
     const successRelays = pubResult
       .filter(r => r.isSuccess)
       .map(r => r.relayUrl);
     if (successRelays.length > 0 && successCb) {
-      successCb(handler.eventId, successRelays);
+      successCb(pubStream.eventId, successRelays);
     }
-    return result;
+    return pubResult;
   };
 
-  if (!lightMode) {
-    let secondsPassed = 0;
+  const pubResult = await exec();
 
-    const instance = Modal.success({
-      title: 'Publishing Events..',
-      content: `wait for ${secondsPassed} second..`,
-    });
-    const timer = setInterval(() => {
-      secondsPassed += 1;
-      instance.update({
-        content: `wait for ${secondsPassed} second..`,
-      });
-    }, 1000);
-
-    const result = await exec();
-
-    //close the waiting
-    clearInterval(timer);
-    instance.update({
-      title: 'Published Event',
-      content: (
-        <div>
-          <div className={styles.eventId}>
-            event@{shortifyEventId(handler.eventId)}{' '}
-            <CopyText name={'Copy Event Id'} textToCopy={handler.eventId} />
-          </div>
-          <div>{result}</div>
+  instance.destroy();
+  const key = 'pub-result';
+  message.info({
+    key,
+    icon: <span></span>,
+    content: (
+      <div className={styles.messageContainer}>
+        <div className={styles.title}>
+          <h3>
+            Publish <Link href={'/event/' + pubStream.eventId}>note</Link> to {relayCount}{' '}
+            relays
+          </h3>
+          <button
+            onClick={() => message.destroy(key)}
+            className={styles.closeButton}
+          >
+            <Icon type="icon-cross" width={24} height={24} />
+          </button>
         </div>
-      ),
-    });
-  } else {
-    // todo: use messageApi
-    message.info('Publishing Events..');
 
-    const result = await exec();
-
-    const content = (
-      <div>
-        <h2>Published Event</h2>
-        <div className={styles.eventId}>
-          event@{shortifyEventId(handler.eventId)}{' '}
-          <CopyText name={'Copy Event Id'} textToCopy={handler.eventId} />
-        </div>
-        <div>{result}</div>
+        <div className={styles.eventId}></div>
+        <Collapse>
+          <Panel header="Expand relay detail" key="1">
+            <div>
+              {pubResult
+                .filter(res => res.isSuccess)
+                .map(res => {
+                  return (
+                    <li key={res.relayUrl} className={styles.item}>
+                      <span className={styles.success}>
+                        <span>{res.relayUrl}</span>
+                        <span>{'☑️'}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              <hr />
+              {pubResult
+                .filter(res => !res.isSuccess)
+                .map(res => {
+                  return (
+                    <li key={res.relayUrl} className={styles.item}>
+                      <span className={styles.failed}>
+                        <span>{res.relayUrl}</span>
+                        <span>{res.reason}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+            </div>
+          </Panel>
+        </Collapse>
       </div>
-    );
-    message.info(content);
+    ),
+  });
+}
+
+function calculatePercentage(finishedCount: number, totalCount: number) {
+  if (totalCount === 0) {
+    throw new Error('Cannot calculate percentage with total count of 0.');
   }
+  let percentage = (finishedCount / totalCount) * 100;
+  percentage = +percentage.toFixed(0);
+  return percentage;
 }
