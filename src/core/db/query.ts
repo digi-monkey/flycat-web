@@ -45,7 +45,6 @@ export class Query {
     isValidEvent?: ((event: Event) => boolean) | undefined,
   ): () => Promise<DbEvent[]> {
     return async () => {
-      console.log("createEventQuerier")
       const result: DbEvent[] = [];
       if (!msgFilter || (msgFilter && !validateFilter(msgFilter))) {
         return result;
@@ -117,43 +116,47 @@ export class Query {
     const doQuery = async (
       collection: Collection<DbEvent, IndexableType>,
     ) => {
-      const timeStart = performance.now();
       const filterResults = collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).limit(maxLimit);
-      const count = await filterResults.count();
       const data = (await filterResults.toArray());
-      const timeEnd = performance.now();
-      const timeDiff = timeEnd - timeStart;
-      console.debug("filter query time: ", timeDiff);
-      console.log("count: ", count);
       return data;
     };
 
-    const collection = this.table.orderBy('created_at').reverse();
+    const doQuerySort = async (
+      collection: Collection<DbEvent, IndexableType>,
+    ) => {
+      const filterResults = (await collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).sortBy('created_at')).reverse();
+      const data = filterResults.slice(0, maxLimit); 
+      return data;
+    };
 
     if (filter.ids) {
-      const query = collection.filter(e => filter.ids!.includes(e.id));
-      return await doQuery(query);
+      const query = this.table.where('id').anyOf(filter.ids);
+      return await doQuerySort(query);
     }
 
     if (filter.authors && filter.kinds) {
-      const query = collection.filter(e => filter.authors!.includes(e.pubkey) && filter.kinds!.includes(e.kind));
-      const events = await doQuery(query);
+      const compoundKeys = filter.authors.flatMap(pubkey =>
+        filter.kinds!.map(kind => [pubkey, kind]),
+      );
+      const query = this.table.where('[pubkey+kind]').anyOf(compoundKeys);
+      const events = await doQuerySort(query);
       return events;
     }
 
     if (filter.kinds) {
-      const query = collection.filter(e => filter.kinds!.includes(e.kind));
-      const events = await doQuery(query);
+      const query = this.table.where('kind').anyOf(filter.kinds);
+      const events = await doQuerySort(query);
       return events;
     }
 
     if (filter.authors) {
-      const query = collection.filter(e => filter.authors!.includes(e.pubkey));
-      const events = await doQuery(query);
+      const query = this.table.where('pubkey').anyOf(filter.authors);
+      const events = await doQuerySort(query);
       return events;
     }
 
-    const events = await doQuery(collection);
+    const sortedCollection = this.table.orderBy('created_at').reverse();
+    const events = await doQuery(sortedCollection);
     return events;
   }
 }
