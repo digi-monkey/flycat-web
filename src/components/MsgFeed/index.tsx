@@ -152,7 +152,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const onBroadcastEvent = async (event: Event, msg: typeof message) => {
     if (!worker) return msg.error("worker not found.");
     const pubHandler = worker.pubEvent(event);
-    noticePubEventResult(pubHandler);
+    noticePubEventResult(worker.relays.length, pubHandler);
   }
 
   const extraMenu = [

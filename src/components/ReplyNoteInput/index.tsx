@@ -89,7 +89,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
       const rawEvent = Nip23.commentToArticleEvent(inputText, replyTo);
       const event = await signEvent(rawEvent);
       const handler = worker.pubEvent(event);
-      noticePubEventResult(handler, successCb);
+      noticePubEventResult(worker.relays.length, handler, successCb);
       setInputText('');
       return;
     }
@@ -109,7 +109,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler, successCb);
+    noticePubEventResult(worker.relays.length, handler, successCb);
     setInputText('');
   };
 

@@ -113,7 +113,7 @@ export function Community({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(handler, () =>
+    return noticePubEventResult(worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -124,7 +124,7 @@ export function Community({
     const rawEvent = createUnFollowContactEvent(myContactEvent, target);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(handler, () =>
+    return noticePubEventResult(worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -423,7 +423,7 @@ export function Community({
     );
     const event = await signEvent(rawEvent);
     const handle = worker.pubEvent(event);
-    noticePubEventResult(handle, () => getApprovalShortNoteId());
+    noticePubEventResult(worker.relays.length, handle, () => getApprovalShortNoteId());
   };
 
   const handleTabClick = tabName => {

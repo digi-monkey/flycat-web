@@ -125,7 +125,7 @@ export default function CreateCommunity() {
     const event = await signEvent(raw);
 
     const handler = worker.pubEvent(event);
-    noticePubEventResult(handler);
+    noticePubEventResult(worker.relays.length, handler);
     router.push(
       '/communities/n/' +
       encodeURIComponent(
