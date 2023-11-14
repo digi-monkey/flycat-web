@@ -26,16 +26,16 @@ export class Query {
         return null;
       }
 
-      const filter: Filter = {
-        ids: [eventId],
-        limit: 1,
-      };
-      const events = await this.matchFilterRelay(filter, relayUrls);
-      const result = events.sort((a, b) => b.created_at - a.created_at);
-      if (result.length === 0) {
+      const normalizeRelayUrls = relayUrls.map(r => normalizeWsUrl(r)); 
+      const event = await this.table.get(eventId);
+      if (event && relayUrls.length > 0) {
+        const seenRelays = event.seen.map(r => normalizeWsUrl(r));
+        if(normalizeRelayUrls.some(relay => seenRelays.includes(relay))){
+          return event;
+        }
         return null;
       }
-      return result[0];
+      return event;
     };
   }
 
@@ -73,70 +73,65 @@ export class Query {
       const endTime = filter.until || Date.now();
       return event.created_at > startTime && event.created_at < endTime;
     };
-    const defaultQuery = async (
-      collection: Collection<DbEvent, IndexableType>,
-    ) => {
-      return (
-        await collection.and(applyRelayAndTimeRange).sortBy('created_at')
-      ).reverse();
-    };
-    const filterTags = (events: DbEvent[], filter: Filter) => {
-      let result = events;
+    const applyIsValidEvent = (event: DbEvent) => {
+      if (isValidEvent) {
+        return isValidEvent(event);
+      }
+      return true;
+    }
+    const applyFilterTags = (event: DbEvent) => {
+      let isValid = !(!!filter['#e'] || !!filter['#p'] || !!filter['#d'] || !!filter['#t'] || !!filter['#a']);
       if (filter['#e']) {
         const target = filter['#e'];
-        result = result.filter(event =>
-          event.tags.some(
-            tag => tag[0] === EventTags.E && target.includes(tag[1] as EventId),
-          ),
+        isValid = event.tags.some(
+          tag => tag[0] === EventTags.E && target.includes(tag[1] as EventId),
         );
       }
       if (filter['#p']) {
         const target = filter['#p'];
-        result = result.filter(event =>
-          event.tags.some(
-            tag => tag[0] === EventTags.P && target.includes(tag[1] as string),
-          ),
+        isValid = event.tags.some(
+          tag => tag[0] === EventTags.P && target.includes(tag[1] as string),
         );
       }
       if (filter['#d']) {
         const target = filter['#d'];
-        result = result.filter(event =>
-          event.tags.some(
-            tag => tag[0] === EventTags.D && target.includes(tag[1] as string),
-          ),
+        isValid = event.tags.some(
+          tag => tag[0] === EventTags.D && target.includes(tag[1] as string),
         );
       }
       if (filter['#t']) {
         const target = filter['#t'];
-        result = result.filter(event =>
-          event.tags.some(
-            tag => tag[0] === EventTags.T && target.includes(tag[1] as string),
-          ),
+        isValid = event.tags.some(
+          tag => tag[0] === EventTags.T && target.includes(tag[1] as string),
         );
       }
       if (filter['#a']) {
         const target = filter['#a'];
-        result = result.filter(event =>
-          event.tags.some(
-            tag => tag[0] === EventTags.A && target.includes(tag[1] as Naddr),
-          ),
+        isValid = event.tags.some(
+          tag => tag[0] === EventTags.A && target.includes(tag[1] as Naddr),
         );
       }
-      return result;
+      return isValid;
     };
-    const applyMaxLimit = (events: DbEvent[]) => {
-      if (isValidEvent) {
-        return events
-          .filter(e => isValidEvent(e))
-          .filter(e => e != null)
-          .slice(0, maxLimit);
-      }
-      return events.slice(0, maxLimit);
+    const doQuery = async (
+      collection: Collection<DbEvent, IndexableType>,
+    ) => {
+      const filterResults = collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).limit(maxLimit);
+      const data = (await filterResults.toArray());
+      return data;
+    };
+
+    const doQuerySort = async (
+      collection: Collection<DbEvent, IndexableType>,
+    ) => {
+      const filterResults = (await collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).sortBy('created_at')).reverse();
+      const data = filterResults.slice(0, maxLimit); 
+      return data;
     };
 
     if (filter.ids) {
       const query = this.table.where('id').anyOf(filter.ids);
-      return applyMaxLimit(await defaultQuery(query));
+      return await doQuerySort(query);
     }
 
     if (filter.authors && filter.kinds) {
@@ -144,24 +139,25 @@ export class Query {
         filter.kinds!.map(kind => [pubkey, kind]),
       );
       const query = this.table.where('[pubkey+kind]').anyOf(compoundKeys);
-      const events = await defaultQuery(query);
-      return applyMaxLimit(filterTags(events, filter));
+      const events = await doQuerySort(query);
+      return events;
     }
 
     if (filter.kinds) {
       const query = this.table.where('kind').anyOf(filter.kinds);
-      const events = await defaultQuery(query);
-      return applyMaxLimit(filterTags(events, filter));
+      const events = await doQuerySort(query);
+      return events;
     }
 
     if (filter.authors) {
       const query = this.table.where('pubkey').anyOf(filter.authors);
-      const events = await defaultQuery(query);
-      return applyMaxLimit(filterTags(events, filter));
+      const events = await doQuerySort(query);
+      return events;
     }
 
-    const events = await defaultQuery(this.table.toCollection());
-    return applyMaxLimit(filterTags(events, filter));
+    const sortedCollection = this.table.orderBy('created_at').reverse();
+    const events = await doQuery(sortedCollection);
+    return events;
   }
 }
 
