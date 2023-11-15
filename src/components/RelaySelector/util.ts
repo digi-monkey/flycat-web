@@ -54,8 +54,8 @@ export function isFastestRelayOutdated(
 export function toConnectStatus(
   label: string,
   wsConnectStatus: WsConnectStatus,
+  all: number
 ) {
-  const all = Array.from(wsConnectStatus).length;
   const connected = Array.from(wsConnectStatus).filter(
     w => w[1] === true,
   ).length;

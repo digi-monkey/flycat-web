@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { WsConnectStatus } from 'core/worker/type';
 import { isEqualMaps } from 'utils/validator';
-import { normalizeWsUrl } from 'utils/common';
-import { Relay } from 'core/relay/type';
 
 export type OnMsgHandler = (this, nostrData: any, relayUrl?: string) => any;
 
@@ -20,31 +18,14 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   );
   const [worker, setWorker] = useState<CallWorker>();
 
-  const prevRelaysRef = useRef(worker?.relays);
-  const arraysEqual = (array1: Relay[], array2: Relay[]) =>
-    array1.length === array2.length && array1.every((value, index) => value === array2[index]);
-
   useEffect(() => {
     const worker = new CallWorker((newWsConnectStatus: WsConnectStatus) => {
-      if (isEqualMaps(wsConnectStatus, newWsConnectStatus)) {
-        // no changed
-        console.debug('[wsConnectStatus] same, not updating');
-        return;
-      }
-      const data = Array.from(newWsConnectStatus.entries());
       setWsConnectStatus(prev => {
-        const newMap = new Map(prev);
-        for (const d of data) {
-          const relayUrl = d[0];
-          const isConnected = d[1];
-          if (newMap.get(relayUrl) && newMap.get(relayUrl) === isConnected) {
-            continue; // no changed
-          }
-
-          newMap.set(relayUrl, isConnected);
+        if (isEqualMaps(prev, newWsConnectStatus)) {
+          console.debug('[wsConnectStatus] same, not updating');
+          return prev;
         }
-
-        return newMap;
+        return newWsConnectStatus;
       });
     }, workerAliasName || 'unnamedCallWorker');
     setWorker(worker);
@@ -79,26 +60,8 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
     setNewConn(newConn);
   }, [wsConnectStatus]);
 
-  useEffect(() => {
-    if (worker?.relays && !arraysEqual(prevRelaysRef.current || [], worker.relays)) {
-      prevRelaysRef.current = worker.relays;
-
-      const newStatus = wsConnectStatus;
-      const keys = Array.from(newStatus.keys());
-      for (const key of keys) {
-        if (!worker.relays.map(r => normalizeWsUrl(r.url)).includes(normalizeWsUrl(key))) {
-          newStatus.delete(key);
-        }
-      }
-      if (!isEqualMaps(newStatus, wsConnectStatus)) {
-        setWsConnectStatus(newStatus);
-      }
-    }
-  }, [worker?.relays]);
-
   return {
     worker,
-    relays: prevRelaysRef.current,
     wsConnectStatus,
     newConn,
   };
