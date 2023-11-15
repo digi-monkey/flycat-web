@@ -62,7 +62,6 @@ export function RelaySelector({
   const defaultGroup = useDefaultGroup();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const [openAboutRelayMode, setOpenAboutRelayMode] = useState(false);
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
   const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] = useState<string[]>();
   const [selectCascaderOption, setSelectCascaderOption] = useState<string[]>();
@@ -71,29 +70,6 @@ export function RelaySelector({
   const [messageApi, contextHolder] = message.useMessage();
 
   const messageKey = 'relay-progress';
-
-  const modalData = [
-    {
-      icon: <Icon type="icon-global-mode" />,
-      title: t('relaySelector.modal.global'),
-      desc: t('relaySelector.modal.globalDesc'),
-    },
-    {
-      icon: <Icon type="icon-auto-mode" />,
-      title: t('relaySelector.modal.auto'),
-      desc: t('relaySelector.modal.autoDesc'),
-    },
-    {
-      icon: <Icon type="icon-fastest-mode" />,
-      title: t('relaySelector.modal.fastest'),
-      desc: t('relaySelector.modal.fastestDesc'),
-    },
-    {
-      icon: <Icon type="icon-rule-mode" />,
-      title: t('relaySelector.modal.rule'),
-      desc: t('relaySelector.modal.ruleDesc'),
-    },
-  ];
 
   const progressCb = (restCount: number) => {
     messageApi.open({
@@ -226,37 +202,6 @@ export function RelaySelector({
     setSelectedCascaderMapRelay(value);
   };
 
-  const displayBenchmark = async () => {
-    const currentRelays = switchRelays?.relays;
-    if (currentRelays) {
-      const pool = new ConnPool();
-      pool.addConnections(currentRelays.map(r => r.url));
-      const benchmark = await pool.benchmarkConcurrently(progressCb);
-      progressEnd();
-      Modal.info({
-        title: 'current relays benchmark',
-        content: (
-          <>
-            {benchmark.map(b => (
-              <li key={b.url} className={styles.benchmarkItem}>
-                <span>{b.url}</span>
-                <span>
-                  {b.isFailed || b.t == null ? (
-                    <span className={styles.failed}>failed</span>
-                  ) : (
-                    <span className={styles.success}>
-                      {Math.round(b.t!) + ' ms'}
-                    </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </>
-        ),
-      });
-    }
-  };
-
   const connectedUrlTooltip = (
     <>
       {getConnectedRelayUrl(wsConnectStatus).length > 0
@@ -303,6 +248,7 @@ export function RelaySelector({
                       ? selectedCascaderMapRelay[1]
                       : 'default',
                     wsConnectStatus,
+                    worker?.relays?.length || 0
                   )}
                 </span>
               </Tooltip>
@@ -310,32 +256,6 @@ export function RelaySelector({
           </>
         )}
       />
-
-      <Modal
-        title={t('relaySelector.modal.title')}
-        wrapClassName={styles.modal}
-        footer={null}
-        open={openAboutRelayMode}
-        onCancel={() => setOpenAboutRelayMode(false)}
-        closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
-      >
-        <ul>
-          {modalData.map(item => (
-            <li key={item.title}>
-              {item.icon}
-              <div className={styles.content}>
-                <h1 className={styles.title}>{item.title}</h1>
-                <p className={styles.desc}>{item.desc}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <div className={styles.footer}>
-          <Button type="primary" onClick={() => setOpenAboutRelayMode(false)}>
-            {t('relaySelector.modal.buttonText')}
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 }
