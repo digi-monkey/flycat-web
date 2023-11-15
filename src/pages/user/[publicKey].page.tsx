@@ -21,8 +21,8 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Divider, Input, Tabs, Tooltip, message } from 'antd';
-import { stringHasImageUrl } from 'utils/common';
+import { Avatar, Button, Divider, Dropdown, Input, MenuProps, Tabs, Tooltip, message } from 'antd';
+import { copyToClipboard, stringHasImageUrl } from 'utils/common';
 import { Followings } from './followings';
 
 import styles from './index.module.scss';
@@ -46,6 +46,7 @@ import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import AnswerMachine from './answerMachine.page';
+import { Nip19, Nip19DataType } from 'core/nip/19';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -272,6 +273,33 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     },
   ];
 
+  const items: MenuProps['items'] = [
+    {
+      label: 'copy npub',
+      key: '0',
+      onClick: () => {
+        try {
+          copyToClipboard(Nip19.encode(publicKey, Nip19DataType.Npubkey));
+          message.success('npub copy to clipboard!');
+        } catch (error: any) {
+          message.error(`npub copy failed! ${error.message}`);
+        }
+      },
+    },
+    {
+      label: 'copy raw pubkey ',
+      key: '1',
+      onClick: () => {
+        try {
+          copyToClipboard(publicKey);
+          message.success('raw pubkey copy to clipboard!');
+        } catch (error: any) {
+          message.error(`raw pubkey  copy failed! ${error.message}`);
+        }
+      },
+    }
+  ];
+
   const actionBtnGroups =
     myPublicKey === publicKey ? (
       <div className={styles.btnGroup}>
@@ -289,6 +317,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             router.push(Paths.setting + '?tabKey=preference');
           }}
         />
+        <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+          <Icon type="icon-more-vertical" className={styles.more} />
+        </Dropdown>
       </div>
     ) : (
       <div className={styles.btnGroup}>
@@ -317,12 +348,18 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             }}
           />
         </Tooltip>
+        <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+          <Icon type="icon-more-vertical" className={styles.more} />
+        </Dropdown>
       </div>
     );
 
   const mobileActionBtnGroups =
     myPublicKey === publicKey ? (
       <div className={styles.btnGroup}>
+        <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+          <Icon type="icon-more-vertical" className={styles.more} />
+        </Dropdown>
         <Icon
           type="icon-Gear"
           className={styles.icon}
@@ -340,6 +377,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       </div>
     ) : (
       <div className={styles.btnGroup}>
+        <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+          <Icon type="icon-more-vertical" className={styles.more} />
+        </Dropdown>
         <Tooltip title={`Article RSS URL`}>
           <Icon
             type="icon-rss"
