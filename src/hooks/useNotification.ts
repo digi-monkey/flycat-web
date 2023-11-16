@@ -5,8 +5,9 @@ import { useReadonlyMyPublicKey } from './useMyPublicKey';
 import { useCallWorker } from './useWorker';
 import { notifyKinds } from 'pages/notification/kinds';
 import { EventId, EventTags, Naddr, WellKnownEventKind } from 'core/nostr/type';
-import { createCallRelay } from 'core/worker/util';
 import { Nip172 } from 'core/nip/172';
+import { isValidPublicKey } from 'utils/validator';
+import { dbQuery } from 'core/db';
 
 export function useNotification() {
   const [eventIds, setEventIds] = useState<EventId[]>([]);
@@ -15,9 +16,10 @@ export function useNotification() {
     [],
   );
 
+  const { worker } = useCallWorker();
   const myPublicKey = useReadonlyMyPublicKey();
-  const { worker, newConn } = useCallWorker();
-  function handleEvent(event: Event, relayUrl?: string) {
+  
+  const handleNotifyEvent = (event: Event) => {
     const lastReadTime = get();
     if (!notifyKinds.includes(event.kind)) return;
     if (lastReadTime && event.created_at <= lastReadTime) return;
@@ -33,100 +35,104 @@ export function useNotification() {
 
       return oldArray;
     });
-  }
+  };
+  const handleCommEvent = (event: Event) => {
+    if (event.kind !== WellKnownEventKind.community_metadata) return;
+    setCommAddrs(prev => {
+      const newMap = new Map(prev);
+      newMap.set(
+        event.id,
+        Nip172.communityAddr({
+          identifier: event.tags
+            .filter(t => t[0] === EventTags.D)
+            .map(t => t[1])[0]!,
+          author: event.pubkey,
+        }),
+      );
+      return newMap;
+    });
+  };
+  const handleCommApproveReqEvent = (event: Event) => {
+    if (event.tags.filter(t => Nip172.isCommunityATag(t)).length === 0) return;
+
+    setRequestApproveMsgList(oldArray => {
+      if (!oldArray.map(e => e.id).includes(event.id)) {
+        // do not add duplicated msg
+
+        const newItems = [...oldArray, event];
+        // sort by timestamp
+        const sortedItems = newItems.sort((a, b) =>
+          a.created_at >= b.created_at ? -1 : 1,
+        );
+        return sortedItems;
+      }
+
+      return oldArray;
+    });
+  };
+
   useEffect(() => {
-    if (myPublicKey == null || myPublicKey.length === 0) return;
-    if (newConn.length === 0) return;
+    if (!isValidPublicKey(myPublicKey)) return;
     if (!worker || worker?.portId == null) return;
 
-    const callRelay = createCallRelay(newConn);
-
     const lastReadTime = get() || fetchSince;
     const since = lastReadTime + 1; // exclude the last read msg itself
-    worker
-      .subFilter({
-        filter: {
-          '#p': [myPublicKey],
-          kinds: notifyKinds,
-          since,
-          limit: 1, // reduce data since we are only need to know true or false
-        },
-        customId: 'useNotification',
-        callRelay,
-      })
-      .iterating({ cb: handleEvent });
 
-    worker
-      .subFilter({
-        filter: {
-          '#p': [myPublicKey],
-          kinds: [WellKnownEventKind.community_metadata],
-        },
-      })
-      .iterating({
-        cb: event => {
-          if (event.kind !== WellKnownEventKind.community_metadata) return;
+    const filter = {
+      '#p': [myPublicKey],
+      kinds: notifyKinds,
+      since,
+      limit: 1, // reduce data since we are only need to know true or false
+    };
+    const commFilter = {
+      '#p': [myPublicKey],
+      kinds: [WellKnownEventKind.community_metadata],
+    };
 
-          setCommAddrs(prev => {
-            const newMap = new Map(prev);
-            newMap.set(
-              event.id,
-              Nip172.communityAddr({
-                identifier: event.tags
-                  .filter(t => t[0] === EventTags.D)
-                  .map(t => t[1])[0]!,
-                author: event.pubkey,
-              }),
-            );
-            return newMap;
-          });
-        },
-      });
-  }, [newConn, myPublicKey, worker]);
+    dbQuery.matchFilterRelay(filter, []).then(events => {
+      if (events.length > 0) {
+        handleNotifyEvent(events[0]);
+      } else {
+        worker.subFilter({
+          filter,
+          customId: 'useNotification',
+        });
+      }
+    });
+    dbQuery.matchFilterRelay(commFilter, []).then(events => {
+      if (events.length > 0) {
+        events.every(handleCommEvent);
+      } else {
+        worker.subFilter({
+          filter: commFilter,
+        });
+      }
+    });
+  }, [myPublicKey]);
 
   useEffect(() => {
-    if (!worker) return;
-
     const lastReadTime = get() || fetchSince;
     const since = lastReadTime + 1; // exclude the last read msg itself
-
     const addrs = Array.from(commAddrs.values());
+
     if (addrs.length > 0) {
-      worker
-        .subFilter({
-          filter: {
-            '#a': addrs,
-            kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
-            since,
-          },
-        })
-        .iterating({
-          cb: (event, relayUrl) => {
-            //if(event.pubkey === myPublicKey)return;
-            if (event.tags.filter(t => Nip172.isCommunityATag(t)).length === 0)
-              return;
-
-            setRequestApproveMsgList(oldArray => {
-              if (!oldArray.map(e => e.id).includes(event.id)) {
-                // do not add duplicated msg
-
-                const newItems = [
-                  ...oldArray,
-                  { ...event, ...{ seen: [relayUrl!] } },
-                ];
-                // sort by timestamp
-                const sortedItems = newItems.sort((a, b) =>
-                  a.created_at >= b.created_at ? -1 : 1,
-                );
-                return sortedItems;
-              }
-
-              return oldArray;
-            });
-          },
-        });
+      const commApproveReqFilter = {
+        '#a': addrs,
+        kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
+        since,
+        limit: 1, // reduce data since we are only need to know true or false
+      };
+      dbQuery.matchFilterRelay(commApproveReqFilter, []).then(events => {
+        if (events.length > 0) {
+          events.every(handleCommApproveReqEvent);
+        } else {
+          worker?.subFilter({
+            filter: commApproveReqFilter,
+          });
+        }
+      });
     }
-  }, [commAddrs.size, worker]);
+  }, [commAddrs.size]);
 
   return eventIds.length + requestApproveMsgList.length > 0;
 }

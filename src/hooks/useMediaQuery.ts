@@ -15,11 +15,13 @@ export function useMatchMobile() {
       handleResize(); // Initial check
 
       window.addEventListener('resize', handleResize);
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
     }
+
+    return () => {
+      if (typeof window !== 'undefined' && typeof navigator !== 'undefined'){
+        window.removeEventListener('resize', handleResize);
+      }
+    };
   }, []);
 
   return mobile;

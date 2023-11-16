@@ -3,7 +3,6 @@ import { useUserInfo } from './hooks';
 import { RelaySelector } from 'components/RelaySelector';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useTranslation } from 'next-i18next';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
 import React, { useState } from 'react';
 import Icon from 'components/Icon';
