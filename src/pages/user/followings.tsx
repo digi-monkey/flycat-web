@@ -10,16 +10,16 @@ import {
   message,
 } from 'antd';
 import { Paths } from 'constants/path';
-
-import Icon from 'components/Icon';
-import styles from './index.module.scss';
 import { copyToClipboard } from 'utils/common';
 import { useRouter } from 'next/router';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { profileQuery } from 'core/db';
 import { useEffect, useState } from 'react';
 import { DbEvent } from 'core/db/schema';
 import { CallWorker } from 'core/worker/caller';
+
+import Icon from 'components/Icon';
+import styles from './index.module.scss';
+import Link from 'next/link';
 
 export interface FollowingsProp {
   buildFollowUnfollow: (publicKey: string) => {
@@ -38,7 +38,14 @@ export const Followings: React.FC<FollowingsProp> = ({
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
   const [profiles, setProfiles] = useState<DbEvent[]>([]);
-  useLiveQuery(profileQuery.createBatchProfileQuerier(pks, setProfiles));
+  
+  useEffect(()=>{
+    if(pks.length===0)return;
+
+    profileQuery.table.bulkGet(pks).then(events => {
+      setProfiles(events.filter(e=>e!=null)as DbEvent[]);
+    })
+  }, [pks]);
 
   useEffect(() => {
     if (!worker) return;
@@ -123,13 +130,13 @@ export const Followings: React.FC<FollowingsProp> = ({
         ];
         return (
           <li key={key} className={styles.followingList}>
-            <div
+            <Link
               className={styles.user}
-              onClick={() => router.push(Paths.user + `/${key}`, 'blank')}
+              href={"/user/"+key}
             >
               <Avatar size={'small'} src={profile?.picture} alt="" />
               <div>{profile?.name || '...'}</div>
-            </div>
+            </Link>
             <div>
               <Dropdown
                 menu={{ items }}
