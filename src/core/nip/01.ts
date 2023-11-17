@@ -1,4 +1,5 @@
 import { Event } from 'core/nostr/Event';
+import { WellKnownEventKind } from 'core/nostr/type';
 
 export class Nip01 {
   static isReplaceableEvent(e: Event) {
@@ -7,4 +8,10 @@ export class Nip01 {
   static isParameterizedREplaceableEvent(e: Event) {
     return 30000 <= e.kind && e.kind < 40000;
   }
+	static isContactEvent(e: Event) {
+		return e.kind === WellKnownEventKind.contact_list;
+	}
+	static isProfileEvent(e: Event) {
+		return e.kind === WellKnownEventKind.set_metadata;
+	}
 }

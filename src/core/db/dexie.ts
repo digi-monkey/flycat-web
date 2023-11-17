@@ -203,7 +203,76 @@ export class DexieDb extends Dexie {
     }
   }
 
+  private async saveContactOrProfileEvent(
+    event: Event,
+    relayUrl: string,
+    table: Table<DbEvent>,
+  ) {
+    if (!Nip01.isContactEvent(event) && !Nip01.isProfileEvent(event))
+      throw new Error(
+        'not a contact or profile, kind: ' + event.kind,
+      );
+
+    const primaryKey = event.pubkey;
+    const record = await table.get(primaryKey);
+    if (record) {
+      if(record.id === event.id){
+        if (record.seen.includes(relayUrl)) {
+          return console.debug(
+            'already store: ',
+            event.kind,
+            record.seen,
+            relayUrl,
+            primaryKey,
+          );
+        } else {
+          const seen = record.seen;
+          seen.push(relayUrl);
+          const timestamp = Date.now();
+          const updatedCount = await table.update(primaryKey, {
+            seen,
+            timestamp,
+          });
+          if (updatedCount > 0) {
+            console.debug('Record updated successfully', primaryKey);
+          } else {
+            console.debug('Record not found or no changes made', primaryKey);
+          }
+        }
+      }else{
+        // check if it is newer than the one in database
+        if(record.created_at < event.created_at){
+          const timestamp = Date.now();
+          const updatedCount = await table.update(primaryKey, {
+            ...event,
+            ...{
+              timestamp,
+            }
+          });
+          if (updatedCount > 0) {
+            console.debug('Record updated successfully', primaryKey, event.kind);
+          } else {
+            console.debug('Record not found or no changes made', primaryKey, event.kind);
+          } 
+        }
+      }
+      return;
+    }
+
+    await table.add({
+      ...event,
+      ...{
+        seen: [relayUrl],
+        timestamp: Date.now(),
+      },
+    });
+  }
+
   private async save(event: Event, relayUrl: string, table: Table<DbEvent>) {
+    if (Nip01.isContactEvent(event) || !Nip01.isProfileEvent(event)){
+      return await this.saveContactOrProfileEvent(event, relayUrl, table);
+    }
+
     if (Nip01.isParameterizedREplaceableEvent(event)) {
       return await this.saveParameterizedReplaceableEvent(
         event,
