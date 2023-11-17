@@ -57,8 +57,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const { publicKey: userIdentifier } = router.query as UserParams;
-  const publicKey = usePubkeyFromRouterQuery(userIdentifier);
+  const publicKey = usePubkeyFromRouterQuery((router.query as UserParams).publicKey);
   const { worker, newConn } = useCallWorker();
 
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
