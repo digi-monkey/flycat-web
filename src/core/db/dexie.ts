@@ -269,7 +269,7 @@ export class DexieDb extends Dexie {
   }
 
   private async save(event: Event, relayUrl: string, table: Table<DbEvent>) {
-    if (Nip01.isContactEvent(event) || !Nip01.isProfileEvent(event)){
+    if (Nip01.isContactEvent(event) || Nip01.isProfileEvent(event)){
       return await this.saveContactOrProfileEvent(event, relayUrl, table);
     }
 
