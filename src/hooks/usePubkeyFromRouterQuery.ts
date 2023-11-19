@@ -1,8 +1,8 @@
 import { isDotBitName } from 'core/dotbit';
 import { isNip05DomainName } from 'core/nip/05';
 import { useEffect, useState } from 'react';
-import { requestPublicKeyFromDotBit, requestPublicKeyFromNip05DomainName } from 'utils/common';
-import { isValidPublicKey } from 'utils/validator';
+import { parseNpub, requestPublicKeyFromDotBit, requestPublicKeyFromNip05DomainName } from 'utils/common';
+import { isValidNpub, isValidPublicKey } from 'utils/validator';
 
 export function usePubkeyFromRouterQuery(userId: string | undefined) {
   const [publicKey, setPublicKey] = useState<string>('');
@@ -11,6 +11,10 @@ export function usePubkeyFromRouterQuery(userId: string | undefined) {
 		if(userId){
 			if(isValidPublicKey(userId)){
 				setPublicKey(userId);
+			}
+
+			if(isValidNpub(userId)){
+				setPublicKey(parseNpub(userId));
 			}
 
 			if(isNip05DomainName(userId)){

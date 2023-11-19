@@ -1,6 +1,12 @@
 import { Event } from "core/nostr/Event";
 import { EventTags } from "core/nostr/type";
 
+export function isValidNpub(key: any): boolean{
+  return (
+    typeof key === 'string' && key.startsWith("npub")
+  );
+}
+
 export function isValidPublicKey(key: any): boolean {
   return (
     typeof key === 'string' && key.length === 64 && /^[0-9a-fA-F]+$/.test(key)
