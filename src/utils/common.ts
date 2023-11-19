@@ -2,9 +2,11 @@ import { generateRandomBytes } from 'core/crypto';
 import { DbEvent } from 'core/db/schema';
 import { HexStr } from 'types';
 import { v4 as uuidv4 } from 'uuid';
-import { isValidPublicKey } from './validator';
+import { isValidNpub, isValidPublicKey } from './validator';
 import { isNip05DomainName } from 'core/nip/05';
 import { getPublicKeyFromDotBit, isDotBitName } from 'core/dotbit';
+import { Nip19, Nip19DataType } from 'core/nip/19';
+import { PublicKey } from 'core/nostr/type';
 
 export const getDraftId = () => uuidv4();
 
@@ -102,6 +104,11 @@ export async function parsePublicKeyFromUserIdentifier(
       return userId;
     }
 
+    if(isValidNpub(userId)){
+      const npub = parseNpub(userId);
+      return npub;
+    }
+
     if (isNip05DomainName(userId)) {
       const pk = await requestPublicKeyFromNip05DomainName(userId);
       if (isValidPublicKey(pk)) {
@@ -156,4 +163,16 @@ export async function requestPublicKeyFromNip05DomainName(
   }
 
   return pk;
+}
+
+export function parseNpub(npub: string) {
+  try {
+    const res = Nip19.decode(npub);
+    if(res.type !== Nip19DataType.Npubkey){
+      throw new Error('invalid npub parse result,  ' + res.data);
+    }
+    return res.data as PublicKey;
+  } catch (error: any) {
+    throw new Error('parse npub failed,  ' + error.message);
+  }
 }
