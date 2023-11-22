@@ -9,17 +9,21 @@ import { ConnPool } from 'core/api/pool';
 import { WS } from 'core/api/ws';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, profileQuery } from 'core/db';
-import { Filter, WellKnownEventKind } from 'core/nostr/type';
+import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from 'components/MsgFeed/util';
 import { deserializeMetadata } from 'core/nostr/content';
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
+import { isValidNpub } from 'utils/validator';
+import { parseNpub } from 'utils/common';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
 import PostItems from 'components/PostItems';
+import Link from 'next/link';
+import { createCallRelay } from 'core/worker/util';
 
 export function Search() {
   const router = useRouter();
@@ -27,14 +31,40 @@ export function Search() {
 
   const [keyword, setKeyWord] = useState<string>();
   const [isQuerying, setIsQuerying] = useState<boolean>(false);
-  const { worker } = useCallWorker();
+  const [pubkeyEvent, setPubkeyEvent] = useState<DbEvent>();
+  const [pubkey, setPubkey] = useState<PublicKey>();
+
+  const { worker, newConn } = useCallWorker();
 
   useEffect(() => {
     if (urlKeyWord) {
       setKeyWord(urlKeyWord);
       subQueryToRelays(urlKeyWord);
+
+      if(isValidNpub(urlKeyWord)){
+        try {
+          const pubkey = parseNpub(urlKeyWord);
+          setPubkey(pubkey);
+          profileQuery.getProfileByPubkey(pubkey).then(event => {
+            if(event){
+              setPubkeyEvent(event);
+            }
+          });
+        } catch (error: any) {
+          console.debug('failed to parse npub from key word, ', urlKeyWord, 'reason: ', error.message);
+        }
+      }
     }
   }, [router]);
+
+  useEffect(()=>{
+    if(pubkey && worker && !pubkeyEvent){
+      const callRelay = createCallRelay(newConn);
+      worker.subMetadata([pubkey], undefined, callRelay).iterating({cb: (event) => {
+        setPubkeyEvent({...event, ...{seen: [], timestamp: 0}});
+      }});
+    }
+  }, [pubkey, worker, newConn])
 
   const handleTabChange = key => {
     router.push(`?keyword=${key}`);
@@ -134,7 +164,11 @@ export function Search() {
           />
           {isQuerying && <Spin />}
           <Divider orientation="left">Profiles</Divider>
-          <List>{profiles.slice(0, 5).map(profileUI)}</List>
+          <List>
+            {pubkey && !pubkeyEvent && <div>pubkey related profile not found, try visit <Link href={'/user/' + pubkey}>profile page?</Link></div>}
+            {pubkeyEvent && !profiles.map(p => p.pubkey).includes(pubkey!) && profileUI(pubkeyEvent)}
+            {profiles.slice(0, 20).map(profileUI)}
+          </List>
         </div>
 
         <Divider orientation="left">Notes</Divider>
