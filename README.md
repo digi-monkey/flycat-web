@@ -2,6 +2,10 @@
 
 Open social network built on [Nostr protocol](https://github.com/nostr-protocol/nips).
 
+## Why Nostr?
+
+this is a talk I give on [why Nostr is important](https://flycat.club/post/monkey@flycat.club/en-why-nostr-is-important)
+
 ## Lastest News
 
 Flycat v0.2.x release 🎉🎉🎉
