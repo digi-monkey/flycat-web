@@ -17,6 +17,9 @@ import { RelayGroup } from 'core/relay/group';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useEffect, useState } from 'react';
 import { exportDB } from 'dexie-export-import';
+import BitcoinButton from 'components/BitcoinConnect/BitcoinButton';
+
+
 
 export default function Preference() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -98,7 +101,7 @@ export default function Preference() {
         duration: 0,
       });
 
-      // Function to close the loading message when called
+ 
       const closeLoadingMessage = () => {
         message.destroy(key);
       };
@@ -157,6 +160,16 @@ export default function Preference() {
         ]}
       >
         Zap Amount
+      </List.Item>
+
+      
+      <List.Item
+        actions={[
+          
+          <BitcoinButton isDisabled={!myPublicKey || myPublicKey.length === 0} />,
+        ]}
+      >
+        Bitcoin Connect
       </List.Item>
 
       <Divider orientation="left">Database</Divider>

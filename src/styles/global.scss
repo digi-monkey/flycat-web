@@ -162,3 +162,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+:root {
+  --bc-color-brand: rgb(89,128,34);
+  
+  
+}
+
+.bitcoinConnectContainer {
+  --bc-color-brand: var(--bc-color-brand);
+  
+}
