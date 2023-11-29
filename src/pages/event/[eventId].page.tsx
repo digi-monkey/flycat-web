@@ -24,6 +24,7 @@ export const EventPage = () => {
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
 
   useEffect(() => {
+    if(!eventId)return;
     if (!worker) return;
 
     const callRelay =
@@ -33,8 +34,19 @@ export const EventPage = () => {
   }, [eventId, worker, newConn]);
 
   useEffect(()=>{
-    dexieDb.event.get(eventId).then(setRootEvent);
-  }, [eventId]);
+    if(!eventId)return;
+    if(!worker)return;
+
+    dexieDb.event.get(eventId).then((event)=>{
+      if(!event){
+        worker.subMsgByEventIds([eventId]).iterating({cb: (event)=>{
+          setRootEvent(event);
+        }});
+        return;
+      }
+      setRootEvent(event);
+    });
+  }, [eventId, worker]);
 
   
   const relayUrls = Array.from(wsConnectStatus.keys());

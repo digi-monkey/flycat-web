@@ -25,6 +25,7 @@ import { getArticle } from 'core/api/article';
 import { isValidPublicKey } from 'utils/validator';
 import { dbQuery, profileQuery } from 'core/db';
 import { deserializeMetadata } from 'core/nostr/content';
+import { Event } from 'core/nostr/Event';
 
 type UserParams = {
   publicKey: string;
@@ -61,24 +62,27 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
         authors: [publicKey as string],
         articleIds: [articleId as string],
       });
+      const setArticleCb = (event: Event) => {
+        const article = Nip23.toArticle(event);
+          setArticle(prevArticle => {
+            if (
+              !prevArticle ||
+              article?.updated_at >= prevArticle.updated_at
+            ) {
+              return article;
+            }
+            return prevArticle;
+          });
+      }
       dbQuery
         .matchFilterRelay(filter, worker?.relays.map(r => r.url) || [])
         .then(evets => {
           if (evets.length === 0) {
-            worker?.subFilter({ filter, customId: 'article-data' });
+            worker?.subFilter({ filter, customId: 'article-data' }).iterating({cb: setArticleCb});
           }
 
           for (const event of evets) {
-            const article = Nip23.toArticle(event);
-            setArticle(prevArticle => {
-              if (
-                !prevArticle ||
-                article?.updated_at >= prevArticle.updated_at
-              ) {
-                return article;
-              }
-              return prevArticle;
-            });
+            setArticleCb(event);
           }
         });
     }
