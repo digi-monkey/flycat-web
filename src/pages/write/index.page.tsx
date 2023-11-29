@@ -136,8 +136,11 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
               <div>
                 {t('blogWrite.form.coverImage')}
                 <div className={styles.image}>
-                  {image ? (
-                    <img src={image} alt="head image" />
+                  {image.length > 0 ? (
+                    <div className={styles.pic}>
+                      <img src={image} alt="banner" />
+                      <button onClick={()=>setImage('')} className={styles.overlayButton}>Remove Image</button>
+                    </div>
                   ) : (
                     <ImageUploader onImgUrls={url => setImage(url[0])} />
                   )}
