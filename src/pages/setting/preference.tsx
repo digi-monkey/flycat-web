@@ -166,7 +166,7 @@ export default function Preference() {
       <List.Item
         actions={[
           
-          <BitcoinButton isDisabled={false}  />,
+          <BitcoinButton />,
         ]}
       >
         Bitcoin Connect

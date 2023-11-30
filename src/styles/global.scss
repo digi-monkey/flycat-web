@@ -163,13 +163,10 @@
   white-space: nowrap;
 }
 
+
+//bitcoin-connect
 :root {
-  --bc-color-brand: rgb(89,128,34);
-  
-  
+  --bc-color-brand: var(--primary-07);
 }
 
-.bitcoinConnectContainer {
-  --bc-color-brand: var(--bc-color-brand);
-  
-}
+
