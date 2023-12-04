@@ -19,11 +19,18 @@ import Link from 'next/link';
 import Icon from 'components/Icon';
 import React from 'react';
 import styles from './index.module.scss';
-import Picker from '@emoji-mart/react';
-import emojiData from '@emoji-mart/data';
 import classNames from 'classnames';
 import { Naddr } from 'core/nostr/type';
 import { maxStrings } from 'utils/common';
+import dynamic from 'next/dynamic';
+
+const Picker = dynamic(() => import('@emoji-mart/react'), {
+  ssr: false,
+});
+//@ts-ignore
+const emojiData = dynamic(() => import('@emoji-mart/data'), {
+  ssr: false,
+});
 
 interface Props {
   isLoggedIn: boolean;
@@ -77,7 +84,7 @@ const PubNoteTextarea: React.FC<Props> = ({
     if(initText){
       setText(initText);
     }
-  }, [])
+  }, []);
 
   return (
     <div
