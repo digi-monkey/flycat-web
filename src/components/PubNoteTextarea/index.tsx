@@ -27,10 +27,6 @@ import dynamic from 'next/dynamic';
 const Picker = dynamic(() => import('@emoji-mart/react'), {
   ssr: false,
 });
-//@ts-ignore
-const emojiData = dynamic(() => import('@emoji-mart/data'), {
-  ssr: false,
-});
 
 interface Props {
   isLoggedIn: boolean;
@@ -171,7 +167,13 @@ const PubNoteTextarea: React.FC<Props> = ({
               placement="bottom"
               content={
                 <Picker
-                  data={emojiData}
+                  data={async () => {
+                    const response = await fetch(
+                      'https://cdn.jsdelivr.net/npm/@emoji-mart/data',
+                    )
+                
+                    return response.json()
+                  }}
                   onEmojiSelect={res => setText(text + res.native)}
                   locale={router.locale}
                 />
