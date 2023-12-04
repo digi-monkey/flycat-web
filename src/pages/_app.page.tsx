@@ -14,6 +14,7 @@ import { joyIdConfig } from 'core/joyid/config';
 import Head from 'next/head';
 import theme from 'constants/theme';
 
+
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactNode) => ReactElement;
 };

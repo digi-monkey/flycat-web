@@ -9,6 +9,7 @@
     "@emoji-mart/react": "1.1.1",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
+    "@getalby/bitcoin-connect-react": "2.4.2",
     "@joyid/nostr": "0.1.0",
     "@noble/hashes": "1.1.5",
     "@noble/secp256k1": "1.7.0",
