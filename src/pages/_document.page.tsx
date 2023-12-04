@@ -14,9 +14,6 @@ export default class FlyCatDocument extends Document {
             rel="stylesheet"
           />
 
-          <script async src="https://platform.twitter.com/widgets.js"></script>
-          <script async src="https://www.tiktok.com/embed.js"></script>
-
           <meta name="application-name" content="flycat" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta

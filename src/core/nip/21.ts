@@ -168,12 +168,14 @@ export class Nip21 {
       if (type !== Nip19DataType.EventId) return null;
 
       let noteEvent: Event | undefined | null = null;
-      noteEvent = await dbEventTable.get(eventId);
+      noteEvent = await dbEventTable.get(eventId) as Event | null;
+      /*
       if(!noteEvent)
       noteEvent = await OneTimeWebSocketClient.fetchEvent({
         eventId,
         relays: fallbackRelays,
       });
+      */
 
       return {
         key,
