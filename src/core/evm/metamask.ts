@@ -1,8 +1,31 @@
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { connectToMetaMask } from "core/metamask";
 import { getCaip10, getMessage, getSignature, privateKeyFromX } from "../nip/111";
 import { getPublicKey } from "core/crypto";
+
+export async function connectToMetaMask() {
+  const { Web3Provider } = await import("@ethersproject/providers");
+
+  // Check if MetaMask is installed
+  if (typeof window.ethereum === 'undefined') {
+    console.error('Please install MetaMask to use this dApp.');
+		return null;
+  }
+
+  // Request access to the user's MetaMask account
+  await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+  // Create an ethers.js provider using MetaMask
+  const provider = new Web3Provider(window.ethereum);
+
+  // Get the user's selected address from MetaMask
+  const signer = provider.getSigner();
+  const address = await signer.getAddress();
+	const chainId = await signer.getChainId();
+
+  console.log('Connected to MetaMask with address:', address);
+	return {signer, address, chainId};
+}
 
 export async function getPrivateKeyFromMetamaskSignIn(username: string, password?: string) {
   const walletExt = await connectToMetaMask();

@@ -1,15 +1,16 @@
-import { wagmiClient } from './client';
-import { disconnect } from '@wagmi/core'
-
-export function isWalletConnected() {
+export async function isWalletConnected() {
+	const { wagmiClient } = await import('./client');
   return wagmiClient.status === 'connected';
 }
 
-export function isWalletDisconnected() {
+export async function isWalletDisconnected() {
+	const { wagmiClient } = await import('./client');
   return wagmiClient.status === 'disconnected';
 }
 
 export async function disconnectWagmi(){
+	const { wagmiClient } = await import('./client');
+	const { disconnect } = await import('@wagmi/core');
 	await disconnect();
 	wagmiClient.clearState();
 	wagmiClient.destroy();
