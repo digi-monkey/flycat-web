@@ -1,8 +1,4 @@
-'use client'
-// above is for antd-mobile polyfill
-
 import { Button, message } from 'antd';
-
 import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
@@ -11,18 +7,18 @@ import { Event } from 'core/nostr/Event';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
 import { useTranslation } from 'react-i18next';
-
-import classNames from 'classnames';
-import PostItems from 'components/PostItems';
-import styles from './index.module.scss';
 import { dbQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
-import { PullToRefresh } from 'antd-mobile';
 import { noticePubEventResult } from 'components/PubEventNotice';
+
+import PullToRefresh from 'react-simple-pull-to-refresh';
+import classNames from 'classnames';
+import PostItems from 'components/PostItems';
+import styles from './index.module.scss';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -145,6 +141,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const onPullToRefresh = async () => {
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
+    console.log("refresh!");
     worker?.subFilter({ filter: msgFilter });
     await query();
   }
@@ -166,11 +163,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     <>
       <PullToRefresh
         onRefresh={onPullToRefresh}
-        pullingText={"Pull to refresh"}
-        refreshingText={"Refreshing.."}
-        canReleaseText={"Release now to load new notes"}
-        completeText={"New notes Loaded!"}
       >
+        <>
         {newComingMsg.length > 0 && (
           <div className={styles.reloadFeedBtn}>
             <Button onClick={onClickNewMsg} type="link">
@@ -211,6 +205,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           )}
           {msgList.length === 0 && emptyDataReactNode}
         </div>
+        </>
       </PullToRefresh>
     </>
   );
