@@ -2,7 +2,6 @@ import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
 import { RootState } from 'store/configureStore';
 import { useDispatch, useSelector } from 'react-redux';
-import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Badge, Drawer } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -68,7 +67,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           <Avatar src={user?.picture} onClick={() => setOpen(true)} />
         ) : (
           <Avatar
-            icon={<UserOutlined />}
+            icon={<Icon type='icon-user' />}
             onClick={() => router.push({ pathname: Paths.login })}
           />
         )}

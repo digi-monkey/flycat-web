@@ -18,9 +18,6 @@ import { createCallRelay } from 'core/worker/util';
 import styles from './index.module.scss';
 import Icon from "../../../components/Icon";
 import {
-  CalendarOutlined
-} from '@ant-design/icons';
-import {
   Input,
   Avatar,
   Tooltip
@@ -170,7 +167,7 @@ export default function NaddrCommunity() {
           <div className={styles.calendarRecord}>
             <div className={styles.recordHeader}>My Record</div>
             <div className={styles.recordTime}>
-              <CalendarOutlined />
+              <Icon type='icon-Data' />
               <p> Since Jul 20, 2023 (1 days)</p>
             </div>
             <div className={styles.recordDataWrapper}>

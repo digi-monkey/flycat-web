@@ -4,7 +4,6 @@ import { RootState } from 'store/configureStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMatchPad } from 'hooks/useMediaQuery';
 import { MenuItemType } from 'antd/es/menu/hooks/useItems';
-import { UserOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
@@ -82,7 +81,7 @@ const PcPadNav = ({
                 {user ? (
                   <Avatar src={user.picture} />
                 ) : (
-                  <Avatar icon={<UserOutlined />} />
+                  <Avatar icon={<Icon type='icon-user' />} />
                 )}
                 <h1>
                   {isLoggedIn

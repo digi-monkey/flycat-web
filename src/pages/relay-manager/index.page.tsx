@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left } from 'components/BaseLayout';
 import { RelayPoolManager } from './RelayPool';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import { RelayGroup } from './RelyaGroup';
 import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 import styles from './index.module.scss';

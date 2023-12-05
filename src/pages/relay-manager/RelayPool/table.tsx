@@ -1,4 +1,3 @@
-import { EllipsisOutlined } from '@ant-design/icons';
 import { Avatar, Table, Badge, message } from 'antd';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { shortifyPublicKey } from 'core/nostr/content';
@@ -13,6 +12,7 @@ import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 
 import styles from './table.module.scss';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import Icon from 'components/Icon';
 
 interface RelayPoolTableProp {
   relays: Relay[];
@@ -137,7 +137,8 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
           className: 'actions-column',
           width: 40,
           render: (_, record) => (
-            <EllipsisOutlined
+            <Icon
+              type='icon-more-horizontal'
               onClick={() => handleOpenModal(record)}
               style={{ cursor: 'pointer' }}
             />
@@ -256,9 +257,10 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
           className: 'actions-column',
           width: 40,
           render: (_, record) => (
-            <EllipsisOutlined
+            <Icon
+              type='icon-more-horizontal'
               onClick={() => handleOpenModal(record)}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', width: '20px', height: '20px' }}
             />
           ),
         },

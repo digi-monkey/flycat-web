@@ -1,8 +1,8 @@
 import { ImageProvider } from 'core/api/img';
-import { FileImageOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from "react";
 
 import styles from './index.module.scss';
+import Icon from 'components/Icon';
 
 const api = new ImageProvider();
 
@@ -84,7 +84,7 @@ export const ImageUploader = ({
         disabled={isUploading}
         className={styles.iconBtn}
       >
-        <FileImageOutlined />+{isUploading ? '↺' : ''}
+        <Icon type='icon-image' />+{isUploading ? '↺' : ''}
       </button>
       &nbsp;&nbsp;
       <input
