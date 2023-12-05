@@ -1,7 +1,7 @@
 import * as secp256k1 from '@noble/secp256k1';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha256';
-import { ethers } from 'ethers';
+import { JsonRpcSigner } from '@ethersproject/providers';
 
 export function getCaip10(chainId: number, address: string) {
   const caip10 = `eip155:${chainId}:${address}`;
@@ -14,7 +14,7 @@ export function getMessage(username: string, caip10: string) {
 
 export async function getSignature(
   message: string,
-  signer: ethers.providers.JsonRpcSigner,
+  signer: JsonRpcSigner,
 ) {
   const signature = await signer.signMessage(message);
   return signature;

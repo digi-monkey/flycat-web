@@ -28,7 +28,6 @@ import {
 } from 'utils/common';
 
 import styles from './index.module.scss';
-import { SettingOutlined } from '@ant-design/icons';
 import { RelayPool } from 'core/relay/pool';
 import { useRouter } from 'next/router';
 import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
@@ -36,6 +35,7 @@ import { Nip19, Nip19DataType } from 'core/nip/19';
 import Link from 'next/link';
 import { Nip172 } from 'core/nip/172';
 import { kindToReadable } from 'core/nostr/util';
+import Icon from 'components/Icon';
 
 export function RelayPage() {
   const router = useRouter();
@@ -246,7 +246,7 @@ export function RelayPage() {
               </div>
               <Button
                 type="link"
-                icon={<SettingOutlined />}
+                icon={<Icon type='icon-Gear' />}
                 onClick={() => router.push('/relay-manager')}
               >
                 Manage relays

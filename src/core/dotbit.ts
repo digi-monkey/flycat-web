@@ -1,10 +1,11 @@
-import { createInstance } from 'dotbit';
 import { Nip19DataType, Nip19 } from 'core/nip/19';
 
 export async function getPublicKeyFromDotBit(
   didAlias: string,
 ): Promise<string | null> {
-  const dotbit = createInstance();
+  const createInstance = (await import('dotbit')).createInstance;
+
+  const dotbit =  createInstance();
   const records = await dotbit.records(didAlias, 'profile.nostr');
 
   const record = records[0];

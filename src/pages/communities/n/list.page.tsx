@@ -19,10 +19,10 @@ import { useLoadModeratorProfiles } from '../hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
 import styles from '../index.module.scss';
-import { SearchOutlined } from '@ant-design/icons';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
+import Icon from 'components/Icon';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -106,7 +106,7 @@ const Explore = () => {
         <div className={styles.communitySearchPanel}>
           <Input
             size="large"
-            addonBefore={<SearchOutlined />}
+            addonBefore={<Icon type='icon-search' />}
             placeholder="Search community name"
             onChange={e => setSearchName(e.target.value)}
           />

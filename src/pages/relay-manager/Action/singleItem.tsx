@@ -1,4 +1,3 @@
-import { EllipsisOutlined } from '@ant-design/icons';
 import { Dropdown, MenuProps } from 'antd';
 import { ActionType, RelayActionModal } from '../Modal/action';
 import { Relay } from 'core/relay/type';
@@ -6,6 +5,7 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import { RelayDetailModal } from '../Modal/detail';
 import { RelayGroup } from 'core/relay/group';
 import { updateGroupClassState } from '../hooks/useLoadRelayGroup';
+import Icon from 'components/Icon';
 
 export interface SingleItemActionProp {
   groupId: string;
@@ -60,7 +60,7 @@ export const SingleItemAction: React.FC<SingleItemActionProp> = ({
   return (
     <>
       <Dropdown menu={{ items }} trigger={['click']}>
-        <EllipsisOutlined style={{ cursor: 'pointer' }} />
+        <Icon type='icon-more-horizontal' style={{ cursor: 'pointer',  width: '20px', height: '20px' }} />
       </Dropdown>
 
       <RelayDetailModal

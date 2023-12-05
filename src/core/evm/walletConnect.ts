@@ -1,21 +1,21 @@
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { fetchSigner } from '@wagmi/core';
 import { getCaip10, getMessage, privateKeyFromX } from '../nip/111';
 import { getPublicKey } from 'core/crypto';
-import { isWalletDisconnected } from './wagmi/helper';
 
 export async function getPrivateKeyFromWalletConnectSignIn(
   username: string,
   password?: string,
 ) {
-  if (isWalletDisconnected()) {
+  const { isWalletDisconnected } = await import('./wagmi/helper');
+  if (await isWalletDisconnected()) {
     alert(
       'your wallet is disconnected, in order to use it, you need to sign out and sign in again with WalletConnect!',
     );
     throw new Error('wallectConnect signer not found');
   }
 
+  const { fetchSigner } = await import('@wagmi/core');
   const signer = await fetchSigner();
   if (signer == null) throw new Error('wallectConnect signer not found');
 
@@ -33,7 +33,8 @@ export async function getPublicKeyFromWalletConnectSignIn(
   username: string,
   password?: string,
 ) {
-  if (isWalletDisconnected()) {
+  const { isWalletDisconnected } = await import('./wagmi/helper');
+  if (await isWalletDisconnected()) {
     alert(
       'you need to sign out and sign in with WalletConnect again in order to use it!',
     );

@@ -62,6 +62,7 @@ export class Nip18 {
       }
     }
 
+    /*
     if (event == null && fallbackRelays) {
       event = await OneTimeWebSocketClient.fetchEvent({
         eventId: targetEventId,
@@ -69,6 +70,7 @@ export class Nip18 {
       });
       return event ? toSeenEvent(event, fallbackRelays) : null;
     }
+    */
 
     return null;
   }

@@ -1,7 +1,6 @@
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import styles from '../index.module.scss';
 import { Button, Empty, Modal, message, Tabs, Avatar, Tooltip } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
   EventId,
   EventMap,
@@ -464,7 +463,7 @@ export function Community({
           className={styles.communityNav}
           onClick={() => router.push('/communities')}
         >
-          <ArrowLeftOutlined />
+          <Icon type='icon-arrow-left' />
           {community.id}
         </div>
         <div

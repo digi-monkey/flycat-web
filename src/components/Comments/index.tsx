@@ -11,7 +11,7 @@ import { useSubReplyEvents, useSubUserMetadata } from './hooks';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { _handleEvent } from './util';
 import { getEventIdsFromETags } from 'core/nostr/util';
-import { SubPostItem } from 'components/PostItems/PostContent';
+import { SubPostItem } from 'components/PostItems/PostContent/subPostItem';
 import PostItems from 'components/PostItems';
 import classNames from 'classnames';
 import { CallRelayType } from 'core/worker/type';

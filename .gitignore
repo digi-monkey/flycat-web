@@ -28,3 +28,6 @@ template
 tsconfig.tsbuildinfo
 
 wasm/target
+
+public/sw.js
+public/workbox-*.js

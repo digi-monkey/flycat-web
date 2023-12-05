@@ -1,6 +1,5 @@
 import {
   EventId,
-  EventSetMetadataContent,
   EventTags,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
@@ -16,24 +15,29 @@ import {
 } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
-import styles from './index.module.scss';
-import { Avatar, Button } from 'antd';
+import { Button } from 'antd';
 import {
   normalizeContent,
   shortifyEventId,
-  shortifyPublicKey,
 } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
-import { Nip23 } from 'core/nip/23';
-import PostArticle from '../PostArticle';
-import Link from 'next/link';
 import { Paths } from 'constants/path';
-import { maxStrings } from 'utils/common';
-import { useRouter } from 'next/router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { isNsfwEvent } from 'utils/validator';
+
+import styles from './index.module.scss';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const SubPostItem = dynamic(
+  async () => {
+    const mod = await import('./subPostItem');
+    return mod.SubPostItem;
+  },
+  { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true }
+)
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -193,56 +197,4 @@ export const PostContent: React.FC<PostContentProp> = ({
   );
 };
 
-export interface SubPostItemProp {
-  event: Event;
-}
-
-export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
-  const router = useRouter();
-  const clickUserProfile = () => {
-    router.push(`/user/${event.pubkey}`);
-  };
-  const clickEventBody = () => {
-    router.push(`/event/${event.id}`);
-  };
-
-  const [loadedUserProfile, setLoadedUserProfile] =
-    useState<EventSetMetadataContent>();
-  const loadUserProfile = async () => {
-    // todo: set relay urls with correct one
-    const profileEvent = await dexieDb.profileEvent.get(event.pubkey);
-    if (profileEvent) {
-      const metadata = JSON.parse(
-        profileEvent.content,
-      ) as EventSetMetadataContent;
-      setLoadedUserProfile(metadata);
-    }
-  };
-  useEffect(() => {
-    loadUserProfile();
-  }, [event]);
-
-  return Nip23.isBlogPost(event) ? (
-    <PostArticle
-      userAvatar={loadedUserProfile?.picture || ''}
-      userName={loadedUserProfile?.name || ''}
-      event={event}
-      key={event.id}
-    />
-  ) : (
-    <div className={styles.replyEvent}>
-      <div className={styles.user} onClick={clickUserProfile}>
-        <Avatar src={loadedUserProfile?.picture} alt="picture" />
-        <span className={styles.name}>
-          {loadedUserProfile?.name || shortifyPublicKey(event.pubkey)}
-        </span>
-      </div>
-      <div className={styles.content}>
-        <div className={styles.event} onClick={clickEventBody}>
-          {maxStrings(event.content, 150)}
-        </div>
-        <MediaPreviews content={event.content} />
-      </div>
-    </div>
-  );
-};
+export default PostContent;

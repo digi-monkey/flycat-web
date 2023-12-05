@@ -1,5 +1,5 @@
-import { UploadOutlined } from "@ant-design/icons";
 import { Button, message, Upload } from "antd";
+import Icon from "components/Icon";
 import { noticePubEventResult } from "components/PubEventNotice";
 import { Nip188 } from "core/nip/188";
 import { Tags } from "core/nostr/type";
@@ -54,6 +54,6 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worke
     reader.readAsArrayBuffer(file);
   };
   return <Upload customRequest={customRequest as any} disabled={disabled === true}>
-    <Button icon={<UploadOutlined />}>{disabled ? "please fill the above filter first" : btnText || "upload .wasm file"} {disabled}</Button>
+    <Button icon={<Icon type="icon-plus" />}>{disabled ? "please fill the above filter first" : btnText || "upload .wasm file"} {disabled}</Button>
   </Upload>
 }

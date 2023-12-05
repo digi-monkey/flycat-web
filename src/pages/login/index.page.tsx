@@ -1,6 +1,8 @@
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import LoginCard from './LoginCard';
+import dynamic from 'next/dynamic';
+
+const LoginCard = dynamic(() => import('./LoginCard'), { ssr: false, suspense: true, });
 
 export function Login() {
   return (

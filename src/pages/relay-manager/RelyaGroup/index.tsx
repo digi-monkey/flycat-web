@@ -21,7 +21,6 @@ import { RelayPool } from 'core/relay/pool';
 import { RelayGroup as RelayGroupClass } from 'core/relay/group';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import Icon from 'components/Icon';
-import { FolderOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import styles from './index.module.scss';
 import { maxStrings } from 'utils/common';
 import { RelaySelectorStore } from 'components/RelaySelector/store';
@@ -233,7 +232,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
               groups.getAllGroupIds().map(groupId => (
                 <Menu.Item
                   key={groupId}
-                  icon={<FolderOutlined className={styles.icon} />}
+                  icon={<Icon type='icon-Move-out' className={styles.icon} />}
                   onClick={() => setSelectedGroupId(groupId)}
                 >
                   <div className={styles.menuText}>

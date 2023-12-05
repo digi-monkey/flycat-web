@@ -21,7 +21,6 @@ import { noticePubEventResult } from 'components/PubEventNotice';
 import classNames from 'classnames';
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
-import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Nip23 } from 'core/nip/23';
 import { dbQuery, dexieDb } from 'core/db';
@@ -184,7 +183,13 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
               title={inputText}
               content={
                 <Picker
-                  data={emojiData}
+                  data={async () => {
+                    const response = await fetch(
+                    'https://cdn.jsdelivr.net/npm/@emoji-mart/data',
+                    )
+              
+                    return response.json()
+                  }}
                   onEmojiSelect={res => setInputText(inputText + res.native)}
                   locale={router.locale}
                 />

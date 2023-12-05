@@ -4,6 +4,7 @@ import { getUrlMetadata, UrlMetadata } from 'core/ogp';
 
 import styles from './index.module.scss';
 import URLPreview from './URLPreview';
+import Script from 'next/script';
 interface PreviewProps {
   url: string;
 }
@@ -40,6 +41,8 @@ export function UrlPreview({ url }: PreviewProps) {
   return (
     <div className={styles.urlPreview}>
       { html.length ? <div className={styles.iframe} dangerouslySetInnerHTML={{ __html: html }}></div> : <URLPreview {...data} /> }
+      <Script async src="https://platform.twitter.com/widgets.js"></Script>
+      <Script async src="https://www.tiktok.com/embed.js"></Script>
     </div>
   )
 }
