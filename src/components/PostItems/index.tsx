@@ -3,7 +3,6 @@ import { Nip9802 } from 'core/nip/9802';
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
-import { PostContent } from './PostContent';
 import { Nip18 } from 'core/nip/18';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { PostCommunityHeader } from './PostCommunityHeader';
@@ -22,6 +21,15 @@ import { dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { useMemo } from 'react';
 import { deserializeMetadata } from 'core/nostr/content';
+import dynamic from 'next/dynamic';
+
+const PostContent = dynamic(
+  async () => {
+    const {PostContent} = await import("./PostContent/index");
+    return PostContent;
+  },
+  {loading: () => <p>Loading caused by client page transition ...</p>,  ssr: false, suspense: true  }
+)
 
 interface PostItemsProps {
   msgList: EventWithSeen[];
