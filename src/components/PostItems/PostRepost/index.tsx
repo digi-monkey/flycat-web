@@ -13,7 +13,7 @@ import { Paths } from 'constants/path';
 import Icon from 'components/Icon';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { Button } from 'antd';
-import { shortifyEventId } from 'core/nostr/content';
+import { deserializeMetadata, shortifyEventId } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
@@ -65,12 +65,13 @@ const PostRepost: React.FC<PostRepostProp> = ({
     const events = await dexieDb.profileEvent.bulkGet(pks);
     return events.filter(e => e != null) as DbEvent[];
   }, [targetEvent], [] as DbEvent[]);
-  const getUser = (msg: EventWithSeen) => {
-    const userEvent = profileEvents?.find(e => e.pubkey === msg.pubkey);
-    if (!userEvent) {
-      return null;
+ 
+  const getUser = (pubkey: string) => {
+    const user = profileEvents.find(e => e.pubkey === pubkey);
+    if(user){
+      return deserializeMetadata(user.content);
     }
-    return JSON.parse(userEvent.content) as EventSetMetadataContent;
+    return null;
   }
 
   const tryReload = () => {
@@ -87,7 +88,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
       <div className={styles.repost}>
         <Icon type="icon-repost" />
         <Link href={`${Paths.user + event.pubkey}`}>
-          {getUser(event)?.name}
+          {getUser(event.pubkey)?.name}
         </Link>
         just repost
       </div>
@@ -95,6 +96,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
         <>
           <PostUser
             publicKey={targetEvent.pubkey}
+            profile={getUser(targetEvent.pubkey)}
             event={targetEvent}
           />
           <div className={styles.content}>

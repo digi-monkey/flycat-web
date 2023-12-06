@@ -15,6 +15,10 @@ import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
 import dynamic from 'next/dynamic';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dexieDb } from 'core/db';
+import { DbEvent } from 'core/db/schema';
+import { deserializeMetadata } from 'core/nostr/content';
 
 const PostContent = dynamic(
   async () => {
@@ -47,6 +51,19 @@ const PostItems: React.FC<PostItemsProps> = ({
   extraHeader
 }) => {
 
+  const profileEvents = useLiveQuery(async () => {
+    const events = await dexieDb.profileEvent.bulkGet(msgList.map(m => m.pubkey));
+    return events.filter(e => e!=null) as DbEvent[];
+  }, [msgList], [] as DbEvent[]);
+
+  const getUser = (pubkey: string) => {
+    const user = profileEvents.find(e => e.pubkey === pubkey);
+    if(user){
+      return deserializeMetadata(user.content);
+    }
+    return null;
+  }
+
   return (
     <>
       {msgList.map(msg => {
@@ -64,6 +81,7 @@ const PostItems: React.FC<PostItemsProps> = ({
             {showFromCommunity && <PostCommunityHeader event={msg} />}
             <PostUser
               publicKey={msg.pubkey}
+              profile={getUser(msg.pubkey)}
               event={msg}
               extraMenu={extraMenu}
             />

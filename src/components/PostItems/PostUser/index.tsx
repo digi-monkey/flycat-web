@@ -9,12 +9,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dexieDb } from 'core/db';
 import { deserializeMetadata } from 'core/nostr/content';
 import { PostUserMenu } from './menu';
+import { EventSetMetadataContent } from 'core/nostr/type';
 
 import styles from './index.module.scss';
 import Link from 'next/link';
 
 interface PostUserProps {
   publicKey: string;
+  profile: EventSetMetadataContent | null | undefined;
   event: EventWithSeen;
   extraMenu?: {
     label: string;
@@ -22,16 +24,8 @@ interface PostUserProps {
   }[];
 }
 
-const PostUser: React.FC<PostUserProps> = ({ publicKey, event, extraMenu }) => {
+const PostUser: React.FC<PostUserProps> = ({ publicKey, profile, event, extraMenu }) => {
   const timeSince = useTimeSince(event.created_at || 0);
-  const profileEvent = useLiveQuery(async () => {
-    return await dexieDb.profileEvent.get(publicKey);
-  }, [publicKey]);
-
-  const profile = profileEvent
-    ? deserializeMetadata(profileEvent.content)
-    : null;
-
   const [userUrl, setUserUrl] = useState<string>(`${Paths.user + publicKey}`);
 
   useEffect(() => {
