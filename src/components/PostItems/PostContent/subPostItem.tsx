@@ -43,8 +43,6 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
 
   return Nip23.isBlogPost(event) ? (
     <PostArticle
-      userAvatar={loadedUserProfile?.picture || ''}
-      userName={loadedUserProfile?.name || ''}
       event={event}
       key={event.id}
     />

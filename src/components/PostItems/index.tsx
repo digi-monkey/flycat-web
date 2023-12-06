@@ -7,11 +7,6 @@ import { Nip18 } from 'core/nip/18';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { PostCommunityHeader } from './PostCommunityHeader';
 import { message } from 'antd';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { dexieDb } from 'core/db';
-import { DbEvent } from 'core/db/schema';
-import { useMemo } from 'react';
-import { deserializeMetadata } from 'core/nostr/content';
 
 import styles from './index.module.scss';
 import PostUser from './PostUser';
@@ -51,18 +46,6 @@ const PostItems: React.FC<PostItemsProps> = ({
   extraMenu,
   extraHeader
 }) => {
-  const pks = useMemo(() => msgList.map(m => m.pubkey), [msgList]);
-  const profileEvents = useLiveQuery(async () => {
-    const events = await dexieDb.profileEvent.bulkGet(pks);
-    return events.filter(e => e != null) as DbEvent[];
-  }, [msgList], [] as DbEvent[]);
-  const getUser = (msg: EventWithSeen) => {
-    const userEvent = profileEvents.find(e => e.pubkey === msg.pubkey);
-    if (!userEvent) {
-      return null;
-    }
-    return deserializeMetadata(userEvent.content);
-  }
 
   return (
     <>
@@ -80,19 +63,13 @@ const PostItems: React.FC<PostItemsProps> = ({
             {extraHeader}
             {showFromCommunity && <PostCommunityHeader event={msg} />}
             <PostUser
-              nip05name={getUser(msg)?.nip05}
               publicKey={msg.pubkey}
-              avatar={getUser(msg)?.picture || ''}
-              name={getUser(msg)?.name}
-              time={msg.created_at}
               event={msg}
               extraMenu={extraMenu}
             />
             <div className={styles.content}>
               {Nip23.isBlogPost(msg) ? (
                 <PostArticle
-                  userAvatar={getUser(msg)?.picture || ''}
-                  userName={getUser(msg)?.name || ''}
                   event={msg}
                   key={msg.id}
                 />

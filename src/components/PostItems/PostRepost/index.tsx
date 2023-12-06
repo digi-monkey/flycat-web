@@ -95,9 +95,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
         <>
           <PostUser
             publicKey={targetEvent.pubkey}
-            avatar={getUser(targetEvent)?.picture || ''}
-            name={getUser(targetEvent)?.name}
-            time={targetEvent.created_at}
             event={targetEvent}
           />
           <div className={styles.content}>
