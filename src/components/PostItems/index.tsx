@@ -6,9 +6,12 @@ import { EventWithSeen } from 'pages/type';
 import { Nip18 } from 'core/nip/18';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { PostCommunityHeader } from './PostCommunityHeader';
-import {
-  message,
-} from 'antd';
+import { message } from 'antd';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { dexieDb } from 'core/db';
+import { DbEvent } from 'core/db/schema';
+import { useMemo } from 'react';
+import { deserializeMetadata } from 'core/nostr/content';
 
 import styles from './index.module.scss';
 import PostUser from './PostUser';
@@ -16,11 +19,6 @@ import PostReactions from './PostReactions';
 import PostArticle from './PostArticle';
 import PostRepost from './PostRepost';
 import PostArticleComment from './PostArticleComment';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { dexieDb } from 'core/db';
-import { DbEvent } from 'core/db/schema';
-import { useMemo } from 'react';
-import { deserializeMetadata } from 'core/nostr/content';
 import dynamic from 'next/dynamic';
 
 const PostContent = dynamic(
