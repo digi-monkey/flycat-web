@@ -1,22 +1,22 @@
 import { Nip18 } from 'core/nip/18';
 import { Event } from 'core/nostr/Event';
-import PostUser from '../PostUser';
-import styles from '../index.module.scss';
 import { useEffect, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
-import { UserMap, EventMap, EventSetMetadataContent } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { PostContent } from '../PostContent';
-import PostReactions from '../PostReactions';
-import Link from 'next/link';
 import { Paths } from 'constants/path';
-import Icon from 'components/Icon';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { Button } from 'antd';
 import { deserializeMetadata, shortifyEventId } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
+
+import PostUser from '../PostUser';
+import styles from '../index.module.scss';
+import PostReactions from '../PostReactions';
+import Link from 'next/link';
+import Icon from 'components/Icon';
 
 export interface PostRepostProp {
   event: Event;
