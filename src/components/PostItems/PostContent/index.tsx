@@ -1,25 +1,12 @@
-import {
-  EventId,
-  EventTags,
-} from 'core/nostr/type';
+import { EventId, EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useRef, useState } from 'react';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useLoadSelectedRelays } from 'components/RelaySelector/hooks/useLoadSelectedRelays';
-import { Relay } from 'core/relay/type';
-import {
-  EmbedRef,
-  extractEmbedRef,
-  getPubkeysFromEmbedRef,
-} from './Embed/util';
+import { extractEmbedRef, getPubkeysFromEmbedRef } from './Embed/util';
 import { transformRefEmbed } from './Embed';
 import { MediaPreviews } from './Media';
 import { Button } from 'antd';
-import {
-  normalizeContent,
-  shortifyEventId,
-} from 'core/nostr/content';
+import { normalizeContent, shortifyEventId } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
 import { Paths } from 'constants/path';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -36,8 +23,8 @@ const SubPostItem = dynamic(
     const mod = await import('./subPostItem');
     return mod.SubPostItem;
   },
-  { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true }
-)
+  { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true },
+);
 
 interface PostContentProp {
   ownerEvent: Event;
@@ -51,38 +38,20 @@ export const PostContent: React.FC<PostContentProp> = ({
   showLastReplyToEvent = true,
 }) => {
   const { t } = useTranslation();
-  const myPublicKey = useReadonlyMyPublicKey();
-  const [relayUrls, setRelayUrls] = useState<string[]>([]);
-  const [embedRef, setEmbedRef] = useState<EmbedRef>();
   const [contentComponents, setContentComponents] = useState<any[]>([]);
   const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
-  const [profileEvents, setProfileEvents] = useState<DbEvent[]>([]);
 
-  useLoadSelectedRelays(myPublicKey, (r: Relay[]) => {
-    setRelayUrls(r.map(r => r.url));
-  });
+  const relayUrls = worker.relays.map(r => r.url);
 
   useEffect(() => {
-    extractFromContent();
-  }, [msgEvent.content, relayUrls]);
-
-  useEffect(() => {
-    if (!embedRef) return;
-
-    const pks = getPubkeysFromEmbedRef(embedRef);
-
-    dexieDb.profileEvent.bulkGet(pks).then(events => {
-      const data = events.filter(e => e != null) as DbEvent[];
-      setProfileEvents(data);
-    });
     transformContent();
-  }, [embedRef]);
+  }, [msgEvent.id]);
 
   useEffect(() => {
     if (showLastReplyToEvent) {
       buildLastReplyEvent();
     }
-  }, [msgEvent.content]);
+  }, [msgEvent.id]);
 
   const lastReplyEventFromDb = useLiveQuery(
     dbQuery.createEventByIdQuerier(relayUrls, lastReplyToEventId),
@@ -90,16 +59,14 @@ export const PostContent: React.FC<PostContentProp> = ({
   );
 
   const transformContent = async () => {
-    if (!embedRef) return;
     const { modifiedText } = normalizeContent(msgEvent.content);
+    const embedRef = await extractEmbedRef(modifiedText, relayUrls);
+    const pks = getPubkeysFromEmbedRef(embedRef);
+    const profileEvents = (await dexieDb.profileEvent.bulkGet(pks)).filter(
+      e => e != null,
+    ) as DbEvent[];
     const result = transformRefEmbed(modifiedText, embedRef, profileEvents);
     setContentComponents(result);
-  };
-
-  const extractFromContent = async () => {
-    const { modifiedText } = normalizeContent(msgEvent.content);
-    const ref = await extractEmbedRef(modifiedText, relayUrls);
-    setEmbedRef(ref);
   };
 
   const buildLastReplyEvent = async () => {
@@ -147,11 +114,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     setExpanded(!expanded);
   };
 
-  const content = (
-    <div>
-      <div>{contentComponents}</div>
-    </div>
-  );
+  const content = <div>{contentComponents}</div>;
 
   return (
     <div>
@@ -191,7 +154,10 @@ export const PostContent: React.FC<PostContentProp> = ({
             </Button>
           </div>
         )}
-        <MediaPreviews isNsfw={isNsfwEvent(msgEvent)} content={msgEvent.content} />
+        <MediaPreviews
+          isNsfw={isNsfwEvent(msgEvent)}
+          content={msgEvent.content}
+        />
       </>
     </div>
   );
