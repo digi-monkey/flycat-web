@@ -1,6 +1,6 @@
 import { Tooltip, message } from 'antd';
 import { useTranslation } from 'next-i18next';
-import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions/util';
+import { fetchPublicBookmarkListEvent } from './util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -11,10 +11,8 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { sendPaymentInWebLn } from 'core/lighting/lighting';
 import { Nip18 } from 'core/nip/18';
 import { Nip51 } from 'core/nip/51';
-import { Nip57 } from 'core/nip/57';
 import { CallWorker } from 'core/worker/caller';
 import { RootState } from 'store/configureStore';
 import { noticePubEventResult } from 'components/PubEventNotice';
@@ -62,6 +60,9 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 
   const zap = async () => {
     if (signEvent == null) return;
+
+    const { sendPaymentInWebLn } = await import('core/lighting/lighting');
+    const { Nip57 } = await import('core/nip/57');
 
     let zapEndpoint: any = null;
     let lnurl: string | undefined;
