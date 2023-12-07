@@ -10,12 +10,62 @@ import { EventSetMetadataContent } from 'core/nostr/type';
 import { Nip18 } from 'core/nip/18';
 
 import styles from '../index.module.scss';
-import PostUser from '../PostUser';
-import PostReactions from '../PostReactions';
-import PostArticle from '../PostArticle';
-import PostRepost from '../PostRepost';
-import PostArticleComment from '../PostArticleComment';
 import dynamic from 'next/dynamic';
+
+const PostUser = dynamic(
+  async () => {
+    return await import('../PostUser');
+  },
+  {
+    loading: () => <p>Loading PostUser...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
+
+const PostRepost = dynamic(
+  async () => {
+    return await import('../PostRepost');
+  },
+  {
+    loading: () => <p>Loading PostRepost...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
+
+const PostArticleComment = dynamic(
+  async () => {
+    return await import('../PostArticleComment');
+  },
+  {
+    loading: () => <p>Loading PostArticleComment...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
+
+const PostArticle = dynamic(
+  async () => {
+    return await import('../PostArticle');
+  },
+  {
+    loading: () => <p>Loading PostArticle...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
+
+const PostReactions = dynamic(
+  async () => {
+    return await import('../PostReactions/index');
+  },
+  {
+    loading: () => <p>Loading PostReactions...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
 
 const PostContent = dynamic(
   async () => {
@@ -23,7 +73,7 @@ const PostContent = dynamic(
     return PostContent;
   },
   {
-    loading: () => <p>Loading caused by client page transition ...</p>,
+    loading: () => <p>Loading PostContent...</p>,
     ssr: false,
     suspense: true,
   },
