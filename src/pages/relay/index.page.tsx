@@ -462,7 +462,6 @@ export function RelayPage() {
               <PostItems
                 msgList={myMsgList.slice(0, 20)}
                 worker={worker!}
-                relays={worker?.relays.map(r => r.url) || []}
               />
             </>
           )}

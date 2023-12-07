@@ -190,7 +190,7 @@ const Perf = () => {
           selected {homeMsgFilters[selectNumber].label}, time:{' '}
           {queryTime.toLocaleString()} ms
           <hr />
-          <PostItems msgList={msg} relays={relayUrls} worker={worker!} />
+          <PostItems msgList={msg} worker={worker!} />
         </div>
       </Left>
       <Right></Right>

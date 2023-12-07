@@ -11,7 +11,6 @@ import { EventWithSeen } from 'pages/type';
 interface PostItemsProps {
   msgList: DbEvent[] | EventWithSeen[];
   worker: CallWorker;
-  relays: string[];
   showLastReplyToEvent?: boolean;
   showFromCommunity?: boolean;
   extraMenu?: {
@@ -24,7 +23,6 @@ interface PostItemsProps {
 const PostItems: React.FC<PostItemsProps> = ({
   msgList,
   worker,
-  relays,
   showLastReplyToEvent = true,
   showFromCommunity = true,
   extraMenu,

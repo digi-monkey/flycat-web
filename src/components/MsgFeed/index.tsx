@@ -184,7 +184,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
                 <PostItems
                   msgList={msgList}
                   worker={worker!}
-                  relays={relayUrls}
                   showLastReplyToEvent={true}
                   extraMenu={extraMenu}
                 />

@@ -164,7 +164,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
       <PostItems
         msgList={newPubReplyEvent}
         worker={worker!}
-        relays={worker?.relays.map(r => r.url) || []}
         showLastReplyToEvent={false}
       />
 
@@ -174,7 +173,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
             <PostItems
               msgList={[{ ...n.value, ...{ seen: [''] } }]}
               worker={worker!}
-              relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />
             {n.children.length > 0 && (
