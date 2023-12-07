@@ -9,6 +9,7 @@ import { Nip18 } from 'core/nip/18';
 import { PostUI } from './ui';
 
 import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 
 const PostRepost = dynamic(
   async () => {
@@ -77,7 +78,7 @@ export const PostItem: React.FC<PostItemProps> = ({
   extraMenu,
   extraHeader,
 }) => {
-  const render = () => {
+  const render = useMemo(() => {
     if (Nip18.isRepostEvent(event)) {
       return (
         <PostRepost
@@ -159,7 +160,7 @@ export const PostItem: React.FC<PostItemProps> = ({
         extraHeader={extraHeader}
       />
     );
-  };
+  }, [event.id, profile]);
 
-  return render();
+  return render;
 };
