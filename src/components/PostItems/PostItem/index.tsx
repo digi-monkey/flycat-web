@@ -2,26 +2,13 @@ import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
-import { toUnSeenEvent } from 'core/nostr/util';
-import { PostCommunityHeader } from '../PostCommunityHeader';
 import { message } from 'antd';
 import { DbEvent } from 'core/db/schema';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { Nip18 } from 'core/nip/18';
+import { PostUI } from './ui';
 
-import styles from '../index.module.scss';
 import dynamic from 'next/dynamic';
-
-const PostUser = dynamic(
-  async () => {
-    return await import('../PostUser');
-  },
-  {
-    loading: () => <p>Loading PostUser...</p>,
-    ssr: false,
-    suspense: true,
-  },
-);
 
 const PostRepost = dynamic(
   async () => {
@@ -51,17 +38,6 @@ const PostArticle = dynamic(
   },
   {
     loading: () => <p>Loading PostArticle...</p>,
-    ssr: false,
-    suspense: true,
-  },
-);
-
-const PostReactions = dynamic(
-  async () => {
-    return await import('../PostReactions/index');
-  },
-  {
-    loading: () => <p>Loading PostReactions...</p>,
     ssr: false,
     suspense: true,
   },
@@ -101,28 +77,7 @@ export const PostItem: React.FC<PostItemProps> = ({
   extraMenu,
   extraHeader,
 }) => {
-  const PostUI: React.FC<{ content: JSX.Element }> = ({ content }) => (
-    <div className={styles.post} key={event.id}>
-      {extraHeader}
-      {showFromCommunity && <PostCommunityHeader event={event} />}
-      <PostUser
-        publicKey={event.pubkey}
-        profile={profile}
-        event={event}
-        extraMenu={extraMenu}
-      />
-      <div className={styles.content}>
-        {content}
-        <PostReactions
-          ownerEvent={toUnSeenEvent(event)}
-          worker={worker}
-          seen={event.seen!}
-        />
-      </div>
-    </div>
-  );
-
-  const Post: React.FC = () => {
+  const render = () => {
     if (Nip18.isRepostEvent(event)) {
       return (
         <PostRepost
@@ -135,7 +90,18 @@ export const PostItem: React.FC<PostItemProps> = ({
     }
 
     if (Nip23.isBlogPost(event)) {
-      return <PostUI content={<PostArticle event={event} key={event.id} />} />;
+      return (
+        <PostUI
+          content={<PostArticle event={event} key={event.id} />}
+          profile={profile}
+          event={event}
+          worker={worker}
+          showLastReplyToEvent={showLastReplyToEvent}
+          showFromCommunity={showFromCommunity}
+          extraMenu={extraMenu}
+          extraHeader={extraHeader}
+        />
+      );
     }
 
     if (Nip23.isBlogCommentMsg(event)) {
@@ -149,12 +115,30 @@ export const PostItem: React.FC<PostItemProps> = ({
               showReplyArticle={showLastReplyToEvent}
             />
           }
+          profile={profile}
+          event={event}
+          worker={worker}
+          showLastReplyToEvent={showLastReplyToEvent}
+          showFromCommunity={showFromCommunity}
+          extraMenu={extraMenu}
+          extraHeader={extraHeader}
         />
       );
     }
 
     if (Nip9802.isBlogHighlightMsg(event)) {
-      return <PostUI content={<>HighlightMsg</>} />;
+      return (
+        <PostUI
+          content={<>HighlightMsg</>}
+          profile={profile}
+          event={event}
+          worker={worker}
+          showLastReplyToEvent={showLastReplyToEvent}
+          showFromCommunity={showFromCommunity}
+          extraMenu={extraMenu}
+          extraHeader={extraHeader}
+        />
+      );
     }
 
     return (
@@ -166,9 +150,16 @@ export const PostItem: React.FC<PostItemProps> = ({
             showLastReplyToEvent={showLastReplyToEvent}
           />
         }
+        profile={profile}
+        event={event}
+        worker={worker}
+        showLastReplyToEvent={showLastReplyToEvent}
+        showFromCommunity={showFromCommunity}
+        extraMenu={extraMenu}
+        extraHeader={extraHeader}
       />
     );
   };
 
-  return <Post />;
+  return render();
 };
