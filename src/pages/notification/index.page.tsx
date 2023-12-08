@@ -347,7 +347,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       <>
         {mentionMsgList.length === 0 && <Empty />}
         <PostItems
-          relays={relays}
           msgList={mentionMsgList}
           worker={worker!}
         />
@@ -360,7 +359,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
       <>
         {repostMsgList.length === 0 && <Empty />}
         <PostItems
-          relays={relays}
           msgList={repostMsgList}
           worker={worker!}
         />
@@ -448,7 +446,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[postEvent!]}
                     worker={worker!}
-                    relays={relays}
                     showFromCommunity={false}
                   />
                 </>
@@ -527,7 +524,6 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                     extraHeader={header}
                     msgList={[msg!]}
                     worker={worker!}
-                    relays={relays}
                     showFromCommunity={false}
                     extraMenu={
                       isAlreadyApproved

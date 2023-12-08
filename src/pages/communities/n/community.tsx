@@ -547,7 +547,6 @@ export function Community({
                     <PostItems
                       msgList={msgList}
                       worker={worker!}
-                      relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
                     />
                   </>
@@ -568,7 +567,6 @@ export function Community({
                     <PostItems
                       msgList={unApprovalMsgList}
                       worker={worker!}
-                      relays={worker?.relays.map(r => r.url) || []}
                       showFromCommunity={false}
                       extraMenu={
                         isModerator

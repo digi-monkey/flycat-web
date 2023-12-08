@@ -65,7 +65,7 @@ export function HashTags() {
         <div className={styles.root}>
           {isQuerying && <Spin />}
         </div>
-        <PostItems msgList={events} worker={worker!} relays={seedRelays} />
+        <PostItems msgList={events} worker={worker!}/>
       </Left>
       <Right></Right>
     </BaseLayout>

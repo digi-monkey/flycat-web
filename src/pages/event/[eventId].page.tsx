@@ -49,8 +49,6 @@ export const EventPage = () => {
   }, [eventId, worker]);
 
   
-  const relayUrls = Array.from(wsConnectStatus.keys());
-
   return (
     <BaseLayout>
       <Left>
@@ -62,8 +60,8 @@ export const EventPage = () => {
               <PostItems
                 msgList={[rootEvent]}
                 worker={worker!}
-                relays={relayUrls}
                 showLastReplyToEvent={true}
+                isExpanded={true}
               />
 
               <Comments rootEvent={rootEvent} />

@@ -172,7 +172,7 @@ export function Search() {
         </div>
 
         <Divider orientation="left">Notes</Divider>
-        <PostItems msgList={events} worker={worker!} relays={seedRelays} />
+        <PostItems msgList={events} worker={worker!}/>
       </Left>
       <Right></Right>
     </BaseLayout>

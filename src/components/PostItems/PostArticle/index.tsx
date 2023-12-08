@@ -1,6 +1,5 @@
 import { Nip23 } from 'core/nip/23';
 import { Event } from 'core/nostr/Event';
-import { Avatar } from 'antd';
 import { useTranslation } from 'next-i18next';
 
 import Icon from 'components/Icon';
@@ -13,14 +12,10 @@ import { useUserProfile } from 'hooks/useUserProfile';
 import { isNip05DomainName } from 'core/nip/05';
 
 interface PostArticleProps {
-  userAvatar: string;
-  userName: string;
   event: Event;
 }
 
 const PostArticle: React.FC<PostArticleProps> = ({
-  userAvatar,
-  userName,
   event,
 }) => {
   const { t } = useTranslation();
@@ -64,10 +59,6 @@ const PostArticle: React.FC<PostArticleProps> = ({
           <span>Article</span>
         </div>
         <div className={styles.info}>
-          <div className={styles.user}>
-            <Avatar src={userAvatar} alt="picture" />
-            <span className={styles.name}>{userName}</span>
-          </div>
           <h1 className={classNames('f-truncate', styles.title)} title={title}>
             {title}
           </h1>

@@ -11,7 +11,7 @@ import { useSubReplyEvents, useSubUserMetadata } from './hooks';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { _handleEvent } from './util';
 import { getEventIdsFromETags } from 'core/nostr/util';
-import { SubPostItem } from 'components/PostItems/PostContent/subPostItem';
+import { SubPostUI } from 'components/PostItems/PostItem/sub';
 import PostItems from 'components/PostItems';
 import classNames from 'classnames';
 import { CallRelayType } from 'core/worker/type';
@@ -164,7 +164,6 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
       <PostItems
         msgList={newPubReplyEvent}
         worker={worker!}
-        relays={worker?.relays.map(r => r.url) || []}
         showLastReplyToEvent={false}
       />
 
@@ -174,16 +173,16 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
             <PostItems
               msgList={[{ ...n.value, ...{ seen: [''] } }]}
               worker={worker!}
-              relays={worker?.relays.map(r => r.url) || []}
               showLastReplyToEvent={false}
             />
             {n.children.length > 0 && (
               <>
                 <div className={styles.subRepliesContainer}>
                   {n.children.map(c => (
-                    <SubPostItem
+                    <SubPostUI
                       key={c.value.id}
-                      event={c.value}
+                      eventId={c.value.id}
+                      worker={worker}
                     />
                   ))}
                 </div>
