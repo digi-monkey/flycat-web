@@ -116,7 +116,6 @@ const PostRepost: React.FC<PostRepostProp> = ({
           profile={getUser(targetEvent.pubkey)}
           event={targetEvent as DbEvent}
           worker={worker}
-          showLastReplyToEvent={showLastReplyToEvent}
         />
       ) : (
         <div className={styles.content}>

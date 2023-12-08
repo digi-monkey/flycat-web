@@ -1,79 +1,63 @@
-import { Paths } from 'constants/path';
-import { i18n } from 'next-i18next';
-
+import { useEffect, useState } from 'react';
+import { ParsedFragment } from '../text';
 import { Naddr } from './Naddr';
 import { Nevent } from './Nevent';
 import { Note } from './Note';
 import { Nprofile } from './Nprofile';
 import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
-import { EmbedRef } from './util';
-import { DbEvent } from 'core/db/schema';
-import { textWithHashtags } from './hashTags';
+import {
+  NaddrResult,
+  NeventResult,
+  Nip21,
+  NoteResult,
+  NprofileResult,
+  NpubResult,
+  NrelayResult,
+  TransformResult,
+} from 'core/nip/21';
 
-export const transformRefEmbed = (
-  content: string,
-  { npubs, nevents, naddrs, notes, nprofiles, nrelays }: EmbedRef,
-  profileEvents: DbEvent[],
-) => {
-  let refTexts: string[] = [];
-  let refComponents: any[] = [];
-
-  if (npubs) {
-    refTexts = refTexts.concat(npubs.map(n => n.key));
-    refComponents = refComponents.concat(
-      npubs.map(n => Npub(n, profileEvents)),
-    );
+export interface ParsedMentionProp {
+  res: TransformResult;
+}
+export const ParsedEmbed: React.FC<ParsedMentionProp> = ({ res }) => {
+  if (res.type === 'naddr') {
+    return <Naddr naddr={res.result as NaddrResult} />;
   }
-  if (nevents) {
-    refTexts = refTexts.concat(nevents.map(n => n.key));
-    refComponents = refComponents.concat(
-      nevents.map(n => Nevent(n, profileEvents)),
-    );
+  if (res.type === 'nevent') {
+    return <Nevent nevent={res.result as NeventResult} />;
   }
-  if (notes) {
-    refTexts = refTexts.concat(notes.map(n => n.key));
-    refComponents = refComponents.concat(
-      notes.map(n => Note(n, profileEvents)),
-    );
+  if (res.type === 'note') {
+    return <Note note={res.result as NoteResult} />;
   }
-  if (nprofiles) {
-    refTexts = refTexts.concat(nprofiles.map(n => n.key));
-    refComponents = refComponents.concat(
-      nprofiles.map(n => Nprofile(n, profileEvents)),
-    );
+  if (res.type === 'nprofile') {
+    return <Nprofile nprofile={res.result as NprofileResult} />;
   }
-  if (naddrs) {
-    refTexts = refTexts.concat(naddrs.map(n => n.key));
-    refComponents = refComponents.concat(naddrs.map(n => Naddr(n)));
+  if (res.type === 'npub') {
+    return <Npub npub={res.result as NpubResult} />;
   }
-  if (nrelays) {
-    refTexts = refTexts.concat(nrelays.map(n => n.key));
-    refComponents = refComponents.concat(nrelays.map(n => Nrelay(n)));
+  if (res.type === 'nrelay') {
+    return <Nrelay nrelay={res.result as NrelayResult} />;
   }
 
-  let textComponents: any[] = [textWithHashtags(content)];
-  if (refTexts.length > 0) {
-    const delimiters = refTexts;
-    const pattern = new RegExp(delimiters.join('|'));
+  return <span>{res.result as string}</span>;
+};
 
-    // Split the string based on the substrings
-    textComponents = content
-      .split(pattern)
-      .map((text, index) => (
-        <span key={text + index}>{textWithHashtags(text)}</span>
-      ));
-  }
+export const Embed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
+  const [transformFragment, setTransformFragment] = useState<TransformResult>();
 
-  // Find the maximum length between the two arrays
-  const maxLength = Math.max(textComponents.length, refComponents.length);
+  const parse = async () => {
+    const val = await Nip21.transform(data);
+    setTransformFragment(val);
+  };
 
-  // Use map and reduce to interleave the elements in the desired order
-  const mergedArray = Array.from({ length: maxLength }).flatMap((_, index) =>
-    [textComponents[index], refComponents[index]].filter(
-      item => item !== undefined,
-    ),
+  useEffect(() => {
+    parse();
+  }, []);
+
+  return transformFragment ? (
+    <ParsedEmbed res={transformFragment} />
+  ) : (
+    <p>parsing embed data..</p>
   );
-
-  return mergedArray;
 };

@@ -3,13 +3,13 @@ import { i18n } from 'next-i18next';
 import { NaddrResult } from 'core/nip/21';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { Nip23 } from 'core/nip/23';
+import { maxStrings } from 'utils/common';
 
 import Icon from 'components/Icon';
 import Link from 'next/link';
 import styles from './index.module.scss';
-import { maxStrings } from 'utils/common';
 
-export const Naddr = (naddr: NaddrResult) => {
+export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
   if (naddr.replaceableEvent) {
     const isBlogPost = Nip23.isBlogPost(naddr.replaceableEvent);
     if (isBlogPost) {

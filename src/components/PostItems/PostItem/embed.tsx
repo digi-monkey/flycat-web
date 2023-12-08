@@ -1,6 +1,4 @@
 import { Event } from 'core/nostr/Event';
-import { CallWorker } from 'core/worker/caller';
-import { toUnSeenEvent } from 'core/nostr/util';
 import { PostCommunityHeader } from '../PostCommunityHeader';
 import { message } from 'antd';
 import { DbEvent } from 'core/db/schema';
@@ -20,22 +18,10 @@ const PostUser = dynamic(
   },
 );
 
-const PostReactions = dynamic(
-  async () => {
-    return await import('../PostReactions/index');
-  },
-  {
-    loading: () => <p>Loading PostReactions...</p>,
-    ssr: false,
-    suspense: true,
-  },
-);
-
-export interface PostUIProp {
+export interface EmbedPostUIProp {
   content: JSX.Element;
   profile: EventSetMetadataContent | null;
   event: DbEvent;
-  worker: CallWorker;
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
@@ -44,11 +30,10 @@ export interface PostUIProp {
   extraHeader?: React.ReactNode;
 }
 
-export const PostUI: React.FC<PostUIProp> = ({
+export const EmbedPostUI: React.FC<EmbedPostUIProp> = ({
   content,
   profile,
   event,
-  worker,
   extraMenu,
   extraHeader,
   showFromCommunity,
@@ -64,11 +49,6 @@ export const PostUI: React.FC<PostUIProp> = ({
     />
     <div className={styles.content}>
       {content}
-      <PostReactions
-        ownerEvent={toUnSeenEvent(event)}
-        worker={worker}
-        seen={event.seen!}
-      />
     </div>
   </div>
 );

@@ -2,23 +2,19 @@ import { EventId, EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { useTranslation } from 'next-i18next';
 import { useEffect, useRef, useState } from 'react';
-import { extractEmbedRef, getPubkeysFromEmbedRef } from './Embed/util';
-import { transformRefEmbed } from './Embed';
-import { MediaPreviews } from './Media';
 import { Button } from 'antd';
-import { normalizeContent, shortifyEventId } from 'core/nostr/content';
+import { shortifyEventId } from 'core/nostr/content';
 import { CallWorker } from 'core/worker/caller';
 import { Paths } from 'constants/path';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { dbQuery, dexieDb } from 'core/db';
-import { DbEvent } from 'core/db/schema';
+import { dbQuery } from 'core/db';
 import { isNsfwEvent } from 'utils/validator';
+import { renderContent } from './content';
+import { transformText } from './text';
 
 import styles from './index.module.scss';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { renderContent } from './parseContent';
-import { transformText } from './transform-text';
 
 const SubPostItem = dynamic(
   async () => {
@@ -90,6 +86,8 @@ export const PostContent: React.FC<PostContentProp> = ({
   };
 
   const [expanded, setExpanded] = useState(false);
+  const [content, setContent] = useState<any[]>([]);
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   const isOverflow =
@@ -100,7 +98,21 @@ export const PostContent: React.FC<PostContentProp> = ({
     setExpanded(!expanded);
   };
 
-  const content = <div>{renderContent(transformText(msgEvent.content, msgEvent.tags.filter(t => t[0] === "t").flat().filter(t => t!='t')), 0, isNsfwEvent(msgEvent))}</div>;
+  useEffect(() => {
+    setContent(
+      renderContent(
+        transformText(
+          msgEvent.content,
+          msgEvent.tags
+            .filter(t => t[0] === 't')
+            .flat()
+            .filter(t => t != 't'),
+        ),
+        0,
+        isNsfwEvent(msgEvent),
+      ),
+    );
+  }, []);
 
   return (
     <div>

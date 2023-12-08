@@ -1,14 +1,15 @@
 import { ReactNode } from 'react';
-import { ParsedFragment } from './transform-text';
+import { ParsedFragment } from './text';
 import { ImagePreview } from './Media/ImagePreview';
-
-import classname from 'classnames';
-import styles from './Media/index.module.scss';
 import { VideoPreview } from './Media/VideoPreview';
 import { AudioPreview } from './Media/AudioPreview';
 import { LightingInvoice, LnUrlInvoice } from './Media/LightingInvoice';
 import { Hashtag } from './Media/HashTag';
 import { UrlPreview } from './URLPreview';
+import { Embed } from './Embed';
+
+import classname from 'classnames';
+import styles from './Media/index.module.scss';
 
 export const renderContent = (
   elements: ParsedFragment[],
@@ -95,8 +96,8 @@ export const renderContent = (
     }
 
     if (element.type === 'mention') {
-	chunks.push(<Hashtag tag={element.content} />);
-      }
+      chunks.push(<Embed key={i} data={element} />);
+    }
 
     if (element.type === 'hashtag') {
       chunks.push(<Hashtag tag={element.content} />);
@@ -111,16 +112,17 @@ export const renderContent = (
 
     if (element.type === 'custom_emoji') {
       chunks.push(
-        <img src={element.content} width={15} height={15} className="custom-emoji" />,
+        <img
+          src={element.content}
+          width={15}
+          height={15}
+          className="custom-emoji"
+        />,
       );
     }
 
     if (element.type === 'text') {
-      chunks.push(
-        <div className="text-frag">
-          {element.content}
-        </div>
-      );
+      chunks.push(<span>{element.content}</span>);
     }
   }
   return chunks;

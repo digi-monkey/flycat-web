@@ -18,14 +18,14 @@ export interface ParsedFragment {
 export type Fragment = string | ParsedFragment;
 
 export const FileExtensionRegex = /\.([\w]{1,7})$/i;
-export const MentionNostrEntityRegex = /@n(pub|profile|event|ote|addr|)1[acdefghjklmnpqrstuvwxyz023456789]+/g;
+export const MentionNostrEntityRegex = /(nostr:npub[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nprofile[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nevent[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:note[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:naddr[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nrelay[acdefghjklmnpqrstuvwxyz0123456789]+)/g;
 export const InvoiceRegex = /(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+([munp])|\d+x\d+([munp]))?/i;
 export const lnUrlRegex = /,*?((lnurl)([0-9]{1,}[a-z0-9]+){1})/g;
 export const HashtagRegex = /(#[^\s!@#$%^&*()=+.\/,\[{\]};:'"?><]+)/g;
 
 export function splitByUrl(str: string) {
   const urlRegex =
-  /((?:http|ftp|https|magnet|[p|w]?):\/?\/?(?:[\w+?.\w+])+(?:[\p{L}\p{N}~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-a-z0-9+&@#/%=~()_|]))/iu;
+  /((?:http|ftp|https|magnet):\/?\/?(?:[\w+?.\w+])+(?:[\p{L}\p{N}~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-a-z0-9+&@#/%=~()_|]))/iu;
   return str.split(urlRegex);
 }
 
@@ -213,6 +213,7 @@ export function transformText(body: string, tags: Array<Array<string>>) {
       }
     }),
   );
+  console.log("frag: ", fragments);
   return fragments as Array<ParsedFragment>;
 }
 
