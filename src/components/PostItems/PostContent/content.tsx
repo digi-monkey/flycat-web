@@ -6,7 +6,7 @@ import { AudioPreview } from './Media/AudioPreview';
 import { LightingInvoice, LnUrlInvoice } from './Media/LightingInvoice';
 import { Hashtag } from './HashTag';
 import { HyperLink } from './Link';
-import { NostrEmbed } from './embed';
+import { NostrEmbed } from './embed/index';
 
 import classname from 'classnames';
 import styles from './Media/index.module.scss';
