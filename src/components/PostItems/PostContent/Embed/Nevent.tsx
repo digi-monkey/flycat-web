@@ -4,6 +4,7 @@ import { i18n } from 'next-i18next';
 import { EmbedPostUI } from 'components/PostItems/PostItem/embed';
 
 import styles from './index.module.scss';
+import PostContent from '..';
 
 export const Nevent: React.FC<{
   nevent: NeventResult;
@@ -12,7 +13,12 @@ export const Nevent: React.FC<{
     return (
       <div className={styles.refNote}>
         <EmbedPostUI
-          content={<div>{nevent.noteEvent.content}</div>}
+          content={
+            <PostContent
+              ownerEvent={nevent.noteEvent}
+              showLastReplyToEvent={false}
+            />
+          }
           profile={nevent.profile}
           event={nevent.noteEvent as any}
         />

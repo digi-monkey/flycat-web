@@ -4,6 +4,7 @@ import { NoteResult } from 'core/nip/21';
 import { EmbedPostUI } from 'components/PostItems/PostItem/embed';
 
 import styles from './index.module.scss';
+import PostContent from '..';
 
 export const Note: React.FC<{
   note: NoteResult;
@@ -12,7 +13,12 @@ export const Note: React.FC<{
     return (
       <div className={styles.refNote}>
         <EmbedPostUI
-          content={<div>{note.noteEvent.content}</div>}
+          content={
+            <PostContent
+              ownerEvent={note.noteEvent}
+              showLastReplyToEvent={false}
+            />
+          }
           profile={note.profile}
           event={note.noteEvent as any}
         />

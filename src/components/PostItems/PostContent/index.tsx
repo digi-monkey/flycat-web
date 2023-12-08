@@ -26,7 +26,7 @@ const SubPostItem = dynamic(
 
 interface PostContentProp {
   ownerEvent: Event;
-  worker: CallWorker;
+  worker?: CallWorker;
   showLastReplyToEvent?: boolean;
 }
 
@@ -38,7 +38,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   const { t } = useTranslation();
   const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
 
-  const relayUrls = worker.relays.map(r => r.url);
+  const relayUrls = worker?.relays.map(r => r.url) || [];
 
   useEffect(() => {
     if (showLastReplyToEvent) {
@@ -82,10 +82,10 @@ export const PostContent: React.FC<PostContentProp> = ({
   const tryReloadLastReplyEvent = () => {
     if (!lastReplyToEventId) return;
 
-    worker.subMsgByEventIds([lastReplyToEventId]);
+    worker?.subMsgByEventIds([lastReplyToEventId]);
   };
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [content, setContent] = useState<any[]>([]);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -122,7 +122,7 @@ export const PostContent: React.FC<PostContentProp> = ({
         <div>
           <div
             ref={contentRef}
-            style={{ maxHeight: '100px', overflow: 'hidden' }}
+            style={{ maxHeight: '100px', overflow: 'scroll' }}
           >
             {content}
           </div>

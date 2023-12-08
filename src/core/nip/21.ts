@@ -10,8 +10,9 @@ import {
   Nip19ShareableDataType,
 } from './19';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
-import { dbEventTable, dbProfileTable, dexieDb } from 'core/db';
+import { dbEventTable, dbProfileTable } from 'core/db';
 import { ParsedFragment } from 'components/PostItems/PostContent/text';
+import { deserializeMetadata } from 'core/nostr/content';
 
 export interface NpubResult {
   key: string;
@@ -47,6 +48,7 @@ export interface NeventResult {
 
 export interface NaddrResult {
   key: string;
+  profile: EventSetMetadataContent | null;
   replaceableEvent: Event | null;
   decodedMetadata: DecodedNaddrResult;
 }
@@ -89,15 +91,7 @@ export class Nip21 {
         const { type, data: pubkey } = Nip19.decode(npub);
         if (type !== Nip19DataType.Npubkey) return null;
 
-        let user:
-          | EventSetMetadataContent
-          | (EventSetMetadataContent & { created_at })
-          | null = null;
-
-        const profileEvent = await dexieDb.profileEvent.get(pubkey);
-        if (profileEvent) {
-          user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
-        }
+        let user = await this.getProfile(pubkey);
 
         if (!user && enableFallback) {
           const _user = await OneTimeWebSocketClient.fetchProfile({
@@ -130,32 +124,14 @@ export class Nip21 {
         const decodedMetadata = _data as DecodedNprofileResult;
         const pubkey = decodedMetadata.pubkey;
 
-        let user:
-          | EventSetMetadataContent
-          | (EventSetMetadataContent & { created_at })
-          | null = null;
-
-        const profileEvent = await dexieDb.profileEvent.get(pubkey);
-        if (profileEvent) {
-          user = JSON.parse(profileEvent.content) as EventSetMetadataContent;
-        }
+        let user = await this.getProfile(pubkey);
 
         if (!user && enableFallback) {
           const relays = decodedMetadata.relays || fallbackRelays;
-          let _user = await OneTimeWebSocketClient.fetchProfile({
+          user = await OneTimeWebSocketClient.fetchProfile({
             pubkey,
             relays,
           });
-          if (_user == null && decodedMetadata.relays) {
-            _user = await OneTimeWebSocketClient.fetchProfile({
-              pubkey,
-              relays: fallbackRelays,
-            });
-          }
-
-          if (_user) {
-            user = _user;
-          }
         }
 
         return {
@@ -188,7 +164,7 @@ export class Nip21 {
         }
 
         const profile = noteEvent
-          ? await dbProfileTable.get(noteEvent.pubkey)
+          ? await this.getProfile(noteEvent.pubkey)
           : null;
 
         return {
@@ -220,7 +196,7 @@ export class Nip21 {
         }
 
         const profile = noteEvent
-          ? await dbProfileTable.get(noteEvent.pubkey)
+          ? await this.getProfile(noteEvent.pubkey)
           : null;
 
         return {
@@ -246,13 +222,8 @@ export class Nip21 {
         const kind = decodedMetadata.kind;
         const relays = decodedMetadata.relays;
 
-        let replaceableEvent =
-          await OneTimeWebSocketClient.fetchReplaceableEvent({
-            kind,
-            identifier,
-            pubkey,
-            relays,
-          });
+        // todo: query from db
+        let replaceableEvent: Event | null = null;
 
         if (!replaceableEvent && enableFallback) {
           replaceableEvent = await OneTimeWebSocketClient.fetchReplaceableEvent(
@@ -260,14 +231,19 @@ export class Nip21 {
               kind,
               identifier,
               pubkey,
-              relays: fallbackRelays,
+              relays: relays || fallbackRelays,
             },
           );
         }
 
+        const profile = replaceableEvent
+          ? await this.getProfile(replaceableEvent.pubkey)
+          : null;
+
         return {
           key,
           decodedMetadata,
+          profile,
           replaceableEvent,
         };
       };
@@ -292,5 +268,13 @@ export class Nip21 {
     }
 
     return { type: 'unknown', result: key };
+  }
+
+  private static async getProfile(pk: string){
+    const e = await dbProfileTable.get(pk);
+    if(e){
+      return deserializeMetadata(e.content);
+    }
+    return null;
   }
 }
