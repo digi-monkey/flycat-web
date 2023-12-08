@@ -13,28 +13,11 @@ import styles from './Media/index.module.scss';
 
 export const renderContent = (
   elements: ParsedFragment[],
-  truncate?: number,
   isNsfw = false,
 ) => {
-  let lenCtr = 0;
-
   const chunks: Array<ReactNode> = [];
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
-
-    if (truncate) {
-      if (lenCtr + element.content.length > truncate) {
-        lenCtr += element.content.length;
-        chunks.push(
-          <div className="text-frag">
-            {element.content.slice(0, truncate - lenCtr)}...
-          </div>,
-        );
-        return chunks;
-      } else {
-        lenCtr += element.content.length;
-      }
-    }
 
     if (element.type === 'media' && element.mimeType?.startsWith('image')) {
       const galleryImages: ParsedFragment[] = [element];

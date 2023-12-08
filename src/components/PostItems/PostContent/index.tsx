@@ -10,7 +10,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery } from 'core/db';
 import { isNsfwEvent } from 'utils/validator';
 import { renderContent } from './content';
-import { transformText } from './text';
+import { doTextTransformer } from 'hooks/useTransformText';
 
 import styles from './index.module.scss';
 import Link from 'next/link';
@@ -99,19 +99,8 @@ export const PostContent: React.FC<PostContentProp> = ({
   };
 
   useEffect(() => {
-    setContent(
-      renderContent(
-        transformText(
-          msgEvent.content,
-          msgEvent.tags
-            .filter(t => t[0] === 't')
-            .flat()
-            .filter(t => t != 't'),
-        ),
-        0,
-        isNsfwEvent(msgEvent),
-      ),
-    );
+    const elements = doTextTransformer(msgEvent.id, msgEvent.content, []);
+    setContent(renderContent(elements, isNsfwEvent(msgEvent)));
   }, []);
 
   return (
@@ -156,5 +145,3 @@ export const PostContent: React.FC<PostContentProp> = ({
     </div>
   );
 };
-
-export default PostContent;

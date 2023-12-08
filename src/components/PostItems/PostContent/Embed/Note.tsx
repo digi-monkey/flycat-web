@@ -2,9 +2,9 @@ import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
 import { NoteResult } from 'core/nip/21';
 import { EmbedPostUI } from 'components/PostItems/PostItem/embed';
+import { PostContent } from '../index';
 
 import styles from './index.module.scss';
-import PostContent from '..';
 
 export const Note: React.FC<{
   note: NoteResult;
