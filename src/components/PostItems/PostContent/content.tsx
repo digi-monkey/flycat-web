@@ -4,7 +4,7 @@ import { ImagePreview } from './Media/ImagePreview';
 import { VideoPreview } from './Media/VideoPreview';
 import { AudioPreview } from './Media/AudioPreview';
 import { LightingInvoice, LnUrlInvoice } from './Media/LightingInvoice';
-import { Hashtag } from './Media/HashTag';
+import { Hashtag } from './HashTag';
 import { UrlPreview } from './URLPreview';
 import { Embed } from './Embed';
 

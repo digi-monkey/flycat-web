@@ -5,6 +5,7 @@ import { getUrlMetadata, UrlMetadata } from 'core/ogp';
 import styles from './index.module.scss';
 import URLPreview from './URLPreview';
 import Script from 'next/script';
+
 interface PreviewProps {
   url: string;
 }
