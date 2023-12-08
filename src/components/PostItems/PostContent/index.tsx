@@ -17,6 +17,8 @@ import { isNsfwEvent } from 'utils/validator';
 import styles from './index.module.scss';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { renderContent } from './parseContent';
+import { transformText } from './transform-text';
 
 const SubPostItem = dynamic(
   async () => {
@@ -38,14 +40,9 @@ export const PostContent: React.FC<PostContentProp> = ({
   showLastReplyToEvent = true,
 }) => {
   const { t } = useTranslation();
-  const [contentComponents, setContentComponents] = useState<any[]>([]);
   const [lastReplyToEventId, setLastReplyToEventId] = useState<EventId>();
 
   const relayUrls = worker.relays.map(r => r.url);
-
-  useEffect(() => {
-    transformContent();
-  }, [msgEvent.id]);
 
   useEffect(() => {
     if (showLastReplyToEvent) {
@@ -57,17 +54,6 @@ export const PostContent: React.FC<PostContentProp> = ({
     dbQuery.createEventByIdQuerier(relayUrls, lastReplyToEventId),
     [relayUrls, lastReplyToEventId],
   );
-
-  const transformContent = async () => {
-    const { modifiedText } = normalizeContent(msgEvent.content);
-    const embedRef = await extractEmbedRef(modifiedText, relayUrls);
-    const pks = getPubkeysFromEmbedRef(embedRef);
-    const profileEvents = (await dexieDb.profileEvent.bulkGet(pks)).filter(
-      e => e != null,
-    ) as DbEvent[];
-    const result = transformRefEmbed(modifiedText, embedRef, profileEvents);
-    setContentComponents(result);
-  };
 
   const buildLastReplyEvent = async () => {
     const lastReply = msgEvent.tags
@@ -114,7 +100,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     setExpanded(!expanded);
   };
 
-  const content = <div>{contentComponents}</div>;
+  const content = <div>{renderContent(transformText(msgEvent.content, msgEvent.tags.filter(t => t[0] === "t").flat().filter(t => t!='t')))}</div>;
 
   return (
     <div>
@@ -154,10 +140,6 @@ export const PostContent: React.FC<PostContentProp> = ({
             </Button>
           </div>
         )}
-        <MediaPreviews
-          isNsfw={isNsfwEvent(msgEvent)}
-          content={msgEvent.content}
-        />
       </>
     </div>
   );
