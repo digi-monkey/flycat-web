@@ -5,8 +5,8 @@ import { VideoPreview } from './Media/VideoPreview';
 import { AudioPreview } from './Media/AudioPreview';
 import { LightingInvoice, LnUrlInvoice } from './Media/LightingInvoice';
 import { Hashtag } from './HashTag';
-import { UrlPreview } from './URLPreview';
-import { Embed } from './Embed';
+import { HyperLink } from './Link';
+import { NostrEmbed } from './embed';
 
 import classname from 'classnames';
 import styles from './Media/index.module.scss';
@@ -96,7 +96,7 @@ export const renderContent = (
     }
 
     if (element.type === 'mention') {
-      chunks.push(<Embed key={i} data={element} />);
+      chunks.push(<NostrEmbed key={i} data={element} />);
     }
 
     if (element.type === 'hashtag') {
@@ -107,7 +107,7 @@ export const renderContent = (
       element.type === 'link' ||
       (element.type === 'media' && element.mimeType?.startsWith('unknown'))
     ) {
-      chunks.push(<UrlPreview url={element.content} />);
+      chunks.push(<HyperLink url={element.content} />);
     }
 
     if (element.type === 'custom_emoji') {

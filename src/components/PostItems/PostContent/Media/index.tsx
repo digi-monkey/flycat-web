@@ -1,5 +1,5 @@
 import { normalizeContent } from 'core/nostr/content';
-import { UrlPreview } from 'components/PostItems/PostContent/URLPreview';
+import { HyperLink } from 'components/PostItems/PostContent/Link';
 import { LightingInvoice, LnUrlInvoice } from './LightingInvoice';
 import { AudioPreview } from './AudioPreview';
 import { ImagePreview } from './ImagePreview';
@@ -56,7 +56,7 @@ export function MediaPreviews({ content, isNsfw }: PreviewsProp) {
       {previewUrls.length > 0 && (
         <div>
           {previewUrls.map((url,index) => (
-            <UrlPreview url={url} key={url + index} />
+            <HyperLink url={url} key={url + index} />
           ))}
         </div>
       )}

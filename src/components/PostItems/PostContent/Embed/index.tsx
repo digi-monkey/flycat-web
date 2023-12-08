@@ -20,7 +20,7 @@ import {
 export interface ParsedMentionProp {
   res: TransformResult;
 }
-export const ParsedEmbed: React.FC<ParsedMentionProp> = ({ res }) => {
+export const ParsedNostrEmbed: React.FC<ParsedMentionProp> = ({ res }) => {
   if (res.type === 'naddr') {
     return <Naddr naddr={res.result as NaddrResult} />;
   }
@@ -43,7 +43,7 @@ export const ParsedEmbed: React.FC<ParsedMentionProp> = ({ res }) => {
   return <span>{res.result as string}</span>;
 };
 
-export const Embed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
+export const NostrEmbed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
   const [transformFragment, setTransformFragment] = useState<TransformResult>();
 
   const parse = async () => {
@@ -56,8 +56,8 @@ export const Embed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
   }, []);
 
   return transformFragment ? (
-    <ParsedEmbed res={transformFragment} />
+    <ParsedNostrEmbed res={transformFragment} />
   ) : (
-    <p>parsing embed data..</p>
+    <p>parsing nostr embed..</p>
   );
 };
