@@ -5,10 +5,11 @@ interface BitcoinButtonProps {
   isDisabled: boolean;
 }
 
-const BitcoinButton: React.FC<BitcoinButtonProps> = ({ isDisabled }) => {
+const BitcoinButton: React.FC<BitcoinButtonProps> = ({  }) => {
   const handleConnect = () => {
      
-         
+      alert('Connected!');
+     
     
   };
 
