@@ -18,7 +18,7 @@ import { TwitchEmbed } from './embed/twitch';
 import { WavlakeEmbed } from './embed/wavlake';
 import { YoutubeEmbed } from './embed/youtube';
 import { URLPreview } from './embed/preview';
-import { getTweetId } from 'utils/content';
+import { getTweetId } from './util';
 
 import dynamic from 'next/dynamic';
 
