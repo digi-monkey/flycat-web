@@ -13,7 +13,7 @@ import { UrlPreview } from './URLPreview';
 export const renderContent = (
   elements: ParsedFragment[],
   truncate?: number,
-  isNsfw?: boolean,
+  isNsfw = false,
 ) => {
   let lenCtr = 0;
 

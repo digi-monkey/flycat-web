@@ -100,7 +100,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     setExpanded(!expanded);
   };
 
-  const content = <div>{renderContent(transformText(msgEvent.content, msgEvent.tags.filter(t => t[0] === "t").flat().filter(t => t!='t')))}</div>;
+  const content = <div>{renderContent(transformText(msgEvent.content, msgEvent.tags.filter(t => t[0] === "t").flat().filter(t => t!='t')), 0, isNsfwEvent(msgEvent))}</div>;
 
   return (
     <div>
