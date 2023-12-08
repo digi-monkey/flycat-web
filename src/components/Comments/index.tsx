@@ -181,7 +181,8 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
                   {n.children.map(c => (
                     <SubPostItem
                       key={c.value.id}
-                      event={c.value}
+                      eventId={c.value.id}
+                      worker={worker}
                     />
                   ))}
                 </div>
