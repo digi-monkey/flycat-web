@@ -7,7 +7,6 @@ import { EventSetMetadataContent } from "core/nostr/type";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { maxStrings } from "utils/common";
-import { MediaPreviews } from "./Media";
 
 import styles from './index.module.scss';
 import PostArticle from "../PostArticle";
@@ -58,7 +57,6 @@ export const SubPostItem: React.FC<SubPostItemProp> = ({ event }) => {
         <div className={styles.event} onClick={clickEventBody}>
           {maxStrings(event.content, 150)}
         </div>
-        <MediaPreviews content={event.content} />
       </div>
     </div>
   );
