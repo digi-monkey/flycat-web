@@ -2,7 +2,7 @@ import { Tooltip, message } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { fetchPublicBookmarkListEvent } from 'components/PostItems/PostReactions/util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   EventSetMetadataContent,
@@ -24,7 +24,7 @@ import { dexieDb } from 'core/db';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 
-import('@getalby/bitcoin-connect-react');
+
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -37,6 +37,14 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   worker,
   seen,
 }) => {
+
+
+
+    // load bitcoin connect for zaps
+    import('@getalby/bitcoin-connect-react');
+
+
+
   const { t } = useTranslation();
 
   const router = useRouter();
@@ -137,7 +145,11 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const handler = worker.pubEvent(event);
     noticePubEventResult(worker.relays.length, handler);
     setIsBookMarking(false);
+
+    
   };
+
+  
 
   return (
     <ul className={styles.reactions}>
