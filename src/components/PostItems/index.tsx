@@ -18,6 +18,7 @@ interface PostItemsProps {
     onClick: (event: Event, msg: typeof message) => any;
   }[];
   extraHeader?: React.ReactNode;
+  isExpanded?: boolean
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
@@ -27,6 +28,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   showFromCommunity = true,
   extraMenu,
   extraHeader,
+  isExpanded = false
 }) => {
   const profileEvents = useLiveQuery(
     async () => {
@@ -59,6 +61,7 @@ const PostItems: React.FC<PostItemsProps> = ({
           showFromCommunity={showFromCommunity}
           extraMenu={extraMenu}
           extraHeader={extraHeader}
+          isExpanded={isExpanded}
         />
       ))}
     </>

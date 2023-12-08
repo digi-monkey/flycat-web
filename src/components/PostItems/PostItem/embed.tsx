@@ -6,6 +6,7 @@ import { EventSetMetadataContent } from 'core/nostr/type';
 
 import styles from '../index.module.scss';
 import dynamic from 'next/dynamic';
+import classNames from 'classnames';
 
 const PostUser = dynamic(
   async () => {
@@ -38,7 +39,7 @@ export const EmbedPostUI: React.FC<EmbedPostUIProp> = ({
   extraHeader,
   showFromCommunity,
 }) => (
-  <div className={styles.post} key={event.id}>
+  <div className={classNames([styles.post, styles.embed])} key={event.id}>
     {extraHeader}
     {showFromCommunity && <PostCommunityHeader event={event} />}
     <PostUser

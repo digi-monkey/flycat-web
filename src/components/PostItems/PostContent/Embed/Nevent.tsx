@@ -17,6 +17,7 @@ export const Nevent: React.FC<{
             <PostContent
               ownerEvent={nevent.noteEvent}
               showLastReplyToEvent={false}
+              isExpanded={true}
             />
           }
           profile={nevent.profile}

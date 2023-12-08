@@ -23,12 +23,14 @@ interface PostContentProp {
   ownerEvent: Event;
   worker?: CallWorker;
   showLastReplyToEvent?: boolean;
+  isExpanded?: boolean;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
+  isExpanded = false,
 }) => {
   const { t } = useTranslation();
 
@@ -42,7 +44,7 @@ export const PostContent: React.FC<PostContentProp> = ({
     return lastReply?.id;
   }, [msgEvent.id]);
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(isExpanded);
   const [content, setContent] = useState<any[]>([]);
 
   const contentRef = useRef<HTMLDivElement>(null);

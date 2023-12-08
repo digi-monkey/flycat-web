@@ -17,6 +17,7 @@ export const Note: React.FC<{
             <PostContent
               ownerEvent={note.noteEvent}
               showLastReplyToEvent={false}
+              isExpanded={true}
             />
           }
           profile={note.profile}

@@ -67,6 +67,7 @@ interface PostItemProps {
     onClick: (event: Event, msg: typeof message) => any;
   }[];
   extraHeader?: React.ReactNode;
+  isExpanded?: boolean;
 }
 
 export const PostItem: React.FC<PostItemProps> = ({
@@ -77,6 +78,7 @@ export const PostItem: React.FC<PostItemProps> = ({
   showFromCommunity = true,
   extraMenu,
   extraHeader,
+  isExpanded = false,
 }) => {
   const render = useMemo(() => {
     if (Nip18.isRepostEvent(event)) {
@@ -146,6 +148,7 @@ export const PostItem: React.FC<PostItemProps> = ({
             ownerEvent={event}
             worker={worker}
             showLastReplyToEvent={showLastReplyToEvent}
+            isExpanded={isExpanded}
           />
         }
         profile={profile}

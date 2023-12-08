@@ -61,6 +61,7 @@ export const EventPage = () => {
                 msgList={[rootEvent]}
                 worker={worker!}
                 showLastReplyToEvent={true}
+                isExpanded={true}
               />
 
               <Comments rootEvent={rootEvent} />
