@@ -1,5 +1,4 @@
 import { Avatar, Button } from 'antd';
-import { Event } from 'core/nostr/Event';
 import { dbQuery, dexieDb } from 'core/db';
 import { Nip23 } from 'core/nip/23';
 import { shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
@@ -11,16 +10,16 @@ import { CallWorker } from 'core/worker/caller';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Paths } from 'constants/path';
 
-import styles from './index.module.scss';
+import styles from './sub.module.scss';
 import PostArticle from '../PostArticle';
 import Link from 'next/link';
 
-export interface SubPostItemProp {
+export interface SubPostUIProp {
   eventId: string;
   worker: CallWorker | undefined;
 }
 
-export const SubPostItem: React.FC<SubPostItemProp> = ({ eventId, worker }) => {
+export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
   const router = useRouter();
   const relayUrls = worker?.relays.map(r => r.url) || [];
 

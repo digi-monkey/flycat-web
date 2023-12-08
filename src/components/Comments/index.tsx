@@ -11,7 +11,7 @@ import { useSubReplyEvents, useSubUserMetadata } from './hooks';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { _handleEvent } from './util';
 import { getEventIdsFromETags } from 'core/nostr/util';
-import { SubPostItem } from 'components/PostItems/PostContent/subPostItem';
+import { SubPostUI } from 'components/PostItems/PostItem/sub';
 import PostItems from 'components/PostItems';
 import classNames from 'classnames';
 import { CallRelayType } from 'core/worker/type';
@@ -179,7 +179,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
               <>
                 <div className={styles.subRepliesContainer}>
                   {n.children.map(c => (
-                    <SubPostItem
+                    <SubPostUI
                       key={c.value.id}
                       eventId={c.value.id}
                       worker={worker}

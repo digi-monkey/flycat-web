@@ -1,0 +1,32 @@
+.replyEvent {
+  background: #f2f2f2;
+  left: 56px;
+  top: 0px;
+  border-radius: var(--basePadding3);
+  padding: var(--basePadding3);
+  margin: var(--basePadding3) 0px;
+
+  .user {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+
+    .name {
+      padding-left: var(--basePadding3);
+    }
+  }
+  .content {
+    margin-top: var(--basePadding3);
+    .event {
+      cursor: pointer;
+      white-space: pre-line;
+      word-wrap: break-word;
+    }
+  }
+}

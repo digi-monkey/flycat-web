@@ -13,8 +13,8 @@ import dynamic from 'next/dynamic';
 
 const SubPostItem = dynamic(
   async () => {
-    const mod = await import('./subPostItem');
-    return mod.SubPostItem;
+    const mod = await import('../PostItem/sub');
+    return mod.SubPostUI;
   },
   { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true },
 );
@@ -60,34 +60,35 @@ export const PostContent: React.FC<PostContentProp> = ({
     setContent(renderContent(elements, isNsfwEvent(msgEvent)));
   }, []);
 
-  return (
-    <div>
-      {expanded ? (
-        content
-      ) : (
-        <div>
-          <div
-            ref={contentRef}
-            style={{ maxHeight: '100px', overflow: 'hidden' }}
-          >
-            {content}
-          </div>
-          {isOverflow && (
-            <Button
-              className={styles.viewMore}
-              type="link"
-              onClick={toggleExpanded}
-            >
-              {' '}
-              View More
-            </Button>
-          )}
-        </div>
-      )}
-
+  const UI = (
+    <>
+      {content}
       {showLastReplyToEvent && lastReplyToEventId && (
         <SubPostItem eventId={lastReplyToEventId} worker={worker} />
       )}
+    </>
+  );
+
+  const style = expanded
+    ? { maxHeight: '100%' }
+    : { maxHeight: '150px', overflow: 'hidden' };
+
+  return (
+    <div>
+      <div>
+        <div ref={contentRef} style={style}>
+          {UI}
+        </div>
+        {isOverflow && !expanded && (
+          <Button
+            className={styles.viewMore}
+            type="link"
+            onClick={toggleExpanded}
+          >
+            {' View More'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
