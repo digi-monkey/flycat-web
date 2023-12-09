@@ -91,7 +91,6 @@ export const publish = async (
   worker: CallWorker,
   router,
   setPublishedToast,
-  pathname,
 ) => {
   const dirTags: DirTags = ([Nip23ArticleMetaTags.dir] as any).concat(
     dir.split('/').filter(d => d.length > 0),
@@ -109,17 +108,19 @@ export const publish = async (
     return alert('worker  is null');
   }
 
-  const event = await signEvent(rawEvent);
-  const handler = worker.pubEvent(event);
-  setPublishedToast(true);
-  delLocalSave(articleParams.did);
+  try {
+    const event = await signEvent(rawEvent);
+    const handler = worker.pubEvent(event);
+    setPublishedToast(true);
+    delLocalSave(articleParams.did);
 
-  noticePubEventResult(worker.relays.length, handler);
-
-  setTimeout(() => router.push({ pathname }), 6500);
+    noticePubEventResult(worker.relays.length, handler, (eventId: string) => {
+      const pathname = articleParams.slug
+      ? `${Paths.post + event.pubkey}/${encodeURIComponent(articleParams.slug)}`
+      : `${Paths.event}/${eventId}/`;
+      router.push({ pathname });
+    });
+  } catch (error: any) {
+    alert('publish failed, ' + error.message);
+  }
 };
-
-export const getPublishedUrl = (publicKey, articleId, myPublicKey, slug) =>
-  publicKey && (articleId || slug)
-    ? `${Paths.post + myPublicKey}/${encodeURIComponent(slug || articleId)}`
-    : `${Paths.post}/${myPublicKey}/`;

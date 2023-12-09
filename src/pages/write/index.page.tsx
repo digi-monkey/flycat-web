@@ -5,27 +5,25 @@ import { useRouter } from 'next/router';
 import { SignEvent } from 'store/loginReducer';
 import { useCallWorker } from 'hooks/useWorker';
 import { ImageUploader } from 'components/ImageUploader';
-import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { HashTags, TagObj } from 'components/HashTags';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { getPublishedUrl, publish, setLocalSave } from './util';
+import { publish, setLocalSave } from './util';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
 import { Alert, Button, Input, Modal } from 'antd';
-
-import Link from 'next/link';
-import styles from './index.module.scss';
 import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
-import { RelaySelector } from 'components/RelaySelector';
 import { getDraftId } from 'utils/common';
+import { RelaySelector } from 'components/RelaySelector';
+
+import Link from 'next/link';
+import styles from './index.module.scss';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
-  const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
   const articleId =
     router?.query?.articleId &&
@@ -120,7 +118,6 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                 worker!,
                 router,
                 setPublishedToast,
-                getPublishedUrl(publicKey, articleId, myPublicKey, slug),
               )
             }
             onCancel={() => setOpenPublishModal(false)}
