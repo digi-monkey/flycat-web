@@ -14,6 +14,7 @@ import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { Loader } from 'components/Loader';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
@@ -42,6 +43,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
+  const [isLoadingMsg, setIsLoadingMsg] = useState<boolean>(false);
+  const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
 
   const maxMsgLength = _maxMsgLength || 50;
   const relayUrls = worker?.relays.map(r => r.url) || [];
@@ -104,6 +107,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   );
 
   const query = async () => {
+    setIsLoadingMsg(true);
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
     let events = await dbQuery.matchFilterRelay(
       msgFilter,
@@ -120,6 +124,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     events = mergeAndSortUniqueDbEvents(events, events);
     console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
+    setIsLoadingMsg(false);
   };
 
   useEffect(() => {
@@ -141,69 +146,70 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const onPullToRefresh = async () => {
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
-    console.log("refresh!");
+    setIsPullRefreshing(true);
+    console.log('refresh!');
     worker?.subFilter({ filter: msgFilter });
     await query();
-  }
+    setIsPullRefreshing(false);
+  };
 
   const onBroadcastEvent = async (event: Event, msg: typeof message) => {
-    if (!worker) return msg.error("worker not found.");
+    if (!worker) return msg.error('worker not found.');
     const pubHandler = worker.pubEvent(event);
     noticePubEventResult(worker.relays.length, pubHandler);
-  }
+  };
 
   const extraMenu = [
     {
-      label: "broadcast",
-      onClick: onBroadcastEvent
-    }
-  ]
+      label: 'broadcast',
+      onClick: onBroadcastEvent,
+    },
+  ];
 
   return (
     <>
-      <PullToRefresh
-        onRefresh={onPullToRefresh}
-      >
+      <Loader isLoading={isLoadingMsg && !isPullRefreshing} />
+      <PullToRefresh onRefresh={onPullToRefresh}>
         <>
-        {newComingMsg.length > 0 && (
-          <div className={styles.reloadFeedBtn}>
-            <Button onClick={onClickNewMsg} type="link">
-              Show {newComingMsg.length} new posts
-            </Button>
-          </div>
-        )}
-
-        <div
-          className={classNames(styles.home, {
-            [styles.noData]: msgList.length === 0,
-          })}
-        >
-          {msgList.length > 0 && (
-            <>
-              <div className={styles.msgList}>
-                <PostItems
-                  msgList={msgList}
-                  worker={worker!}
-                  showLastReplyToEvent={true}
-                  extraMenu={extraMenu}
-                />
-              </div>
-              <Button
-                type="link"
-                block
-                onClick={() => setLoadMoreCount(prev => prev + 1)}
-              >
-                {t('home.loadMoreBtn')}
+          {newComingMsg.length > 0 && (
+            <div className={styles.reloadFeedBtn}>
+              <Button onClick={onClickNewMsg} type="link">
+                Show {newComingMsg.length} new posts
               </Button>
-              <br />
-              <br />
-              <br />
-              <br />
-              <br />
-            </>
+            </div>
           )}
-          {msgList.length === 0 && emptyDataReactNode}
-        </div>
+
+          <div
+            className={classNames(styles.home, {
+              [styles.noData]: msgList.length === 0,
+            })}
+          >
+            {msgList.length > 0 && (
+              <>
+                <div className={styles.msgList}>
+                  <PostItems
+                    msgList={msgList}
+                    worker={worker!}
+                    showLastReplyToEvent={true}
+                    extraMenu={extraMenu}
+                  />
+                </div>
+                <Button
+                  type="link"
+                  block
+                  onClick={() => setLoadMoreCount(prev => prev + 1)}
+                >
+                  {t('home.loadMoreBtn')}
+                </Button>
+                <br />
+                <br />
+                <br />
+                <br />
+                <br />
+              </>
+            )}
+            {msgList.length === 0 && !isLoadingMsg && emptyDataReactNode}
+          </div>
         </>
       </PullToRefresh>
     </>
