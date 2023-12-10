@@ -9,6 +9,7 @@ import { maxStrings } from 'utils/common';
 import { CallWorker } from 'core/worker/caller';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Paths } from 'constants/path';
+import { SmallLoader } from 'components/Loader';
 
 import styles from './sub.module.scss';
 import PostArticle from '../PostArticle';
@@ -30,6 +31,7 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
 
   const [loadedUserProfile, setLoadedUserProfile] =
     useState<EventSetMetadataContent>();
+  const [isReloading, setIsReloading] = useState<boolean>(false);
 
   const loadUserProfile = async () => {
     if (!event) return;
@@ -42,10 +44,17 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
     }
   };
 
-  const tryReloadLastReplyEvent = () => {
-    if (!eventId) return;
-
-    worker?.subMsgByEventIds([eventId]);
+  const tryReloadLastReplyEvent = async () => {
+    if (!eventId || !worker) return;
+    setIsReloading(true);
+    const handle = worker.subMsgByEventIds([eventId]).getIterator();
+    for await (const data of handle) {
+      if (data.event.id == eventId) {
+        setIsReloading(false);
+        break;
+      }
+    }
+    setIsReloading(false);
   };
 
   useEffect(() => {
@@ -84,12 +93,18 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
 
   return (
     <div className={styles.replyEvent}>
-      <Link href={`${Paths.event + '/' + eventId}`}>
-        event@{shortifyEventId(eventId)}
-      </Link>
-      <Button onClick={tryReloadLastReplyEvent} type="link">
-        try reload
-      </Button>
+      {isReloading ? (
+        <SmallLoader isLoading={isReloading} />
+      ) : (
+        <>
+          <Link href={`${Paths.event + '/' + eventId}`}>
+            event@{shortifyEventId(eventId)}
+          </Link>
+          <Button onClick={tryReloadLastReplyEvent} type="link">
+            try reload
+          </Button>
+        </>
+      )}
     </div>
   );
 };

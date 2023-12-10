@@ -34,13 +34,13 @@ export const Nprofile: React.FC<{ nprofile: NprofileResult }> = ({
   }
 
   return (
-    <div className={styles.refLink}>
+    <span className={styles.refLink}>
       <a
         href={i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey}
         target="_blank"
       >
         nprofile@{shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
       </a>
-    </div>
+    </span>
   );
 };

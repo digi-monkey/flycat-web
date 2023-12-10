@@ -1,3 +1,4 @@
+import { SmallLoaderUI } from './small-ui';
 import { LoaderUI } from './ui';
 
 export interface LoaderProp {
@@ -12,6 +13,14 @@ export const Loader: React.FC<LoaderProp> = ({ isLoading }) => {
           <LoaderUI />
         </div>
       )}
+    </>
+  );
+};
+
+export const SmallLoader: React.FC<LoaderProp> = ({ isLoading }) => {
+  return (
+    <>
+      {isLoading && <SmallLoaderUI />}
     </>
   );
 };

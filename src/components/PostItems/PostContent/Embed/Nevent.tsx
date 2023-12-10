@@ -31,11 +31,11 @@ export const Nevent: React.FC<{
     <div className={styles.refLink}>
       <a
         href={
-          '/' + i18n?.language + Paths.user + '/' + nevent.decodedMetadata.id
+          '/' + i18n?.language + Paths.event + '/' + nevent.decodedMetadata.id
         }
         target="_self"
       >
-        nevent@${nevent.decodedMetadata.id}
+        nevent@{nevent.decodedMetadata.id}
       </a>
     </div>
   );
