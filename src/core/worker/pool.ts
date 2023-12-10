@@ -75,19 +75,21 @@ export class Pool {
         const relayUrl = normalizeWsUrl(_relayUrl);
         if (!this.wsConnectStatus.has(relayUrl)) {
           const onOpen = _event => {
-            if (ws.isConnected() === true) {
+            if (ws.isConnected() === true && !this.wsConnectStatus.get(relayUrl)) {
               this.wsConnectStatus.set(relayUrl, true);
               console.log(`WebSocket connection to ${relayUrl} connected`);
               this.onWsConnectStatusChange(this.wsConnectStatus);
             }
           };
           const onerror = (event: globalThis.Event) => {
-            console.error(`WebSocket error: `, event);
-            this.wsConnectStatus.set(relayUrl, false);
-            this.onWsConnectStatusChange(this.wsConnectStatus);
+            if(ws.isConnected() === false && this.wsConnectStatus.get(relayUrl) === true){
+              console.error(`WebSocket error: `, event);
+              this.wsConnectStatus.set(relayUrl, false);
+              this.onWsConnectStatusChange(this.wsConnectStatus);
+            }
           };
           const onclose = () => {
-            if (this.wsConnectStatus.get(relayUrl) === true) {
+            if (ws.isConnected() === false && this.wsConnectStatus.get(relayUrl) === true) {
               console.log(`WebSocket connection to ${relayUrl} closed`);
               this.wsConnectStatus.set(relayUrl, false);
               this.onWsConnectStatusChange(this.wsConnectStatus);
