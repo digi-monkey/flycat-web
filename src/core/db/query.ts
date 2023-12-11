@@ -20,10 +20,12 @@ export class Query {
     }
   }
 
-  createEventByIdQuerier(relayUrls: string[], eventId?: EventId) {
+  createEventByIdQuerier(relayUrls: string[], eventId?: EventId): () => Promise<[DbEvent | undefined | null, boolean]> {
     return async () => {
+      const finished = true;
+      
       if (!eventId) {
-        return null;
+        return [null, finished];
       }
 
       const normalizeRelayUrls = relayUrls.map(r => normalizeWsUrl(r)); 
@@ -31,11 +33,11 @@ export class Query {
       if (event && relayUrls.length > 0) {
         const seenRelays = event.seen.map(r => normalizeWsUrl(r));
         if(normalizeRelayUrls.some(relay => seenRelays.includes(relay))){
-          return event;
+          return [event, finished];
         }
-        return null;
+        return [null, finished];
       }
-      return event;
+      return [event, finished];
     };
   }
 

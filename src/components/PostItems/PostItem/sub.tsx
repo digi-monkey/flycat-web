@@ -24,9 +24,10 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
   const router = useRouter();
   const relayUrls = worker?.relays.map(r => r.url) || [];
 
-  const event = useLiveQuery(
+  const [event, loaded] = useLiveQuery(
     dbQuery.createEventByIdQuerier(relayUrls, eventId),
     [eventId],
+    [null, false], // default result: makes 'loaded' false while loading
   );
 
   const [loadedUserProfile, setLoadedUserProfile] =
@@ -91,20 +92,22 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
     );
   }
 
+  const ReloadUI = isReloading ? (
+    <SmallLoader isLoading={isReloading} />
+  ) : (
+    <>
+      <Link href={`${Paths.event + '/' + eventId}`}>
+        event@{shortifyEventId(eventId)}
+      </Link>
+      <Button onClick={tryReloadLastReplyEvent} type="link">
+        try reload
+      </Button>
+    </>
+  );
+
   return (
     <div className={styles.replyEvent}>
-      {isReloading ? (
-        <SmallLoader isLoading={isReloading} />
-      ) : (
-        <>
-          <Link href={`${Paths.event + '/' + eventId}`}>
-            event@{shortifyEventId(eventId)}
-          </Link>
-          <Button onClick={tryReloadLastReplyEvent} type="link">
-            try reload
-          </Button>
-        </>
-      )}
+      {loaded ? ReloadUI : <SmallLoader isLoading={true} />}
     </div>
   );
 };
