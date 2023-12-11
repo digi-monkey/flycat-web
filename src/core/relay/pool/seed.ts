@@ -20,3 +20,11 @@ export const searchRelays = [
   'wss://nostr.novacisko.cz',
   'wss://relay.noswhere.com',
 ];
+
+export const readOnlyFallbackRelays = [
+  'wss://relay.nostr.band',
+  'wss://relay.nostr.bg',
+  'wss://relay.snort.social',
+  'wss://nos.lol',
+  'wss://purplepag.es'
+]

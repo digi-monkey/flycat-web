@@ -7,6 +7,7 @@ import { Nprofile } from './Nprofile';
 import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
 import { SmallLoader } from 'components/Loader';
+import { readOnlyFallbackRelays } from 'core/relay/pool/seed';
 import {
   NaddrResult,
   NeventResult,
@@ -48,7 +49,7 @@ export const NostrEmbed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
   const [transformFragment, setTransformFragment] = useState<TransformResult>();
 
   const parse = async () => {
-    const val = await Nip21.transform(data);
+    const val = await Nip21.transform(data, readOnlyFallbackRelays);
     setTransformFragment(val);
   };
 

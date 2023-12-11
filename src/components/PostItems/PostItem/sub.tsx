@@ -62,6 +62,12 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
     loadUserProfile();
   }, [event]);
 
+  useEffect(()=>{
+    if(loaded && event == null){
+      tryReloadLastReplyEvent();
+    }
+  }, [loaded]);
+
   if (event) {
     return Nip23.isBlogPost(event) ? (
       <PostArticle event={event} key={event.id} />
