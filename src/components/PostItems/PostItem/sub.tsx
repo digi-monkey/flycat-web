@@ -1,19 +1,21 @@
-import { Avatar, Button } from 'antd';
+import { Button } from 'antd';
 import { dbQuery, dexieDb } from 'core/db';
 import { Nip23 } from 'core/nip/23';
-import { shortifyEventId, shortifyPublicKey } from 'core/nostr/content';
+import { shortifyEventId } from 'core/nostr/content';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import { maxStrings } from 'utils/common';
 import { CallWorker } from 'core/worker/caller';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Paths } from 'constants/path';
 import { SmallLoader } from 'components/Loader';
+import { PostContent } from '../PostContent';
+import { PostCommunityHeader } from '../PostCommunityHeader';
 
 import styles from './sub.module.scss';
 import PostArticle from '../PostArticle';
 import Link from 'next/link';
+import PostUser from '../PostUser';
 
 export interface SubPostUIProp {
   eventId: string;
@@ -62,8 +64,8 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
     loadUserProfile();
   }, [event]);
 
-  useEffect(()=>{
-    if(loaded && event == null){
+  useEffect(() => {
+    if (loaded && event == null) {
       tryReloadLastReplyEvent();
     }
   }, [loaded]);
@@ -72,27 +74,20 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
     return Nip23.isBlogPost(event) ? (
       <PostArticle event={event} key={event.id} />
     ) : (
-      <div className={styles.replyEvent}>
-        <div
-          className={styles.user}
-          onClick={() => {
-            router.push(`/user/${event.pubkey}`);
-          }}
-        >
-          <Avatar src={loadedUserProfile?.picture} alt="picture" />
-          <span className={styles.name}>
-            {loadedUserProfile?.name || shortifyPublicKey(event.pubkey)}
-          </span>
-        </div>
+      <div className={styles.replyEvent} key={event.id}>
+        <PostCommunityHeader event={event} />
+        <PostUser
+          publicKey={event.pubkey}
+          profile={loadedUserProfile}
+          event={event}
+        />
         <div className={styles.content}>
-          <div
-            className={styles.event}
-            onClick={() => {
-              router.push(`/event/${event.id}`);
-            }}
-          >
-            {maxStrings(event.content, 150)}
-          </div>
+          <PostContent
+            worker={worker}
+            ownerEvent={event}
+            showLastReplyToEvent={false}
+            isExpanded={true}
+          />
         </div>
       </div>
     );
