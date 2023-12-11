@@ -5,8 +5,18 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { deserializeMetadata } from 'core/nostr/content';
-import { PostItem } from './PostItem';
 import { EventWithSeen } from 'pages/type';
+
+import LazyLoad from 'react-lazyload';
+import dynamic from 'next/dynamic';
+
+const PostItem = dynamic(
+  async () => {
+    const mod = await import('./PostItem');
+    return mod.PostItem;
+  },
+  { loading: () => <p>Loading Post...</p>, ssr: false, suspense: true },
+);
 
 interface PostItemsProps {
   msgList: DbEvent[] | EventWithSeen[];
@@ -18,7 +28,7 @@ interface PostItemsProps {
     onClick: (event: Event, msg: typeof message) => any;
   }[];
   extraHeader?: React.ReactNode;
-  isExpanded?: boolean
+  isExpanded?: boolean;
 }
 
 const PostItems: React.FC<PostItemsProps> = ({
@@ -28,7 +38,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   showFromCommunity = true,
   extraMenu,
   extraHeader,
-  isExpanded = false
+  isExpanded = false,
 }) => {
   const profileEvents = useLiveQuery(
     async () => {
@@ -52,17 +62,18 @@ const PostItems: React.FC<PostItemsProps> = ({
   return (
     <>
       {msgList.map(msg => (
-        <PostItem
-          key={msg.id}
-          profile={getUser(msg.pubkey)}
-          event={msg}
-          worker={worker}
-          showLastReplyToEvent={showLastReplyToEvent}
-          showFromCommunity={showFromCommunity}
-          extraMenu={extraMenu}
-          extraHeader={extraHeader}
-          isExpanded={isExpanded}
-        />
+        <LazyLoad height={350} offset={[-100, 0]} once key={msg.id}>
+          <PostItem
+            profile={getUser(msg.pubkey)}
+            event={msg}
+            worker={worker}
+            showLastReplyToEvent={showLastReplyToEvent}
+            showFromCommunity={showFromCommunity}
+            extraMenu={extraMenu}
+            extraHeader={extraHeader}
+            isExpanded={isExpanded}
+          />
+        </LazyLoad>
       ))}
     </>
   );

@@ -7,9 +7,10 @@ import { DbEvent } from 'core/db/schema';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { Nip18 } from 'core/nip/18';
 import { PostUI } from './ui';
+import { useMemo } from 'react';
 
 import dynamic from 'next/dynamic';
-import { useMemo } from 'react';
+
 
 const PostRepost = dynamic(
   async () => {
