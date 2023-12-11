@@ -73,7 +73,7 @@ export const PostContent: React.FC<PostContentProp> = ({
 
   const style = expanded
     ? { maxHeight: '100%' }
-    : { maxHeight: '150px', overflow: 'hidden' };
+    : { maxHeight: '350px', overflow: 'hidden' };
 
   return (
     <div>

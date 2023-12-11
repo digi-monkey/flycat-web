@@ -45,12 +45,13 @@ const PostRepost: React.FC<PostRepostProp> = ({
   }, [event]);
 
   const relayUrls = worker.relays.map(r => r.url) || [];
-  const targetEventFromDb = useLiveQuery(
+  const [targetEventFromDb] = useLiveQuery(
     dbQuery.createEventByIdQuerier(
       relayUrls,
       Nip18.getTargetEventIdRelay(event).id,
     ),
     [event],
+    []
   );
 
   useEffect(() => {

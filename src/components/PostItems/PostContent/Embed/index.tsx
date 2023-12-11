@@ -6,6 +6,7 @@ import { Note } from './Note';
 import { Nprofile } from './Nprofile';
 import { Npub } from './Npub';
 import { Nrelay } from './Nrelay';
+import { SmallLoader } from 'components/Loader';
 import {
   NaddrResult,
   NeventResult,
@@ -58,6 +59,6 @@ export const NostrEmbed: React.FC<{ data: ParsedFragment }> = ({ data }) => {
   return transformFragment ? (
     <ParsedNostrEmbed res={transformFragment} />
   ) : (
-    <p>parsing nostr embed..</p>
+    <SmallLoader isLoading={true} />
   );
 };

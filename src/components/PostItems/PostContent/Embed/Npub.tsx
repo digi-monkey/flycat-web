@@ -30,10 +30,10 @@ export const Npub: React.FC<{npub: NpubResult}> = ({npub}) => {
   }
 
   return (
-    <div className={styles.refLink}>
+    <span className={styles.refLink}>
       <a href={i18n?.language + Paths.user + npub.pubkey} target="_blank">
         npub@{shortifyPublicKey(npub.pubkey)}
       </a>
-    </div>
+    </span>
   );
 };
