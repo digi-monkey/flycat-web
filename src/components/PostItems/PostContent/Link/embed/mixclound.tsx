@@ -11,6 +11,7 @@ export const MixCloudEmbed = ({ link }: { link: string }) => {
     <>
       <br />
       <iframe
+        onClick={e => e.stopPropagation()}
         title="SoundCloud player"
         width="100%"
         height="120"

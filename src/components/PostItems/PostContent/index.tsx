@@ -10,6 +10,9 @@ import { doTextTransformer } from 'hooks/useTransformText';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
+import path from 'path';
+import { Paths } from 'constants/path';
 
 const SubPostItem = dynamic(
   async () => {
@@ -33,6 +36,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   isExpanded = false,
 }) => {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const lastReplyToEventId = useMemo(() => {
     const lastReply = msgEvent.tags
@@ -72,13 +76,18 @@ export const PostContent: React.FC<PostContentProp> = ({
   );
 
   const style = expanded
-    ? { maxHeight: '100%' }
-    : { maxHeight: '350px', overflow: 'hidden' };
+    ? { maxHeight: '100%', cursor: "pointer" }
+    : { maxHeight: '350px', overflow: 'hidden', cursor: "pointer" };
+  
+  const onUIClick = (e)=>{
+    e.stopPropagation();
+    router.push(Paths.event + '/' + msgEvent.id)
+  }
 
   return (
     <div>
       <div>
-        <div ref={contentRef} style={style}>
+        <div ref={contentRef} style={style} onClick={onUIClick}>
           {UI}
         </div>
         {isOverflow && !expanded && (

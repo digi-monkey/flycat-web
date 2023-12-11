@@ -36,6 +36,7 @@ export function LightingInvoice({ url }: { url: string }) {
 
   return (
     <span
+      onClick={(e)=>e.stopPropagation()}
       style={{
         padding: '10px',
         width: '300px',
@@ -112,6 +113,7 @@ export function LnUrlInvoice({ url }: { url: string }) {
 
   return (
     <span
+      onClick={(e)=>e.stopPropagation()}
       style={{
         padding: '10px',
         width: '300px',
