@@ -2,8 +2,6 @@ import { Divider, Segmented, Tag } from 'antd';
 import ReplyEventInput from 'components/ReplyNoteInput';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
-
-import styles from './index.module.scss';
 import { UserMap, EventMap, PublicKey } from 'core/nostr/type';
 import { useEffect, useState } from 'react';
 import { TreeNode } from './tree';
@@ -11,10 +9,21 @@ import { useSubReplyEvents, useSubUserMetadata } from './hooks';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { _handleEvent } from './util';
 import { getEventIdsFromETags } from 'core/nostr/util';
-import { SubPostUI } from 'components/PostItems/PostItem/sub';
+import { CallRelayType } from 'core/worker/type';
+
+import dynamic from 'next/dynamic';
+import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
 import classNames from 'classnames';
-import { CallRelayType } from 'core/worker/type';
+
+const SubPostUI = dynamic(
+  async () => {
+    const mod = await import('components/PostItems/PostItem/sub');
+    return mod.SubPostUI;
+  },
+  { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true },
+);
+
 
 export interface CommentsProps {
   rootEvent: EventWithSeen;

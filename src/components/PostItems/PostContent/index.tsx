@@ -7,12 +7,11 @@ import { CallWorker } from 'core/worker/caller';
 import { isNsfwEvent } from 'utils/validator';
 import { renderContent } from './content';
 import { doTextTransformer } from 'hooks/useTransformText';
+import { useRouter } from 'next/router';
+import { Paths } from 'constants/path';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
-import path from 'path';
-import { Paths } from 'constants/path';
 
 const SubPostItem = dynamic(
   async () => {
