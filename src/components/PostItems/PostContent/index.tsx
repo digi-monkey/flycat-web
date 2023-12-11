@@ -65,9 +65,14 @@ export const PostContent: React.FC<PostContentProp> = ({
     setContent(renderContent(elements, isNsfwEvent(msgEvent)));
   }, []);
 
+  const contentStyle = { cursor: "pointer" };
+  const onContentClick =  (e)=>{
+    e.stopPropagation();
+    router.push(Paths.event + '/' + msgEvent.id)
+  }
   const UI = (
     <>
-      {content}
+      <div onClick={onContentClick} style={contentStyle}>{content}</div>
       {showLastReplyToEvent && lastReplyToEventId && (
         <SubPostItem eventId={lastReplyToEventId} worker={worker} />
       )}
@@ -75,18 +80,13 @@ export const PostContent: React.FC<PostContentProp> = ({
   );
 
   const style = expanded
-    ? { maxHeight: '100%', cursor: "pointer" }
-    : { maxHeight: '350px', overflow: 'hidden', cursor: "pointer" };
-  
-  const onUIClick = (e)=>{
-    e.stopPropagation();
-    router.push(Paths.event + '/' + msgEvent.id)
-  }
+    ? { maxHeight: '100%' }
+    : { maxHeight: '350px', overflow: 'hidden' };
 
   return (
     <div>
       <div>
-        <div ref={contentRef} style={style} onClick={onUIClick}>
+        <div ref={contentRef} style={style}>
           {UI}
         </div>
         {isOverflow && !expanded && (

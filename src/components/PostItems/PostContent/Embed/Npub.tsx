@@ -14,6 +14,7 @@ export const Npub: React.FC<{npub: NpubResult}> = ({npub}) => {
           href={Paths.user + npub.pubkey}
           target="_blank"
           className={styles.hoverLink}
+          onClick={e => e.stopPropagation()}
         >
           @{npub.profile.name}
         </a>
@@ -31,7 +32,7 @@ export const Npub: React.FC<{npub: NpubResult}> = ({npub}) => {
 
   return (
     <span className={styles.refLink}>
-      <a href={i18n?.language + Paths.user + npub.pubkey} target="_blank">
+      <a href={i18n?.language + Paths.user + npub.pubkey} target="_blank" onClick={e => e.stopPropagation()}>
         npub@{shortifyPublicKey(npub.pubkey)}
       </a>
     </span>

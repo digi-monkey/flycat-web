@@ -34,6 +34,7 @@ export const Nevent: React.FC<{
           '/' + i18n?.language + Paths.event + '/' + nevent.decodedMetadata.id
         }
         target="_self"
+        onClick={e => e.stopPropagation()}
       >
         nevent@{nevent.decodedMetadata.id}
       </a>

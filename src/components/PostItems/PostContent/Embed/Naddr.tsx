@@ -17,7 +17,7 @@ export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
       return (
         <div className={styles.refLongForm}>
           <Icon type="icon-article" />
-          <Link href={'/post/' + article.pubKey + '/' + article.id}>
+          <Link href={'/post/' + article.pubKey + '/' + article.id} onClick={e => e.stopPropagation()}>
             {article.title || 'No Title'}
           </Link>{' '}
           <span className={styles.summary}>
@@ -40,6 +40,7 @@ export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
             naddr.decodedMetadata.identifier
           }
           target="_blank"
+          onClick={e => e.stopPropagation()}
         >
           longFrom@{shortifyPublicKey(naddr.decodedMetadata.pubkey)}:
           {naddr.decodedMetadata.kind}:{naddr.decodedMetadata.identifier}
@@ -53,6 +54,7 @@ export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
       <a
         href={i18n?.language + Paths.user + naddr.decodedMetadata.kind}
         target="_blank"
+        onClick={e => e.stopPropagation()}
       >
         naddr@{shortifyPublicKey(naddr.decodedMetadata.pubkey)}:
         {naddr.decodedMetadata.kind}:{naddr.decodedMetadata.identifier}
