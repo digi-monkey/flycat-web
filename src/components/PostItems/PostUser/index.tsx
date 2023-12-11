@@ -5,9 +5,6 @@ import { EventWithSeen } from 'pages/type';
 import { Event } from 'core/nostr/Event';
 import { useEffect, useState } from 'react';
 import { isNip05DomainName } from 'core/nip/05';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { dexieDb } from 'core/db';
-import { deserializeMetadata } from 'core/nostr/content';
 import { PostUserMenu } from './menu';
 import { EventSetMetadataContent } from 'core/nostr/type';
 
