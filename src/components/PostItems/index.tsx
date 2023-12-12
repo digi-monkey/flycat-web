@@ -63,7 +63,7 @@ const PostItems: React.FC<PostItemsProps> = ({
   return (
     <>
       {msgList.map(msg => (
-        <LazyLoad height={350} offset={[-50, 0]} once key={msg.id}>
+        <LazyLoad height={350} once key={msg.id}>
           <PostItem
             profile={getUser(msg.pubkey)}
             event={msg}

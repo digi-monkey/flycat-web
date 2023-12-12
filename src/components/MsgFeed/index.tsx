@@ -1,5 +1,5 @@
 import { Button, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
@@ -15,6 +15,7 @@ import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
+import { createQueryCacheId, queryCache } from 'core/cache/query';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
@@ -40,27 +41,37 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 }) => {
   const { t } = useTranslation();
   const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
+
   const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
   const [isLoadingMsg, setIsLoadingMsg] = useState<boolean>(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
 
-  const maxMsgLength = _maxMsgLength || 50;
-  const relayUrls = worker?.relays.map(r => r.url) || [];
+  const relayUrls = useMemo(
+    () => worker?.relays.map(r => r.url) || [],
+    [worker?.relays],
+  );
+  const memoMsgList = useMemo(() => msgList, [msgList]);
+  const queryCacheId = createQueryCacheId({
+    msgFilter,
+    isValidEvent,
+    relayUrls,
+  });
 
   useSubMsg({
     msgFilter,
     isValidEvent,
     worker,
   });
-  useLastReplyEvent({ msgList, worker });
+  useLastReplyEvent({ msgList: memoMsgList, worker });
   useLoadMoreMsg({
     msgFilter,
     isValidEvent,
     msgList,
     worker,
     setMsgList,
+    queryCacheId,
     loadMoreCount,
   });
 
@@ -109,6 +120,16 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const query = async () => {
     setIsLoadingMsg(true);
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+
+    // get from cache first
+    const cache = queryCache.get(queryCacheId);
+    if (cache) {
+      console.log('hit cache!');
+      setMsgList(cache);
+      setIsLoadingMsg(false);
+      return;
+    }
+
     let events = await dbQuery.matchFilterRelay(
       msgFilter,
       relayUrls,
@@ -124,6 +145,9 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     events = mergeAndSortUniqueDbEvents(events, events);
     console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
+    // save cache
+    queryCache.set(queryCacheId, events);
+
     setIsLoadingMsg(false);
   };
 
@@ -137,9 +161,11 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   }, [msgFilter, worker?.relayGroupId]);
 
   const onClickNewMsg = () => {
-    setMsgList(prev =>
-      mergeAndSortUniqueDbEvents(newComingMsg, prev).slice(0, maxMsgLength),
-    );
+    setMsgList(prev => {
+      const newData = newComingMsg.concat(prev);
+      queryCache.set(queryCacheId, newData);
+      return newData;
+    });
     setNewComingMsg([]);
   };
 
@@ -147,7 +173,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
     setIsPullRefreshing(true);
-    console.log('refresh!');
     worker?.subFilter({ filter: msgFilter });
     await query();
     setIsPullRefreshing(false);
@@ -188,7 +213,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
               <>
                 <div className={styles.msgList}>
                   <PostItems
-                    msgList={msgList}
+                    msgList={memoMsgList}
                     worker={worker!}
                     showLastReplyToEvent={true}
                     extraMenu={extraMenu}

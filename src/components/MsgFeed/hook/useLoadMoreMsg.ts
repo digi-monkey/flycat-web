@@ -6,6 +6,7 @@ import { Dispatch, SetStateAction, useEffect } from 'react';
 import { validateFilter } from '../util';
 import { DbEvent } from 'core/db/schema';
 import { dbQuery } from 'core/db';
+import { queryCache } from 'core/cache/query';
 
 export function useLoadMoreMsg({
   msgFilter,
@@ -14,6 +15,7 @@ export function useLoadMoreMsg({
   msgList,
   setMsgList,
   loadMoreCount,
+  queryCacheId
 }: {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
@@ -21,6 +23,7 @@ export function useLoadMoreMsg({
   msgList: DbEvent[];
   setMsgList: Dispatch<SetStateAction<DbEvent[]>>;
   loadMoreCount: number;
+  queryCacheId: string;
 }) {
   useEffect(() => {
     if (!worker) return;
@@ -37,15 +40,15 @@ export function useLoadMoreMsg({
       data: [],
     };
     const filter = { ...msgFilter, ...{ until: lastMsg.created_at } };
-    worker.subFilter({ filter, callRelay }).iterating({
-      cb: (event, relayUrl) => {
-        //
-      },
-    });
+    worker.subFilter({ filter, callRelay });
 
     const relayUrls = worker.relays.map(r => r.url) || [];
     dbQuery.matchFilterRelay(filter, relayUrls, isValidEvent).then(events => {
-      setMsgList(prev => prev.concat(events));
+      setMsgList(prev => {
+        const newData = prev.concat(events);
+        queryCache.set(queryCacheId, newData);
+        return newData;
+      });
     })
   }, [msgFilter, isValidEvent, worker, loadMoreCount]);
 }
