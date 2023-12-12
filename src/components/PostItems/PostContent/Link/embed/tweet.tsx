@@ -30,7 +30,7 @@ export const TweetEmbed = ({ link }: { link: string }) => {
 
   return (
     <>
-      <div ref={tweetRef} className="tweet" style={{ width: '100%' }}></div>
+      <div ref={tweetRef} onClick={(e)=>e.stopPropagation()} className="tweet" style={{ width: '100%' }}></div>
       <Script
         async
         src="https://platform.twitter.com/widgets.js"

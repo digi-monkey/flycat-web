@@ -7,6 +7,8 @@ import { CallWorker } from 'core/worker/caller';
 import { isNsfwEvent } from 'utils/validator';
 import { renderContent } from './content';
 import { doTextTransformer } from 'hooks/useTransformText';
+import { useRouter } from 'next/router';
+import { Paths } from 'constants/path';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
@@ -33,6 +35,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   isExpanded = false,
 }) => {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const lastReplyToEventId = useMemo(() => {
     const lastReply = msgEvent.tags
@@ -62,9 +65,14 @@ export const PostContent: React.FC<PostContentProp> = ({
     setContent(renderContent(elements, isNsfwEvent(msgEvent)));
   }, []);
 
+  const contentStyle = { cursor: "pointer" };
+  const onContentClick =  (e)=>{
+    e.stopPropagation();
+    router.push(Paths.event + '/' + msgEvent.id)
+  }
   const UI = (
     <>
-      {content}
+      <div onClick={onContentClick} style={contentStyle}>{content}</div>
       {showLastReplyToEvent && lastReplyToEventId && (
         <SubPostItem eventId={lastReplyToEventId} worker={worker} />
       )}

@@ -3,6 +3,7 @@ export const WavlakeEmbed = ({ link }: { link: string }) => {
 
   return (
     <iframe
+      onClick={(e)=>e.stopPropagation()}
       style={{ borderRadius: 12 }}
       src={convertedUrl}
       width="100%"

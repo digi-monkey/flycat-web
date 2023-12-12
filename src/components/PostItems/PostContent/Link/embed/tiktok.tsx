@@ -2,6 +2,7 @@ export const TikTok = ({ link }: { link: string }) => {
   const vid = link.split('video/')[1];
   return (
     <iframe
+      onClick={(e)=>e.stopPropagation()}
       style={{
         aspectRatio: '9 / 13',
         maxWidth: 660,

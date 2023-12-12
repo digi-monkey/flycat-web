@@ -16,6 +16,7 @@ export const Nprofile: React.FC<{ nprofile: NprofileResult }> = ({
           href={Paths.user + nprofile.decodedMetadata.pubkey}
           target="_blank"
           className={styles.hoverLink}
+          onClick={e => e.stopPropagation()}
         >
           @
           {nprofile.profile.name ||
@@ -38,6 +39,7 @@ export const Nprofile: React.FC<{ nprofile: NprofileResult }> = ({
       <a
         href={i18n?.language + Paths.user + nprofile.decodedMetadata.pubkey}
         target="_blank"
+        onClick={e => e.stopPropagation()}
       >
         nprofile@{shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
       </a>

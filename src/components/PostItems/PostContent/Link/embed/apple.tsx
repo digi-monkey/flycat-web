@@ -15,6 +15,7 @@ export const AppleMusicEmbed = ({ link }: { link: string }) => {
       }}
       sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
       src={convertedUrl}
+      onClick={(e)=>e.stopPropagation()}
     ></iframe>
   );
 };

@@ -23,7 +23,8 @@ export const URLPreview = ({ url }: { url: string }) => {
   return (
     <div
       className={styles.preview}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         window.open(url, '_blank');
       }}
     >

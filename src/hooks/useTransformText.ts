@@ -3,7 +3,6 @@ import { ParsedFragment, transformText } from "components/PostItems/PostContent/
 const TextCache = new Map<string, Array<ParsedFragment>>();
 
 export function transformTextCached(id: string, content: string, tags: Array<Array<string>>) {
-  console.log("textCache size:", TextCache.size, content);
   if (content.length > 0) {
     const cached = TextCache.get(id);
     if (cached) return cached;

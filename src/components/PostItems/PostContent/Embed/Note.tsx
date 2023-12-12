@@ -32,6 +32,7 @@ export const Note: React.FC<{
       <a
         href={'/' + i18n?.language + Paths.event + '/' + note.eventId}
         target="_blank"
+        onClick={e => e.stopPropagation()}
       >
         note@{note.eventId}
       </a>

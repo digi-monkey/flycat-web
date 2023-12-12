@@ -8,6 +8,7 @@ export interface VideoPreviewProps {
 export const VideoPreview = ({ url, autoPreview }: VideoPreviewProps) => {
   return (
     <video
+      onClick={e => e.stopPropagation()}
       style={{ maxWidth: '100%', maxHeight: '300px' }}
       controls
       src={url}
