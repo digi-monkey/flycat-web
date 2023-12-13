@@ -8,25 +8,26 @@ import { mergeAndSortUniqueDbEvents } from 'utils/common';
 
 export function useSubMsg({
   setNewComingMsg,
+  setMsgList,
   msgFilter,
   isValidEvent,
   worker,
-  latest,
 }: {
+  setMsgList: Dispatch<SetStateAction<DbEvent[]>>;
   setNewComingMsg: Dispatch<SetStateAction<DbEvent[]>>;
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
-  latest?: number;
 }) {
   const subIntervalSeconds = 8;
-  const [intervalId, setIntervalId] = useState<number | undefined>();
+  let intervalId: number | undefined;
 
   const subMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
-    let since = msgFilter.since;
+    const exec = async (latest: number | undefined) => {
+      let since = msgFilter.since;
     if (latest) {
       if (since == null) {
         since = latest;
@@ -103,13 +104,20 @@ export function useSubMsg({
         },
       });
     }
+    }
+
+    setMsgList(prev => {
+      const latest = prev[0]?.created_at;
+      exec(latest);
+      return prev;
+    })
   };
 
   const clearProcess = () => {
     if (intervalId) {
       clearInterval(intervalId);
       console.debug('clear interval id', intervalId);
-      setIntervalId(undefined);
+      intervalId = undefined;
     }
   };
 
@@ -121,7 +129,7 @@ export function useSubMsg({
         const id = setInterval(() => {
           subMsg();
         }, seconds);
-        setIntervalId(id);
+        intervalId = id;
         console.debug('add new interval id', id);
       } catch (error: any) {
         console.debug('add failed, ', error.message);

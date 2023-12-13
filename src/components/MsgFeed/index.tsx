@@ -66,7 +66,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     msgFilter,
     isValidEvent,
     worker,
-    latest: memoMsgList[0]?.created_at,
+    setMsgList
   });
   useLastReplyEvent({ msgList: memoMsgList, worker });
 
