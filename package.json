@@ -128,7 +128,8 @@
     "generate": "plop --plopfile internals/generators/plopfile.ts",
     "prettify": "prettier --write",
     "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "preinstall": "./scripts/install.sh"
   },
   "browserslist": {
     "production": [

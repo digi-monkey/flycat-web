@@ -12,13 +12,11 @@ Flycat is a client-side software without introducing backends or database setup.
 `Nodejs >= v18.12.1` `yarn >= 1.22.19`
 
 ```sh
-git clone https://github.com/digi-monkey/flycat-web.git --recurse-submodules
+git clone https://github.com/digi-monkey/flycat-web.git
 
-## run install script
 cd flycat-web
-./scripts/install.sh
 
-# install packages
+# install dependencies
 yarn
 
 ## development
