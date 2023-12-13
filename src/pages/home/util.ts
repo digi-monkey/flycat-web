@@ -1,21 +1,4 @@
-import { franc } from "franc-min";
-
-const selectedTabKeyStorageKey = 'home-selected-tab-key';
-const selectedFilterStorageKey = 'home-selected-filter';
-
-export function updateLastSelectedTabKeyAndFilter(
-  tabKey: string,
-  filter: string,
-) {
-  localStorage.setItem(selectedTabKeyStorageKey, tabKey);
-  localStorage.setItem(selectedFilterStorageKey, filter);
-}
-
-export function getLastSelectedTabKeyAndFilter() {
-  const selectedTabKey = localStorage.getItem(selectedTabKeyStorageKey);
-  const selectedFilter = localStorage.getItem(selectedFilterStorageKey);
-  return { selectedFilter, selectedTabKey };
-}
+import { franc } from 'franc-min';
 
 export function isChineseLang(text: string) {
   // Count the number of Kanji, Hiragana, and Katakana characters in the text
