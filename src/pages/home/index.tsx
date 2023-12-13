@@ -1,38 +1,38 @@
-import { Paths } from 'constants/path';
-import { connect } from 'react-redux';
-import { ReactNode, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { useCallWorker } from 'hooks/useWorker';
-import { useMyPublicKey } from 'hooks/useMyPublicKey';
-import { useTranslation } from 'next-i18next';
-import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
-import { LoginMode, SignEvent } from 'store/loginReducer';
-import { Badge, Button, Input, Segmented, Tabs } from 'antd';
+import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { PublicKey } from 'core/nostr/type';
-import { useSubContactList } from './hooks';
-import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
-import { Event } from 'core/nostr/Event';
-import { useMatchMobile } from 'hooks/useMediaQuery';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { contactQuery } from 'core/db';
-import { isValidPublicKey } from 'utils/validator';
-import { homeMsgFilters, HomeMsgFilterType } from './filter';
-import {
-  getLastSelectedTabKeyAndFilter,
-  updateLastSelectedTabKeyAndFilter,
-} from './util';
-
 import Icon from 'components/Icon';
-import Link from 'next/link';
-import PubNoteTextarea from 'components/PubNoteTextarea';
-import dynamic from 'next/dynamic';
-import styles from './index.module.scss';
-import _ from 'lodash';
-import { trendingTags } from './hashtags';
-import { updates } from './updates';
+import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import PageTitle from 'components/PageTitle';
+import PubNoteTextarea from 'components/PubNoteTextarea';
+import { Paths } from 'constants/path';
+import { contactQuery } from 'core/db';
+import { Event } from 'core/nostr/Event';
+import { PublicKey } from 'core/nostr/type';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useMatchMobile } from 'hooks/useMediaQuery';
+import { useMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
+import _ from 'lodash';
+import { useTranslation } from 'next-i18next';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { loginMapStateToProps, parsePubKeyFromTags } from 'pages/helper';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { connect } from 'react-redux';
+import { LoginMode, SignEvent } from 'store/loginReducer';
+import { isValidPublicKey } from 'utils/validator';
 import { CustomFilter } from './custom-filter';
+import { homeMsgFilters, HomeMsgFilterType } from './filter';
+import { trendingTags } from './hashtags';
+import { useSubContactList } from './hooks';
+import styles from './index.module.scss';
+import { updates } from './updates';
+import { useLocalStorage } from 'usehooks-ts';
+import {
+  SELECTED_FILTER_STORAGE_KEY,
+  SELECTED_TAB_KEY_STORAGE_KEY,
+} from './constants';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -50,30 +50,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
   const defaultSelectedFilter = HomeMsgFilterType.all;
-  const [selectTabKey, setSelectTabKey] = useState<string>();
-  const [selectFilter, setSelectFilter] = useState<HomeMsgFilterType>();
-  const [selectNoscriptFilter, setSelectNoscriptFilter] = useState<HomeMsgFilterType>();
 
-
-  useEffect(() => {
-    const lastSelected = getLastSelectedTabKeyAndFilter();
-    if (lastSelected.selectedTabKey) {
-      setSelectTabKey(lastSelected.selectedTabKey);
-    } else {
-      setSelectTabKey(defaultTabActivateKey);
-    }
-    if (lastSelected.selectedFilter) {
-      setSelectFilter(lastSelected.selectedFilter as HomeMsgFilterType);
-    } else {
-      setSelectFilter(defaultSelectedFilter);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectFilter && selectTabKey) {
-      updateLastSelectedTabKeyAndFilter(selectTabKey, selectFilter);
-    }
-  }, [selectFilter, selectTabKey]);
+  const [lastSelectedTabKey, setLastSelectedTabKey] = useLocalStorage<string>(
+    SELECTED_TAB_KEY_STORAGE_KEY,
+    defaultTabActivateKey,
+  );
+  const [lastSelectedFilter, setLastSelectedFilter] =
+    useLocalStorage<HomeMsgFilterType>(
+      SELECTED_FILTER_STORAGE_KEY,
+      defaultSelectedFilter,
+    );
 
   const [myContactEvent, setMyContactEvent] = useState<Event>();
   const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
@@ -96,47 +82,52 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     });
   }, [isLoggedIn, myPublicKey]);
 
-  const emptyFollowReactData = (
-    <>
-      <div className={styles.tipsy}>
-        <h1>Share Your Thoughts with The Community</h1>
-        <p>
-          Only your notes and the ones you follow will show up here. Publish
-          your ideas and discover what others are sharing!
-        </p>
-      </div>
-      {!isLoggedIn && (
-        <div className={styles.login}>
-          <Button type="primary" onClick={() => router.push(Paths.login)}>
-            {t('nav.menu.signIn')}
-          </Button>
-          <span
-            onClick={() => router.push(Paths.login)}
-            className={styles.explore}
-          >
-            Explore as a guest
-          </span>
+  const emptyFollowReactData = useMemo(
+    () => (
+      <>
+        <div className={styles.tipsy}>
+          <h1>Share Your Thoughts with The Community</h1>
+          <p>
+            Only your notes and the ones you follow will show up here. Publish
+            your ideas and discover what others are sharing!
+          </p>
         </div>
-      )}
-    </>
+        {!isLoggedIn && (
+          <div className={styles.login}>
+            <Button type="primary" onClick={() => router.push(Paths.login)}>
+              {t('nav.menu.signIn')}
+            </Button>
+            <span
+              onClick={() => router.push(Paths.login)}
+              className={styles.explore}
+            >
+              Explore as a guest
+            </span>
+          </div>
+        )}
+      </>
+    ),
+    [isLoggedIn, router, t],
   );
 
-  const onMsgFilterChanged = () => {
-    if (selectTabKey == null) return 'unknown tab key';
-    if (selectFilter == null) return 'unknown filter type';
-    if(selectTabKey === "custom") return;
+  const onMsgFilterChanged = useCallback(() => {
+    if (lastSelectedTabKey == null) return 'unknown tab key';
+    if (lastSelectedFilter == null) return 'unknown filter type';
+    if (lastSelectedTabKey === 'custom') return;
 
-    let msgFilter = homeMsgFilters.find(v => v.type === selectFilter)?.filter;
+    let msgFilter = homeMsgFilters.find(
+      v => v.type === lastSelectedFilter,
+    )?.filter;
     msgFilter = msgFilter ? _.cloneDeep(msgFilter) : undefined;
     const isValidEvent = homeMsgFilters.find(
-      v => v.type === selectFilter,
+      v => v.type === lastSelectedFilter,
     )?.isValidEvent;
     let emptyDataReactNode: ReactNode | null = null;
 
     if (msgFilter == null) return 'unknown filter';
 
     const pks: PublicKey[] = [];
-    if (selectTabKey === 'follow') {
+    if (lastSelectedTabKey === 'follow') {
       if (!isLoggedIn) {
         return console.debug('not login');
       }
@@ -160,8 +151,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     console.log(
       'start sub msg.. !!!msgFilter: ',
       msgFilter,
-      selectFilter,
-      selectTabKey,
+      lastSelectedFilter,
+      lastSelectedTabKey,
       isValidEvent,
     );
 
@@ -171,24 +162,24 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       emptyDataReactNode,
     };
     setMsgSubProp(msgSubProp);
-  };
+  }, [
+    emptyFollowReactData,
+    isLoggedIn,
+    myContactEvent,
+    myPublicKey,
+    lastSelectedFilter,
+    lastSelectedTabKey,
+  ]);
 
   useEffect(() => {
     if (!alreadyQueryMyContact) return;
-
     onMsgFilterChanged();
-  }, [
-    selectFilter,
-    selectTabKey,
-    myContactEvent,
-    myPublicKey,
-    alreadyQueryMyContact,
-  ]);
+  }, [alreadyQueryMyContact, onMsgFilterChanged]);
 
   return (
     <BaseLayout>
       <Left>
-        <PageTitle title='Home'/>
+        <PageTitle title="Home" />
         {!isMobile && (
           <PubNoteTextarea
             pubSuccessCallback={(eventId, relayUrl) => {
@@ -201,29 +192,32 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             items={[
               { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
               { key: 'global', label: 'Global' },
-              { key: 'custom', label: <span>
-              Custom
-            </span>,  },
+              { key: 'custom', label: <span>Custom</span> },
             ]}
-            activeKey={selectTabKey}
-            onChange={key => setSelectTabKey(key)}
+            activeKey={lastSelectedTabKey}
+            onChange={key => setLastSelectedTabKey(key)}
           />
         </div>
         <div className={isMobile ? styles.mobileFilter : ''}>
           <div className={styles.msgFilter}>
-            {selectTabKey === 'custom' ? <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp}/> : <Segmented
-              value={selectFilter}
-              onChange={val => setSelectFilter(val as HomeMsgFilterType)}
-              options={homeMsgFilters.map(val => {
-                return {
-                  value: val.type,
-                  label: val.label,
-                };
-              })}
-            />}
+            {lastSelectedTabKey === 'custom' ? (
+              <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp} />
+            ) : (
+              <Segmented
+                value={lastSelectedFilter}
+                onChange={val =>
+                  setLastSelectedFilter(val as HomeMsgFilterType)
+                }
+                options={homeMsgFilters.map(val => {
+                  return {
+                    value: val.type,
+                    label: val.label,
+                  };
+                })}
+              />
+            )}
           </div>
         </div>
-
         <MsgFeed msgSubProp={msgSubProp} worker={worker} />
       </Left>
       <Right>
@@ -249,7 +243,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
                 </div>
               </Link>
             ))}
-            <Link href={'https://github.com/digi-monkey/flycat-web/releases'}>Learn more</Link>
+            <Link href={'https://github.com/digi-monkey/flycat-web/releases'}>
+              Learn more
+            </Link>
           </div>
 
           <div className={styles.trending}>
