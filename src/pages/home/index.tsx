@@ -148,14 +148,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       }
     }
 
-    console.log(
-      'start sub msg.. !!!msgFilter: ',
-      msgFilter,
-      lastSelectedFilter,
-      lastSelectedTabKey,
-      isValidEvent,
-    );
-
     const msgSubProp: MsgSubProp = {
       msgFilter,
       isValidEvent,

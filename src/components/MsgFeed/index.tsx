@@ -70,9 +70,9 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   });
   useLastReplyEvent({ msgList: memoMsgList, worker });
 
-  const query = async () => {
-    setIsLoadingMsg(true);
+  const query = async () => {    
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+    setIsLoadingMsg(true);
 
     // get from cache first
     const cache = queryCache.get(queryCacheId);
