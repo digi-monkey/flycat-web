@@ -33,6 +33,8 @@ import {
   SELECTED_FILTER_STORAGE_KEY,
   SELECTED_TAB_KEY_STORAGE_KEY,
 } from './constants';
+import { migrateFn } from 'core/migrate/app-data';
+import { useAppDataMigration } from 'hooks/useAppDataMigration';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -50,6 +52,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
   const defaultSelectedFilter = HomeMsgFilterType.all;
+
+  const migrate = useCallback(migrateFn, []);
+  useAppDataMigration(migrate);
 
   const [lastSelectedTabKey, setLastSelectedTabKey] = useLocalStorage<string>(
     SELECTED_TAB_KEY_STORAGE_KEY,
@@ -161,6 +166,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       isValidEvent,
       emptyDataReactNode,
     };
+    console.log("msgSubProp: ", msgSubProp)
     setMsgSubProp(msgSubProp);
   }, [
     emptyFollowReactData,
@@ -195,7 +201,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               { key: 'custom', label: <span>Custom</span> },
             ]}
             activeKey={lastSelectedTabKey}
-            onChange={key => setLastSelectedTabKey(key)}
+            onChange={key => {
+              console.log("setLastSelectedTabKey", key) 
+              setLastSelectedTabKey(key)
+            }}
           />
         </div>
         <div className={isMobile ? styles.mobileFilter : ''}>
@@ -206,7 +215,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
               <Segmented
                 value={lastSelectedFilter}
                 onChange={val =>
-                  setLastSelectedFilter(val as HomeMsgFilterType)
+                  {
+                    console.log("setLastSelectedFilter", val)
+                    setLastSelectedFilter(val as HomeMsgFilterType)
+                  }
                 }
                 options={homeMsgFilters.map(val => {
                   return {
