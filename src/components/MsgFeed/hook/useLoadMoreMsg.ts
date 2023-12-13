@@ -1,7 +1,6 @@
 import { Event } from 'core/nostr/Event';
 import { Filter } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { CallRelayType } from 'core/worker/type';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { validateFilter } from '../util';
 import { DbEvent } from 'core/db/schema';
@@ -35,12 +34,8 @@ export function useLoadMoreMsg({
       return;
     }
 
-    const callRelay = {
-      type: CallRelayType.connected,
-      data: [],
-    };
     const filter = { ...msgFilter, ...{ until: lastMsg.created_at } };
-    worker.subFilter({ filter, callRelay });
+    worker.subFilter({ filter });
 
     const relayUrls = worker.relays.map(r => r.url) || [];
     dbQuery.matchFilterRelay(filter, relayUrls, isValidEvent).then(events => {

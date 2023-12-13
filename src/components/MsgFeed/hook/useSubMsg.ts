@@ -1,37 +1,38 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { createCallRelay } from 'core/worker/util';
-import { useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
-import { dbQuery } from 'core/db';
+import { DbEvent } from 'core/db/schema';
+import { mergeAndSortUniqueDbEvents } from 'utils/common';
 
 export function useSubMsg({
+  setNewComingMsg,
   msgFilter,
   isValidEvent,
   worker,
+  latest,
 }: {
+  setNewComingMsg: Dispatch<SetStateAction<DbEvent[]>>,
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   worker: CallWorker | undefined;
+  latest?: number;
 }) {
   const subIntervalSeconds = 8;
-  let intervalId: number | undefined;
+  const [intervalId, setIntervalId] = useState<number | undefined>();
 
   const subMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
 
     let since = msgFilter.since;
-
-    const relayUrls = worker.relays.map(r => r.url) || [];
-    const events = await dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
-    if(events.length > 0){
+    if(latest){
       if(since == null){
-        since = events[0].created_at;
+        since = latest;
       }else{
-        if(since > events[0].created_at){
-          since = events[0].created_at; 
+        if(latest > since){
+          since = latest;
         }
       }
     }else{
@@ -42,17 +43,16 @@ export function useSubMsg({
     const filter = {...msgFilter, since};
 
     const pks: string[] = [];
+    let events: Event[] = [];
 
-    const callRelay = createCallRelay([]);
     console.debug(
       'start sub msg..',
       filter,
-      callRelay,
       isValidEvent,
       typeof isValidEvent,
     );
     const dataStream = worker
-      .subFilter({ filter, callRelay })
+      .subFilter({ filter })
       .getIterator();
     for await (const data of dataStream) {
       const event = data.event;
@@ -62,10 +62,37 @@ export function useSubMsg({
         }
       }
 
+      events.push(event);
       if (!pks.includes(event.pubkey)) {
         pks.push(event.pubkey);
       }
     }
+  
+    events = events
+        .filter(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if (latest && targetEvent.created_at <= latest) {
+                return false;
+              }
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
+      events = mergeAndSortUniqueDbEvents(events as any, events as any);
+      console.log('sub diff: ', events, events.length, filter);
+      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events as any, prev));
+
     dataStream.unsubscribe();
     console.debug('finished sub msg!');
 
@@ -77,7 +104,6 @@ export function useSubMsg({
             kinds: [WellKnownEventKind.set_metadata],
             authors: pks,
           },
-          callRelay,
         })
     }
   };
@@ -86,7 +112,7 @@ export function useSubMsg({
     if(intervalId){
       clearInterval(intervalId);
       console.debug("clear interval id", intervalId);
-      intervalId = undefined;
+      setIntervalId(prev => undefined);
     }
   }
 
@@ -98,7 +124,7 @@ export function useSubMsg({
         const id = setInterval(() => {
           subMsg();
         }, seconds);
-        intervalId = id;
+        setIntervalId(prev => id);
         console.debug("add new interval id", id);
       } catch (error: any) {
         console.debug("add failed, ", error.message);

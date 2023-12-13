@@ -5,10 +5,8 @@ import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
 import { useLastReplyEvent } from './hook/useSubLastReply';
-import { useLoadMoreMsg } from './hook/useLoadMoreMsg';
 import { useTranslation } from 'react-i18next';
 import { dbQuery } from 'core/db';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { useSubMsg } from './hook/useSubMsg';
@@ -42,80 +40,35 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const { t } = useTranslation();
   const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
 
-  const [loadMoreCount, setLoadMoreCount] = useState<number>(1);
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
   const [isLoadingMsg, setIsLoadingMsg] = useState<boolean>(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
+  const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
 
   const relayUrls = useMemo(
     () => worker?.relays.map(r => r.url) || [],
     [worker?.relays],
   );
   const memoMsgList = useMemo(() => msgList, [msgList]);
-  const queryCacheId = createQueryCacheId({
-    msgFilter,
-    isValidEvent,
-    relayUrls,
-  });
+  const queryCacheId = useMemo(
+    () =>
+      createQueryCacheId({
+        msgFilter,
+        isValidEvent,
+        relayUrls,
+      }),
+    [msgFilter, isValidEvent, relayUrls],
+  );
 
   useSubMsg({
+    setNewComingMsg,
     msgFilter,
     isValidEvent,
     worker,
+    latest: memoMsgList[0]?.created_at,
   });
   useLastReplyEvent({ msgList: memoMsgList, worker });
-  useLoadMoreMsg({
-    msgFilter,
-    isValidEvent,
-    msgList,
-    worker,
-    setMsgList,
-    queryCacheId,
-    loadMoreCount,
-  });
-
-  useLiveQuery(
-    async () => {
-      if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
-      if (msgList.length === 0) return [] as DbEvent[];
-
-      const lastMsgItem = msgList[0];
-      const since = lastMsgItem.created_at;
-      const filter = { ...msgFilter, since };
-      let events = await dbQuery.matchFilterRelay(
-        filter,
-        relayUrls,
-        isValidEvent,
-      );
-      events = events
-        .filter(e => {
-          if (e.kind === WellKnownEventKind.community_approval) {
-            try {
-              const targetEvent = JSON.parse(e.content);
-              if (targetEvent.created_at <= lastMsgItem.created_at) {
-                return false;
-              }
-            } catch (error) {
-              return false;
-            }
-          }
-          return true;
-        })
-        .map(e => {
-          if (e.kind === WellKnownEventKind.community_approval) {
-            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
-            return event;
-          }
-          return e;
-        });
-      events = mergeAndSortUniqueDbEvents(events, events);
-      console.log('query diff: ', events, events.length, filter);
-      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events, prev));
-    },
-    [msgSubProp, msgList[0]],
-    [] as DbEvent[],
-  );
 
   const query = async () => {
     setIsLoadingMsg(true);
@@ -149,6 +102,42 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     queryCache.set(queryCacheId, events);
 
     setIsLoadingMsg(false);
+  };
+
+  const loadMore = async () => {
+    if (!worker) return;
+    if (!msgFilter || !validateFilter(msgFilter)) return;
+
+    setIsLoadMore(true);
+
+    const lastMsg = msgList.at(msgList.length - 1);
+    if (!lastMsg) {
+      return;
+    }
+
+    const filter = { ...msgFilter, ...{ until: lastMsg.created_at } };
+    worker.subFilter({ filter });
+
+    const relayUrls = worker.relays.map(r => r.url) || [];
+    let events = await dbQuery.matchFilterRelay(
+      filter,
+      relayUrls,
+      isValidEvent,
+    );
+    events = events.map(e => {
+      if (e.kind === WellKnownEventKind.community_approval) {
+        const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+        return event;
+      }
+      return e;
+    });
+    events = mergeAndSortUniqueDbEvents(events, events);
+    setMsgList(prev => {
+      const newData = prev.concat(events);
+      queryCache.set(queryCacheId, newData);
+      return newData;
+    });
+    setIsLoadMore(false);
   };
 
   useEffect(() => {
@@ -219,13 +208,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
                     extraMenu={extraMenu}
                   />
                 </div>
-                <Button
-                  type="link"
-                  block
-                  onClick={() => setLoadMoreCount(prev => prev + 1)}
-                >
-                  {t('home.loadMoreBtn')}
-                </Button>
+                <Loader isLoading={isLoadMore} />
+                {!isLoadMore && (
+                  <Button type="link" block onClick={loadMore}>
+                    {t('home.loadMoreBtn')}
+                  </Button>
+                )}
                 <br />
                 <br />
                 <br />
