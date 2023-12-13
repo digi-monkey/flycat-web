@@ -1,4 +1,4 @@
-import escapeRegExp from 'lodash/escapeRegExp';
+import { escapeRegExp } from 'lodash-es';
 
 /**
  * Convert an array of delimiter characters into a regular expression

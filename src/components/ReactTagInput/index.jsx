@@ -1,9 +1,7 @@
 import React, { Component, createRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import isEqual from 'lodash/isEqual';
-import noop from 'lodash/noop';
-import uniq from 'lodash/uniq';
+import { isEqual, noop, uniq } from 'lodash-es';
 import ClearAllTags from './ClearAllTags';
 import Suggestions from './Suggestions';
 import PropTypes from 'prop-types';

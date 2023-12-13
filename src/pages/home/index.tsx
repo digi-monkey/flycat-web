@@ -12,7 +12,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
-import _ from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { useTranslation } from 'next-i18next';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -118,7 +118,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     let msgFilter = homeMsgFilters.find(
       v => v.type === lastSelectedFilter,
     )?.filter;
-    msgFilter = msgFilter ? _.cloneDeep(msgFilter) : undefined;
+    msgFilter = msgFilter ? cloneDeep(msgFilter) : undefined;
     const isValidEvent = homeMsgFilters.find(
       v => v.type === lastSelectedFilter,
     )?.isValidEvent;
