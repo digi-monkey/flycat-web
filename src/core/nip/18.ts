@@ -11,7 +11,7 @@ export class Nip18 {
 
   static createRepost(target: Event, relay: string): RawEvent {
     // todo: distinct the difference on long-form article
-    // since it should use the d tags
+    // since it should use the a tags
     const tags = [
       [EventTags.E, target.id, relay],
       [EventTags.P, target.pubkey],
@@ -22,7 +22,10 @@ export class Nip18 {
   }
 
   static getTargetEventIdRelay(reposts: Event) {
-    const eTag: string[] = reposts.tags.filter(t => t[0] === EventTags.E)[0];
+    const eTag: string[] | undefined = reposts.tags.find(t => t[0] === EventTags.E);
+    if(!eTag){
+      return {id: null, relay: null};
+    }
     const targetEventId = eTag[1];
     const relay = eTag[2] as string | null; // some data are broken protocol
     return { id: targetEventId, relay };
@@ -32,24 +35,33 @@ export class Nip18 {
     reposts: Event,
     fallbackRelays?: string[],
   ): Promise<EventWithSeen | null> {
-    const eTag: string[] = reposts.tags.filter(t => t[0] === EventTags.E)[0];
-    const targetEventId = eTag[1];
-    const relay = eTag[2];
+    const eTag: string[] | undefined = reposts.tags.find(t => t[0] === EventTags.E);
+    const targetEventId = eTag?.[1];
+    const relay = eTag?.[2];
+
+    if(!eTag || !targetEventId){
+      console.debug(
+        `bad repost event: missing from e tag, repost event id: ${reposts.id}`,
+      );
+      return null;
+    }
+
+    // some bad event have no relay even if it is required
+    if (relay == null || relay === '') {
+      console.debug(
+        `bad repost event: relay missing from e tag. event id: ${reposts.id}`,
+      );
+    }
 
     if (reposts.content.length > 0) {
       if (isValidJSONStr(reposts.content)) {
-        return toSeenEvent(JSON.parse(reposts.content) as Event, [relay]);
+        return toSeenEvent(JSON.parse(reposts.content) as Event, relay ? [relay] : []);
       }
 
       console.debug(`invalid event json string`, reposts.content);
     }
 
-    // some bad event have no relay even if it is required
-    if (relay == null || relay === '') {
-      console.error(
-        `bad repost event: relay missing from e tag. event id: ${reposts.id}`,
-      );
-    }
+    
     
     let event: Event | null = null;
     if(relay !== '' && relay != null){

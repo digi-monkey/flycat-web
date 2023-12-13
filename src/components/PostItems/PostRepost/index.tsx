@@ -1,6 +1,6 @@
 import { Nip18 } from 'core/nip/18';
 import { Event } from 'core/nostr/Event';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { PostContent } from '../PostContent';
@@ -29,6 +29,8 @@ const PostRepost: React.FC<PostRepostProp> = ({
 }) => {
   const [targetEvent, setTargetMsg] = useState<EventWithSeen | DbEvent>();
 
+  const repostTargetEventIdFromETag = useMemo(()=> Nip18.getTargetEventIdRelay(event).id, [event]);
+
   const getRepostTargetEvent = async () => {
     const msg = await Nip18.getRepostTargetEvent(
       event,
@@ -48,7 +50,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
   const [targetEventFromDb] = useLiveQuery(
     dbQuery.createEventByIdQuerier(
       relayUrls,
-      Nip18.getTargetEventIdRelay(event).id,
+      Nip18.getTargetEventIdRelay(event).id || '',
     ),
     [event],
     []
@@ -85,11 +87,13 @@ const PostRepost: React.FC<PostRepostProp> = ({
 
   const tryReload = () => {
     const info = Nip18.getTargetEventIdRelay(event);
-    worker.subMsgByEventIds([info.id]).iterating({
-      cb: (event, url) => {
-        setTargetMsg({ ...event, ...{ seen: [url!] } });
-      },
-    });
+    if(info.id){
+      worker.subMsgByEventIds([info.id]).iterating({
+        cb: (event, url) => {
+          setTargetMsg({ ...event, ...{ seen: [url!] } });
+        },
+      });
+    }
   };
 
   const repostHeader = (
@@ -121,7 +125,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
       ) : (
         <div className={styles.content}>
           <Link href={`${Paths.event + '/' + event.id}`}>
-            event@{shortifyEventId(Nip18.getTargetEventIdRelay(event).id)}
+            event@{repostTargetEventIdFromETag ? shortifyEventId(repostTargetEventIdFromETag) : 'unkonw'}
           </Link>
           <Button onClick={tryReload} type="link">
             try reload
