@@ -1,7 +1,27 @@
 {
-  "processors": ["stylelint-processor-styled-components"],
   "extends": [
-    "stylelint-config-recommended",
-    "stylelint-config-styled-components"
-  ]
+    "stylelint-config-standard-scss"
+  ],
+  "rules": {
+    "color-no-invalid-hex": true,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": [
+          "global"
+        ]
+      }
+    ],
+    "declaration-property-unit-allowed-list": {
+      "font-size": [
+        "px",
+        "em",
+        "%"
+      ],
+      "margin": [
+        "px",
+        "rem"
+      ]
+    }
+  }
 }
