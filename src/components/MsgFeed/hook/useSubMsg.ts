@@ -107,7 +107,7 @@ export function useSubMsg({
     }
 
     setMsgList(prev => {
-      const latest = prev[0]?.created_at;
+      const latest = prev[0]?.created_at || (Date.now() / 1000);
       exec(latest);
       return prev;
     })

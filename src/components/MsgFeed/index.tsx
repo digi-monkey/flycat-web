@@ -151,7 +151,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   const onClickNewMsg = () => {
     setMsgList(prev => {
-      const newData = newComingMsg.concat(prev);
+      const newData = mergeAndSortUniqueDbEvents(newComingMsg, prev);
       queryCache.set(queryCacheId, newData);
       return newData;
     });
