@@ -70,6 +70,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const subNewMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
+    if (isLoadingMsg || isPullRefreshing)return;
 
     const request = async (latest: number | undefined) => {
       let since = msgFilter.since;
