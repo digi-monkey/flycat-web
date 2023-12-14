@@ -28,89 +28,94 @@ export function useSubMsg({
 
     const exec = async (latest: number | undefined) => {
       let since = msgFilter.since;
-    if (latest) {
-      if (since == null) {
-        since = latest;
-      } else {
-        if (latest > since) {
-          since = latest;
-        }
-      }
-    } else {
-      if (since == null) {
-        since = 0;
-      }
-    }
-    const filter = { ...msgFilter, since };
-
-    const pks: string[] = [];
-    let events: Event[] = [];
-
-    console.debug('start sub msg..', filter, isValidEvent, typeof isValidEvent);
-    const dataStream = worker.subFilter({ filter }).getIterator();
-    for await (const data of dataStream) {
-      const event = data.event;
-      if (isValidEvent) {
-        if (!isValidEvent(event)) {
-          continue;
-        }
-      }
       if (latest) {
-        if (event.created_at <= latest) {
-          continue;
-        }
-      }
-
-      events.push(event);
-      if (!pks.includes(event.pubkey)) {
-        pks.push(event.pubkey);
-      }
-    }
-
-    events = events
-      .filter(e => {
-        if (e.kind === WellKnownEventKind.community_approval) {
-          try {
-            const targetEvent = JSON.parse(e.content);
-            if (latest && targetEvent.created_at <= latest) {
-              return false;
-            }
-          } catch (error) {
-            return false;
+        if (since == null) {
+          since = latest;
+        } else {
+          if (latest > since) {
+            since = latest;
           }
         }
-        return true;
-      })
-      .map(e => {
-        if (e.kind === WellKnownEventKind.community_approval) {
-          const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
-          return event;
+      } else {
+        if (since == null) {
+          since = 0;
         }
-        return e;
-      });
-    events = mergeAndSortUniqueDbEvents(events as any, events as any);
-    console.log('sub diff: ', events, events.length, filter);
-    setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events as any, prev));
+      }
+      const filter = { ...msgFilter, since };
 
-    dataStream.unsubscribe();
-    console.debug('finished sub msg!');
+      const pks: string[] = [];
+      let events: Event[] = [];
 
-    // sub user profiles
-    if (pks.length > 0) {
-      worker.subFilter({
-        filter: {
-          kinds: [WellKnownEventKind.set_metadata],
-          authors: pks,
-        },
-      });
-    }
-    }
+      console.debug(
+        'start sub msg..',
+        filter,
+        isValidEvent,
+        typeof isValidEvent,
+      );
+      const dataStream = worker.subFilter({ filter }).getIterator();
+      for await (const data of dataStream) {
+        const event = data.event;
+        if (isValidEvent) {
+          if (!isValidEvent(event)) {
+            continue;
+          }
+        }
+        if (latest) {
+          if (event.created_at <= latest) {
+            continue;
+          }
+        }
+
+        events.push(event);
+        if (!pks.includes(event.pubkey)) {
+          pks.push(event.pubkey);
+        }
+      }
+
+      events = events
+        .filter(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if (latest && targetEvent.created_at <= latest) {
+                return false;
+              }
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
+      events = mergeAndSortUniqueDbEvents(events as any, events as any);
+      console.log('sub diff: ', events, events.length, filter);
+      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events as any, prev));
+
+      dataStream.unsubscribe();
+      console.debug('finished sub msg!');
+
+      // sub user profiles
+      if (pks.length > 0) {
+        worker.subFilter({
+          filter: {
+            kinds: [WellKnownEventKind.set_metadata],
+            authors: pks,
+          },
+        });
+      }
+    };
 
     setMsgList(prev => {
-      const latest = prev[0]?.created_at || (Date.now() / 1000);
+      const latest = prev[0]?.created_at || Date.now() / 1000;
       exec(latest);
       return prev;
-    })
+    });
   };
 
   const clearProcess = () => {
@@ -134,7 +139,7 @@ export function useSubMsg({
       } catch (error: any) {
         console.debug('add failed, ', error.message);
       }
-    }else{
+    } else {
       console.debug('use same interval id', intervalId);
     }
   };
