@@ -9,12 +9,11 @@ import { useTranslation } from 'react-i18next';
 import { dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
-import { useSubMsg } from './hook/useSubMsg';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
 import { createQueryCacheId, queryCache } from 'core/cache/query';
-import { useIntersectionObserver } from 'usehooks-ts';
+import { useIntersectionObserver, useInterval } from 'usehooks-ts';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
@@ -66,15 +65,99 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     [msgFilter, isValidEvent, relayUrls],
   );
 
-  useSubMsg({
-    setNewComingMsg,
-    msgFilter,
-    isValidEvent,
-    worker,
-    setMsgList
-  });
-  useLastReplyEvent({ msgList: memoMsgList, worker });
+  const subNewMsg = async () => {
+    if (!worker) return;
+    if (!msgFilter || !validateFilter(msgFilter)) return;
 
+    const request = async (latest: number | undefined) => {
+      let since = msgFilter.since;
+      if (latest) {
+        if (since == null) {
+          since = latest;
+        } else {
+          if (latest > since) {
+            since = latest;
+          }
+        }
+      } else {
+        if (since == null) {
+          since = 0;
+        }
+      }
+      const filter = { ...msgFilter, since };
+
+      const pks: string[] = [];
+      let events: Event[] = [];
+
+      console.debug(
+        'start sub msg..',
+        filter,
+        isValidEvent,
+        typeof isValidEvent,
+      );
+      const dataStream = worker.subFilter({ filter }).getIterator();
+      for await (const data of dataStream) {
+        const event = data.event;
+        if (isValidEvent) {
+          if (!isValidEvent(event)) {
+            continue;
+          }
+        }
+        if (latest) {
+          if (event.created_at <= latest) {
+            continue;
+          }
+        }
+
+        events.push(event);
+        if (!pks.includes(event.pubkey)) {
+          pks.push(event.pubkey);
+        }
+      }
+
+      events = events
+        .filter(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            try {
+              const targetEvent = JSON.parse(e.content);
+              if (latest && targetEvent.created_at <= latest) {
+                return false;
+              }
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
+      events = mergeAndSortUniqueDbEvents(events as any, events as any);
+      console.log('sub diff: ', events, events.length, filter);
+      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events as any, prev));
+
+      dataStream.unsubscribe();
+      console.debug('finished sub msg!');
+
+      // sub user profiles
+      if (pks.length > 0) {
+        worker.subFilter({
+          filter: {
+            kinds: [WellKnownEventKind.set_metadata],
+            authors: pks,
+          },
+        });
+      }
+    };
+
+    const latest = memoMsgList[0]?.created_at || Date.now() / 1000;
+    request(latest);
+  };
+  
   const query = async () => {    
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
     setIsLoadingMsg(true);
@@ -144,6 +227,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     });
     setIsLoadMore(false);
   };
+
+  useLastReplyEvent({ msgList: memoMsgList, worker });
+  useInterval(
+    subNewMsg,
+    8000,
+  );
 
   useEffect(() => {
     if (!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)
