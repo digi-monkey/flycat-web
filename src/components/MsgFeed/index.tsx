@@ -1,5 +1,5 @@
 import { Button, message } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
@@ -14,6 +14,7 @@ import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
 import { createQueryCacheId, queryCache } from 'core/cache/query';
+import { useIntersectionObserver } from 'usehooks-ts';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
@@ -45,6 +46,10 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [isLoadingMsg, setIsLoadingMsg] = useState<boolean>(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
   const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
+
+  const newMsgNotifyRef = useRef<HTMLDivElement | null>(null)
+  const entry = useIntersectionObserver(newMsgNotifyRef, {})
+  const isNotifyVisible = !!entry?.isIntersecting;
 
   const relayUrls = useMemo(
     () => worker?.relays.map(r => r.url) || [],
@@ -156,6 +161,9 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return newData;
     });
     setNewComingMsg([]);
+    if(!isNotifyVisible){
+      window.scrollTo({top: 0});
+    }
   };
 
   const onPullToRefresh = async () => {
@@ -186,7 +194,15 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       <PullToRefresh onRefresh={onPullToRefresh}>
         <>
           {newComingMsg.length > 0 && (
-            <div className={styles.reloadFeedBtn}>
+            <div ref={newMsgNotifyRef} className={styles.reloadFeedBtn}>
+              <Button onClick={onClickNewMsg} type="link">
+                Show {newComingMsg.length} new posts
+              </Button>
+            </div>
+          )}
+
+          {newComingMsg.length > 0  && !isNotifyVisible && (
+            <div className={classNames(styles.reloadFeedBtn, styles.fixed)}>
               <Button onClick={onClickNewMsg} type="link">
                 Show {newComingMsg.length} new posts
               </Button>

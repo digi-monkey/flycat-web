@@ -61,3 +61,20 @@
     line-height: 22px;
   }
 }
+
+.fixed {
+  position: fixed;
+  top: 50px;
+  left: 45%;
+  width: auto;
+  z-index: 42;
+  opacity: 0.9;
+  box-shadow: 0 0 15px var(--primary-02);
+  color: var(--neutral-02);
+  background: var(--primary-06);
+  border-radius: 100px;
+  border: none;
+  button {
+    color: var(--neutral-02);
+  }
+}

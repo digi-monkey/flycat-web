@@ -1,6 +1,6 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
 import { DbEvent } from 'core/db/schema';
