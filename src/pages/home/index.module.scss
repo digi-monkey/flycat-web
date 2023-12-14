@@ -192,7 +192,12 @@
   align-items: flex-start;
   gap: 10px;
   align-self: stretch;
-  
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0; 
+  z-index: 100;
+  background: var(--neutral-01);
+
   :global {
     .ant-segmented-group {
       gap: 12px;
@@ -220,6 +225,12 @@
 }
 
 .mobileFilter {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0; 
+  z-index: 100;
+  background: var(--neutral-01);
+
   :global {
     .ant-segmented {
       width: 100%;

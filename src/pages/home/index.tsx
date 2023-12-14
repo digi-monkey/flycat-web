@@ -190,8 +190,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
             onChange={key => setLastSelectedTabKey(key)}
           />
         </div>
-        <div className={isMobile ? styles.mobileFilter : ''}>
-          <div className={styles.msgFilter}>
+        <div className={isMobile ? styles.mobileFilter : styles.msgFilter}>
+          <div>
             {lastSelectedTabKey === 'custom' ? (
               <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp} />
             ) : (

@@ -12,13 +12,14 @@ import { validateFilter } from './util';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
-import { createQueryCacheId, queryCache } from 'core/cache/query';
+import { createQueryCacheId, queryCache, scrollPositionCache } from 'core/cache/query';
 import { useIntersectionObserver, useInterval } from 'usehooks-ts';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
 import PostItems from 'components/PostItems';
 import styles from './index.module.scss';
+import useScrollValue from './hook/useScrollValue';
 
 export interface MsgSubProp {
   msgFilter?: Filter;
@@ -64,6 +65,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       }),
     [msgFilter, isValidEvent, relayUrls],
   );
+  const scrollHeight = useScrollValue();
 
   const subNewMsg = async () => {
     if (!worker) return;
@@ -229,10 +231,21 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   };
 
   useLastReplyEvent({ msgList: memoMsgList, worker });
-  useInterval(
-    subNewMsg,
-    8000,
-  );
+  useInterval(subNewMsg, 8000);
+
+  // remember and restore the last visit position in the feed
+  // todo: better way to do this?
+  useEffect(()=>{
+    if (scrollHeight > 0) {
+      scrollPositionCache.set(queryCacheId, scrollHeight);
+    }
+  }, [scrollHeight]);
+  useEffect(() => {
+    const pos = scrollPositionCache.get(queryCacheId);
+    if(pos && memoMsgList.length > 0){
+      window.scrollTo({top: pos});
+    }
+  }, [queryCacheId, memoMsgList.length > 0]);
 
   useEffect(() => {
     if (!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)
