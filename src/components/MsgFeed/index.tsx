@@ -189,7 +189,9 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
     // save cache
-    queryCache.set(queryCacheId, events);
+    if(events.length > 0){
+      queryCache.set(queryCacheId, events);
+    }
 
     setIsLoadingMsg(false);
   };
