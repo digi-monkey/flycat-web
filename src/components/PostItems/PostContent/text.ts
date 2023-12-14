@@ -213,7 +213,6 @@ export function transformText(body: string, tags: Array<Array<string>>) {
       }
     }),
   );
-  console.log("frag: ", fragments);
   return fragments as Array<ParsedFragment>;
 }
 

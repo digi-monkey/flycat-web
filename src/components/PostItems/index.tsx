@@ -9,6 +9,7 @@ import { EventWithSeen } from 'pages/type';
 
 import LazyLoad from 'react-lazyload';
 import dynamic from 'next/dynamic';
+import { useCallback, useMemo } from 'react';
 
 const PostItem = dynamic(
   async () => {
@@ -51,18 +52,18 @@ const PostItems: React.FC<PostItemsProps> = ({
     [] as DbEvent[],
   );
 
-  const getUser = (pubkey: string) => {
+  const getUser = useCallback((pubkey: string) => {
     const user = profileEvents.find(e => e.pubkey === pubkey);
     if (user) {
       return deserializeMetadata(user.content);
     }
     return null;
-  };
+  }, [profileEvents]);
 
   return (
     <>
       {msgList.map(msg => (
-        <LazyLoad height={350} offset={[-50, 0]} once key={msg.id}>
+        <LazyLoad height={350} once key={msg.id}>
           <PostItem
             profile={getUser(msg.pubkey)}
             event={msg}
