@@ -156,7 +156,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       }
     };
 
-    const latest = memoMsgList[0]?.created_at || Date.now() / 1000;
+    const latest = memoMsgList[0]?.created_at || 0;
     request(latest);
   };
   
