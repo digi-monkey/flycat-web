@@ -245,7 +245,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useEffect(() => {
     const pos = scrollPositionCache.get(queryCacheId);
     if(pos && memoMsgList.length > 0){
-      window.scrollTo({top: pos});
+      window.scrollTo({top: pos, behavior: "instant" as ScrollBehavior});
     }
   }, [queryCacheId, memoMsgList.length > 0]);
 
