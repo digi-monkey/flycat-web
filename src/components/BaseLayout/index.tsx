@@ -63,7 +63,10 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children, silent, metaPa
             <RelaySelector />
             {leftNodes}
           </div>
-          { rightNodes.length > 0 && <div className={styles.right}>{rightNodes}</div> }
+          { rightNodes.length > 0 && 
+            <div className={styles.right}>
+              <div style={{position: "sticky", top: "0"}}>{rightNodes}</div>
+            </div> }
         </main>
       </>
     }
