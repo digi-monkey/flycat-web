@@ -15,8 +15,15 @@
   }
 }
 
-.preview {
+.hoverLink:hover + .preview{
   display: flex;
+}
+
+.preview {
+  display: none;
+  position: absolute;
+  background: var(--neutral-01);
+  z-index: 44;
   padding: 12px 12px 12px 16px;
   justify-content: space-between;
   align-items: flex-start;
