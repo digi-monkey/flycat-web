@@ -39,7 +39,7 @@ export const URLPreview = ({ url }: { url: string }) => {
   return (
     <span>
       <a
-        href=""
+        href={url}
         target="_blank"
         className={styles.hoverLink}
         onClick={e => e.stopPropagation()}
