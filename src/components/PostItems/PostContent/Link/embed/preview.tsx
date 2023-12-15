@@ -3,7 +3,6 @@ import { getBaseUrl, maxStrings } from 'utils/common';
 import { useEffect, useMemo, useState } from 'react';
 
 import styles from '../index.module.scss';
-import { URL } from 'url';
 
 export const URLPreview = ({ url }: { url: string }) => {
   const [data, setData] = useState<UrlMetadata>();
@@ -21,20 +20,25 @@ export const URLPreview = ({ url }: { url: string }) => {
     fetchData();
   }, []);
 
-  const describedUrl = useMemo(()=>{
-    let result: string | undefined;
-    if(data?.title && data?.description){
-      result = `${data.title}(${data.description.slice(0, 45)}..)`;
-      return result;
+  const describedUrl = useMemo(() => {
+    try {
+      let result: string | undefined;
+      if (data?.title && data?.description) {
+        result = `${data.title}(${data.description.slice(0, 45)}..)`;
+        return result;
+      }
+      if (data?.title) {
+        return `${data.title}(${new URL(url).hostname})`;
+      }
+      if (data?.description) {
+        return `${new URL(url).hostname}(${data.description.slice(0, 45)}..)`;
+      }
+      return url;
+    } catch (error: any) {
+      console.debug("build describeUrl failed, ", error.message);
+      return url;
     }
-    if(data?.title){
-      return `${data.title}(${new URL(url).hostname})`;
-    }
-    if(data?.description){
-      return  `${new URL(url).hostname}(${data.description.slice(0, 45)}..)`
-    }
-    return url;
-  }, [data])
+  }, [data]);
 
   return (
     <span>
