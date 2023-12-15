@@ -57,69 +57,71 @@ const PcPadNav = ({
   }, [] as MenuItemType[]);
 
   return (
-    <nav className={styles.pcPadNav}>
-      <div className={styles.logo}>
-        <Link href={Paths.home}>
-          <img src="/logo512.png" alt="logo" />
-        </Link>
-      </div>
-      <ul>
-        <li>
-          {
-            <Dropdown
-              menu={{ items: isLoggedIn ? userMenus : [] }}
-              overlayClassName={styles.pcPadNavUserMenu}
-              placement="bottom"
-              arrow
-            >
-              <div
-                className={styles.user}
-                onClick={() =>
-                  isLoggedIn ? null : router.push({ pathname: Paths.login })
-                }
+    <nav>
+      <div className={styles.pcPadNav}>
+        <div className={styles.logo}>
+          <Link href={Paths.home}>
+            <img src="/logo512.png" alt="logo" />
+          </Link>
+        </div>
+        <ul>
+          <li>
+            {
+              <Dropdown
+                menu={{ items: isLoggedIn ? userMenus : [] }}
+                overlayClassName={styles.pcPadNavUserMenu}
+                placement="bottom"
+                arrow
               >
-                {user ? (
-                  <Avatar src={user.picture} />
-                ) : (
-                  <Avatar icon={<Icon type='icon-user' />} />
-                )}
-                <h1>
-                  {isLoggedIn
-                    ? user?.name || shortifyPublicKey(myPublicKey)
-                    : t('nav.menu.signIn')}
-                </h1>
-              </div>
-            </Dropdown>
-          }
-        </li>
-        {NavMenus.map((item, key) => (
-          <li key={key}>
-            <Link
-              href={getNavLink(item, myPublicKey)}
-              className={router.pathname === item.link ? styles.active : ''}
-            >
-              {item.icon}
-              {item.id === MenuId.notifications && isNewUnread ? (
-                <Badge dot>
-                  <span>{t(item.title)}</span>
-                </Badge>
-              ) : (
-                <span>{t(item.title)}</span>
-              )}
-            </Link>
+                <div
+                  className={styles.user}
+                  onClick={() =>
+                    isLoggedIn ? null : router.push({ pathname: Paths.login })
+                  }
+                >
+                  {user ? (
+                    <Avatar src={user.picture} />
+                  ) : (
+                    <Avatar icon={<Icon type="icon-user" />} />
+                  )}
+                  <h1>
+                    {isLoggedIn
+                      ? user?.name || shortifyPublicKey(myPublicKey)
+                      : t('nav.menu.signIn')}
+                  </h1>
+                </div>
+              </Dropdown>
+            }
           </li>
-        ))}
-      </ul>
-      <Button
-        block={isPad ? false : true}
-        type="primary"
-        shape={isPad ? 'circle' : 'default'}
-        icon={isPad ? <Icon type="icon-Pencil" /> : null}
-        onClick={() => setOpenWrite(true)}
-        disabled={!isLoggedIn}
-      >
-        {!isPad && t('nav.menu.blogDashboard')}
-      </Button>
+          {NavMenus.map((item, key) => (
+            <li key={key}>
+              <Link
+                href={getNavLink(item, myPublicKey)}
+                className={router.pathname === item.link ? styles.active : ''}
+              >
+                {item.icon}
+                {item.id === MenuId.notifications && isNewUnread ? (
+                  <Badge dot>
+                    <span>{t(item.title)}</span>
+                  </Badge>
+                ) : (
+                  <span>{t(item.title)}</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <Button
+          block={isPad ? false : true}
+          type="primary"
+          shape={isPad ? 'circle' : 'default'}
+          icon={isPad ? <Icon type="icon-Pencil" /> : null}
+          onClick={() => setOpenWrite(true)}
+          disabled={!isLoggedIn}
+        >
+          {!isPad && t('nav.menu.blogDashboard')}
+        </Button>
+      </div>
     </nav>
   );
 };
