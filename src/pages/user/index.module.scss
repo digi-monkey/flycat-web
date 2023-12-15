@@ -17,12 +17,13 @@
       height: 24px;
       flex-shrink: 0;
     }
+
     .title {
       color: var(--neutral-09, #1e1e1e);
 
       /* Subheader1-bold */
       font-size: 16px;
-      font-family: Poppins;
+      font-family: Poppins, sans-serif;
       font-weight: 600;
       line-height: 24px;
     }
@@ -33,7 +34,6 @@
   :global {
     .ant-input-affix-wrapper {
       margin: var(--basePadding4) 0;
-
       border-radius: 20px;
       border: 1px solid var(--neutral-02, #ededed);
       background: var(--hover-01);
@@ -46,7 +46,6 @@
       svg {
         width: 24px;
         height: 24px;
-
         fill: var(--neutral-06);
       }
     }
@@ -55,7 +54,7 @@
 
 .banner {
   width: auto;
-  padding: 0px var(--basePadding5);
+  padding: 0 var(--basePadding5);
   height: 157px;
 
   img {
@@ -71,13 +70,15 @@
 .mobileProfile{
   margin: 0 var(--basePadding5);
   justify-content: center;
+
   .profile{
     margin-top: var(--basePadding2);
     display: flex;
     justify-content: space-between;
   }
+
   .description{
-    margin: var(--basePadding3) 0px;
+    margin: var(--basePadding3) 0;
     font-weight: 400;
     font-size: 14px;
     line-height: 24px;
@@ -112,6 +113,7 @@
     word-wrap: break-word;
   }
 }
+
 .calendar {
   margin-top: 16px;
 }
@@ -122,10 +124,6 @@
   align-items: center;
   gap: 16px;
   margin-top: 12px;
-
-  .follow{
-
-  }
 }
 
 .icon {

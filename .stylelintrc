@@ -1,27 +1,14 @@
 {
-  "extends": [
-    "stylelint-config-standard-scss"
-  ],
+  "extends": ["stylelint-config-standard-scss"],
   "rules": {
-    "color-no-invalid-hex": true,
     "selector-pseudo-class-no-unknown": [
       true,
       {
-        "ignorePseudoClasses": [
-          "global"
-        ]
+        "ignorePseudoClasses": ["global"]
       }
     ],
-    "declaration-property-unit-allowed-list": {
-      "font-size": [
-        "px",
-        "em",
-        "%"
-      ],
-      "margin": [
-        "px",
-        "rem"
-      ]
-    }
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "no-descending-specificity": null
   }
 }

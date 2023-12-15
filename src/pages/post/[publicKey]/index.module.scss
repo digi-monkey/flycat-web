@@ -1,4 +1,4 @@
-.postContainer{
+.postContainer {
   margin-bottom: var(--basePadding12);
 }
 
@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin: 80px 0px 20px 0px;
+  margin: 80px 0 20px;
   width: 100%;
 
   .author {
@@ -24,6 +24,7 @@
       width: fit-content;
       margin: 0 auto;
       cursor: pointer;
+
       img {
         width: 44px;
         height: 44px;
@@ -36,10 +37,10 @@
       color: var(--neutral-09, #1e1e1e);
       cursor: pointer;
       font-size: 16px;
-      font-family: Noto Sans;
+      font-family: 'Noto Sans', sans-serif;
       font-weight: 500;
       line-height: 24px;
-      margin: 10px 0px 20px 0px;
+      margin: 10px 0 20px;
 
       a {
         font-size: 16px;
@@ -50,7 +51,7 @@
     .btnContainer {
       display: inline-flex;
       height: 32px;
-      padding: 0px 3px 0px 0px;
+      padding: 0 3px 0 0;
       justify-content: center;
       align-items: center;
       flex-shrink: 0;
@@ -58,9 +59,7 @@
       .btn {
         display: flex;
         padding: 5px 32px;
-        align-items: center;
         gap: 8px;
-
         justify-content: center;
         align-items: center;
         flex-shrink: 0;
@@ -71,7 +70,7 @@
     }
 
     .collected {
-      margin: 60px 0px 20px 0px;
+      margin: 60px 0 20px;
       border-radius: 5px;
       padding: 10px;
       text-align: left;
@@ -98,6 +97,6 @@
   }
 }
 
-.commentContainer{
+.commentContainer {
   background-color: var(--post-bg);
 }

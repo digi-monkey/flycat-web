@@ -6,7 +6,7 @@
     word-break: break-all;
 
     p {
-      margin: 10px 0px;
+      margin: 10px 0;
     }
 
     .banner {
@@ -21,20 +21,20 @@
     }
 
     .postTitleInfo {
-      margin: 10px 0px 40px 0px;
+      margin: 10px 0 40px;
       border-bottom: 1px solid var(--neutral-02);
 
       .title {
-        font-family: 'Poppins';
+        font-family: Poppins, sans-serif;
         font-weight: 700;
         font-size: 30px;
         line-height: 38px;
-        margin: 20px 0px;
+        margin: 20px 0;
         text-transform: capitalize;
       }
 
       .summary {
-        font-family: 'Noto Sans';
+        font-family: 'Noto Sans', sans-serif;
         font-style: normal;
         font-weight: 500;
         font-size: 16px;
@@ -45,7 +45,7 @@
       .author {
         display: flex;
         justify-content: space-between;
-        margin: 24px 0px;
+        margin: 24px 0;
 
         .img {
           width: 44px;
@@ -62,19 +62,22 @@
             text-align: left;
             margin-left: 10px;
           }
+
           .username {
-            font-family: 'Noto Sans';
+            font-family: 'Noto Sans', sans-serif;
             font-style: normal;
             font-weight: 500;
             font-size: 16px;
             line-height: 24px;
+
             a {
               text-decoration: none;
               color: inherit;
             }
           }
+
           .time {
-            font-family: 'Noto Sans';
+            font-family: 'Noto Sans', sans-serif;
             font-style: normal;
             font-weight: 500;
             font-size: 12px;
@@ -86,7 +89,7 @@
     }
 
     .postTags {
-      margin: 10px 0px 30px 0px;
+      margin: 10px 0 30px;
       font-size: 14px;
 
       span {
@@ -108,7 +111,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    margin: 80px 0px 20px 0px;
+    margin: 80px 0 20px;
     width: 100%;
 
     .author {
@@ -130,7 +133,7 @@
       }
 
       .name {
-        margin: 10px 0px 20px 0px;
+        margin: 10px 0 20px;
 
         a {
           font-size: 16px;
@@ -139,7 +142,7 @@
       }
 
       .collected {
-        margin: 60px 0px 20px 0px;
+        margin: 60px 0 20px;
         border-radius: 5px;
         padding: 10px;
         text-align: left;
@@ -170,7 +173,7 @@
     margin: 20px 0;
 
     span {
-      margin: 0px 5px;
+      margin: 0 5px;
       font-size: 14px;
       color: gray;
       text-transform: capitalize;
@@ -182,17 +185,17 @@
   h2,
   h3,
   h4 {
-    font-family: 'Poppins';
+    font-family: Poppins, sans-serif;
     font-style: normal;
     font-weight: 600;
     font-size: 24px;
     line-height: 32px;
-    color: #000000;
-    margin: 24px 0px;
+    color: #000;
+    margin: 24px 0;
   }
 
   p {
-    font-family: 'Noto Sans';
+    font-family: 'Noto Sans', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 14px;
@@ -202,7 +205,7 @@
   }
 
   li {
-    font-family: 'Noto Sans';
+    font-family: 'Noto Sans', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 14px;
@@ -222,7 +225,7 @@
 
   .articleImg {
     width: 100%;
-    margin: 12px 0px;
+    margin: 12px 0;
   }
 
   blockquote {
@@ -237,11 +240,9 @@
   margin-bottom: var(--basePadding6);
   padding-bottom: var(--basePadding6);
   border-bottom: 1px solid var(--neutral-02);
-
   display: flex;
   align-items: flex-start;
   gap: 24px;
-
   color: var(--primary-06);
   text-transform: capitalize;
 }

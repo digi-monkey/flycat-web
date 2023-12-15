@@ -116,7 +116,7 @@
     "start": "REACT_APP_COMMIT_HASH=$(git rev-parse --short HEAD) next start",
     "lint": "yarn run lint:js && yarn run lint:css && next lint",
     "lint:js": "eslint ./src --ext .js,.jsx,.ts,.tsx",
-    "lint:css": "stylelint ./src/**/*.{scss,css}",
+    "lint:css": "stylelint ./**/*.{scss,css}",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:prod": "yarn run build && serve -s build",
