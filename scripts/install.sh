@@ -6,7 +6,7 @@ if ! [ -x "$(command -v rustup)" ]; then
     # Install Rustup (compiler)
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     # Adding binaries to path
-    source "$HOME/.cargo/env"
+    . "$HOME/.cargo/env"
 else
     echo "Rustup is already installed."
 fi

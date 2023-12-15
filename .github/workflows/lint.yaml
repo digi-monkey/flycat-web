@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Use Node.js LTS
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 'lts'
+          node-version: 'v20.x'
+
+      - name: Install yarn
+        run: npm install -g yarn
 
       - name: Install dependencies
         run: yarn install
