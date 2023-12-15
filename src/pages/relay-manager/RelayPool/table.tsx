@@ -102,7 +102,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
 
   useEffect(() => {
     if (relays.length === 0) return;
-    if(isUpdating)return;
+    if (isUpdating) return;
     updateRelayMap();
   }, [relays.length, currentPage]);
 
@@ -138,7 +138,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
           width: 40,
           render: (_, record) => (
             <Icon
-              type='icon-more-horizontal'
+              type="icon-more-horizontal"
               onClick={() => handleOpenModal(record)}
               style={{ cursor: 'pointer' }}
             />
@@ -258,7 +258,7 @@ const RelayPoolTable: React.FC<RelayPoolTableProp> = ({
           width: 40,
           render: (_, record) => (
             <Icon
-              type='icon-more-horizontal'
+              type="icon-more-horizontal"
               onClick={() => handleOpenModal(record)}
               style={{ cursor: 'pointer', width: '20px', height: '20px' }}
             />

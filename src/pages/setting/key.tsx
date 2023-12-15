@@ -38,15 +38,13 @@ function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
                 }
 
                 if (mode === LoginMode.metamask) {
-                  const privKey = await getPrivateKeyFromMetamaskSignIn(
-                    evmUsername,
-                  );
+                  const privKey =
+                    await getPrivateKeyFromMetamaskSignIn(evmUsername);
                   if (privKey == null) throw new Error('unable to get privKey');
                   return Nip19.encode(privKey, Nip19DataType.Nprivkey);
                 } else {
-                  const privKey = await getPrivateKeyFromWalletConnectSignIn(
-                    evmUsername,
-                  );
+                  const privKey =
+                    await getPrivateKeyFromWalletConnectSignIn(evmUsername);
                   if (privKey == null) throw new Error('unable to get privKey');
                   return Nip19.encode(privKey, Nip19DataType.Nprivkey);
                 }
@@ -55,20 +53,19 @@ function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
           ),
         }
       : mode === LoginMode.local
-      ? {
-          label: <Input disabled type="password" value={privateKey} />,
-          action: (
-            <CopyText
-              name={'copy'}
-              textToCopy={Nip19.encode(privateKey, Nip19DataType.Nprivkey)}
-            />
-          ),
-        }
-      : {
-          label:
-	  'no private key access since you are sign-in with extension',
-          action: null,
-        };
+        ? {
+            label: <Input disabled type="password" value={privateKey} />,
+            action: (
+              <CopyText
+                name={'copy'}
+                textToCopy={Nip19.encode(privateKey, Nip19DataType.Nprivkey)}
+              />
+            ),
+          }
+        : {
+            label: 'no private key access since you are sign-in with extension',
+            action: null,
+          };
 
   const copyHexPrivateKey =
     mode === LoginMode.metamask || mode === LoginMode.walletConnect
@@ -92,15 +89,13 @@ function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
                 }
 
                 if (mode === LoginMode.metamask) {
-                  const privKey = await getPrivateKeyFromMetamaskSignIn(
-                    evmUsername,
-                  );
+                  const privKey =
+                    await getPrivateKeyFromMetamaskSignIn(evmUsername);
                   if (privKey == null) throw new Error('unable to get privKey');
                   return Nip19.encode(privKey, Nip19DataType.Nprivkey);
                 } else {
-                  const privKey = await getPrivateKeyFromWalletConnectSignIn(
-                    evmUsername,
-                  );
+                  const privKey =
+                    await getPrivateKeyFromWalletConnectSignIn(evmUsername);
                   if (privKey == null) throw new Error('unable to get privKey');
 
                   return privKey;
@@ -110,62 +105,66 @@ function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
           ),
         }
       : mode === LoginMode.local
-      ? {
-          label: <Input disabled type="password" value={privateKey} />,
-          action: <CopyText name={'copy'} textToCopy={privateKey} />,
-        }
-      : {
-          label:
-            'no private key access since you are sign-in with extension',
-          action: null,
-        };
+        ? {
+            label: <Input disabled type="password" value={privateKey} />,
+            action: <CopyText name={'copy'} textToCopy={privateKey} />,
+          }
+        : {
+            label: 'no private key access since you are sign-in with extension',
+            action: null,
+          };
 
   return (
     <>
-    <List size="large">
-      <List.Item
-        actions={[
-          <CopyText
-            key={'copy-public-key'}
-            name={'copy'}
-            textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
-          />,
-        ]}
+      <List size="large">
+        <List.Item
+          actions={[
+            <CopyText
+              key={'copy-public-key'}
+              name={'copy'}
+              textToCopy={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
+            />,
+          ]}
+        >
+          <List.Item.Meta
+            title="Public Key"
+            description={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
+          />
+        </List.Item>
+
+        <List.Item
+          actions={[
+            <CopyText
+              key={'copy-raw-key'}
+              name={'copy'}
+              textToCopy={myPublicKey}
+            />,
+          ]}
+        >
+          <List.Item.Meta title="Hex Public Key" description={myPublicKey} />
+        </List.Item>
+
+        <List.Item actions={[copyPrivateKey.action]}>
+          <List.Item.Meta
+            title="Private Key"
+            description={copyPrivateKey.label}
+          />
+        </List.Item>
+
+        <List.Item actions={[copyHexPrivateKey.action]}>
+          <List.Item.Meta
+            title="Hex Private Key"
+            description={copyHexPrivateKey.label}
+          />
+        </List.Item>
+      </List>
+      <Divider></Divider>
+      <Button
+        onClick={() => window.open('https://usenostr.org/', 'blank')}
+        type="link"
       >
-        <List.Item.Meta
-          title="Public Key"
-          description={Nip19.encode(myPublicKey, Nip19DataType.Npubkey)}
-        />
-      </List.Item>
-
-      <List.Item
-        actions={[
-          <CopyText
-            key={'copy-raw-key'}
-            name={'copy'}
-            textToCopy={myPublicKey}
-          />,
-        ]}
-      >
-        <List.Item.Meta title="Hex Public Key" description={myPublicKey} />
-      </List.Item>
-
-      <List.Item actions={[copyPrivateKey.action]}>
-        <List.Item.Meta
-          title="Private Key"
-          description={copyPrivateKey.label}
-        />
-      </List.Item>
-
-      <List.Item actions={[copyHexPrivateKey.action]}>
-        <List.Item.Meta
-          title="Hex Private Key"
-          description={copyHexPrivateKey.label}
-        />
-      </List.Item>
-    </List>
-    <Divider></Divider>
-    <Button onClick={()=>window.open("https://usenostr.org/", "blank")} type='link'>What is nostr key?</Button>
+        What is nostr key?
+      </Button>
     </>
   );
 }

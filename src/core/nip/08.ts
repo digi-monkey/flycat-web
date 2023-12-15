@@ -34,14 +34,16 @@ export class Nip08 {
         content = content.replace(
           regex,
           `<a href="/${i18n?.language}/user/${replacement.pk}">@${
-            userMap.get(replacement.pk)?.name || shortifyPublicKey(replacement.pk)
+            userMap.get(replacement.pk)?.name ||
+            shortifyPublicKey(replacement.pk)
           }</a>`,
         );
       } else if (renderFlag === RenderFlag.Markdown) {
         content = content.replace(
           regex,
           `[@${
-            userMap.get(replacement.pk)?.name || shortifyPublicKey(replacement.pk)
+            userMap.get(replacement.pk)?.name ||
+            shortifyPublicKey(replacement.pk)
           }](/${i18n?.language}/user/${replacement.pk})`,
         );
       }
@@ -71,10 +73,9 @@ export class Nip08 {
       if (renderFlg === RenderFlag.Html) {
         content = content.replace(
           regex,
-          `<a href="/${i18n?.language}/event/${replacement.eventId}">@${Nip19.encode(
-            replacement.eventId,
-            Nip19DataType.EventId,
-          )}</a>`,
+          `<a href="/${i18n?.language}/event/${
+            replacement.eventId
+          }">@${Nip19.encode(replacement.eventId, Nip19DataType.EventId)}</a>`,
         );
       } else if (renderFlg === RenderFlag.Markdown) {
         content = content.replace(

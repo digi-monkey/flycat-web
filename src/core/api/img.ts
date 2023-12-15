@@ -20,7 +20,7 @@ export class ImageProvider extends base {
       HttpProtocolMethod.post,
       {
         headers,
-      }
+      },
     );
     return url;
   }

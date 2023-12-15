@@ -12,14 +12,14 @@ export function useLoadSelectedStore(
 
     const selectedMode = store.loadSelectedMode(myPublicKey);
     const selectedGroup = store.loadSelectedGroupId(myPublicKey);
-    
+
     if (selectedMode) {
       const value =
         selectedMode === RelayMode.group && selectedGroup
           ? [selectedMode, selectedGroup]
           : [selectedMode];
-          
-			modeCb(value);
+
+      modeCb(value);
     }
   }, [myPublicKey]);
 }

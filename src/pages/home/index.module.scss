@@ -201,7 +201,6 @@
   align-items: flex-start;
   gap: 10px;
   align-self: stretch;
-  position: -webkit-sticky;
   position: sticky;
   top: 0; 
   z-index: 100;
@@ -235,7 +234,6 @@
 }
 
 .mobileFilter {
-  position: -webkit-sticky;
   position: sticky;
   top: 64px; 
   z-index: 100;

@@ -19,41 +19,50 @@ export const EventPage = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const { eventId } = router.query as { eventId: string };
-  
+
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
 
   useEffect(() => {
-    if(!eventId)return;
+    if (!eventId) return;
     if (!worker) return;
 
-    const callRelay =
-      createCallRelay(newConn);
-    worker
-      .subMsgByEventIds([eventId], undefined, callRelay)
+    const callRelay = createCallRelay(newConn);
+    worker.subMsgByEventIds([eventId], undefined, callRelay);
   }, [eventId, worker, newConn]);
 
-  useEffect(()=>{
-    if(!eventId)return;
-    if(!worker)return;
+  useEffect(() => {
+    if (!eventId) return;
+    if (!worker) return;
 
-    dexieDb.event.get(eventId).then((event)=>{
-      if(!event){
-        worker.subMsgByEventIds([eventId]).iterating({cb: (event)=>{
-          setRootEvent(event);
-        }});
+    dexieDb.event.get(eventId).then(event => {
+      if (!event) {
+        worker.subMsgByEventIds([eventId]).iterating({
+          cb: event => {
+            setRootEvent(event);
+          },
+        });
         return;
       }
       setRootEvent(event);
     });
   }, [eventId, worker]);
 
-  
   return (
     <BaseLayout>
       <Left>
         <div>
-          <PageTitle title={t('thread.title')} icon={<Icon onClick={()=>router.back()} width={24} height={24} type='icon-arrow-left'/>}/>
+          <PageTitle
+            title={t('thread.title')}
+            icon={
+              <Icon
+                onClick={() => router.back()}
+                width={24}
+                height={24}
+                type="icon-arrow-left"
+              />
+            }
+          />
 
           {rootEvent && (
             <>

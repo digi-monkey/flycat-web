@@ -12,10 +12,7 @@ export function getMessage(username: string, caip10: string) {
   return `Log into Nostr client as '${username}'\n\nIMPORTANT: Please verify the integrity and authenticity of connected Nostr client before signing this message\n\nSIGNED BY: ${caip10}`;
 }
 
-export async function getSignature(
-  message: string,
-  signer: JsonRpcSigner,
-) {
+export async function getSignature(message: string, signer: JsonRpcSigner) {
   const signature = await signer.signMessage(message);
   return signature;
 }

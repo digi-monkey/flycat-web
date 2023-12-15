@@ -33,15 +33,15 @@ export const CustomFilter: React.FC<CustomFilterProp> = ({
   const [filterOptions, setFilterOptions] = useState<MsgFilterNoscript[]>([]);
 
   const whitelist = [
-    "45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a",
+    '45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a',
   ];
-  if(isValidPublicKey(myPublicKey)){
+  if (isValidPublicKey(myPublicKey)) {
     whitelist.push(myPublicKey);
   }
 
   const queryNoscript = async () => {
     if (!worker) return [];
-    
+
     const filter: Filter = Nip188.createQueryNoscriptFilter(whitelist);
     worker.subFilter({ filter });
     const relayUrls = worker.relays.map(r => r.url);

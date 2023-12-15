@@ -1,8 +1,16 @@
-import { deserializeMetadata } from "core/nostr/content";
-import { UserMap, EventMap, EventId, PublicKey, EventTags, WellKnownEventKind, EventSetMetadataContent } from "core/nostr/type";
-import { CallWorker } from "core/worker/caller";
-import { EventWithSeen } from "pages/type";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { deserializeMetadata } from 'core/nostr/content';
+import {
+  UserMap,
+  EventMap,
+  EventId,
+  PublicKey,
+  EventTags,
+  WellKnownEventKind,
+  EventSetMetadataContent,
+} from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
+import { EventWithSeen } from 'pages/type';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 export function useLastReplyEvent({
   msgList,

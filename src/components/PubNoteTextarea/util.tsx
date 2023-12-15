@@ -6,7 +6,7 @@ import { RawEvent } from 'core/nostr/RawEvent';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { DecodedNprofileResult, Nip19 } from 'core/nip/19';
 
-export const makeInvoice = async (setText) => {
+export const makeInvoice = async setText => {
   if (typeof window?.webln === 'undefined') {
     return alert('No WebLN available.');
   }
@@ -23,14 +23,14 @@ export const makeInvoice = async (setText) => {
     console.log(error);
     return alert('An error occurred during the makeInvoice() call.');
   }
-}
+};
 
 export const handleImgUpload = async (
   blob: Blob,
   fileName: string,
   imgType: string,
   setIsUploading: React.Dispatch<React.SetStateAction<boolean>>,
-  setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>
+  setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>,
 ) => {
   const file = new File([blob], fileName, { type: imgType });
   const imageFile = await compressImage(file);
@@ -59,7 +59,7 @@ export const handleImgUpload = async (
 export const handleFileSelect = (
   event: React.ChangeEvent<HTMLInputElement>,
   setIsUploading: React.Dispatch<React.SetStateAction<boolean>>,
-  setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>
+  setAttachImgs: React.Dispatch<React.SetStateAction<string[]>>,
 ) => {
   setIsUploading(true);
   const file = event.target.files?.[0];
@@ -74,7 +74,13 @@ export const handleFileSelect = (
   fileReader.onloadend = () => {
     if (fileReader.result) {
       const blob = new Blob([fileReader.result], { type: file.type });
-      handleImgUpload(blob, file.name, file.type, setIsUploading, setAttachImgs);
+      handleImgUpload(
+        blob,
+        file.name,
+        file.type,
+        setIsUploading,
+        setAttachImgs,
+      );
     }
   };
 
@@ -84,7 +90,9 @@ export const handleFileSelect = (
 function replaceKeysWithPrefix(obj, str) {
   const regex = new RegExp(`@(${Object.keys(obj).join('|')})(?=\\b|\\s)`, 'g');
   const parts = str.split(/(\s+)/);
-  const replacedParts = parts.map(part => regex.test(part) ? part.replace(regex, obj[RegExp.$1]) : part);
+  const replacedParts = parts.map(part =>
+    regex.test(part) ? part.replace(regex, obj[RegExp.$1]) : part,
+  );
 
   return replacedParts.join('');
 }
@@ -100,11 +108,15 @@ export const handleSubmitText = async (
   myPublicKey: string,
   worker: CallWorker | undefined,
   pubSuccessCallback?: (eventId, relayUrl) => any,
-  selectedCommunity?: Naddr
+  selectedCommunity?: Naddr,
 ) => {
   formEvt.preventDefault();
 
-  const pTagPubKeys = Object.values(selectMention).map(nprofile => (Nip19.decodeShareable(nprofile.slice(6)).data as DecodedNprofileResult).pubkey);
+  const pTagPubKeys = Object.values(selectMention).map(
+    nprofile =>
+      (Nip19.decodeShareable(nprofile.slice(6)).data as DecodedNprofileResult)
+        .pubkey,
+  );
   const hashTags = extractHashTags(text);
 
   const newText = replaceKeysWithPrefix(selectMention, text);
@@ -122,7 +134,7 @@ export const handleSubmitText = async (
     tags.push([EventTags.A, selectedCommunity, '']);
   }
   if (hashTags.length > 0) {
-    tags = tags.concat(hashTags.map(t => [EventTags.T, t.substring(1)]));// remove #
+    tags = tags.concat(hashTags.map(t => [EventTags.T, t.substring(1)])); // remove #
   }
 
   const rawEvent = new RawEvent(

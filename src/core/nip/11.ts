@@ -67,8 +67,7 @@ export interface RelayInformation {
 export class Nip11 {
   static async getRelayInformation(url: string) {
     try {
-      const httpUrl = url
-        .replace(/^ws(s?):\/\//, 'http$1://');
+      const httpUrl = url.replace(/^ws(s?):\/\//, 'http$1://');
 
       const response = await axios.get<RelayInformation>(httpUrl, {
         headers: {
@@ -94,9 +93,14 @@ export class Nip11 {
     });
   }
 
-  static toUpdateRelay(relay: Relay, info: RelayInformation, operatorDetail?: EventSetMetadataContent): Relay {
+  static toUpdateRelay(
+    relay: Relay,
+    info: RelayInformation,
+    operatorDetail?: EventSetMetadataContent,
+  ): Relay {
     const payRequired = info.limitation?.payment_required;
-    const accessType = payRequired === true ? RelayAccessType.Pay : RelayAccessType.Public; 
+    const accessType =
+      payRequired === true ? RelayAccessType.Pay : RelayAccessType.Public;
     return {
       accessType: accessType,
       read: relay.read,
@@ -128,9 +132,14 @@ export class Nip11 {
     };
   }
 
-  static toRelay(url: string, info: RelayInformation, operatorDetail?: EventSetMetadataContent): Relay {
+  static toRelay(
+    url: string,
+    info: RelayInformation,
+    operatorDetail?: EventSetMetadataContent,
+  ): Relay {
     const payRequired = info.limitation?.payment_required;
-    const accessType = payRequired === true ? RelayAccessType.Pay : RelayAccessType.Public; 
+    const accessType =
+      payRequired === true ? RelayAccessType.Pay : RelayAccessType.Public;
     return {
       accessType: accessType,
       read: true,
@@ -169,14 +178,14 @@ export class Nip11 {
           try {
             const info = await this.getRelayInformation(url);
             if (!info) return resolve(null);
-            let operatorDetail: EventSetMetadataContent | undefined; 
-            if(info.pubkey){
+            let operatorDetail: EventSetMetadataContent | undefined;
+            if (info.pubkey) {
               const event = await this.getRelayOperatorDetail(url, info.pubkey);
-              if(event){
+              if (event) {
                 operatorDetail = event;
               }
             }
-            
+
             const relay = this.toRelay(url, info, operatorDetail);
             resolve(relay);
           } catch (error) {
@@ -190,30 +199,28 @@ export class Nip11 {
   }
 
   static async updateRelays(relays: Relay[]) {
-    const promises = relays.map(
-      relay => {
-        const url = relay.url;
-        return new Promise(async (resolve: (res: Relay | null) => any) => {
-          try {
-            const info = await this.getRelayInformation(url);
-            if (!info) return resolve(null);
-            let operatorDetail: EventSetMetadataContent | undefined; 
-            if(info.pubkey){
-              const event = await this.getRelayOperatorDetail(url, info.pubkey);
-              if(event){
-                operatorDetail = event;
-              }
+    const promises = relays.map(relay => {
+      const url = relay.url;
+      return new Promise(async (resolve: (res: Relay | null) => any) => {
+        try {
+          const info = await this.getRelayInformation(url);
+          if (!info) return resolve(null);
+          let operatorDetail: EventSetMetadataContent | undefined;
+          if (info.pubkey) {
+            const event = await this.getRelayOperatorDetail(url, info.pubkey);
+            if (event) {
+              operatorDetail = event;
             }
-            
-            const newRelay = this.toUpdateRelay(relay, info, operatorDetail);
-            resolve(newRelay);
-          } catch (error) {
-            console.debug(error);
-            resolve(null);
           }
-        });
-      }
-    );
+
+          const newRelay = this.toUpdateRelay(relay, info, operatorDetail);
+          resolve(newRelay);
+        } catch (error) {
+          console.debug(error);
+          resolve(null);
+        }
+      });
+    });
     const results = await Promise.all(promises);
     return results.filter(r => r != null) as Relay[];
   }

@@ -13,7 +13,7 @@ export interface NostrWasmRuntimeProp {
 }
 
 export interface Program {
-	visitingProfile: (publicKey: string) => any;
+  visitingProfile: (publicKey: string) => any;
 }
 
 export class NostrWasmRuntime {
@@ -24,17 +24,17 @@ export class NostrWasmRuntime {
   }
 
   async loadProgram(code: ArrayBuffer, memory?: WebAssembly.Memory) {
-		const conf: WebAssembly.Imports = {
+    const conf: WebAssembly.Imports = {
       env: {
         predefine: () => this.predefine,
       },
+    };
+    if (memory) {
+      conf.env.memory = memory;
     }
-		if(memory){
-			conf.env.memory = memory;
-		}
     const results = await WebAssembly.instantiate(code, conf);
     //const methods = results.instance.exports as unknown as Program;
     //return methods;
-		return results;
+    return results;
   }
 }

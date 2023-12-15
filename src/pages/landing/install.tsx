@@ -45,7 +45,9 @@ const InstallButton: React.FC = () => {
         messageApi.error(error.message);
       }
     } else {
-      return messageApi.error('deferredPrompt is null. Please use Safari/Chrome and try again.');
+      return messageApi.error(
+        'deferredPrompt is null. Please use Safari/Chrome and try again.',
+      );
     }
   };
 

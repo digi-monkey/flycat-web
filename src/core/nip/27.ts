@@ -1,3 +1,1 @@
-export class Nip27 {
-	
-}
+export class Nip27 {}

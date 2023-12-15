@@ -1,52 +1,52 @@
 // this nip is not proposed yet
 // it is foucs on nostr scripts(wasm bytecode)
-import { Event } from "core/nostr/Event";
-import { RawEvent } from "core/nostr/RawEvent";
-import { EventTags, Filter, Tags } from "core/nostr/type";
+import { Event } from 'core/nostr/Event';
+import { RawEvent } from 'core/nostr/RawEvent';
+import { EventTags, Filter, Tags } from 'core/nostr/type';
 
 export class Nip188 {
   static kind = 32042; // nostr script kind
-  static noscriptTagLabel = "noscript";
-  static customMsgFilterLabelValue = "wasm:msg:filter";
+  static noscriptTagLabel = 'noscript';
+  static customMsgFilterLabelValue = 'wasm:msg:filter';
 
-  static createNoscriptMsgFilterTag(filter: Filter, description?: string){
+  static createNoscriptMsgFilterTag(filter: Filter, description?: string) {
     const tags: Tags = [];
-    if(filter.ids){
-      tags.push(["ids", ...filter.ids]);
+    if (filter.ids) {
+      tags.push(['ids', ...filter.ids]);
     }
-    if(filter.authors){
-      tags.push(["authors", ...filter.authors]);
+    if (filter.authors) {
+      tags.push(['authors', ...filter.authors]);
     }
-    if(filter.kinds){
-      tags.push(["kinds", ...filter.kinds.map(k => k.toString())]);
+    if (filter.kinds) {
+      tags.push(['kinds', ...filter.kinds.map(k => k.toString())]);
     }
-    if(filter.limit){
-      tags.push(["limit", filter.limit.toString()]);
+    if (filter.limit) {
+      tags.push(['limit', filter.limit.toString()]);
     }
-    if(filter.since){
-      tags.push(["since", filter.since.toString()]);
+    if (filter.since) {
+      tags.push(['since', filter.since.toString()]);
     }
-    if(filter.until){
-      tags.push(["until", filter.until.toString()]);
+    if (filter.until) {
+      tags.push(['until', filter.until.toString()]);
     }
-    if(filter["#e"]){
-      tags.push(["#e", ...filter["#e"]]);
+    if (filter['#e']) {
+      tags.push(['#e', ...filter['#e']]);
     }
-    if(filter["#p"]){
-      tags.push(["#p", ...filter["#p"]]);
+    if (filter['#p']) {
+      tags.push(['#p', ...filter['#p']]);
     }
-    if(filter["#d"]){
-      tags.push(["#e", ...filter["#d"]]);
+    if (filter['#d']) {
+      tags.push(['#e', ...filter['#d']]);
     }
-    if(filter["#a"]){
-      tags.push(["#a", ...filter["#a"]]);
+    if (filter['#a']) {
+      tags.push(['#a', ...filter['#a']]);
     }
-    if(filter["#t"]){
-      tags.push(["#t", ...filter["#t"]]);
+    if (filter['#t']) {
+      tags.push(['#t', ...filter['#t']]);
     }
 
-    if(description){
-      tags.push(["description", description]);
+    if (description) {
+      tags.push(['description', description]);
     }
 
     tags.push([this.noscriptTagLabel, this.customMsgFilterLabelValue]);
@@ -54,17 +54,24 @@ export class Nip188 {
     return tags;
   }
 
-  static isValidCustomMsgFilterNoscript(){
-    return  (event: Event)=> !!event.tags.find(t => t[0] === this.noscriptTagLabel && t[1] === this.customMsgFilterLabelValue)
+  static isValidCustomMsgFilterNoscript() {
+    return (event: Event) =>
+      !!event.tags.find(
+        t =>
+          t[0] === this.noscriptTagLabel &&
+          t[1] === this.customMsgFilterLabelValue,
+      );
   }
 
-  static createNoscript(wasmCode: ArrayBuffer, identifire: string,  extraTags?: Tags) {
+  static createNoscript(
+    wasmCode: ArrayBuffer,
+    identifire: string,
+    extraTags?: Tags,
+  ) {
     const codeBase64 = this.arrayBufferToBase64(wasmCode);
-    const tags = [
-      [EventTags.D, identifire]
-    ];
-    console.log("check:", extraTags, extraTags && extraTags.length > 0)
-    if(extraTags && extraTags.length > 0){
+    const tags = [[EventTags.D, identifire]];
+    console.log('check:', extraTags, extraTags && extraTags.length > 0);
+    if (extraTags && extraTags.length > 0) {
       tags.push(...extraTags);
     }
     const rawEvent = new RawEvent('', this.kind, tags, codeBase64);
@@ -77,49 +84,49 @@ export class Nip188 {
     return code;
   }
 
-  static parseNoscriptMsgFilterTag(event: Event){
+  static parseNoscriptMsgFilterTag(event: Event) {
     const tags: Tags = event.tags;
     const filter: Filter = {};
-    const ids = findTagValues(tags, "ids");
-    const authors = findTagValues(tags, "authors");
-    const kinds = findTagValues(tags, "kinds");
-    const since = findTagValues(tags, "since");
-    const until = findTagValues(tags, "until");
-    const limit = findTagValues(tags, "limit");
-    const e = findTagValues(tags, "#e");
-    const d = findTagValues(tags, "#d");
-    const a = findTagValues(tags, "#a");
-    const t = findTagValues(tags, "#t");
+    const ids = findTagValues(tags, 'ids');
+    const authors = findTagValues(tags, 'authors');
+    const kinds = findTagValues(tags, 'kinds');
+    const since = findTagValues(tags, 'since');
+    const until = findTagValues(tags, 'until');
+    const limit = findTagValues(tags, 'limit');
+    const e = findTagValues(tags, '#e');
+    const d = findTagValues(tags, '#d');
+    const a = findTagValues(tags, '#a');
+    const t = findTagValues(tags, '#t');
 
-    if(ids){
-      filter.ids = ids; 
+    if (ids) {
+      filter.ids = ids;
     }
-    if(authors){
-      filter.authors = authors; 
+    if (authors) {
+      filter.authors = authors;
     }
-    if(kinds){
-      filter.kinds = kinds.map(k => +k); 
+    if (kinds) {
+      filter.kinds = kinds.map(k => +k);
     }
-    if(since){
+    if (since) {
       filter.since = +since[0];
     }
-    if(limit){
+    if (limit) {
       filter.limit = +limit[0];
     }
-    if(until){
+    if (until) {
       filter.until = +until[0];
     }
-    if(e){
-      filter["#e"] = e;
+    if (e) {
+      filter['#e'] = e;
     }
-    if(d){
-      filter["#d"] = d;
+    if (d) {
+      filter['#d'] = d;
     }
-    if(a){
-      filter["#a"] = a;
+    if (a) {
+      filter['#a'] = a;
     }
-    if(t){
-      filter["#t"] = t;
+    if (t) {
+      filter['#t'] = t;
     }
     return filter;
   }
@@ -127,20 +134,24 @@ export class Nip188 {
   static createQueryNoscriptFilter(pubkeys: string[], limit = 50) {
     const filter: Filter = {
       kinds: [this.kind],
-      limit
-    }
+      limit,
+    };
     if (pubkeys.length > 0) {
       filter.authors = pubkeys;
     }
     return filter;
   }
 
-  static createQueryNoscriptFilterById(pubkeys: string[], identifier: string, limit = 50) {
+  static createQueryNoscriptFilterById(
+    pubkeys: string[],
+    identifier: string,
+    limit = 50,
+  ) {
     const filter: Filter = {
-      "#d": [identifier],
+      '#d': [identifier],
       kinds: [this.kind],
-      limit
-    }
+      limit,
+    };
     if (pubkeys.length > 0) {
       filter.authors = pubkeys;
     }
@@ -167,13 +178,13 @@ export class Nip188 {
   }
 }
 
-function findTag(tags: Tags, firstLabel: string){
+function findTag(tags: Tags, firstLabel: string) {
   return tags.find(t => t[0] === firstLabel);
 }
 
-function findTagValues(tags: Tags, firstLabel: string){
+function findTagValues(tags: Tags, firstLabel: string) {
   const values = findTag(tags, firstLabel);
-  if(values && values.slice(1).length > 0){
+  if (values && values.slice(1).length > 0) {
     return values.slice(1);
   }
   return null;

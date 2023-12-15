@@ -122,7 +122,7 @@ export const getEventIdsFromETags = (tags: any[]) =>
 
 export const getEventAddrFromATags = (tags: any[]) =>
   tags.filter(t => isEventATag(t)).map(t => t[1] as Naddr);
-  
+
 export const getEventDTagId = (tags: any[]) =>
   tags.filter(t => t[0] === EventTags.D).map(t => t[1] as string | null)[0];
 
@@ -187,6 +187,6 @@ export function kindToReadable(kind: number) {
       return 'Relay-List';
 
     default:
-      return "Kind-" + kind
+      return 'Kind-' + kind;
   }
 }

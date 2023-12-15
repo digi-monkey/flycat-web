@@ -1,7 +1,7 @@
-import { LOCAL_SAVE_KEY } from "constants/common";
-import { Article } from "core/nip/23";
-import { getLocalSave } from "pages/write/util";
-import { useEffect } from "react";
+import { LOCAL_SAVE_KEY } from 'constants/common';
+import { Article } from 'core/nip/23';
+import { getLocalSave } from 'pages/write/util';
+import { useEffect } from 'react';
 
 export function useDrafts(setDrafts) {
   useEffect(() => {

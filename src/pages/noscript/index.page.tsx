@@ -79,8 +79,9 @@ export function NoscriptManger() {
           <div style={{ color: 'gray', marginBottom: '10px' }}>
             This is a experiment feature. A nostr script is just a piece of wasm
             bytecode stored on relay, composed by users instead of flycat or any
-            other platforms/clients. You can put arbitrary logic on the nostr script. 
-            Below is a simple use case, costuming a timeline via nostr scripts.
+            other platforms/clients. You can put arbitrary logic on the nostr
+            script. Below is a simple use case, costuming a timeline via nostr
+            scripts.
           </div>
 
           <h4>Custom Timeline Scripts</h4>
@@ -107,7 +108,12 @@ export function NoscriptManger() {
               msgFilterScriptDescription,
             )}
           />
-          <p>How to create a script? Check out <Link href="https://github.com/digi-monkey/flycat-web/blob/master/docs/noscript.md#custom-timeline-script">here</Link></p>
+          <p>
+            How to create a script? Check out{' '}
+            <Link href="https://github.com/digi-monkey/flycat-web/blob/master/docs/noscript.md#custom-timeline-script">
+              here
+            </Link>
+          </p>
         </div>
       </Left>
       <Right></Right>

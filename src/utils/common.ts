@@ -104,7 +104,7 @@ export async function parsePublicKeyFromUserIdentifier(
       return userId;
     }
 
-    if(isValidNpub(userId)){
+    if (isValidNpub(userId)) {
       const npub = parseNpub(userId);
       return npub;
     }
@@ -168,7 +168,7 @@ export async function requestPublicKeyFromNip05DomainName(
 export function parseNpub(npub: string) {
   try {
     const res = Nip19.decode(npub);
-    if(res.type !== Nip19DataType.Npubkey){
+    if (res.type !== Nip19DataType.Npubkey) {
       throw new Error('invalid npub parse result,  ' + res.data);
     }
     return res.data as PublicKey;

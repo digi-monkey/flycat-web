@@ -17,7 +17,6 @@ export const CopyText = ({
   failedMsg,
   alertLastSecs = 5,
 }: CopyTextProps) => {
-
   const copy = async (text: string) => {
     const inputElement = document.createElement('input');
     inputElement.value = text;
@@ -29,7 +28,7 @@ export const CopyText = ({
     } catch (error: any) {
       await document.execCommand('copy');
     }
-   
+
     inputElement.remove();
   };
 
@@ -48,17 +47,23 @@ export const CopyText = ({
             );
           }
           const text =
-            textToCopy || (await getTextToCopy?.call(getTextToCopy)) || "";
+            textToCopy || (await getTextToCopy?.call(getTextToCopy)) || '';
 
           try {
             await copy(text);
           } catch (error: any) {
-            console.error("copy failed: ", error.message);
-            message.error(failedMsg || 'Failed to copied to clipboard!', alertLastSecs);
+            console.error('copy failed: ', error.message);
+            message.error(
+              failedMsg || 'Failed to copied to clipboard!',
+              alertLastSecs,
+            );
             return;
           }
 
-          message.success(successMsg || 'Text copied to clipboard!', alertLastSecs);
+          message.success(
+            successMsg || 'Text copied to clipboard!',
+            alertLastSecs,
+          );
         }}
       >
         {name}

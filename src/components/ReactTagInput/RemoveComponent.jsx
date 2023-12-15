@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import { KEYS } from './constants';
 
 const crossStr = String.fromCharCode(215);
-const RemoveComponent = (props) => {
+const RemoveComponent = props => {
   const { readOnly, removeComponent, onRemove, className, tag, index } = props;
 
-  const onKeydown = (event) => {
+  const onKeydown = event => {
     if (KEYS.ENTER.includes(event.keyCode) || event.keyCode === KEYS.SPACE) {
       event.preventDefault();
       event.stopPropagation();
@@ -42,7 +42,8 @@ const RemoveComponent = (props) => {
       onKeyDown={onKeydown}
       className={className}
       type="button"
-      aria-label={ariaLabel}>
+      aria-label={ariaLabel}
+    >
       {crossStr}
     </button>
   );

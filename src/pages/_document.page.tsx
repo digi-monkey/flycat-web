@@ -1,4 +1,10 @@
-import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
+import Document, {
+  Html,
+  Head,
+  Main,
+  NextScript,
+  DocumentContext,
+} from 'next/document';
 import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs';
 
 class FlyCatDocument extends Document {
@@ -140,7 +146,7 @@ FlyCatDocument.getInitialProps = async (ctx: DocumentContext) => {
   const originalRenderPage = ctx.renderPage;
   ctx.renderPage = () =>
     originalRenderPage({
-      enhanceApp: (App) => (props) => (
+      enhanceApp: App => props => (
         <StyleProvider cache={cache}>
           <App {...props} />
         </StyleProvider>

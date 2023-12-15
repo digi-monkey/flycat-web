@@ -8,13 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import { Avatar, Button } from 'antd';
 import { isValidPublicKey } from 'utils/validator';
 
-const PostContent = ({
-  article,
-  publicKey,
-  userProfile,
-  articleId,
-  t,
-}) => {
+const PostContent = ({ article, publicKey, userProfile, articleId, t }) => {
   const myPublicKey = useReadonlyMyPublicKey();
   return (
     <div className={styles.postContent}>
@@ -43,9 +37,7 @@ const PostContent = ({
               </div>
               <div className={styles.text}>
                 <div className={styles.username}>
-                  <Link href={Paths.user + publicKey}>
-                    {userProfile?.name}
-                  </Link>
+                  <Link href={Paths.user + publicKey}>{userProfile?.name}</Link>
                 </div>
                 <div className={styles.time}>
                   {article && (
@@ -85,14 +77,14 @@ const PostContent = ({
             ),
           }}
         >
-          {article.content.replace(/\n\n/gi, "&nbsp; \n\n")}
+          {article.content.replace(/\n\n/gi, '&nbsp; \n\n')}
         </ReactMarkdown>
       </div>
 
       <div className={styles.postTags}>
-        {article?.hashTags?.flat(Infinity).map((t, key) => (
-          <span key={key}>#{t}</span>
-        ))}
+        {article?.hashTags
+          ?.flat(Infinity)
+          .map((t, key) => <span key={key}>#{t}</span>)}
       </div>
     </div>
   );

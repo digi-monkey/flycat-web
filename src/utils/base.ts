@@ -1,4 +1,4 @@
-import { Utf8Str } from "types";
+import { Utf8Str } from 'types';
 import { Buffer } from 'buffer';
 
 export function u32ToLEBuffer(u32: number): Buffer {

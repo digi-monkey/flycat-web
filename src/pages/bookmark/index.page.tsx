@@ -10,7 +10,7 @@ import { FilterOptions } from './filterOptions';
 import PostItems from 'components/PostItems';
 import { useLastReplyEvent } from './hooks/useLastReplyEvent';
 import PageTitle from 'components/PageTitle';
-import styles from "./index.module.scss";
+import styles from './index.module.scss';
 
 const Bookmark = () => {
   const { t } = useTranslation();
@@ -26,8 +26,20 @@ const Bookmark = () => {
     setSelectedValue(value);
   };
 
-  const feed = useBookmarkListFeed({ worker, newConn, userMap, setUserMap, setEventMap });
-  useLastReplyEvent({msgList: feed, worker, userMap, setUserMap, setEventMap});
+  const feed = useBookmarkListFeed({
+    worker,
+    newConn,
+    userMap,
+    setUserMap,
+    setEventMap,
+  });
+  useLastReplyEvent({
+    msgList: feed,
+    worker,
+    userMap,
+    setUserMap,
+    setEventMap,
+  });
 
   const renderContent = () => {
     const allowKinds: number[] = FilterOptions.filter(
@@ -35,12 +47,10 @@ const Bookmark = () => {
     ).map(opt => opt.kinds)[0];
 
     const selectFeed = feed.filter(f => allowKinds.includes(f.kind));
-    return (
-      selectFeed.length > 0 ?
-      <PostItems
-        msgList={selectFeed}
-        worker={worker!}
-      /> : <Empty />
+    return selectFeed.length > 0 ? (
+      <PostItems msgList={selectFeed} worker={worker!} />
+    ) : (
+      <Empty />
     );
   };
 
@@ -48,7 +58,7 @@ const Bookmark = () => {
     <BaseLayout>
       <Left>
         <div>
-          <PageTitle title='Bookmark' />
+          <PageTitle title="Bookmark" />
           <div className={styles.selectBox}>
             <Select
               defaultValue={FilterOptions[0].value}

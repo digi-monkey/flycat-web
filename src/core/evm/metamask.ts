@@ -1,15 +1,20 @@
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { getCaip10, getMessage, getSignature, privateKeyFromX } from "../nip/111";
-import { getPublicKey } from "core/crypto";
+import {
+  getCaip10,
+  getMessage,
+  getSignature,
+  privateKeyFromX,
+} from '../nip/111';
+import { getPublicKey } from 'core/crypto';
 
 export async function connectToMetaMask() {
-  const { Web3Provider } = await import("@ethersproject/providers");
+  const { Web3Provider } = await import('@ethersproject/providers');
 
   // Check if MetaMask is installed
   if (typeof window.ethereum === 'undefined') {
     console.error('Please install MetaMask to use this dApp.');
-		return null;
+    return null;
   }
 
   // Request access to the user's MetaMask account
@@ -21,13 +26,16 @@ export async function connectToMetaMask() {
   // Get the user's selected address from MetaMask
   const signer = provider.getSigner();
   const address = await signer.getAddress();
-	const chainId = await signer.getChainId();
+  const chainId = await signer.getChainId();
 
   console.log('Connected to MetaMask with address:', address);
-	return {signer, address, chainId};
+  return { signer, address, chainId };
 }
 
-export async function getPrivateKeyFromMetamaskSignIn(username: string, password?: string) {
+export async function getPrivateKeyFromMetamaskSignIn(
+  username: string,
+  password?: string,
+) {
   const walletExt = await connectToMetaMask();
   if (walletExt == null) {
     alert('metamask not installed');
@@ -56,42 +64,39 @@ export function createMetamaskGetPublicKey(username?: string) {
   return async () => {
     if (username == null) {
       // todo: how do we use custom ux instead of window.prompt to get user input here?
-      username = window.prompt("Your Evm sign-in username: ", "nostr") || undefined;
-      if(username == null){
-        const errMsg = "Evm sign-in username not found, can't generate public key";
+      username =
+        window.prompt('Your Evm sign-in username: ', 'nostr') || undefined;
+      if (username == null) {
+        const errMsg =
+          "Evm sign-in username not found, can't generate public key";
         alert(errMsg);
         throw new Error(errMsg);
       }
     }
 
-    const password = window.prompt("Your Evm sign-in password: ") || undefined;
+    const password = window.prompt('Your Evm sign-in password: ') || undefined;
 
-    return await getPublicKeyFromMetamaskSignIn(
-      username,
-      password,
-    );
+    return await getPublicKeyFromMetamaskSignIn(username, password);
   };
 }
 
-export function createMetamaskSignEvent(username?: string): (
-  raw: RawEvent,
-) => Promise<Event> {
+export function createMetamaskSignEvent(
+  username?: string,
+): (raw: RawEvent) => Promise<Event> {
   return async (raw: RawEvent) => {
     if (username == null) {
       // todo: how do we use custom ux instead of window.prompt to get user input here?
-      username = window.prompt("Your Evm sign-in username: ", "nostr") || undefined;
-      if(username == null){
+      username =
+        window.prompt('Your Evm sign-in username: ', 'nostr') || undefined;
+      if (username == null) {
         const errMsg = "Evm sign-in username not found, can't sign event";
         alert(errMsg);
         throw new Error(errMsg);
       }
     }
 
-    const password = window.prompt("Your Evm sign-in password: ") || undefined;
-    const privKey = await getPrivateKeyFromMetamaskSignIn(
-      username,
-      password,
-    );
+    const password = window.prompt('Your Evm sign-in password: ') || undefined;
+    const privKey = await getPrivateKeyFromMetamaskSignIn(username, password);
     if (privKey == null) {
       const errMsg = "generate private key failed, can't sign event";
       alert(errMsg);

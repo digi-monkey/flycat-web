@@ -7,14 +7,14 @@ export interface PageTitleProp {
 }
 
 const PageTitle: React.FC<PageTitleProp> = ({ icon, title, right }) => {
-  return <div className={styles.root}>
-    <div className={styles.title}>
-    {icon} {title}
+  return (
+    <div className={styles.root}>
+      <div className={styles.title}>
+        {icon} {title}
+      </div>
+      <div>{right}</div>
     </div>
-    <div>
-      {right}
-    </div>
-  </div>;
+  );
 };
 
 export default PageTitle;

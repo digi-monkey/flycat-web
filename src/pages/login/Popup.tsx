@@ -90,17 +90,22 @@ export const EvmSignInPopup = ({ isOpen, onClose, onSubmit, mode }: Props) => {
   }, []);
 
   return (
-    <Modal 
+    <Modal
       title={t('evmSignIn.title')}
-      className={styles.popupDialog} 
-      open={isOpen} 
-      onCancel={onClose} 
+      className={styles.popupDialog}
+      open={isOpen}
+      onCancel={onClose}
       onOk={handleSubmit}
       okText={t('evmSignIn.submit')}
-      okButtonProps={{disabled: username.length === 0}}
+      okButtonProps={{ disabled: username.length === 0 }}
     >
       <>
-        <div className={styles.popupIntroduce}>{t('evmSignIn.introduce')} <a href="/post/45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a/why-sign-in-from-eth-wallet">{"How EVM nostr sub-account works"}</a> </div>
+        <div className={styles.popupIntroduce}>
+          {t('evmSignIn.introduce')}{' '}
+          <a href="/post/45c41f21e1cf715fa6d9ca20b8e002a574db7bb49e96ee89834c66dac5446b7a/why-sign-in-from-eth-wallet">
+            {'How EVM nostr sub-account works'}
+          </a>{' '}
+        </div>
         <div className={styles.popupTip}>{t('evmSignIn.tip')}</div>
 
         <Divider></Divider>

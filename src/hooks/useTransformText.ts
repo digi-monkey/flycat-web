@@ -1,8 +1,15 @@
-import { ParsedFragment, transformText } from "components/PostItems/PostContent/text";
+import {
+  ParsedFragment,
+  transformText,
+} from 'components/PostItems/PostContent/text';
 
 const TextCache = new Map<string, Array<ParsedFragment>>();
 
-export function transformTextCached(id: string, content: string, tags: Array<Array<string>>) {
+export function transformTextCached(
+  id: string,
+  content: string,
+  tags: Array<Array<string>>,
+) {
   if (content.length > 0) {
     const cached = TextCache.get(id);
     if (cached) return cached;
@@ -13,6 +20,10 @@ export function transformTextCached(id: string, content: string, tags: Array<Arr
   return [];
 }
 
-export function doTextTransformer(id: string, content: string, tags: Array<Array<string>>) {
+export function doTextTransformer(
+  id: string,
+  content: string,
+  tags: Array<Array<string>>,
+) {
   return transformTextCached(id, content, tags);
 }

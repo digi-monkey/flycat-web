@@ -23,7 +23,6 @@ export function useLoadModeratorProfiles({
         ...(communities.get(k)?.moderators || []),
       ])
       .flat() as string[];
-    worker
-      .subMetadata(pks, undefined, callRelay)
+    worker.subMetadata(pks, undefined, callRelay);
   }, [newConn, worker, communities]);
 }

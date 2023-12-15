@@ -21,7 +21,12 @@ interface PostUserProps {
   }[];
 }
 
-const PostUser: React.FC<PostUserProps> = ({ publicKey, profile, event, extraMenu }) => {
+const PostUser: React.FC<PostUserProps> = ({
+  publicKey,
+  profile,
+  event,
+  extraMenu,
+}) => {
   const timeSince = useTimeSince(event.created_at || 0);
   const [userUrl, setUserUrl] = useState<string>(`${Paths.user + publicKey}`);
 

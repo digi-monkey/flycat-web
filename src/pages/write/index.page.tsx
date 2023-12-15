@@ -136,7 +136,12 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                   {image.length > 0 ? (
                     <div className={styles.pic}>
                       <img src={image} alt="banner" />
-                      <button onClick={()=>setImage('')} className={styles.overlayButton}>Remove Image</button>
+                      <button
+                        onClick={() => setImage('')}
+                        className={styles.overlayButton}
+                      >
+                        Remove Image
+                      </button>
                     </div>
                   ) : (
                     <ImageUploader onImgUrls={url => setImage(url[0])} />
@@ -187,13 +192,28 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
         </div>
       </div>
       {toast && (
-        <Alert banner={true} message={t('blogWrite.tipsy.restore')} type="success" closable />
+        <Alert
+          banner={true}
+          message={t('blogWrite.tipsy.restore')}
+          type="success"
+          closable
+        />
       )}
       {saveToast && (
-        <Alert banner={true} type="success" message={t('blogWrite.tipsy.success.save')} closable />
+        <Alert
+          banner={true}
+          type="success"
+          message={t('blogWrite.tipsy.success.save')}
+          closable
+        />
       )}
       {publishedToast && (
-        <Alert banner={true} type="success" message={t('blogWrite.tipsy.success.publish')} closable />
+        <Alert
+          banner={true}
+          type="success"
+          message={t('blogWrite.tipsy.success.publish')}
+          closable
+        />
       )}
       <div className={styles.main}>
         <div className={styles.title}>

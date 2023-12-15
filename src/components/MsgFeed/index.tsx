@@ -12,7 +12,11 @@ import { validateFilter } from './util';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
-import { createQueryCacheId, queryCache, scrollPositionCache } from 'core/cache/query';
+import {
+  createQueryCacheId,
+  queryCache,
+  scrollPositionCache,
+} from 'core/cache/query';
 import { useIntersectionObserver, useInterval } from 'usehooks-ts';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
@@ -47,8 +51,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
   const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
 
-  const newMsgNotifyRef = useRef<HTMLDivElement | null>(null)
-  const entry = useIntersectionObserver(newMsgNotifyRef, {})
+  const newMsgNotifyRef = useRef<HTMLDivElement | null>(null);
+  const entry = useIntersectionObserver(newMsgNotifyRef, {});
   const isNotifyVisible = !!entry?.isIntersecting;
 
   const relayUrls = useMemo(
@@ -70,7 +74,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const subNewMsg = async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
-    if (isLoadingMsg || isPullRefreshing)return;
+    if (isLoadingMsg || isPullRefreshing) return;
 
     const request = async (latest: number | undefined) => {
       let since = msgFilter.since;
@@ -160,8 +164,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     const latest = memoMsgList[0]?.created_at || 0;
     request(latest);
   };
-  
-  const query = async () => {    
+
+  const query = async () => {
     if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
     setIsLoadingMsg(true);
 
@@ -190,7 +194,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     console.log('query: ', events.length, relayUrls, msgFilter);
     setMsgList(events);
     // save cache
-    if(events.length > 0){
+    if (events.length > 0) {
       queryCache.set(queryCacheId, events);
     }
 
@@ -238,15 +242,15 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   // remember and restore the last visit position in the feed
   // todo: better way to do this?
-  useEffect(()=>{
+  useEffect(() => {
     if (scrollHeight > 0) {
       scrollPositionCache.set(queryCacheId, scrollHeight);
     }
   }, [scrollHeight]);
   useEffect(() => {
     const pos = scrollPositionCache.get(queryCacheId);
-    if(pos && memoMsgList.length > 0){
-      window.scrollTo({top: pos, behavior: "instant" as ScrollBehavior});
+    if (pos && memoMsgList.length > 0) {
+      window.scrollTo({ top: pos, behavior: 'instant' as ScrollBehavior });
     }
   }, [queryCacheId, memoMsgList.length > 0]);
 
@@ -266,8 +270,8 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return newData;
     });
     setNewComingMsg([]);
-    if(!isNotifyVisible){
-      window.scrollTo({top: 0});
+    if (!isNotifyVisible) {
+      window.scrollTo({ top: 0 });
     }
   };
 
@@ -306,7 +310,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
             </div>
           )}
 
-          {newComingMsg.length > 0  && !isNotifyVisible && (
+          {newComingMsg.length > 0 && !isNotifyVisible && (
             <div className={classNames(styles.reloadFeedBtn, styles.fixed)}>
               <Button onClick={onClickNewMsg} type="link">
                 Show {newComingMsg.length} new posts

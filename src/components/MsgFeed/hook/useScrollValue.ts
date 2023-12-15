@@ -3,12 +3,12 @@ import { useDebounce } from 'usehooks-ts';
 
 export const useScrollValue = (debounceDelay = 700) => {
   const [scrollValue, setScrollValue] = useState(0);
-	const debounceScrollValue = useDebounce(scrollValue, debounceDelay);
+  const debounceScrollValue = useDebounce(scrollValue, debounceDelay);
 
   useEffect(() => {
-		const handleScroll = () => {
-			setScrollValue(window.scrollY);
-		};
+    const handleScroll = () => {
+      setScrollValue(window.scrollY);
+    };
     window.addEventListener('scroll', handleScroll);
 
     return () => {

@@ -41,30 +41,37 @@ export function Search() {
       setKeyWord(urlKeyWord);
       subQueryToRelays(urlKeyWord);
 
-      if(isValidNpub(urlKeyWord)){
+      if (isValidNpub(urlKeyWord)) {
         try {
           const pubkey = parseNpub(urlKeyWord);
           setPubkey(pubkey);
           profileQuery.getProfileByPubkey(pubkey).then(event => {
-            if(event){
+            if (event) {
               setPubkeyEvent(event);
             }
           });
         } catch (error: any) {
-          console.debug('failed to parse npub from key word, ', urlKeyWord, 'reason: ', error.message);
+          console.debug(
+            'failed to parse npub from key word, ',
+            urlKeyWord,
+            'reason: ',
+            error.message,
+          );
         }
       }
     }
   }, [router]);
 
-  useEffect(()=>{
-    if(pubkey && worker && !pubkeyEvent){
+  useEffect(() => {
+    if (pubkey && worker && !pubkeyEvent) {
       const callRelay = createCallRelay(newConn);
-      worker.subMetadata([pubkey], undefined, callRelay).iterating({cb: (event) => {
-        setPubkeyEvent({...event, ...{seen: [], timestamp: 0}});
-      }});
+      worker.subMetadata([pubkey], undefined, callRelay).iterating({
+        cb: event => {
+          setPubkeyEvent({ ...event, ...{ seen: [], timestamp: 0 } });
+        },
+      });
     }
-  }, [pubkey, worker, newConn])
+  }, [pubkey, worker, newConn]);
 
   const handleTabChange = key => {
     router.push(`?keyword=${key}`);
@@ -104,7 +111,7 @@ export function Search() {
     const fn = async (ws: WS) => {
       const dataStream = ws.subFilter(filter);
       const result: any[] = [];
-      for await(const data of dataStream){
+      for await (const data of dataStream) {
         result.push(data);
       }
       return result;
@@ -165,14 +172,21 @@ export function Search() {
           {isQuerying && <Spin />}
           <Divider orientation="left">Profiles</Divider>
           <List>
-            {pubkey && !pubkeyEvent && <div>pubkey related profile not found, try visit <Link href={'/user/' + pubkey}>profile page?</Link></div>}
-            {pubkeyEvent && !profiles.map(p => p.pubkey).includes(pubkey!) && profileUI(pubkeyEvent)}
+            {pubkey && !pubkeyEvent && (
+              <div>
+                pubkey related profile not found, try visit{' '}
+                <Link href={'/user/' + pubkey}>profile page?</Link>
+              </div>
+            )}
+            {pubkeyEvent &&
+              !profiles.map(p => p.pubkey).includes(pubkey!) &&
+              profileUI(pubkeyEvent)}
             {profiles.slice(0, 20).map(profileUI)}
           </List>
         </div>
 
         <Divider orientation="left">Notes</Divider>
-        <PostItems msgList={events} worker={worker!}/>
+        <PostItems msgList={events} worker={worker!} />
       </Left>
       <Right></Right>
     </BaseLayout>

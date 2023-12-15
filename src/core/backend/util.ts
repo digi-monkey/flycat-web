@@ -36,7 +36,10 @@ export function waitUntilNip23RelayConnected(pool: Pool) {
     const checkConnectionStatus = () => {
       count++;
       if (count > limit) reject(new Error('time out'));
-      if (pool.wsConnectStatus.get("wss://relay.nostr.band") || pool.wsConnectStatus.get("wss://relay.nostr.bg")) {
+      if (
+        pool.wsConnectStatus.get('wss://relay.nostr.band') ||
+        pool.wsConnectStatus.get('wss://relay.nostr.bg')
+      ) {
         resolve(true);
       } else {
         setTimeout(checkConnectionStatus, 50); // wait 100 mil second before checking again

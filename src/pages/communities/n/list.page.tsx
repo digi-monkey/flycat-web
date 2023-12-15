@@ -106,7 +106,7 @@ const Explore = () => {
         <div className={styles.communitySearchPanel}>
           <Input
             size="large"
-            addonBefore={<Icon type='icon-search' />}
+            addonBefore={<Icon type="icon-search" />}
             placeholder="Search community name"
             onChange={e => setSearchName(e.target.value)}
           />
@@ -116,7 +116,7 @@ const Explore = () => {
             size="large"
             onClick={() => router.push('/communities/n/create')}
           >
-            create community 
+            create community
           </Button>
         </div>
 
@@ -137,9 +137,7 @@ const Explore = () => {
                 renderItem={item => (
                   <List.Item
                     extra={<img alt="logo" src={item.value.image} />}
-                    onClick={() =>
-                      router.push('/communities/n/' + item.key)
-                    }
+                    onClick={() => router.push('/communities/n/' + item.key)}
                   >
                     <List.Item.Meta
                       style={{ textOverflow: 'ellipsis' }}
@@ -157,7 +155,11 @@ const Explore = () => {
             dataSource={
               searchName
                 ? Array.from(communities.keys())
-                    .filter(a => a.toLocaleLowerCase().includes(searchName.toLocaleLowerCase()))
+                    .filter(a =>
+                      a
+                        .toLocaleLowerCase()
+                        .includes(searchName.toLocaleLowerCase()),
+                    )
                     .map(naddr => {
                       const community = communities.get(naddr)!;
                       return {

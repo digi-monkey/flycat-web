@@ -18,7 +18,11 @@ export class Pool {
   public maxSub: number;
   public switchRelays: SwitchRelays;
 
-  constructor(seedRelays: SwitchRelays, onWsConnectStatusChange: (wsConnectStatus: WsConnectStatus) => any, maxSub = 10) {
+  constructor(
+    seedRelays: SwitchRelays,
+    onWsConnectStatusChange: (wsConnectStatus: WsConnectStatus) => any,
+    maxSub = 10,
+  ) {
     console.log('init Pool..');
 
     this.maxSub = maxSub;
@@ -35,7 +39,8 @@ export class Pool {
         .filter(ws => ws.isConnected())
         .forEach(ws => {
           console.debug(
-            `${ws.url
+            `${
+              ws.url
             } subs: active ${ws.activeSubscriptions.getSize()}, pending ${ws.pendingSubscriptions.size()}`,
           );
         });
@@ -65,7 +70,7 @@ export class Pool {
         ws.releaseActiveSubscription(sub);
         // todo send close to the relay need to tell if it is eos or not
       }
-    })
+    });
   }
 
   setupWebSocketApis() {
@@ -75,21 +80,30 @@ export class Pool {
         const relayUrl = normalizeWsUrl(_relayUrl);
         if (!this.wsConnectStatus.has(relayUrl)) {
           const onOpen = _event => {
-            if (ws.isConnected() === true && !this.wsConnectStatus.get(relayUrl)) {
+            if (
+              ws.isConnected() === true &&
+              !this.wsConnectStatus.get(relayUrl)
+            ) {
               this.wsConnectStatus.set(relayUrl, true);
               console.log(`WebSocket connection to ${relayUrl} connected`);
               this.onWsConnectStatusChange(this.wsConnectStatus);
             }
           };
           const onerror = (event: globalThis.Event) => {
-            if(ws.isConnected() === false && this.wsConnectStatus.get(relayUrl) === true){
+            if (
+              ws.isConnected() === false &&
+              this.wsConnectStatus.get(relayUrl) === true
+            ) {
               console.error(`WebSocket error: `, event);
               this.wsConnectStatus.set(relayUrl, false);
               this.onWsConnectStatusChange(this.wsConnectStatus);
             }
           };
           const onclose = () => {
-            if (ws.isConnected() === false && this.wsConnectStatus.get(relayUrl) === true) {
+            if (
+              ws.isConnected() === false &&
+              this.wsConnectStatus.get(relayUrl) === true
+            ) {
               console.log(`WebSocket connection to ${relayUrl} closed`);
               this.wsConnectStatus.set(relayUrl, false);
               this.onWsConnectStatusChange(this.wsConnectStatus);

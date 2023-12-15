@@ -1,12 +1,15 @@
-import { Button, message, Upload } from "antd";
-import Icon from "components/Icon";
+import { Button, message, Upload } from 'antd';
+import Icon from 'components/Icon';
 
 export interface WasmFileTesterdProp {
   btnText?: string;
-  testFn: (byteCode: ArrayBuffer) => Promise<any>
+  testFn: (byteCode: ArrayBuffer) => Promise<any>;
 }
 
-export const WasmFileTester: React.FC<WasmFileTesterdProp> = ({ btnText, testFn }) => {
+export const WasmFileTester: React.FC<WasmFileTesterdProp> = ({
+  btnText,
+  testFn,
+}) => {
   const customRequest = async ({ file, onSuccess, onError }) => {
     const reader = new FileReader();
 
@@ -28,7 +31,11 @@ export const WasmFileTester: React.FC<WasmFileTesterdProp> = ({ btnText, testFn 
 
     reader.readAsArrayBuffer(file);
   };
-  return <Upload customRequest={customRequest as any}>
-    <Button icon={<Icon type="icon-plus" />}>{btnText || "upload .wasm file"}</Button>
-  </Upload>
-}
+  return (
+    <Upload customRequest={customRequest as any}>
+      <Button icon={<Icon type="icon-plus" />}>
+        {btnText || 'upload .wasm file'}
+      </Button>
+    </Upload>
+  );
+};

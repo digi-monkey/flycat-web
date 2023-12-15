@@ -36,7 +36,7 @@ export function LightingInvoice({ url }: { url: string }) {
 
   return (
     <span
-      onClick={(e)=>e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       style={{
         padding: '10px',
         width: '300px',
@@ -53,12 +53,10 @@ export function LightingInvoice({ url }: { url: string }) {
 
       <span style={{ display: 'block', fontSize: '30px', margin: '10px 0px' }}>
         {amount?.toString()} sats
-        <Icon type="icon-bolt" /> 
+        <Icon type="icon-bolt" />
       </span>
       <span style={{}}>
-        <Button onClick={pay}>
-          {t('lighting.pay')}
-        </Button>
+        <Button onClick={pay}>{t('lighting.pay')}</Button>
       </span>
     </span>
   );
@@ -113,7 +111,7 @@ export function LnUrlInvoice({ url }: { url: string }) {
 
   return (
     <span
-      onClick={(e)=>e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       style={{
         padding: '10px',
         width: '300px',
@@ -127,12 +125,10 @@ export function LnUrlInvoice({ url }: { url: string }) {
       <span style={{ display: 'block', fontSize: '30px', margin: '10px 0px' }}>
         <span style={{ fontSize: '12px' }}>{t('lighting.atLeast')}</span>{' '}
         {minSendable} Sats
-        <Icon type="icon-bolt" /> 
+        <Icon type="icon-bolt" />
       </span>
       <span style={{}}>
-        <Button onClick={pay}>
-          {t('lighting.pay')}
-        </Button>
+        <Button onClick={pay}>{t('lighting.pay')}</Button>
       </span>
     </span>
   );

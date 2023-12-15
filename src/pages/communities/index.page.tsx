@@ -6,12 +6,7 @@ import { useLoadCommunities } from './hooks/useLoadCommunities';
 import { Event } from 'core/nostr/Event';
 import { ReactNode, useEffect, useState } from 'react';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
-import {
-  EventTags,
-  Filter,
-  Naddr,
-  WellKnownEventKind,
-} from 'core/nostr/type';
+import { EventTags, Filter, Naddr, WellKnownEventKind } from 'core/nostr/type';
 import { Avatar, Input, List, Tabs } from 'antd';
 import { useLoadModeratorProfiles } from './hooks/useLoadProfile';
 
@@ -88,7 +83,7 @@ const Explore = () => {
             ),
         )
         .map(t => t[1] as Naddr);
-      console.log("following: ", addrs)
+      console.log('following: ', addrs);
       if (!addrs || addrs.length === 0) {
         return;
       }
@@ -119,25 +114,25 @@ const Explore = () => {
     setMsgSubProp(msgSubProp);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     onMsgFeedChanged();
   }, [myContactEvent, selectTabKey, communities.size]);
 
-  useLiveQuery(async()=>{
+  useLiveQuery(async () => {
     const filter = Nip172.communitiesFilter();
     filter.limit = 500;
     const relayUrls = worker?.relays.map(r => r.url) || [];
-    if(relayUrls.length === 0)return;
+    if (relayUrls.length === 0) return;
     const events = await dbQuery.matchFilterRelay(filter, relayUrls);
-    console.log("query comm:", filter, relayUrls, events);
+    console.log('query comm:', filter, relayUrls, events);
     const map = new Map();
-    for(const event of events){
+    for (const event of events) {
       const metadata = Nip172.parseCommunityMetadata(event);
-        const addr = Nip172.communityAddr({
-          identifier: metadata.id,
-          author: metadata.creator,
-        });
-        map.set(addr, metadata);
+      const addr = Nip172.communityAddr({
+        identifier: metadata.id,
+        author: metadata.creator,
+      });
+      map.set(addr, metadata);
     }
     setCommunities(map);
   }, [worker?.relayGroupId]);
@@ -150,10 +145,9 @@ const Explore = () => {
         '#a': addrs,
         limit: 50,
       };
-      worker
-        .subFilter({
-          filter,
-        })
+      worker.subFilter({
+        filter,
+      });
     }
   }, [communities, worker]);
 
@@ -178,11 +172,10 @@ const Explore = () => {
         '#a': addrs,
         limit: 50,
       };
-      worker
-        .subFilter({
-          filter,
-        });
-        console.log("sub following comm:", filter)
+      worker.subFilter({
+        filter,
+      });
+      console.log('sub following comm:', filter);
     }
   }, [myContactEvent, myPublicKey, worker, selectTabKey]);
 

@@ -1,4 +1,4 @@
-export interface NostrFilterMessage{
-	nostrData: string;
-	relayUrl: string;
+export interface NostrFilterMessage {
+  nostrData: string;
+  relayUrl: string;
 }

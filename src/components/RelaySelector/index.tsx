@@ -8,12 +8,7 @@ import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup
 import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
 import { Button, Cascader, Divider, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
-import {
-  RelayMode,
-  RelayFooterMenus,
-  toLabel,
-  toRelayMode,
-} from './type';
+import { RelayMode, RelayFooterMenus, toLabel, toRelayMode } from './type';
 import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import {
@@ -63,7 +58,8 @@ export function RelaySelector({
   const myPublicKey = useReadonlyMyPublicKey();
 
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] = useState<string[]>();
+  const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] =
+    useState<string[]>();
   const [selectCascaderOption, setSelectCascaderOption] = useState<string[]>();
   const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
 
@@ -89,9 +85,10 @@ export function RelaySelector({
     });
   };
 
-  useLoadSelectedStore(myPublicKey, (value) => {
-    setSelectedCascaderMapRelay(value); if (value.length > 1) {
-      setSelectCascaderOption([value[1]])
+  useLoadSelectedStore(myPublicKey, value => {
+    setSelectedCascaderMapRelay(value);
+    if (value.length > 1) {
+      setSelectCascaderOption([value[1]]);
     }
   });
   useGetSwitchRelay(
@@ -136,13 +133,14 @@ export function RelaySelector({
     if (groups.getGroupById(NIP_65_RELAY_LIST)) return;
 
     const callRelay = createCallRelay(newConn);
-    worker.subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 }).iterating({
-      cb: (event, relayUrl) => {
-
-        groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
-        setRelayGroupMap(groups.map);
-      }
-    });
+    worker
+      .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
+      .iterating({
+        cb: (event, relayUrl) => {
+          groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
+          setRelayGroupMap(groups.map);
+        },
+      });
   }, [worker, newConn]);
 
   useEffect(() => {
@@ -206,8 +204,8 @@ export function RelaySelector({
     <>
       {getConnectedRelayUrl(wsConnectStatus).length > 0
         ? getConnectedRelayUrl(wsConnectStatus).map(url => (
-          <li key={url}>{url}</li>
-        ))
+            <li key={url}>{url}</li>
+          ))
         : 'No connected relays'}
     </>
   );
@@ -244,11 +242,12 @@ export function RelaySelector({
               <Tooltip placement="bottom" title={connectedUrlTooltip}>
                 <span className={styles.childrenItem}>
                   {toConnectStatus(
-                    selectedCascaderMapRelay && selectedCascaderMapRelay.length > 1
+                    selectedCascaderMapRelay &&
+                      selectedCascaderMapRelay.length > 1
                       ? selectedCascaderMapRelay[1]
                       : 'default',
                     wsConnectStatus,
-                    worker?.relays?.length || 0
+                    worker?.relays?.length || 0,
                   )}
                 </span>
               </Tooltip>

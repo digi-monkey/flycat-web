@@ -9,11 +9,7 @@ import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Button, Mentions, Popover, Select, Tooltip } from 'antd';
 import { handleFileSelect, handleSubmitText } from './util';
-import {
-  IMentions,
-  useLoadCommunities,
-  useSetMentions,
-} from './hooks';
+import { IMentions, useLoadCommunities, useSetMentions } from './hooks';
 
 import Link from 'next/link';
 import Icon from 'components/Icon';
@@ -51,7 +47,7 @@ const PubNoteTextarea: React.FC<Props> = ({
   signEvent,
   pubSuccessCallback,
   activeCommunity,
-  initText
+  initText,
 }) => {
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -70,14 +66,14 @@ const PubNoteTextarea: React.FC<Props> = ({
   const communities = useLoadCommunities({ worker, newConn });
   useSetMentions(setMentionsValue);
 
-  useEffect(()=>{
-    if(activeCommunity){
+  useEffect(() => {
+    if (activeCommunity) {
       setSelectedCommunity(activeCommunity);
     }
-  }, [activeCommunity])
+  }, [activeCommunity]);
 
-  useEffect(()=>{
-    if(initText){
+  useEffect(() => {
+    if (initText) {
       setText(initText);
     }
   }, []);
@@ -101,7 +97,7 @@ const PubNoteTextarea: React.FC<Props> = ({
             myPublicKey,
             worker,
             pubSuccessCallback,
-            selectedCommunity
+            selectedCommunity,
           )
         }
       >
@@ -170,9 +166,9 @@ const PubNoteTextarea: React.FC<Props> = ({
                   data={async () => {
                     const response = await fetch(
                       'https://cdn.jsdelivr.net/npm/@emoji-mart/data',
-                    )
-                
-                    return response.json()
+                    );
+
+                    return response.json();
                   }}
                   onEmojiSelect={res => setText(text + res.native)}
                   locale={router.locale}
@@ -194,29 +190,31 @@ const PubNoteTextarea: React.FC<Props> = ({
             <Popover
               title="Select community to post"
               content={
-               <>
-                <Select
-                  title="community"
-                  style={{ width: '200px' }}
-                  value={selectedCommunity}
-                  onChange={(value)=>setSelectedCommunity(value)}
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').includes(input)
-                  }
-                  options={Array.from(communities.keys()).map(k => {
-                    return {
-                      label: communities.get(k)?.id,
-                      value: k,
-                    };
-                  })}
-                />
-               </>
+                <>
+                  <Select
+                    title="community"
+                    style={{ width: '200px' }}
+                    value={selectedCommunity}
+                    onChange={value => setSelectedCommunity(value)}
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').includes(input)
+                    }
+                    options={Array.from(communities.keys()).map(k => {
+                      return {
+                        label: communities.get(k)?.id,
+                        value: k,
+                      };
+                    })}
+                  />
+                </>
               }
             >
               <Icon type="icon-explore" className={styles.community} />
-              {selectedCommunity ? maxStrings(communities.get(selectedCommunity)?.id||"", 10) : "No Comm"}
+              {selectedCommunity
+                ? maxStrings(communities.get(selectedCommunity)?.id || '', 10)
+                : 'No Comm'}
             </Popover>
           </div>
           <SubmitButton

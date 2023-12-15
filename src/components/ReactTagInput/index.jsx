@@ -28,7 +28,7 @@ class ReactTags extends Component {
     suggestions: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
-      })
+      }),
     ),
     delimiters: PropTypes.arrayOf(PropTypes.number),
     autofocus: PropTypes.bool,
@@ -64,7 +64,7 @@ class ReactTags extends Component {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         className: PropTypes.string,
-      })
+      }),
     ),
     allowUnique: PropTypes.bool,
     renderSuggestion: PropTypes.func,
@@ -104,7 +104,7 @@ class ReactTags extends Component {
     if (!props.inline) {
       /* eslint-disable no-console */
       console.warn(
-        '[Deprecation] The inline attribute is deprecated and will be removed in v7.x.x, please use inputFieldPosition instead.'
+        '[Deprecation] The inline attribute is deprecated and will be removed in v7.x.x, please use inputFieldPosition instead.',
       );
       /* eslint-enable no-console */
     }
@@ -144,22 +144,22 @@ class ReactTags extends Component {
     }
   }
 
-  filteredSuggestions = (query) => {
+  filteredSuggestions = query => {
     let { suggestions } = this.props;
     if (this.props.allowUnique) {
-      const existingTags = this.props.tags.map((tag) => tag.id.toLowerCase());
+      const existingTags = this.props.tags.map(tag => tag.id.toLowerCase());
       suggestions = suggestions.filter(
-        (suggestion) => !existingTags.includes(suggestion.id.toLowerCase())
+        suggestion => !existingTags.includes(suggestion.id.toLowerCase()),
       );
     }
     if (this.props.handleFilterSuggestions) {
       return this.props.handleFilterSuggestions(query, suggestions);
     }
 
-    const exactSuggestions = suggestions.filter((item) => {
+    const exactSuggestions = suggestions.filter(item => {
       return this.getQueryIndex(query, item) === 0;
     });
-    const partialSuggestions = suggestions.filter((item) => {
+    const partialSuggestions = suggestions.filter(item => {
       return this.getQueryIndex(query, item) > 0;
     });
     return exactSuggestions.concat(partialSuggestions);
@@ -356,18 +356,18 @@ class ReactTags extends Component {
     const tags = pastedText.split(delimiterRegExp);
 
     // Only add unique tags
-    uniq(tags).forEach((tag) =>
-      this.addTag({ id: tag, [this.props.labelField]: tag })
+    uniq(tags).forEach(tag =>
+      this.addTag({ id: tag, [this.props.labelField]: tag }),
     );
   }
 
-  addTag = (tag) => {
+  addTag = tag => {
     const { tags, labelField, allowUnique } = this.props;
     const { currentEditIndex } = this.state;
     if (!tag.id || !tag[labelField]) {
       return;
     }
-    const existingKeys = tags.map((tag) => tag.id.toLowerCase());
+    const existingKeys = tags.map(tag => tag.id.toLowerCase());
 
     // Return if tag has been already added
     if (allowUnique && existingKeys.indexOf(tag.id.toLowerCase()) >= 0) {
@@ -441,7 +441,7 @@ class ReactTags extends Component {
           {currentEditIndex === index ? (
             <div className={classNames.editTagInput}>
               <input
-                ref={(input) => {
+                ref={input => {
                   this.tagInput = input;
                 }}
                 onFocus={this.handleFocus}
@@ -503,7 +503,7 @@ class ReactTags extends Component {
       <div className={classNames.tagInput}>
         <input
           {...inputProps}
-          ref={(input) => {
+          ref={input => {
             this.textInput = input;
           }}
           className={classNames.tagInputField}
@@ -545,7 +545,8 @@ class ReactTags extends Component {
     return (
       <div
         className={ClassNames(classNames.tags, 'react-tags-wrapper')}
-        ref={this.reactTagsRef}>
+        ref={this.reactTagsRef}
+      >
         <p
           role="alert"
           className="sr-only"
@@ -558,7 +559,8 @@ class ReactTags extends Component {
             width: '1px',
             height: '1px',
             border: 0,
-          }}>
+          }}
+        >
           {this.state.ariaLiveStatus}
         </p>
         {position === INPUT_FIELD_POSITIONS.TOP && tagInput}

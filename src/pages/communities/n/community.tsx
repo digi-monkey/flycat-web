@@ -9,7 +9,13 @@ import {
   WellKnownEventKind,
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 import { EventWithSeen } from 'pages/type';
 import { CallRelayType } from 'core/worker/type';
 import { isEventPTag } from 'core/nostr/util';
@@ -58,7 +64,7 @@ export function Community({
   setContributorCount,
   setMyPostCount,
   setMyUnApprovalPostCount,
-  setActionButton
+  setActionButton,
 }: CommunityProps) {
   const myPublicKey = useReadonlyMyPublicKey();
   const [myContactEvent, setMyContactEvent] = useState<Event>();
@@ -141,7 +147,7 @@ export function Community({
       </Button>
     );
     setMyActionButton(actionButton);
-  }, [myContactEvent])
+  }, [myContactEvent]);
 
   const getApprovalShortNoteId = async () => {
     if (!worker) return;
@@ -422,7 +428,9 @@ export function Community({
     );
     const event = await signEvent(rawEvent);
     const handle = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handle, () => getApprovalShortNoteId());
+    noticePubEventResult(worker.relays.length, handle, () =>
+      getApprovalShortNoteId(),
+    );
   };
 
   const handleTabClick = tabName => {
@@ -434,10 +442,12 @@ export function Community({
       setPostCount(msgList.length);
     }
     if (setContributorCount) {
-      setContributorCount(new Set(msgList.map(item => item.pubkey)).size)
+      setContributorCount(new Set(msgList.map(item => item.pubkey)).size);
     }
     if (setMyPostCount) {
-      setMyPostCount(msgList.filter(item => item.pubkey === myPublicKey).length);
+      setMyPostCount(
+        msgList.filter(item => item.pubkey === myPublicKey).length,
+      );
     }
   }, [msgList]);
 
@@ -446,7 +456,9 @@ export function Community({
       const unApprovalMsgList = allMsgList.filter(
         msg => !msgList.map(m => m.id).includes(msg.id),
       );
-      setMyUnApprovalPostCount(unApprovalMsgList.filter(item => item.pubkey === myPublicKey).length);
+      setMyUnApprovalPostCount(
+        unApprovalMsgList.filter(item => item.pubkey === myPublicKey).length,
+      );
     }
   }, [allMsgList]);
 
@@ -463,7 +475,7 @@ export function Community({
           className={styles.communityNav}
           onClick={() => router.push('/communities')}
         >
-          <Icon type='icon-arrow-left' />
+          <Icon type="icon-arrow-left" />
           {community.id}
         </div>
         <div
@@ -518,22 +530,25 @@ export function Community({
                     <div className={styles.msgTypeWrapper}>
                       <div className={styles.typeButtonContainer}>
                         <div
-                          className={`${styles.typeButton} ${activeTab === 'Latest' ? styles.typeActive : ''
-                            }`}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Latest' ? styles.typeActive : ''
+                          }`}
                           onClick={() => handleTabClick('Latest')}
                         >
                           Latest
                         </div>
                         <div
-                          className={`${styles.typeButton} ${activeTab === 'Hot' ? styles.typeActive : ''
-                            }`}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Hot' ? styles.typeActive : ''
+                          }`}
                           onClick={() => handleTabClick('Hot')}
                         >
                           Hot
                         </div>
                         <div
-                          className={`${styles.typeButton} ${activeTab === 'Long-Form' ? styles.typeActive : ''
-                            }`}
+                          className={`${styles.typeButton} ${
+                            activeTab === 'Long-Form' ? styles.typeActive : ''
+                          }`}
                           onClick={() => handleTabClick('Long-Form')}
                         >
                           Long-Form
@@ -571,12 +586,12 @@ export function Community({
                       extraMenu={
                         isModerator
                           ? [
-                            {
-                              label: 'approve this event',
-                              onClick: (event, message) =>
-                                createApproval(event, message),
-                            },
-                          ]
+                              {
+                                label: 'approve this event',
+                                onClick: (event, message) =>
+                                  createApproval(event, message),
+                              },
+                            ]
                           : []
                       }
                     />

@@ -48,8 +48,6 @@ export const EmbedPostUI: React.FC<EmbedPostUIProp> = ({
       event={event}
       extraMenu={extraMenu}
     />
-    <div className={styles.content}>
-      {content}
-    </div>
+    <div className={styles.content}>{content}</div>
   </div>
 );

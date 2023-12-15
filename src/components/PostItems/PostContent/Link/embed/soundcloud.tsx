@@ -1,7 +1,7 @@
 export const SoundCloudEmbed = ({ link }: { link: string }) => {
   return (
     <iframe
-      onClick={(e)=>e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       width="100%"
       height="166"
       scrolling="no"

@@ -26,5 +26,5 @@ export const readOnlyFallbackRelays = [
   'wss://relay.nostr.bg',
   'wss://relay.snort.social',
   'wss://nos.lol',
-  'wss://purplepag.es'
-]
+  'wss://purplepag.es',
+];

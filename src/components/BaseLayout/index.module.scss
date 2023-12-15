@@ -32,6 +32,14 @@
 
     li {
       display: flex;
+
+      &:hover {
+        background-color: var(--hover-color);
+      }
+      padding: {
+        left: var(--basePadding5);
+        right: var(--basePadding5);
+      }
     }
 
     li,
@@ -98,16 +106,6 @@
         @include for-pad {
           display: none;
         }
-      }
-    }
-
-    li {
-      &:hover {
-        background-color: var(--hover-color);
-      }
-      padding: {
-        left: var(--basePadding5);
-        right: var(--basePadding5);
       }
     }
   }

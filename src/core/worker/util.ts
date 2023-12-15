@@ -24,7 +24,7 @@ export async function getContactEvent({
   worker.subContactList([pk]).iterating({
     cb: () => {
       //do nothing
-    }
+    },
   });
 }
 
@@ -97,12 +97,10 @@ export function createFollowContactEvent(
   throw new Error('unknown target type');
 }
 
-export function createInitialFollowContactEvent(
-  target: {
-    type: 'people' | 'hashTag' | 'community';
-    data: string;
-  },
-) {
+export function createInitialFollowContactEvent(target: {
+  type: 'people' | 'hashTag' | 'community';
+  data: string;
+}) {
   const newEvent: RawEvent = new RawEvent(
     '',
     WellKnownEventKind.contact_list,
@@ -148,7 +146,8 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'people') {
     const tags = newEvent.tags.filter(
-      t => (t[0] !== EventTags.P) || (t[0] === EventTags.P && t[1] !== target.data),
+      t =>
+        t[0] !== EventTags.P || (t[0] === EventTags.P && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;
@@ -156,7 +155,8 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'hashTag') {
     const tags = newEvent.tags.filter(
-      t => (t[0] !== EventTags.T) || (t[0] === EventTags.T && t[1] !== target.data),
+      t =>
+        t[0] !== EventTags.T || (t[0] === EventTags.T && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;
@@ -164,7 +164,8 @@ export function createUnFollowContactEvent(
 
   if (target.type === 'community') {
     const tags = newEvent.tags.filter(
-      t => (t[0] !== EventTags.A) || (t[0] === EventTags.A && t[1] !== target.data),
+      t =>
+        t[0] !== EventTags.A || (t[0] === EventTags.A && t[1] !== target.data),
     );
     newEvent.tags = tags;
     return newEvent;

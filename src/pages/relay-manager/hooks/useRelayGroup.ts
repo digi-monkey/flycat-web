@@ -7,7 +7,7 @@ export function useRelayGroup(myPublicKey: string, defaultGroup?: Relay[]) {
 
   useEffect(() => {
     const groups = new RelayGroup(myPublicKey);
-		const defaultGroupId = "default";
+    const defaultGroupId = 'default';
     if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
       groups.setGroup(defaultGroupId, defaultGroup);
     }

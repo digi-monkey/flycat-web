@@ -20,7 +20,7 @@ export function eventToFeed(events: Event[], authorPk?: string) {
     updated: new Date(2013, 6, 14), // optional, default = today
     generator: 'flycat', // optional, default = 'Feed for Node.js'
     feedLinks: {
-      rss:  `https://flycat.club/api/rss/${pk}`,
+      rss: `https://flycat.club/api/rss/${pk}`,
       atom: `https://flycat.club/api/atom/${pk}`,
       json: `https://flycat.club/api/json/${pk}`,
     },

@@ -28,7 +28,7 @@ export class ConnPool {
     while (available > 0 && index < urls.length) {
       this.activeConn.addItem(urls[index]);
       available--;
-      index++
+      index++;
     }
 
     while (index < urls.length) {
@@ -37,9 +37,14 @@ export class ConnPool {
     }
   }
 
-  private async execute(url: string, fnWithTimeout: (ws: WS) => Promise<any>, db: RelayPoolDatabase, progressCb?: (restCount: number) => any) {
+  private async execute(
+    url: string,
+    fnWithTimeout: (ws: WS) => Promise<any>,
+    db: RelayPoolDatabase,
+    progressCb?: (restCount: number) => any,
+  ) {
     if (progressCb) {
-      progressCb(this.activeConn.getSize() + this.pendingConn.size())
+      progressCb(this.activeConn.getSize() + this.pendingConn.size());
     }
 
     try {
@@ -63,7 +68,7 @@ export class ConnPool {
   public async executeConcurrently<T>(
     fn: (connection: WS) => Promise<T>,
     timeoutMs?: number,
-    progressCb?: (restCount: number) => any
+    progressCb?: (restCount: number) => any,
   ): Promise<T[]> {
     const results: T[] = [];
     const db = new RelayPoolDatabase();
@@ -73,7 +78,7 @@ export class ConnPool {
         timeoutMs || 5000,
         `Data stream timed out! ${ws.url}`,
       );
-      const dataPromise = new Promise((resolve) => {
+      const dataPromise = new Promise(resolve => {
         fn(ws).then(data => {
           results.push(data);
           resolve(data);
@@ -97,9 +102,14 @@ export class ConnPool {
     return results.filter(r => r != null);
   }
 
-  private async benchmark(url: string, getTime: (p: { url: string, t?: number, isFailed: boolean }) => any, db: RelayPoolDatabase, progressCb?: (restCount: number) => any) {
+  private async benchmark(
+    url: string,
+    getTime: (p: { url: string; t?: number; isFailed: boolean }) => any,
+    db: RelayPoolDatabase,
+    progressCb?: (restCount: number) => any,
+  ) {
     if (progressCb) {
-      progressCb(this.activeConn.getSize() + this.pendingConn.size())
+      progressCb(this.activeConn.getSize() + this.pendingConn.size());
     }
 
     try {
@@ -121,12 +131,16 @@ export class ConnPool {
   }
 
   public async benchmarkConcurrently(
-    progressCb?: (restCount: number) => any
-  ): Promise<{ url: string, t?: number, isFailed: boolean }[]> {
-    const results: { url: string, t?: number, isFailed: boolean }[] = [];
+    progressCb?: (restCount: number) => any,
+  ): Promise<{ url: string; t?: number; isFailed: boolean }[]> {
+    const results: { url: string; t?: number; isFailed: boolean }[] = [];
     const db = new RelayPoolDatabase();
 
-    const getTime = async (res: { url: string, t?: number, isFailed: boolean }) => {
+    const getTime = async (res: {
+      url: string;
+      t?: number;
+      isFailed: boolean;
+    }) => {
       results.push(res);
     };
 
@@ -155,22 +169,25 @@ export function connectWebSocket(url: string, timeoutMs = 5000): Promise<WS> {
       resolve(socket);
     };
 
-    socket._ws.onerror = (error) => {
+    socket._ws.onerror = error => {
       reject(error);
     };
 
     socket._ws.onclose = () => {
-      reject("closed!");
+      reject('closed!');
     };
 
     const timeoutId = setTimeout(() => {
       clearTimeout(timeoutId);
-      reject("Connection timed out!");
+      reject('Connection timed out!');
     }, timeoutMs);
   });
 }
 
-export function wsConnectMilsec(url: string, timeoutMs = 5000): Promise<number> {
+export function wsConnectMilsec(
+  url: string,
+  timeoutMs = 5000,
+): Promise<number> {
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
     const socket = new WS(url, 10, false);
@@ -182,17 +199,17 @@ export function wsConnectMilsec(url: string, timeoutMs = 5000): Promise<number> 
       socket.close();
     };
 
-    socket._ws.onerror = (error) => {
+    socket._ws.onerror = error => {
       reject(error);
     };
 
     socket._ws.onclose = () => {
-      reject("closed!");
+      reject('closed!');
     };
 
     const timeoutId = setTimeout(() => {
       clearTimeout(timeoutId);
-      reject("Connection timed out!");
+      reject('Connection timed out!');
     }, timeoutMs);
   });
 }

@@ -11,14 +11,14 @@ export interface SingleItemActionProp {
   groupId: string;
   relay: Relay;
   groups: RelayGroup | undefined;
-  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>
+  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
 }
 
 export const SingleItemAction: React.FC<SingleItemActionProp> = ({
   groupId,
   relay,
   groups,
-  setGroups
+  setGroups,
 }) => {
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openActionModal, setOpenActionModal] = useState(false);
@@ -60,7 +60,10 @@ export const SingleItemAction: React.FC<SingleItemActionProp> = ({
   return (
     <>
       <Dropdown menu={{ items }} trigger={['click']}>
-        <Icon type='icon-more-horizontal' style={{ cursor: 'pointer',  width: '20px', height: '20px' }} />
+        <Icon
+          type="icon-more-horizontal"
+          style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+        />
       </Dropdown>
 
       <RelayDetailModal

@@ -11,15 +11,10 @@ import {
   getDefaultMiddleware,
   StoreEnhancer,
 } from '@reduxjs/toolkit';
-import {
-  LoginMode,
-  loginReducer,
-  Signer,
-  GetPublicKey,
-} from './loginReducer';
+import { LoginMode, loginReducer, Signer, GetPublicKey } from './loginReducer';
 import {
   requestPublicKeyFromDotBit,
-  requestPublicKeyFromNip05DomainName
+  requestPublicKeyFromNip05DomainName,
 } from 'utils/common';
 import {
   createWalletConnectGetPublicKey,
@@ -139,8 +134,8 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         return async (raw: RawEvent) => {
           return await window.nostr!.signEvent(raw);
         };
-      
-       case LoginMode.joyId:
+
+      case LoginMode.joyId:
         return async (raw: RawEvent) => {
           return await JoyIdNostr.signEvent(raw);
         };
@@ -252,11 +247,12 @@ export function configureAppStore() {
 
   const store = configureStore({
     reducer: rootReducer,
-    middleware: (getDefaultMiddleware) =>
-
-    [...getDefaultMiddleware({
-      serializableCheck: false,
-    }), ...middlewares],
+    middleware: getDefaultMiddleware => [
+      ...getDefaultMiddleware({
+        serializableCheck: false,
+      }),
+      ...middlewares,
+    ],
     devTools: process.env.NODE_ENV !== 'production',
     enhancers,
     preloadedState: loadStore(),

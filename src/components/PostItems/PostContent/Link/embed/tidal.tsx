@@ -61,7 +61,7 @@ export const TidalEmbed = ({ link }: { link: string }) => {
     );
   return (
     <iframe
-      onClick={(e)=>e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       src={source}
       style={extraStyles}
       width="100%"

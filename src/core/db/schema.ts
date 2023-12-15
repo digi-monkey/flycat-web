@@ -1,4 +1,4 @@
-import { Event } from "core/nostr/Event";
+import { Event } from 'core/nostr/Event';
 
 export interface DbEvent extends Event {
   seen: string[];

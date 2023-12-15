@@ -1,5 +1,5 @@
 import { ImageProvider } from 'core/api/img';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 import styles from './index.module.scss';
 import Icon from 'components/Icon';
@@ -84,7 +84,7 @@ export const ImageUploader = ({
         disabled={isUploading}
         className={styles.iconBtn}
       >
-        <Icon type='icon-image' />+{isUploading ? '↺' : ''}
+        <Icon type="icon-image" />+{isUploading ? '↺' : ''}
       </button>
       &nbsp;&nbsp;
       <input

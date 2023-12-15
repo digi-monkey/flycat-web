@@ -1,22 +1,20 @@
-import { useReadonlyMyPublicKey } from "hooks/useMyPublicKey";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { seedRelays } from "core/relay/pool/seed";
-import { Relay } from "core/relay/type";
-import { RootState } from "store/configureStore";
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { seedRelays } from 'core/relay/pool/seed';
+import { Relay } from 'core/relay/type';
+import { RootState } from 'store/configureStore';
 
-export function useDefaultGroup(){
-	const myPublicKey = useReadonlyMyPublicKey();
-	const isLoggedIn = useSelector(
+export function useDefaultGroup() {
+  const myPublicKey = useReadonlyMyPublicKey();
+  const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
-	const myCustomRelay = useSelector(
-    (state: RootState) => state.relayReducer,
-  );
+  const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
 
-	const [defaultGroup, setDefaultGroup] = useState<Relay[]>();
+  const [defaultGroup, setDefaultGroup] = useState<Relay[]>();
 
-	useEffect(() => {
+  useEffect(() => {
     // remove duplicated relay
     let relayUrls = seedRelays;
     if (isLoggedIn === true) {
@@ -25,16 +23,15 @@ export function useDefaultGroup(){
         .filter((item, index, self) => self.indexOf(item) === index);
     }
 
-		const relays = relayUrls.map(url => {
-			return {
-				url,
-				read: true,
-				write: true,
-	
-			}
-		})
+    const relays = relayUrls.map(url => {
+      return {
+        url,
+        read: true,
+        write: true,
+      };
+    });
     setDefaultGroup(relays);
   }, [isLoggedIn, myCustomRelay]);
 
-	return defaultGroup;
+  return defaultGroup;
 }

@@ -14,7 +14,7 @@ export function useGetSwitchRelay(
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
   progressCb?: (restCount: number) => any,
-  progressEnd?: ()=>any
+  progressEnd?: () => any,
 ) {
   const store = new RelaySelectorStore();
 
@@ -56,10 +56,10 @@ export function useGetSwitchRelay(
         store.saveSelectedGroupId(myPublicKey, selectedGroup);
       }
 
-			// a very time-consuming operation
+      // a very time-consuming operation
       const switchRelays = await getSwitchRelay(selectedValue);
 
-			// return the result
+      // return the result
       cb(switchRelays);
     }
   }

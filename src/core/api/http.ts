@@ -11,13 +11,13 @@ export type ApiHttpResponse = {
 export enum HttpProtocolMethod {
   'get',
   'post',
-  'option'
+  'option',
 }
 export type HttpRequest = (
   subPath: string,
   params?: Params,
   type?: HttpProtocolMethod,
-  cfg?: Cfg
+  cfg?: Cfg,
 ) => Promise<any>;
 
 export interface Params {
@@ -44,7 +44,7 @@ export class base {
       subPath: string,
       params: Params = {},
       type: HttpProtocolMethod = HttpProtocolMethod.get,
-      cfg: Cfg = {}
+      cfg: Cfg = {},
     ) => {
       const baseUrl = this.url;
       let axiosRes;
@@ -89,5 +89,3 @@ export class base {
     return this.url;
   }
 }
-
-

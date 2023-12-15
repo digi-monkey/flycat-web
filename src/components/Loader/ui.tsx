@@ -3,7 +3,7 @@ import styles from './index.module.scss';
 
 export const LoaderUI = () => {
   return (
-    <div className={styles["lds-ellipsis"]}>
+    <div className={styles['lds-ellipsis']}>
       <div></div>
       <div></div>
       <div></div>

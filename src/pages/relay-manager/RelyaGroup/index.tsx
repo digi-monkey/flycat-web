@@ -127,7 +127,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
   };
 
   const autoRelays = async () => {
-    if(!groups)return;
+    if (!groups) return;
 
     const messageKey = 'autoRelay';
     const progressCb = (restCount: number) => {
@@ -170,9 +170,12 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
     );
     progressEnd();
     if (pickRelays.length > 0) {
-      groups.setGroup(AUTO_RECOMMEND_LIST, pickRelays.map(r => {
+      groups.setGroup(
+        AUTO_RECOMMEND_LIST,
+        pickRelays.map(r => {
           return { url: r, read: true, write: true };
-      }));
+        }),
+      );
     }
     Modal.success({
       title: 'pick relays',
@@ -184,7 +187,8 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
           <Divider></Divider>
           <div>
             <strong>
-              New Auto-Recommend-List created! Please refresh the page to select and use it.
+              New Auto-Recommend-List created! Please refresh the page to select
+              and use it.
             </strong>
           </div>
         </>
@@ -217,7 +221,12 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
         {isMobile && (
           <div className={styles.mobileMenu}>
             <div className={styles.title}>{mobileMenuItems.length} Groups</div>
-            <Tabs activeKey={selectedGroupId} defaultActiveKey={selectedGroupId} items={mobileMenuItems} onChange={setSelectedGroupId} />
+            <Tabs
+              activeKey={selectedGroupId}
+              defaultActiveKey={selectedGroupId}
+              items={mobileMenuItems}
+              onChange={setSelectedGroupId}
+            />
           </div>
         )}
 
@@ -232,7 +241,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
               groups.getAllGroupIds().map(groupId => (
                 <Menu.Item
                   key={groupId}
-                  icon={<Icon type='icon-Move-out' className={styles.icon} />}
+                  icon={<Icon type="icon-Move-out" className={styles.icon} />}
                   onClick={() => setSelectedGroupId(groupId)}
                 >
                   <div className={styles.menuText}>

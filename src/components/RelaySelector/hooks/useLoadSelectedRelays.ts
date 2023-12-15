@@ -10,7 +10,7 @@ export function useLoadSelectedRelays(
 ) {
   const store = new RelaySelectorStore();
   const groupStore = new RelayGroupStorage(myPublicKey);
-	
+
   useEffect(() => {
     if (!myPublicKey) return;
 

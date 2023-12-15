@@ -56,13 +56,13 @@ class Suggestions extends Component {
       prevProps.selectedIndex !== selectedIndex
     ) {
       const activeSuggestion = this.suggestionsContainer.querySelector(
-        `.${classNames.activeSuggestion}`
+        `.${classNames.activeSuggestion}`,
       );
 
       if (activeSuggestion) {
         maybeScrollSuggestionIntoView(
           activeSuggestion,
-          this.suggestionsContainer
+          this.suggestionsContainer,
         );
       }
     }
@@ -73,13 +73,13 @@ class Suggestions extends Component {
     const { [this.props.labelField]: labelValue } = input;
 
     return {
-      __html: labelValue.replace(RegExp(escapedRegex, 'gi'), (x) => {
+      __html: labelValue.replace(RegExp(escapedRegex, 'gi'), x => {
         return `<mark>${escape(x)}</mark>`;
       }),
     };
   };
 
-  shouldRenderSuggestions = (query) => {
+  shouldRenderSuggestions = query => {
     const { minQueryLength, isFocused } = this.props;
     return query.length >= minQueryLength && isFocused;
   };
@@ -96,7 +96,7 @@ class Suggestions extends Component {
     const { props } = this;
 
     const suggestions = props.suggestions.map(
-      function(item, i) {
+      function (item, i) {
         return (
           <li
             key={i}
@@ -105,11 +105,12 @@ class Suggestions extends Component {
             onMouseOver={props.handleHover.bind(null, i)}
             className={
               i === props.selectedIndex ? props.classNames.activeSuggestion : ''
-            }>
+            }
+          >
             {this.renderSuggestion(item, props.query)}
           </li>
         );
-      }.bind(this)
+      }.bind(this),
     );
 
     // use the override, if provided
@@ -121,10 +122,11 @@ class Suggestions extends Component {
 
     return (
       <div
-        ref={(elem) => {
+        ref={elem => {
           this.suggestionsContainer = elem;
         }}
-        className={this.props.classNames.suggestions}>
+        className={this.props.classNames.suggestions}
+      >
         <ul> {suggestions} </ul>
       </div>
     );

@@ -14,7 +14,11 @@ export default function Icon(props: Props) {
   return (
     <>
       <Script src={`${process.env.NEXT_PUBLIC_ICONS_PATH}`}></Script>
-      <svg className={classnames('icon', className)} aria-hidden="true" {...rest}>
+      <svg
+        className={classnames('icon', className)}
+        aria-hidden="true"
+        {...rest}
+      >
         <use xlinkHref={`#${type}`}></use>
       </svg>
     </>

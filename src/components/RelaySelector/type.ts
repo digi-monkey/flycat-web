@@ -57,7 +57,10 @@ export function toRelayMode(value: string) {
 
     default:
       // throw new Error('unknown mode: ' + value);
-      console.debug('unknown mode: ' + value, "fall back to " + RelayMode.group);
+      console.debug(
+        'unknown mode: ' + value,
+        'fall back to ' + RelayMode.group,
+      );
       return RelayMode.group;
   }
 }
