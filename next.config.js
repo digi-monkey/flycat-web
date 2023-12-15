@@ -20,7 +20,7 @@ const nextConfig = {
     includePaths: [path.resolve(__dirname, 'src')],
     prependData: `@import 'styles/mixin.scss';`,
   },
-  transpilePackages: ['antd-mobile'],
+  transpilePackages: ['antd-mobile', 'lodash-es'],
   async rewrites() {
     return [
       {
