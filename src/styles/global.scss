@@ -1,7 +1,7 @@
-@import './reset.scss';
-@import './react-tags-input.scss';
-@import './mui.scss';
-@import './mixin.scss';
+@import './reset';
+@import './react-tags-input';
+@import './mui';
+@import './mixin';
 
 :root {
   // breakpoint
@@ -22,7 +22,6 @@
   --primary-03: #c0e085;
   --primary-02: #ddeeba;
   --primary-01: #fbfff0;
-
   --neutral-09: #1e1e1e;
   --neutral-08: #4b4b4b;
   --neutral-07: #626262;
@@ -32,8 +31,7 @@
   --neutral-03: #d2d2d2;
   --neutral-02: #ededed;
   --neutral-01: #f9f9f9;
-  --neutral-white: #ffffff;
-
+  --neutral-white: #fff;
   --red-09: #400002;
   --red-08: #530707;
   --red-07: #661417;
@@ -43,7 +41,6 @@
   --red-03: #db8784;
   --red-02: #ffd7d6;
   --red-01: #fff6f5;
-
   --blue-09: #001840;
   --blue-08: #0a2653;
   --blue-07: #1b3866;
@@ -53,7 +50,6 @@
   --blue-03: #86a8e0;
   --blue-02: #baceee;
   --blue-01: #f4f8ff;
-
   --yellow-09: #4e2c00;
   --yellow-08: #593505;
   --yellow-07: #7a5008;
@@ -63,23 +59,19 @@
   --yellow-03: #ffe58f;
   --yellow-02: #fcf3c4;
   --yellow-01: #fffced;
-
-  --hover-color: rgba(30, 30, 30, 0.04);
-  --overlay-color: rgba(30, 30, 30, 0.6);
+  --hover-color: rgb(30 30 30 / 4%);
+  --overlay-color: rgb(30 30 30 / 60%);
   --popup-bg: #f7faf5;
-  --post-bg: #F2F2F2;
-
-  --cover-05: #E3BBEA;
-  --cover-04: #ABD1EB;
-  --cover-03: #C0E085;
-  --cover-02: #FFD09A;
-  --cover-01: #F18B8E;
-  
+  --post-bg: #f2f2f2;
+  --cover-05: #e3bbea;
+  --cover-04: #abd1eb;
+  --cover-03: #c0e085;
+  --cover-02: #ffd09a;
+  --cover-01: #f18b8e;
   --container: 100vw;
   --gapWidth: 20px;
   --mobileHeaderHeight: 32px; // calc(44px + 32px);
   --mobileFooterHeight: 60px;
-
   --padding: 4px;
   --basePadding2: calc(var(--padding) * 2);
   --basePadding3: calc(var(--padding) * 3);
@@ -92,7 +84,6 @@
   --basePadding10: calc(var(--padding) * 10);
   --basePadding11: calc(var(--padding) * 11);
   --basePadding12: calc(var(--padding) * 12);
-
   --baseBorderRadius2: 2px;
   --baseBorderRadius4: 4px;
   --baseBorderRadius8: 8px;
@@ -118,7 +109,6 @@
   > nav {
     height: 100%;
     border-right: 1px solid var(--neutral-02);
-
     grid-column: span 3;
 
     @include for-pad {
@@ -138,7 +128,6 @@
 .f-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  //column-gap: var(--gapWidth);
 
   @include for-pad {
     grid-template-columns: repeat(8, 1fr);

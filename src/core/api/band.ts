@@ -3,23 +3,23 @@ import { base, HttpRequest, HttpProtocolMethod } from './http';
 import { EventSetMetadataContent } from 'core/nostr/type';
 
 export interface TrendingProfiles {
-	profiles: {
-		pubkey: string;
-		new_followers_count: number;
-		relays: string[];
-		profile: {
-			id: string;
-			pubkey: string;
-			kind: number;
-			created_at: number;
-			sig: string;
-			content: string;
-		};
-	}[];
+  profiles: {
+    pubkey: string;
+    new_followers_count: number;
+    relays: string[];
+    profile: {
+      id: string;
+      pubkey: string;
+      kind: number;
+      created_at: number;
+      sig: string;
+      content: string;
+    };
+  }[];
 }
 
 export interface SuggestedProfiles extends Omit<TrendingProfiles, 'profiles'> {
-	profiles: Omit<TrendingProfiles['profiles'][number], 'new_followers_count'>[];
+  profiles: Omit<TrendingProfiles['profiles'][number], 'new_followers_count'>[];
 }
 
 export class NostrBandProvider extends base {
@@ -36,7 +36,7 @@ export class NostrBandProvider extends base {
       'Content-Type': 'application/json',
     };
     const profiles: SuggestedProfiles = await this.httpRequest(
-      'v0/suggested/profiles/'+pubkey,
+      'v0/suggested/profiles/' + pubkey,
       {},
       HttpProtocolMethod.get,
       {
@@ -46,7 +46,7 @@ export class NostrBandProvider extends base {
     return profiles;
   }
 
-	async trendingFollowings() {
+  async trendingFollowings() {
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -62,9 +62,9 @@ export class NostrBandProvider extends base {
   }
 }
 
-export function parseMetadata(content: string){
-	if(!isValidJSONStr(content)){
-		return null;
-	}
-	return JSON.parse(content) as EventSetMetadataContent;
+export function parseMetadata(content: string) {
+  if (!isValidJSONStr(content)) {
+    return null;
+  }
+  return JSON.parse(content) as EventSetMetadataContent;
 }

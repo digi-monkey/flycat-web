@@ -12,7 +12,7 @@ secp256k1.utils.hmacSha256Sync = (key, ...msgs) =>
 secp256k1.utils.sha256Sync = (...msgs) =>
   sha256(secp256k1.utils.concatBytes(...msgs));
 
-import { bech32 } from "@scure/base";
+import { bech32 } from '@scure/base';
 
 const MODE = CryptoJS.mode.CBC;
 const PADDING = CryptoJS.pad.Pkcs7;

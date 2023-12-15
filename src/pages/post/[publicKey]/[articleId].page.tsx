@@ -64,21 +64,20 @@ export default function NewArticle({ preArticle }: { preArticle?: Article }) {
       });
       const setArticleCb = (event: Event) => {
         const article = Nip23.toArticle(event);
-          setArticle(prevArticle => {
-            if (
-              !prevArticle ||
-              article?.updated_at >= prevArticle.updated_at
-            ) {
-              return article;
-            }
-            return prevArticle;
-          });
-      }
+        setArticle(prevArticle => {
+          if (!prevArticle || article?.updated_at >= prevArticle.updated_at) {
+            return article;
+          }
+          return prevArticle;
+        });
+      };
       dbQuery
         .matchFilterRelay(filter, worker?.relays.map(r => r.url) || [])
         .then(evets => {
           if (evets.length === 0) {
-            worker?.subFilter({ filter, customId: 'article-data' }).iterating({cb: setArticleCb});
+            worker
+              ?.subFilter({ filter, customId: 'article-data' })
+              .iterating({ cb: setArticleCb });
           }
 
           for (const event of evets) {

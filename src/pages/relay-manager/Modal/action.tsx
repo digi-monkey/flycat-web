@@ -37,7 +37,7 @@ export const RelayActionModal: React.FC<RelayActionModalProp> = ({
   open,
   onCancel,
   relayGroups,
-  setRelayGroups
+  setRelayGroups,
 }) => {
   const title =
     type === ActionType.copy
@@ -125,7 +125,7 @@ export const RelayActionModal: React.FC<RelayActionModalProp> = ({
           onCancel();
         };
 
-  const okText = type === ActionType.copy ? "Copy" : "Move";
+  const okText = type === ActionType.copy ? 'Copy' : 'Move';
 
   return (
     <Modal

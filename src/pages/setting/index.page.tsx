@@ -24,9 +24,9 @@ import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
 import Key from './key';
 
-  const Preference = dynamic(() => import('./preference'), {
-    ssr: false,
-  });
+const Preference = dynamic(() => import('./preference'), {
+  ssr: false,
+});
 
 const { TextArea } = Input;
 

@@ -1,0 +1,26 @@
+name: Lint
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 'lts'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run lint
+        run: yarn lint

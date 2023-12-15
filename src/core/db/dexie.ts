@@ -209,14 +209,12 @@ export class DexieDb extends Dexie {
     table: Table<DbEvent>,
   ) {
     if (!Nip01.isContactEvent(event) && !Nip01.isProfileEvent(event))
-      throw new Error(
-        'not a contact or profile, kind: ' + event.kind,
-      );
+      throw new Error('not a contact or profile, kind: ' + event.kind);
 
     const primaryKey = event.pubkey;
     const record = await table.get(primaryKey);
     if (record) {
-      if(record.id === event.id){
+      if (record.id === event.id) {
         if (record.seen.includes(relayUrl)) {
           return console.debug(
             'already store: ',
@@ -239,21 +237,29 @@ export class DexieDb extends Dexie {
             console.debug('Record not found or no changes made', primaryKey);
           }
         }
-      }else{
+      } else {
         // check if it is newer than the one in database
-        if(record.created_at < event.created_at){
+        if (record.created_at < event.created_at) {
           const timestamp = Date.now();
           const updatedCount = await table.update(primaryKey, {
             ...event,
             ...{
               timestamp,
-            }
+            },
           });
           if (updatedCount > 0) {
-            console.debug('Record updated successfully', primaryKey, event.kind);
+            console.debug(
+              'Record updated successfully',
+              primaryKey,
+              event.kind,
+            );
           } else {
-            console.debug('Record not found or no changes made', primaryKey, event.kind);
-          } 
+            console.debug(
+              'Record not found or no changes made',
+              primaryKey,
+              event.kind,
+            );
+          }
         }
       }
       return;
@@ -269,7 +275,7 @@ export class DexieDb extends Dexie {
   }
 
   private async save(event: Event, relayUrl: string, table: Table<DbEvent>) {
-    if (Nip01.isContactEvent(event) || Nip01.isProfileEvent(event)){
+    if (Nip01.isContactEvent(event) || Nip01.isProfileEvent(event)) {
       return await this.saveContactOrProfileEvent(event, relayUrl, table);
     }
 

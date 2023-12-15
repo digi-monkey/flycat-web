@@ -1,6 +1,7 @@
 .title {
   @include font-header2;
-  margin: var(--basePadding5) 0px;
+
+  margin: var(--basePadding5) 0;
 }
 
 .form {

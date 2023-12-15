@@ -6,7 +6,7 @@ import { NpubResult } from 'core/nip/21';
 
 import styles from './index.module.scss';
 
-export const Npub: React.FC<{npub: NpubResult}> = ({npub}) => {
+export const Npub: React.FC<{ npub: NpubResult }> = ({ npub }) => {
   if (npub.profile) {
     return (
       <span>
@@ -32,7 +32,11 @@ export const Npub: React.FC<{npub: NpubResult}> = ({npub}) => {
 
   return (
     <span className={styles.refLink}>
-      <a href={i18n?.language + Paths.user + npub.pubkey} target="_blank" onClick={e => e.stopPropagation()}>
+      <a
+        href={i18n?.language + Paths.user + npub.pubkey}
+        target="_blank"
+        onClick={e => e.stopPropagation()}
+      >
         npub@{shortifyPublicKey(npub.pubkey)}
       </a>
     </span>

@@ -1,8 +1,10 @@
 .status{
   margin: var(--basePadding2) var(--basePadding5);
+
   .relayStatus {
     display: flex;
     justify-content: space-between;
+
     .relayBar {
       display: flex;
       justify-content: flex-start;
@@ -18,6 +20,7 @@
 
 .selector {
   margin: var(--basePadding2) var(--basePadding5);
+
   :global {
     .ant-select {
       width: 100%;
@@ -27,6 +30,7 @@
 
 .info {
   margin: var(--basePadding2) var(--basePadding5);
+
   :global {
     .ant-list-item-meta-description {
       max-height: 80px;
@@ -35,35 +39,44 @@
       overflow-y: scroll;
     }
   }
+
   .description {
     margin-bottom: var(--basePadding2);
     color: var(--neutral-06);
     white-space: break-spaces;
   }
+
   .nips {
     margin-bottom: var(--basePadding5);
   }
 }
+
 .users {
   margin: var(--basePadding2) var(--basePadding5);
   width: auto;
+
   :global {
     .ant-card-head {
       text-align: center;
       padding: var(--basePadding2);
     }
+
     .ant-card-body {
       text-align: center;
       padding: var(--basePadding2);
     }
+
     .ant-list {
       padding-bottom: 10px;
     }
+
     .slick-dots-bottom {
-      bottom: 0px;
+      bottom: 0;
+
       button {
         background: var(--primary-03) !important;
       }
+
       .slick-active {
         button {
           background: var(--primary-04) !important;
@@ -71,6 +84,7 @@
       }
     }
   }
+
   .profile {
     align-items: center;
     justify-content: center;
@@ -90,6 +104,7 @@
       text-align: center;
       padding: var(--basePadding2);
     }
+
     .ant-card-body {
       text-align: center;
       padding: var(--basePadding2);
@@ -113,15 +128,18 @@
   .container{
     max-height: 200px;
     overflow-y: scroll;
+
     :global{
       .ant-col{
         padding: 0 !important;
       }
+
       .ant-row{
         margin: 0 !important;
       }
     }
   }
+
   .name {
     display: flex;
     justify-content: flex-start;

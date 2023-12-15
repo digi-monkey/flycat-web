@@ -15,22 +15,21 @@ interface PostArticleProps {
   event: Event;
 }
 
-const PostArticle: React.FC<PostArticleProps> = ({
-  event,
-}) => {
+const PostArticle: React.FC<PostArticleProps> = ({ event }) => {
   const { t } = useTranslation();
   const router = useRouter();
   const article = Nip23.toArticle(event);
   const { pubKey: author, id: articleId, title, image, summary } = article;
   const addr = Nip23.getAddr(author, articleId);
   const authorProfile = useUserProfile(author);
-  
-  const buildArticleUrl = ()=>{
-    if(authorProfile?.nip05 && isNip05DomainName(authorProfile?.nip05)){ // check .bit too?
+
+  const buildArticleUrl = () => {
+    if (authorProfile?.nip05 && isNip05DomainName(authorProfile?.nip05)) {
+      // check .bit too?
       return `/post/${authorProfile.nip05}/${articleId}`;
     }
     return Nip23.addrToUrl(addr);
-  }
+  };
 
   const [bgStyle, setBgStyle] = useState<CSSProperties | undefined>();
   useEffect(() => {
@@ -50,7 +49,7 @@ const PostArticle: React.FC<PostArticleProps> = ({
     <div
       className={styles.article}
       style={bgStyle}
-      onClick={() =>  router.push(buildArticleUrl())}
+      onClick={() => router.push(buildArticleUrl())}
     >
       {image && <img src={image} alt={title || ''} />}
       <div className={styles.content}>

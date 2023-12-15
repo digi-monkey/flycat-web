@@ -59,7 +59,7 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
 
   const loadUserProfile = async () => {
     // todo: set relay urls with correct one
-    const profileEvent = await dexieDb.profileEvent.get(pubkey); 
+    const profileEvent = await dexieDb.profileEvent.get(pubkey);
     if (profileEvent) {
       const metadata = JSON.parse(
         profileEvent.content,
@@ -67,18 +67,23 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
       setLoadedUserProfile(metadata);
     }
   };
-  useEffect(()=>{
+  useEffect(() => {
     loadUserProfile();
-  }, [pubkey])
+  }, [pubkey]);
 
   const filter: Filter = {
     authors: [pubkey],
     kinds: [WellKnownEventKind.long_form],
-    "#d": [articleId]
-  }
+    '#d': [articleId],
+  };
   const relayUrls = worker.relays.map(r => r.url) || [];
-  const articleEvent: DbEvent[] = useLiveQuery(dbQuery.createEventQuerier(filter, relayUrls), [], []);
-  const article = articleEvent.length > 0 ? Nip23.toArticle(articleEvent[0]) : null;
+  const articleEvent: DbEvent[] = useLiveQuery(
+    dbQuery.createEventQuerier(filter, relayUrls),
+    [],
+    [],
+  );
+  const article =
+    articleEvent.length > 0 ? Nip23.toArticle(articleEvent[0]) : null;
 
   return (
     <>
@@ -104,7 +109,9 @@ const PostArticleComment: React.FC<PostArticleCommentProps> = ({
             <div className={styles.info}>
               <div className={styles.user}>
                 <Avatar src={loadedUserProfile?.picture} alt="picture" />
-                <span className={styles.name}>{loadedUserProfile?.name || '...'}</span>
+                <span className={styles.name}>
+                  {loadedUserProfile?.name || '...'}
+                </span>
               </div>
               <h1
                 className={classNames('f-truncate', styles.title)}

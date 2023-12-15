@@ -9,7 +9,7 @@ import Icon from 'components/Icon';
 import Link from 'next/link';
 import styles from './index.module.scss';
 
-export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
+export const Naddr: React.FC<{ naddr: NaddrResult }> = ({ naddr }) => {
   if (naddr.replaceableEvent) {
     const isBlogPost = Nip23.isBlogPost(naddr.replaceableEvent);
     if (isBlogPost) {
@@ -17,7 +17,10 @@ export const Naddr: React.FC<{naddr: NaddrResult}> = ({naddr}) => {
       return (
         <div className={styles.refLongForm}>
           <Icon type="icon-article" />
-          <Link href={'/post/' + article.pubKey + '/' + article.id} onClick={e => e.stopPropagation()}>
+          <Link
+            href={'/post/' + article.pubKey + '/' + article.id}
+            onClick={e => e.stopPropagation()}
+          >
             {article.title || 'No Title'}
           </Link>{' '}
           <span className={styles.summary}>

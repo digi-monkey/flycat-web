@@ -1,5 +1,5 @@
 import { PublicKey } from 'core/nostr/type';
-import { PubkeyRelay } from "./pubkey-relay";
+import { PubkeyRelay } from './pubkey-relay';
 
 // todo: maybe store it in the real database instead of memory
 export class PubkeyRelayDatabase {
@@ -17,17 +17,14 @@ export class PubkeyRelayDatabase {
   }
 
   public get(pubkey: PublicKey, relay: string): PubkeyRelay | undefined {
-    const key = this.getKey(
-      pubkey,
-      relay,
-    );
+    const key = this.getKey(pubkey, relay);
     return this.data.get(key);
   }
 
-  public pick(pubkey: PublicKey){
-		const keyStr = Array.from(this.data.keys());
+  public pick(pubkey: PublicKey) {
+    const keyStr = Array.from(this.data.keys());
     const keys = keyStr.filter(key => key.includes(pubkey));
-		return keys.map(k => this.data.get(k)!).sort((a,b)=>b.score - a.score);
+    return keys.map(k => this.data.get(k)!).sort((a, b) => b.score - a.score);
   }
 
   private getKey(pubkey: PublicKey, relay: string): string {

@@ -246,7 +246,7 @@ export function RelayPage() {
               </div>
               <Button
                 type="link"
-                icon={<Icon type='icon-Gear' />}
+                icon={<Icon type="icon-Gear" />}
                 onClick={() => router.push('/relay-manager')}
               >
                 Manage relays
@@ -441,9 +441,7 @@ export function RelayPage() {
           {selectTab === 'my-data' && (
             <>
               <div className={styles.comm}>
-                <h4>
-                  Last {myMsgList.filter(m => m !== null).length} events
-                </h4>
+                <h4>Last {myMsgList.filter(m => m !== null).length} events</h4>
                 <div className={styles.statics}>
                   {myKindsResult.map(item => {
                     if ((item.count as number) > 0) {
@@ -459,10 +457,7 @@ export function RelayPage() {
                 </div>
               </div>
               <Divider></Divider>
-              <PostItems
-                msgList={myMsgList.slice(0, 20)}
-                worker={worker!}
-              />
+              <PostItems msgList={myMsgList.slice(0, 20)} worker={worker!} />
             </>
           )}
         </div>

@@ -1,7 +1,7 @@
 .eventId {
   font-size: 14px;
   font-weight: 600;
-  margin: var(--basePadding2) 0px;
+  margin: var(--basePadding2) 0;
 }
 
 .closeButton {
@@ -13,7 +13,7 @@
 .item {
   display: flex;
   justify-content: space-between;
-  margin: var(--basePadding2) 0px;
+  margin: var(--basePadding2) 0;
 
   .success {
     display: flex;
@@ -22,6 +22,7 @@
     width: 100%;
     color: var(--primary-06);
   }
+
   .failed {
     display: flex;
     align-items: center;

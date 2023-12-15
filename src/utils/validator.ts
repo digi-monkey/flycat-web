@@ -1,10 +1,8 @@
-import { Event } from "core/nostr/Event";
-import { EventTags } from "core/nostr/type";
+import { Event } from 'core/nostr/Event';
+import { EventTags } from 'core/nostr/type';
 
-export function isValidNpub(key: any): boolean{
-  return (
-    typeof key === 'string' && key.startsWith("npub")
-  );
+export function isValidNpub(key: any): boolean {
+  return typeof key === 'string' && key.startsWith('npub');
 }
 
 export function isValidPublicKey(key: any): boolean {
@@ -78,6 +76,13 @@ export function isValidJSONStr(str: string) {
   }
 }
 
-export function isNsfwEvent(event: Event){
-  return event.tags.find(t => t[0] === EventTags.T && typeof t[1] === "string" && t[1].toLowerCase() === "nsfw") !== undefined;
+export function isNsfwEvent(event: Event) {
+  return (
+    event.tags.find(
+      t =>
+        t[0] === EventTags.T &&
+        typeof t[1] === 'string' &&
+        t[1].toLowerCase() === 'nsfw',
+    ) !== undefined
+  );
 }

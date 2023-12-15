@@ -1,7 +1,14 @@
 {
-  "processors": ["stylelint-processor-styled-components"],
-  "extends": [
-    "stylelint-config-recommended",
-    "stylelint-config-styled-components"
-  ]
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global"]
+      }
+    ],
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "no-descending-specificity": null
+  }
 }

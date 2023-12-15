@@ -1,44 +1,43 @@
-.postUser{
+.postUser {
   display: flex;
   justify-content: space-between;
 
-  &.child{}
-  .user{
+  .user {
     display: flex;
 
-    :global{
-      .ant-avatar{
+    :global {
+      .ant-avatar {
         width: 44px;
         height: 44px;
       }
     }
 
-    .info{
+    .info {
       margin-left: var(--basePadding3);
 
-      >a{
+      > a {
         @include font-subheader2;
+
         color: var(--neutral-09);
         text-decoration: none;
       }
 
-      p{
+      p {
         margin: 0;
-        @include font-footnote;
-        color: var(--neutral-06);
 
-        time{
-          
-        }
+        @include font-footnote;
+
+        color: var(--neutral-06);
       }
     }
   }
+
   .slot {
     .more {
       width: 18px;
       height: 18px;
       color: var(--neutral-06);
       cursor: pointer;
-    } 
+    }
   }
 }

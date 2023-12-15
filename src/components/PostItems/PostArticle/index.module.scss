@@ -1,10 +1,9 @@
 .article {
   position: relative;
-  border-radius: var(--basePadding3);
   overflow: hidden;
   cursor: pointer;
   border-radius: 12px;
-  
+
   > img {
     position: absolute;
     top: 0;
@@ -22,7 +21,7 @@
     top: 0;
     left: 0;
     z-index: 2;
-    background: var(--overlay-02, rgba(30, 30, 30, 0.35));
+    background: var(--overlay-02, rgb(30 30 30 / 35%));
 
     .tag {
       width: 83px;
@@ -36,6 +35,7 @@
       right: var(--basePadding6);
       z-index: 3;
       background-color: var(--primary-03);
+
       @include font-footnote;
 
       svg {
@@ -69,12 +69,14 @@
 
         .name {
           @include font-subheader2;
+
           color: var(--neutral-white);
         }
       }
 
       .title {
         @include font-header3;
+
         color: var(--neutral-white);
       }
 
@@ -83,7 +85,7 @@
 
         /* Label */
         font-size: 14px;
-        font-family: Noto Sans;
+        font-family: 'Noto Sans', sans-serif;
         font-weight: 500;
         line-height: 22px;
       }

@@ -20,10 +20,7 @@ import { RootState } from 'store/configureStore';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { noticePubEventResult } from 'components/PubEventNotice';
-import {
-  deserializeMetadata,
-  shortifyNPub,
-} from 'core/nostr/content';
+import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { createCallRelay } from 'core/worker/util';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { useRouter } from 'next/router';
@@ -128,12 +125,12 @@ export default function CreateCommunity() {
     noticePubEventResult(worker.relays.length, handler);
     router.push(
       '/communities/n/' +
-      encodeURIComponent(
-        Nip172.communityAddr({
-          identifier: metadata.id,
-          author: metadata.creator,
-        }),
-      ),
+        encodeURIComponent(
+          Nip172.communityAddr({
+            identifier: metadata.id,
+            author: metadata.creator,
+          }),
+        ),
     );
   };
 

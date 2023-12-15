@@ -5,12 +5,15 @@
   margin: 12px 0;
   border-radius: 8px;
   background: var(--post-bg, #F2F2F2);
+
   svg {
     margin: 0 4px;
   }
+
   a {
     color: var(--primary-06, #598022);
     text-decoration: none;
+
     &:hover {
       cursor: pointer;
     }

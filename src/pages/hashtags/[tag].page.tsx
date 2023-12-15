@@ -12,7 +12,6 @@ import { validateFilter } from 'components/MsgFeed/util';
 import { useRouter } from 'next/router';
 
 import Icon from 'components/Icon';
-import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
 import PostItems from 'components/PostItems';
 
@@ -24,7 +23,7 @@ export function HashTags() {
   const { worker } = useCallWorker();
 
   const queryFilter: Filter = {
-    "#t": [tag],
+    '#t': [tag],
     kinds: [WellKnownEventKind.text_note, WellKnownEventKind.long_form],
     limit: 50,
   };
@@ -41,11 +40,11 @@ export function HashTags() {
 
   const events = useLiveQuery(queryOnLocalDB, [tag], [] as DbEvent[]);
 
-  useEffect(()=>{
-    if(!worker)return;
-    if(tag == null || tag.length === 0)return;
+  useEffect(() => {
+    if (!worker) return;
+    if (tag == null || tag.length === 0) return;
 
-    worker.subFilter({filter: queryFilter});
+    worker.subFilter({ filter: queryFilter });
   }, [tag, worker]);
 
   return (
@@ -62,10 +61,8 @@ export function HashTags() {
             />
           }
         />
-        <div className={styles.root}>
-          {isQuerying && <Spin />}
-        </div>
-        <PostItems msgList={events} worker={worker!}/>
+        <div>{isQuerying && <Spin />}</div>
+        <PostItems msgList={events} worker={worker!} />
       </Left>
       <Right></Right>
     </BaseLayout>

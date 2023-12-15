@@ -1,11 +1,11 @@
-import { Button, message, Upload } from "antd";
-import Icon from "components/Icon";
-import { noticePubEventResult } from "components/PubEventNotice";
-import { Nip188 } from "core/nip/188";
-import { Tags } from "core/nostr/type";
-import { CallWorker } from "core/worker/caller";
-import { useSelector } from "react-redux";
-import { RootState } from "store/configureStore";
+import { Button, message, Upload } from 'antd';
+import Icon from 'components/Icon';
+import { noticePubEventResult } from 'components/PubEventNotice';
+import { Nip188 } from 'core/nip/188';
+import { Tags } from 'core/nostr/type';
+import { CallWorker } from 'core/worker/caller';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
 
 export interface WasmFileUploadProp {
   identifier: string;
@@ -15,7 +15,13 @@ export interface WasmFileUploadProp {
   disabled?: boolean;
 }
 
-export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worker, btnText, extraTags, disabled }) => {
+export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({
+  identifier,
+  worker,
+  btnText,
+  extraTags,
+  disabled,
+}) => {
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
@@ -25,7 +31,7 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worke
 
     reader.onload = async (event: ProgressEvent<FileReader>) => {
       if (!signEvent || !worker) {
-        const err = new Error("signEvent or worker is undefined.")
+        const err = new Error('signEvent or worker is undefined.');
         onError(err);
         message.error(err.message);
         return;
@@ -34,9 +40,13 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worke
         if (event.target && event.target.result instanceof ArrayBuffer) {
           const arrayBuffer = event.target.result;
           const codeStr = Nip188.arrayBufferToBase64(arrayBuffer);
-          console.debug("wasm code str: ", codeStr);
-          const rawEvent = Nip188.createNoscript(arrayBuffer, identifier, extraTags);
-          console.log("raw event:", rawEvent);
+          console.debug('wasm code str: ', codeStr);
+          const rawEvent = Nip188.createNoscript(
+            arrayBuffer,
+            identifier,
+            extraTags,
+          );
+          console.log('raw event:', rawEvent);
           const pubEvent = await signEvent(rawEvent);
           const handler = worker.pubEvent(pubEvent);
           noticePubEventResult(worker.relays.length, handler);
@@ -53,7 +63,14 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({ identifier, worke
 
     reader.readAsArrayBuffer(file);
   };
-  return <Upload customRequest={customRequest as any} disabled={disabled === true}>
-    <Button icon={<Icon type="icon-plus" />}>{disabled ? "please fill the above filter first" : btnText || "upload .wasm file"} {disabled}</Button>
-  </Upload>
-}
+  return (
+    <Upload customRequest={customRequest as any} disabled={disabled === true}>
+      <Button icon={<Icon type="icon-plus" />}>
+        {disabled
+          ? 'please fill the above filter first'
+          : btnText || 'upload .wasm file'}{' '}
+        {disabled}
+      </Button>
+    </Upload>
+  );
+};

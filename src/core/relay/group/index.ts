@@ -42,7 +42,7 @@ export class RelayGroup {
   }
 
   async loadFromStore() {
-		const loadMap = await this.store.load() || new Map();
+    const loadMap = (await this.store.load()) || new Map();
     const mergeMap = new Map(
       Array.from(loadMap)
         .concat(Array.from(new Map(predefine)))

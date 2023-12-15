@@ -32,6 +32,14 @@
 
     li {
       display: flex;
+
+      &:hover {
+        background-color: var(--hover-color);
+      }
+      padding: {
+        left: var(--basePadding5);
+        right: var(--basePadding5);
+      }
     }
 
     li,
@@ -46,6 +54,7 @@
 
       span {
         @include font-subheader1;
+
         color: var(--neutral-09);
       }
 
@@ -57,8 +66,10 @@
         svg {
           fill: var(--neutral-09);
         }
+
         span {
           @include font-subheader1-bold;
+
           color: var(--neutral-09);
         }
       }
@@ -72,6 +83,7 @@
 
           h1 {
             margin: 0 0 0 var(--basePadding4);
+
             @include font-header3;
 
             @include for-pad {
@@ -94,16 +106,6 @@
         @include for-pad {
           display: none;
         }
-      }
-    }
-
-    li {
-      &:hover {
-        background-color: var(--hover-color);
-      }
-      padding: {
-        left: var(--basePadding5);
-        right: var(--basePadding5);
       }
     }
   }
@@ -149,6 +151,7 @@
       }
     }
   }
+
   li {
     @include font-label;
   }
@@ -157,8 +160,8 @@
 .pcPadMain {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  //column-gap: var(--gapWidth);
   grid-template-areas: 'left left left left left left left left left';
+
   @include for-pad {
     grid-template-columns: repeat(7, 1fr);
     grid-template-areas: none;
@@ -175,6 +178,7 @@
 
   .left {
     grid-area: left;
+
     @include for-pad {
       grid-area: initial;
       grid-column: span 6;
@@ -185,7 +189,6 @@
     height: 100%;
     border-left: 1px solid var(--neutral-02);
     padding-left: var(--basePadding5);
-
     grid-area: right;
 
     @include for-pad {
@@ -199,6 +202,7 @@
     width: 24px;
     height: 24px;
   }
+
   :global {
     .ant-modal-content {
       @include for-mobile {
@@ -222,7 +226,7 @@
     align-items: center;
     padding: var(--basePadding4);
     height: var(--mobileHeaderHeight);
-    background-color: rgb(255, 255, 255, 0.5);
+    background-color: rgb(255 255 255 / 50%);
     backdrop-filter: blur(5px);
 
     :global {
@@ -243,16 +247,18 @@
     }
 
     div:first-of-type {
-      margin-top: 0px;
+      margin-top: 0;
       width: 100%;
-      padding: 0px;
+      padding: 0;
     }
   }
+
   main {
     padding: {
       bottom: calc(var(--basePadding5) * 5);
     }
   }
+
   footer {
     position: fixed;
     bottom: 0;
@@ -261,7 +267,7 @@
     box-sizing: border-box;
     width: 100%;
     height: var(--mobileFooterHeight);
-    background-color: rgb(255, 255, 255, 0.5);
+    background-color: rgb(255 255 255 / 50%);
     backdrop-filter: blur(5px);
     padding: {
       left: var(--basePadding4);
@@ -333,6 +339,7 @@
         top: var(--basePadding4);
         bottom: var(--basePadding4);
       }
+
       svg {
         width: 24px;
         height: 24px;

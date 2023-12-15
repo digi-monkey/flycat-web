@@ -264,10 +264,7 @@ export class Nip23 {
   static articleToEvent(article: Article): Event {
     const slug = article.id;
     let tags: Tags = [];
-    tags.push([
-      EventTags.D,
-      slug,
-    ]);
+    tags.push([EventTags.D, slug]);
     tags.push([
       Nip23ArticleMetaTags.published_at,
       JSON.stringify(article.published_at),
@@ -305,8 +302,8 @@ export class Nip23 {
       kind: this.kind,
       sig: article.sig,
       content: article.content,
-      tags
-    }
+      tags,
+    };
     return event;
   }
 
@@ -384,9 +381,9 @@ export class Nip23 {
     };
   }
 
-  static getATag(event: Event){
-    if(!this.isBlogCommentMsg(event)){
-      throw new Error("invalid blog comment msg");
+  static getATag(event: Event) {
+    if (!this.isBlogCommentMsg(event)) {
+      throw new Error('invalid blog comment msg');
     }
     return event.tags.filter(t => t[0] === EventTags.A)[0] as EventATag;
   }

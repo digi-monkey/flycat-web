@@ -21,9 +21,9 @@ export class Pool<T> {
     if (index !== -1) {
       this.items.splice(index, 1);
       this.itemSet.delete(item);
-			return true;
+      return true;
     }
-		return false;
+    return false;
   }
 
   isFull(): boolean {
@@ -33,9 +33,9 @@ export class Pool<T> {
   has(item: T): boolean {
     const index = this.items.indexOf(item);
     if (index !== -1) {
-			return true;
+      return true;
     }
-		return false;
+    return false;
   }
 
   getSize(): number {

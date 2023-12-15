@@ -24,7 +24,6 @@ const SubPostUI = dynamic(
   { loading: () => <p>Loading sub post ...</p>, ssr: false, suspense: true },
 );
 
-
 export interface CommentsProps {
   rootEvent: EventWithSeen;
   className?: string;

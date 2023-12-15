@@ -21,7 +21,12 @@ export function initRelayGroupOptions(groups: RelayGroupMap) {
 export function initModeOptions(groups: RelayGroupMap) {
   const mode: RelayModeSelectOption[] = [
     ...initRelayGroupOptions(groups),
-    { value: RelayMode.rule, label: toLabel(RelayMode.rule), disabled: true, children: [{value: "1", label:"1"}] },
+    {
+      value: RelayMode.rule,
+      label: toLabel(RelayMode.rule),
+      disabled: true,
+      children: [{ value: '1', label: '1' }],
+    },
   ];
   return mode;
 }
@@ -54,7 +59,7 @@ export function isFastestRelayOutdated(
 export function toConnectStatus(
   label: string,
   wsConnectStatus: WsConnectStatus,
-  all: number
+  all: number,
 ) {
   const connected = Array.from(wsConnectStatus).filter(
     w => w[1] === true,

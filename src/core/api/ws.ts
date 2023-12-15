@@ -16,7 +16,7 @@ import {
   createSubscriptionNoticeStream,
 } from './sub';
 import { randomSubId } from 'utils/common';
-import NodeWS from "ws";
+import NodeWS from 'ws';
 
 const WebSocket = globalThis.WebSocket || NodeWS;
 

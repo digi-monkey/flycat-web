@@ -329,27 +329,24 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const relays = worker?.relays.map(r => r.url) || [];
 
-  const mentionMsgList = msgList.filter(
-    e => e.kind === WellKnownEventKind.text_note,
-  ).slice(0, 15);
-  const repostMsgList = msgList.filter(
-    e => e.kind === WellKnownEventKind.reposts,
-  ).slice(0, 15);
-  const zapMsgList = msgList.filter(
-    e => e.kind === WellKnownEventKind.zap_receipt,
-  ).slice(0, 15);
-  const newApproveMsgList = msgList.filter(
-    e => e.kind === WellKnownEventKind.community_approval,
-  ).slice(0, 15);
+  const mentionMsgList = msgList
+    .filter(e => e.kind === WellKnownEventKind.text_note)
+    .slice(0, 15);
+  const repostMsgList = msgList
+    .filter(e => e.kind === WellKnownEventKind.reposts)
+    .slice(0, 15);
+  const zapMsgList = msgList
+    .filter(e => e.kind === WellKnownEventKind.zap_receipt)
+    .slice(0, 15);
+  const newApproveMsgList = msgList
+    .filter(e => e.kind === WellKnownEventKind.community_approval)
+    .slice(0, 15);
 
   const mentionUI = useMemo(
     () => (
       <>
         {mentionMsgList.length === 0 && <Empty />}
-        <PostItems
-          msgList={mentionMsgList}
-          worker={worker!}
-        />
+        <PostItems msgList={mentionMsgList} worker={worker!} />
       </>
     ),
     [mentionMsgList],
@@ -358,10 +355,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
     () => (
       <>
         {repostMsgList.length === 0 && <Empty />}
-        <PostItems
-          msgList={repostMsgList}
-          worker={worker!}
-        />
+        <PostItems msgList={repostMsgList} worker={worker!} />
       </>
     ),
     [repostMsgList],
@@ -426,7 +420,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   onClick={() =>
                     router.push(
                       '/communities/n/' +
-                      encodeURIComponent(Nip172.communityAddr(community)),
+                        encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
                 >
@@ -496,7 +490,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                   onClick={() =>
                     router.push(
                       '/communities/n/' +
-                      encodeURIComponent(Nip172.communityAddr(community)),
+                        encodeURIComponent(Nip172.communityAddr(community)),
                     )
                   }
                 >
@@ -529,12 +523,12 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                       isAlreadyApproved
                         ? []
                         : [
-                          {
-                            label: 'approve this event',
-                            onClick: (event, message) =>
-                              createApproval(event, message),
-                          },
-                        ]
+                            {
+                              label: 'approve this event',
+                              onClick: (event, message) =>
+                                createApproval(event, message),
+                            },
+                          ]
                     }
                   />
                 </>
@@ -586,7 +580,9 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         {isLoggedIn ? (
           <div className={styles.notification}>
             <Tabs items={items} />
-            <Button type="link">Since {timeSince(fetchSince)} ago, last 15 items</Button>
+            <Button type="link">
+              Since {timeSince(fetchSince)} ago, last 15 items
+            </Button>
           </div>
         ) : (
           <>You must sign in first</>

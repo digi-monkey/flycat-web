@@ -1,5 +1,5 @@
 import '../window';
-import "styles/global.scss";
+import 'styles/global.scss';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { wrapper } from 'store/configureStore';
@@ -29,7 +29,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
     <Provider store={store}>
       <ConfigProvider theme={theme}>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+          />
         </Head>
         <Component {...pageProps} />
         <Analytics />

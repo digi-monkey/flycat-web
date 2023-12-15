@@ -24,7 +24,7 @@ body {
 }
 
 .ant-menu .ant-menu-item {
-  border-radius: 0px;
+  border-radius: 0;
 }
 
 .ant-tabs {
@@ -33,8 +33,10 @@ body {
 
 .ant-tabs-nav-list {
   width: 100%;
+
   .ant-tabs-tab {
     flex: 1;
+
     .ant-tabs-tab-btn {
       width: 100%;
       text-align: center;

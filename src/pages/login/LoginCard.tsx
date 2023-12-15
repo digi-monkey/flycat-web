@@ -70,7 +70,7 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
   const signWithEthWallet = async () => setShowMetamaskSignInPopup(true);
 
   const signWithWalletConnect = async () => {
-    if (!await isWalletConnected()) {
+    if (!(await isWalletConnected())) {
       await wagmiConnect({
         connector: walletConnector,
       });

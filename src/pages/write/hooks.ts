@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import { useEffect } from "react";
-import { useCallWorker } from "hooks/useWorker";
+import { useEffect } from 'react';
+import { useCallWorker } from 'hooks/useWorker';
 import { getLocalSave, handleEvent } from './util';
 import { Nip23 } from 'core/nip/23';
 import { CallRelayType } from 'core/worker/type';
@@ -8,7 +8,7 @@ import { CallRelayType } from 'core/worker/type';
 type Query = {
   publicKey: string;
   articleId: string;
-}
+};
 
 export function useWorker(setUserMap, setArticle, setIsRestore) {
   const { worker, newConn } = useCallWorker();
@@ -28,10 +28,11 @@ export function useWorker(setUserMap, setArticle, setIsRestore) {
     });
     worker
       ?.subFilter({
-        filter, callRelay: {
+        filter,
+        callRelay: {
           type: CallRelayType.batch,
           data: newConn,
-        }
+        },
       })
       ?.iterating({ cb: handleEvent(publicKey, setUserMap, setArticle) });
   }, [newConn]);
@@ -46,7 +47,7 @@ export function useArticle(
   setSlug,
   setDirs,
   setHashTags,
-  setPredefineHashTags
+  setPredefineHashTags,
 ) {
   useEffect(() => {
     if (!article) return;
@@ -69,7 +70,7 @@ export function useArticle(
     setContent(content);
 
     if (dirs) {
-      setDirs((typeof dirs === "string" ? [dirs] : dirs).join('/'));
+      setDirs((typeof dirs === 'string' ? [dirs] : dirs).join('/'));
     }
     if (hashTags) {
       setHashTags(hashTags);
@@ -84,7 +85,7 @@ export function useArticle(
     setSlug,
     setDirs,
     setHashTags,
-    setPredefineHashTags
+    setPredefineHashTags,
   ]);
 }
 

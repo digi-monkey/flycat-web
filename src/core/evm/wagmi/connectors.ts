@@ -16,21 +16,23 @@ if (!process.env.NEXT_PUBLIC_PROJECT_ID) {
 }
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
 
-const supportedChains = [arbitrum,
-	avalanche,
-	bsc,
-	fantom,
-	gnosis,
-	mainnet,
-	optimism,
-	polygon];
+const supportedChains = [
+  arbitrum,
+  avalanche,
+  bsc,
+  fantom,
+  gnosis,
+  mainnet,
+  optimism,
+  polygon,
+];
 
 export const walletConnector = new WalletConnectConnector({
-	chains: supportedChains,
+  chains: supportedChains,
   options: {
     projectId,
     showQrModal: true,
-		metadata: {
+    metadata: {
       name: 'Flycat',
       description: 'Nostr web client',
       url: 'https://flycat.club',

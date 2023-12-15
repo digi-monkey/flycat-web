@@ -9,7 +9,7 @@ export function deserializeMetadata(content: string): EventSetMetadataContent {
 }
 
 export function normalizeMetadata(
-  metadata: EventSetMetadataContent
+  metadata: EventSetMetadataContent,
 ): EventSetMetadataContent {
   metadata.name = maxStrings(metadata.name, 30);
   metadata.about = maxStrings(metadata.about, 500);
@@ -53,11 +53,14 @@ export function normalizeContent(text: string): {
       'webm',
     ];
     const audioFileExtensions = ['.mp3', '.m4a', '.ogg', '.wav', '.flac'];
-    imageUrls = matches.filter(url => imageFileExtensions.some(ext => url.endsWith(ext))
+    imageUrls = matches.filter(url =>
+      imageFileExtensions.some(ext => url.endsWith(ext)),
     );
-    videoUrls = matches.filter(url => videoFileExtensions.some(ext => url.endsWith(ext))
+    videoUrls = matches.filter(url =>
+      videoFileExtensions.some(ext => url.endsWith(ext)),
     );
-    audioUrls = matches.filter(url => audioFileExtensions.some(ext => url.endsWith(ext))
+    audioUrls = matches.filter(url =>
+      audioFileExtensions.some(ext => url.endsWith(ext)),
     );
   }
 
@@ -94,7 +97,7 @@ export function normalizeContent(text: string): {
     }
   });
 
-  modifiedText = isOnlyWhitespaceString(modifiedText) ? "" : modifiedText;
+  modifiedText = isOnlyWhitespaceString(modifiedText) ? '' : modifiedText;
 
   return {
     lnUrls,
@@ -112,7 +115,8 @@ export function linkify(content: string): string {
   return content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
 }
 function extractUrls(text: string): string[] {
-  const urlRegex = /(https?):\/\/[a-zA-Z0-9-.]+\.[a-zA-Z]{2,}(\/[^\\<>{}|;'"`()\s]*)?/gm;
+  const urlRegex =
+    /(https?):\/\/[a-zA-Z0-9-.]+\.[a-zA-Z]{2,}(\/[^\\<>{}|;'"`()\s]*)?/gm;
   return text.match(urlRegex) || [];
 }
 function extractBolt11InvoiceString(text: string): string[] {
@@ -143,10 +147,10 @@ export const shortifyPublicKey = (key: PublicKey | undefined) => {
   if (key && isValidPublicKey(key)) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   }
-  if(typeof key === "string" && key.length < 8){
+  if (typeof key === 'string' && key.length < 8) {
     return key;
   }
-  if(typeof key === "string" && key.length > 8){
+  if (typeof key === 'string' && key.length > 8) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   }
 
@@ -154,13 +158,13 @@ export const shortifyPublicKey = (key: PublicKey | undefined) => {
 };
 
 export const shortifyNPub = (key: string | undefined) => {
-  if (key && key.startsWith("npub")) {
+  if (key && key.startsWith('npub')) {
     return key.slice(0, 7) + '..' + key.slice(key.length - 3);
   }
-  if(typeof key === "string" && key.length < 8){
+  if (typeof key === 'string' && key.length < 8) {
     return key;
   }
-  if(typeof key === "string" && key.length > 8){
+  if (typeof key === 'string' && key.length > 8) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   }
 
@@ -171,10 +175,10 @@ export const shortifyEventId = (key: PublicKey | undefined) => {
   if (key && isValidEventId(key)) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   }
-  if(typeof key === "string" && key.length < 8){
+  if (typeof key === 'string' && key.length < 8) {
     return key;
   }
-  if(typeof key === "string" && key.length > 8){
+  if (typeof key === 'string' && key.length > 8) {
     return key.slice(0, 3) + '..' + key.slice(key.length - 3);
   }
 

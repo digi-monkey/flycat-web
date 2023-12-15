@@ -72,14 +72,17 @@ export class RelayPool {
     return this.relays;
   }
 
-  static async benchmark(urls: string[], progressCb?: (rest: number) => any): Promise<BenchmarkResult> {
+  static async benchmark(
+    urls: string[],
+    progressCb?: (rest: number) => any,
+  ): Promise<BenchmarkResult> {
     const results: BenchmarkResult = {};
 
     const pool = new ConnPool();
     pool.addConnections(urls);
     const res = await pool.benchmarkConcurrently(progressCb);
     for (const r of res) {
-      results[r.url] = { benchmark: r.t || 100000000000, isFailed: r.isFailed }
+      results[r.url] = { benchmark: r.t || 100000000000, isFailed: r.isFailed };
     }
     return results;
   }
@@ -91,7 +94,12 @@ export class RelayPool {
       (a, b) => a[1].benchmark - b[1].benchmark,
     );
     const end = performance.now();
-    console.log("benchmark: ", sorted, "take time(seconds):", (end - start) / 1000);
+    console.log(
+      'benchmark: ',
+      sorted,
+      'take time(seconds):',
+      (end - start) / 1000,
+    );
     return sorted[0];
   }
 
@@ -359,9 +367,7 @@ function filterDuplicateRelayUrl(relays: string[]): string[] {
   const urls: string[] = [];
 
   for (const relay of relays) {
-    const normalizedUrl = relay.endsWith('/')
-      ? relay.slice(0, -1)
-      : relay;
+    const normalizedUrl = relay.endsWith('/') ? relay.slice(0, -1) : relay;
     if (!urls.includes(normalizedUrl)) {
       uniqueRelays.push(relay);
       urls.push(normalizedUrl);

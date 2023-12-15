@@ -1,7 +1,8 @@
 export const YoutubeUrlRegex =
   /(?:https?:\/\/)?(?:www|m\.)?(?:youtu\.be\/|youtube\.com\/(?:live\/|shorts\/|embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
 
-export const TikTokUrlRegex = /(?:https?:\/\/)?(?:www\.)?(?:tiktok\.com\/(?:[^\/]+\/){3}video\/\d+\/?)/i;
+export const TikTokUrlRegex =
+  /(?:https?:\/\/)?(?:www\.)?(?:tiktok\.com\/(?:[^\/]+\/){3}video\/\d+\/?)/i;
 
 /**
  * Tidal share link regex

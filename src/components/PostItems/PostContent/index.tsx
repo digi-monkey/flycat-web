@@ -65,14 +65,16 @@ export const PostContent: React.FC<PostContentProp> = ({
     setContent(renderContent(elements, isNsfwEvent(msgEvent)));
   }, []);
 
-  const contentStyle = { cursor: "pointer" };
-  const onContentClick =  (e)=>{
+  const contentStyle = { cursor: 'pointer' };
+  const onContentClick = e => {
     e.stopPropagation();
-    router.push(Paths.event + '/' + msgEvent.id)
-  }
+    router.push(Paths.event + '/' + msgEvent.id);
+  };
   const UI = (
     <>
-      <div onClick={onContentClick} style={contentStyle}>{content}</div>
+      <div onClick={onContentClick} style={contentStyle}>
+        {content}
+      </div>
       {showLastReplyToEvent && lastReplyToEventId && (
         <SubPostItem eventId={lastReplyToEventId} worker={worker} />
       )}

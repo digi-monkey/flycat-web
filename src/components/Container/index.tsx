@@ -1,4 +1,4 @@
-import classNames from "classnames";
+import classNames from 'classnames';
 import styles from './index.module.scss';
 
 interface ContainerProps {
@@ -6,8 +6,10 @@ interface ContainerProps {
 }
 
 const Container: React.FC<ContainerProps> = ({ children }) => {
-  return <div className={classNames('f-container', 'f-grid', styles.container)}>
-    {children}
-  </div>
-}
+  return (
+    <div className={classNames('f-container', 'f-grid', styles.container)}>
+      {children}
+    </div>
+  );
+};
 export default Container;

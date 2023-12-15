@@ -1,80 +1,80 @@
-const Pages = { 
+const Pages = {
   home: {
     name: 'home',
-    path: '/'
+    path: '/',
   },
   notification: {
     name: 'notification',
-    path: '/notification'
+    path: '/notification',
   },
   bookmarks: {
     name: 'bookmark',
-    path: '/bookmark'
+    path: '/bookmark',
   },
   communities: {
     name: 'communities',
-    path: '/communities'
+    path: '/communities',
   },
   write: {
     name: 'write',
-    path: '/write'
+    path: '/write',
   },
   edit: {
     name: 'edit',
-    path: '/edit/'
+    path: '/edit/',
   },
   draft: {
     name: 'draft',
-    path: '/draft'
+    path: '/draft',
   },
   user: {
     name: 'user',
-    path: '/user/'
+    path: '/user/',
   },
   relay: {
     name: 'relay',
-    path: '/relay'
+    path: '/relay',
   },
   relayManager: {
     name: 'relayManager',
-    path: '/relay-manager'
+    path: '/relay-manager',
   },
   event: {
     name: 'event',
-    path: '/event'
+    path: '/event',
   },
   post: {
     name: 'post',
-    path: '/post/'
+    path: '/post/',
   },
   setting: {
     name: 'setting',
-    path: '/setting'
+    path: '/setting',
   },
   preference: {
     name: 'preference',
-    path: '/setting?tabKey=preference', 
+    path: '/setting?tabKey=preference',
   },
   login: {
     name: 'login',
-    path: '/login'
+    path: '/login',
   },
   search: {
     name: 'search',
-    path: '/search'
+    path: '/search',
   },
   landing: {
     name: 'landing',
-    path: '/landing'
+    path: '/landing',
   },
   about: {
     name: 'about',
-    path: '/about'
+    path: '/about',
   },
   hashTags: {
     name: 'hashTags',
-    path: '/hashtags/'
-  }
-}
+    path: '/hashtags/',
+  },
+};
 
 export default Pages;

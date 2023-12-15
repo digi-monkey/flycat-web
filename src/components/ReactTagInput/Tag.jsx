@@ -8,13 +8,13 @@ import RemoveComponent from './RemoveComponent';
 
 const ItemTypes = { TAG: 'tag' };
 
-const Tag = (props) => {
+const Tag = props => {
   const tagRef = useRef(null);
   const { readOnly, tag, classNames, index } = props;
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.TAG,
-    collect: (monitor) => ({
+    collect: monitor => ({
       isDragging: !!monitor.isDragging(),
     }),
     item: props,
@@ -32,7 +32,7 @@ const Tag = (props) => {
 
       props.moveTag(dragIndex, hoverIndex);
     },
-    canDrop: (item) => canDrop(item),
+    canDrop: item => canDrop(item),
   }));
 
   drag(drop(tagRef));
@@ -50,7 +50,8 @@ const Tag = (props) => {
         cursor: canDrag(props) ? 'move' : 'auto',
       }}
       onClick={props.onTagClicked}
-      onTouchStart={props.onTagClicked}>
+      onTouchStart={props.onTagClicked}
+    >
       {label}
       <RemoveComponent
         tag={props.tag}

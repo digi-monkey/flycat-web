@@ -11,7 +11,9 @@ export const Landing: React.FC = () => {
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <Link href="/"><img src="logo512.png" alt="" /></Link> 
+        <Link href="/">
+          <img src="logo512.png" alt="" />
+        </Link>
       </div>
       <Row>
         <Col xs={24} sm={12} md={12} lg={12}>
@@ -55,8 +57,8 @@ export const Landing: React.FC = () => {
                 Learn More
               </Button>
               <div className={styles.manualInstall}>
-                If the above button won&apos;t work, just tap the share button in
-                your browser and select Add to Home Screen on iOS or Install
+                If the above button won&apos;t work, just tap the share button
+                in your browser and select Add to Home Screen on iOS or Install
                 on Android.
               </div>
             </div>

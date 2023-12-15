@@ -36,7 +36,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
       type: 'LOGOUT',
     });
     router.push(Paths.login);
-  }
+  };
 
   const { t } = useTranslation();
   const [nav, setNav] = useState<typeof NavMenus>([]);
@@ -67,7 +67,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           <Avatar src={user?.picture} onClick={() => setOpen(true)} />
         ) : (
           <Avatar
-            icon={<Icon type='icon-user' />}
+            icon={<Icon type="icon-user" />}
             onClick={() => router.push({ pathname: Paths.login })}
           />
         )}
@@ -79,7 +79,11 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           {nav.map((item, key) => (
             <li
               key={key}
-              onClick={() => {item.id === MenuId.add ? setOpenWrite(true) : navClick(item, myPublicKey, router, isLoggedIn, t)}}
+              onClick={() => {
+                item.id === MenuId.add
+                  ? setOpenWrite(true)
+                  : navClick(item, myPublicKey, router, isLoggedIn, t);
+              }}
               className={classNames({
                 [styles.active]: item.link === router.pathname,
                 [styles.add]: item.id === MenuId.add,
@@ -88,9 +92,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
               {item.id === MenuId.add ? (
                 <span>{item.icon}</span>
               ) : item.id === MenuId.notifications && isNewUnread ? (
-                <Badge dot>
-                 {item.icon} 
-                </Badge>
+                <Badge dot>{item.icon}</Badge>
               ) : (
                 item.icon
               )}
@@ -124,7 +126,11 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
           {UserMenus.map((item, key) => (
             <li
               key={key}
-              onClick={() => { item?.id === MenuId.signOut ? doLogout() : navClick(item, myPublicKey, router, isLoggedIn, t) }}
+              onClick={() => {
+                item?.id === MenuId.signOut
+                  ? doLogout()
+                  : navClick(item, myPublicKey, router, isLoggedIn, t);
+              }}
             >
               {item?.icon} <span>{item && t(item.title)}</span>
             </li>

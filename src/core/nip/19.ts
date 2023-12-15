@@ -48,9 +48,13 @@ export interface TLV {
 }
 
 export interface DecodedShareableResult {
-  data: DecodedNprofileResult | DecodedNaddrResult | DecodedNeventResult | DecodedNrelayResult; 
+  data:
+    | DecodedNprofileResult
+    | DecodedNaddrResult
+    | DecodedNeventResult
+    | DecodedNrelayResult;
   type: Nip19ShareableDataType;
-} 
+}
 
 export interface DecodedNprofileResult {
   pubkey: PublicKey;
@@ -60,7 +64,7 @@ export interface DecodedNprofileResult {
 export interface DecodedNaddrResult {
   identifier: string;
   pubkey: PublicKey;
-  kind: WellKnownEventKind,
+  kind: WellKnownEventKind;
   relays: string[];
 }
 

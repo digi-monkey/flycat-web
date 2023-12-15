@@ -38,13 +38,13 @@ export const Followings: React.FC<FollowingsProp> = ({
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
   const [profiles, setProfiles] = useState<DbEvent[]>([]);
-  
-  useEffect(()=>{
-    if(pks.length===0)return;
+
+  useEffect(() => {
+    if (pks.length === 0) return;
 
     profileQuery.table.bulkGet(pks).then(events => {
-      setProfiles(events.filter(e=>e!=null)as DbEvent[]);
-    })
+      setProfiles(events.filter(e => e != null) as DbEvent[]);
+    });
   }, [pks]);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export const Followings: React.FC<FollowingsProp> = ({
       ),
     });
   };
-  
+
   return (
     <div className={styles.following}>
       {contextHolder}
@@ -130,10 +130,7 @@ export const Followings: React.FC<FollowingsProp> = ({
         ];
         return (
           <li key={key} className={styles.followingList}>
-            <Link
-              className={styles.user}
-              href={"/user/"+key}
-            >
+            <Link className={styles.user} href={'/user/' + key}>
               <Avatar size={'small'} src={profile?.picture} alt="" />
               <div>{profile?.name || '...'}</div>
             </Link>

@@ -2,12 +2,12 @@
   box-shadow: none;
   border: 1px solid transparent;
   background-color: var(--neutral-white);
-  margin: 0px var(--basePadding5);
+  margin: 0 var(--basePadding5);
   padding: 10px;
   border-radius: var(--baseBorderRadius8);
 
   @include for-mobile{
-    margin: 0px; 
+    margin: 0; 
   }
 
   &.focus{
@@ -106,7 +106,7 @@
       }
 
       .community{
-        margin-right: 0px; 
+        margin-right: 0; 
       }
 
       >a{

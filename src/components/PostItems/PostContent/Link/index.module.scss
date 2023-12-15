@@ -1,7 +1,8 @@
 .urlPreview {
-  :hover{
+  :hover {
     background-color: var(--neutral-02);
   }
+
   .iframe {
     display: flex;
     justify-content: center;
@@ -9,6 +10,7 @@
     iframe {
       border: none;
     }
+
     img {
       width: 100%;
     }
@@ -30,7 +32,7 @@
   align-self: stretch;
   border-radius: 12px;
   border: 1px solid var(--neutral-03);
-  margin: var(--basePadding3) 0px;
+  margin: var(--basePadding3) 0;
   cursor: pointer;
   word-break: break-all;
 
@@ -40,26 +42,28 @@
 
     /* Label */
     font-size: 14px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 500;
     line-height: 22px;
   }
+
   .siteTitle {
     margin-bottom: var(--basePadding2);
     color: var(--neutral-09);
 
     /* Subheader1-bold */
     font-size: 16px;
-    font-family: Poppins;
+    font-family: Poppins, sans-serif;
     font-weight: 600;
     line-height: 24px;
   }
+
   .siteDescription {
     color: var(--neutral-06);
 
     /* Label */
     font-size: 14px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 500;
     line-height: 22px;
   }
@@ -68,6 +72,7 @@
     width: 156px;
     height: 106px;
     border-radius: var(--basePadding3);
+
     img {
       width: 100%;
       height: 100%;

@@ -3,7 +3,8 @@ import {
   AuthPubRequest,
   AuthSubResponse,
   Challenge,
-  ClientRequestType, ErrorReason,
+  ClientRequestType,
+  ErrorReason,
   EventId,
   EventPubRequest,
   EventPubResponse,
@@ -15,7 +16,7 @@ import {
   RelayResponse,
   RelayResponseType,
   SubCloseRequest,
-  SubscriptionId
+  SubscriptionId,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import WebSocket, { MessageEvent, CloseEvent, OpenEvent, ErrorEvent } from 'ws';
@@ -56,12 +57,9 @@ export class NodeWsApi {
     this.keepAlivePool = new Map();
   }
 
-  private updateListeners(
-    url?: string,
-    wsHandler?: NodeWsApiHandler,
-  ) {
+  private updateListeners(url?: string, wsHandler?: NodeWsApiHandler) {
     if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
-      this.ws = new WebSocket(url || "");
+      this.ws = new WebSocket(url || '');
     }
 
     this.ws.onopen = wsHandler?.onOpenHandler || this.handleOpen;
@@ -69,7 +67,9 @@ export class NodeWsApi {
       this.handleResponse(evt, wsHandler?.onMsgHandler);
     };
     this.ws.onerror = wsHandler?.onErrHandler || this.handleError;
-    this.ws.onclose = () => { console.log(this.ws.url, "closed") };
+    this.ws.onclose = () => {
+      console.log(this.ws.url, 'closed');
+    };
   }
 
   isDuplicatedFilter(
@@ -112,7 +112,7 @@ export class NodeWsApi {
   async _send(data: string | ArrayBuffer) {
     if (this.isConnected()) {
       await this.ws.send(data);
-      console.debug(this.ws.url, " sent data: ", data);
+      console.debug(this.ws.url, ' sent data: ', data);
     } else {
       console.log(
         `${this.url} not open, abort send msg.., ws.readState: ${this.ws.readyState}`,

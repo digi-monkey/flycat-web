@@ -4,7 +4,7 @@ import {
   EventSetMetadataContent,
   EventTags,
   EventPTag,
-  Filter
+  Filter,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { ConnPool } from 'core/api/pool';
@@ -96,7 +96,9 @@ export class OneTimeWebSocketClient {
 
     if (newestContactListEvent == null) return null;
 
-    return newestContactListEvent.tags.filter(t => t[0] === EventTags.P).map(t => (t as EventPTag)[1]);
+    return newestContactListEvent.tags
+      .filter(t => t[0] === EventTags.P)
+      .map(t => (t as EventPTag)[1]);
   }
 
   static async fetchEvent({

@@ -1,9 +1,12 @@
+import { getPublicKey, schnorrSign, Sha256 } from '../crypto';
 import {
-  getPublicKey,
-  schnorrSign,
-  Sha256
-} from '../crypto';
-import { EventId, PublicKey, EventKind, Tags, PrivateKey, Signature } from 'core/nostr/type';
+  EventId,
+  PublicKey,
+  EventKind,
+  Tags,
+  PrivateKey,
+  Signature,
+} from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 
 export interface RawEvent {
@@ -28,7 +31,7 @@ export class RawEvent implements RawEvent {
     kind: EventKind,
     tags?: Tags,
     content?: string,
-    created_at?: number
+    created_at?: number,
   ) {
     this.pubkey = pubkey;
     this.kind = kind;

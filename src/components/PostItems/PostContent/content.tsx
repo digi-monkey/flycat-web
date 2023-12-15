@@ -11,10 +11,7 @@ import { NostrEmbed } from './Embed/index';
 import classname from 'classnames';
 import styles from './Media/index.module.scss';
 
-export const renderContent = (
-  elements: ParsedFragment[],
-  isNsfw = false,
-) => {
+export const renderContent = (elements: ParsedFragment[], isNsfw = false) => {
   const chunks: Array<ReactNode> = [];
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];

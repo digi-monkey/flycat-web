@@ -7,26 +7,31 @@ import {
   PublicKey,
   UserMap,
   EventId,
-	EventMap,
+  EventMap,
   EventTags,
 } from 'core/nostr/type';
-import { getEventAddrFromATags, getEventDTagId, getEventIdsFromETags, isEventPTag } from 'core/nostr/util';
+import {
+  getEventAddrFromATags,
+  getEventDTagId,
+  getEventIdsFromETags,
+  isEventPTag,
+} from 'core/nostr/util';
 import { EventWithSeen } from 'pages/type';
 import { Dispatch, SetStateAction } from 'react';
 
 export function _handleEvent({
   userMap,
   setUserMap,
-	setEventMap,
+  setEventMap,
   rootEvent,
   setCommentList,
   unknownPks,
   setUnknownPks,
 }: {
-  rootEvent: Event; 
+  rootEvent: Event;
   userMap: UserMap;
   setUserMap: Dispatch<SetStateAction<UserMap>>;
-	setEventMap: Dispatch<SetStateAction<EventMap>>;
+  setEventMap: Dispatch<SetStateAction<EventMap>>;
   unknownPks: PublicKey[];
   setUnknownPks: Dispatch<SetStateAction<PublicKey[]>>;
   setCommentList: Dispatch<SetStateAction<EventWithSeen[]>>;
@@ -55,12 +60,12 @@ export function _handleEvent({
 
       case WellKnownEventKind.text_note:
         {
-					setEventMap(prev => {
-						prev.set(event.id, event);
-						return prev;
-					});
+          setEventMap(prev => {
+            prev.set(event.id, event);
+            return prev;
+          });
 
-          if(rootEvent.kind === WellKnownEventKind.text_note){
+          if (rootEvent.kind === WellKnownEventKind.text_note) {
             setCommentList(oldArray => {
               const replyToEventIds = oldArray
                 .map(e => getEventIdsFromETags(e.tags))
@@ -81,7 +86,7 @@ export function _handleEvent({
                 const sortedItems = newItems.sort((a, b) =>
                   a.created_at >= b.created_at ? 1 : -1,
                 );
-  
+
                 // check if need to sub new user metadata
                 const newPks: PublicKey[] = [];
                 for (const t of event.tags) {
@@ -101,12 +106,12 @@ export function _handleEvent({
                 if (newPks.length > 0) {
                   setUnknownPks([...unknownPks, ...newPks]);
                 }
-  
+
                 return sortedItems;
               } else {
                 const id = oldArray.findIndex(s => s.id === event.id);
                 if (id === -1) return oldArray;
-  
+
                 if (!oldArray[id].seen?.includes(relayUrl!)) {
                   oldArray[id].seen?.push(relayUrl!);
                 }
@@ -115,7 +120,7 @@ export function _handleEvent({
             });
           }
 
-          if(rootEvent.kind === WellKnownEventKind.long_form){
+          if (rootEvent.kind === WellKnownEventKind.long_form) {
             setCommentList(oldArray => {
               const replyToEventIds = oldArray
                 .map(e => getEventIdsFromETags(e.tags))
@@ -128,8 +133,7 @@ export function _handleEvent({
                 !oldArray.map(e => e.id).includes(event.id) &&
                 (replyToEventIds.includes(event.id) ||
                   eTags.includes(rootEvent.id) ||
-                  aTags.includes(addr)
-                )
+                  aTags.includes(addr))
               ) {
                 // only add un-duplicated and replyTo msg
                 const newItems = [
@@ -140,7 +144,7 @@ export function _handleEvent({
                 const sortedItems = newItems.sort((a, b) =>
                   a.created_at >= b.created_at ? 1 : -1,
                 );
-  
+
                 // check if need to sub new user metadata
                 const newPks: PublicKey[] = [];
                 for (const t of event.tags) {
@@ -160,13 +164,12 @@ export function _handleEvent({
                 if (newPks.length > 0) {
                   setUnknownPks([...unknownPks, ...newPks]);
                 }
-  
+
                 return sortedItems;
-              } 
-              else {
+              } else {
                 const id = oldArray.findIndex(s => s.id === event.id);
                 if (id === -1) return oldArray;
-  
+
                 if (!oldArray[id].seen?.includes(relayUrl!)) {
                   oldArray[id].seen?.push(relayUrl!);
                 }

@@ -25,17 +25,18 @@
 
     /* Subheader1-bold */
     font-size: 16px;
-    font-family: Poppins;
+    font-family: Poppins, sans-serif;
     font-weight: 600;
     line-height: 24px;
   }
+
   .btn {
     cursor: pointer;
     color: var(--primary-06);
 
     /* Label */
     font-size: 14px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 500;
     line-height: 22px;
   }
@@ -54,22 +55,25 @@
     justify-content: flex-start;
     align-items: center;
     gap: var(--basePadding2);
+
     .icon {
       width: 24px;
       height: 24px;
       cursor: pointer;
     }
+
     .title {
       cursor: pointer;
       color: var(--neutral-09, #1e1e1e);
 
       /* Subheader1-bold */
       font-size: 16px;
-      font-family: Poppins;
+      font-family: Poppins, sans-serif;
       font-weight: 600;
       line-height: 24px;
     }
   }
+
   .search {
     :global {
       .ant-input-affix-wrapper {
@@ -90,7 +94,6 @@
         svg {
           width: 24px;
           height: 24px;
-
           fill: var(--neutral-06);
         }
       }

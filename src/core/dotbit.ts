@@ -5,7 +5,7 @@ export async function getPublicKeyFromDotBit(
 ): Promise<string | null> {
   const createInstance = (await import('dotbit')).createInstance;
 
-  const dotbit =  createInstance();
+  const dotbit = createInstance();
   const records = await dotbit.records(didAlias, 'profile.nostr');
 
   const record = records[0];

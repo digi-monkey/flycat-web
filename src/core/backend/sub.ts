@@ -58,6 +58,6 @@ export const callSubFilter = async ({
 
   pool.close();
 
-  console.debug("get events: ", events.length);
+  console.debug('get events: ', events.length);
   return events;
 };

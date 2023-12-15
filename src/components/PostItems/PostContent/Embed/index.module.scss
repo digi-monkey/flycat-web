@@ -1,14 +1,14 @@
 .refNote {
   border: 1px solid var(--neutral-04);
   left: 56px;
-  top: 0px;
+  top: 0;
   border-radius: 12px;
   padding: 12px;
-  margin: var(--basePadding3) 0px;
+  margin: var(--basePadding3) 0;
   overflow-wrap: anywhere;
 
   .user {
-    font-family: 'Noto Sans';
+    font-family: 'Noto Sans', sans-serif;
     font-style: normal;
     font-weight: 500;
     font-size: 16px;
@@ -28,7 +28,7 @@
   z-index: 1;
 
   .user {
-    font-family: 'Noto Sans';
+    font-family: 'Noto Sans', sans-serif;
     font-style: normal;
     font-weight: 500;
     font-size: 16px;
@@ -44,7 +44,7 @@
   background: #f2f2f2;
   width: 100%;
   left: 56px;
-  top: 0px;
+  top: 0;
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 10px;
@@ -55,9 +55,11 @@
   justify-content: flex-start;
   align-items: center;
   gap: var(--basePadding2);
-  margin: var(--basePadding3) 0px;
+  margin: var(--basePadding3) 0;
   padding: var(--basePadding3);
+
   @include font-header3;
+
   color: var(--primary-06);
   border-radius: var(--basePadding2);
   background-color: var(--neutral-02);
@@ -65,9 +67,11 @@
   a {
     color: var(--primary-06);
   }
+
   .summary{
     @include font-body;
   }
+
   svg {
     width: 24px;
     height: 24px;

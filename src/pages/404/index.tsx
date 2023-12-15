@@ -4,7 +4,7 @@ import styles from './index.module.scss';
 export default function NotFoundPage() {
   return (
     <>
-      <NextSeo title='404 Page Not Found' description='Page not found' />
+      <NextSeo title="404 Page Not Found" description="Page not found" />
       <div className={styles.wrapper}>
         <div className={styles.title}>
           4

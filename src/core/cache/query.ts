@@ -1,9 +1,9 @@
 import { DbEvent } from 'core/db/schema';
 import { Filter } from 'core/nostr/type';
-import {Event} from 'core/nostr/Event';
+import { Event } from 'core/nostr/Event';
 import { createHash } from 'crypto';
 
-export const scrollPositionCache = new Map<string, number>(); 
+export const scrollPositionCache = new Map<string, number>();
 export const queryCache = new Map<string, DbEvent[]>();
 
 export function createQueryCacheId(deps: {

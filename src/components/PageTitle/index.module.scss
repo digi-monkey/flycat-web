@@ -2,7 +2,6 @@
   display: flex;
   width: auto;
   padding: 16px 20px;
-  align-items: baseline;
   justify-content: space-between;
   align-items: center;
 
@@ -12,12 +11,11 @@
     align-items: center;
     justify-content: flex-start;
     gap: 10px;
-
     color: var(--neutral-09);
 
     /* Subheader1-bold */
     font-size: 16px;
-    font-family: Poppins;
+    font-family: Poppins, sans-serif;
     font-weight: 600;
     line-height: 24px;
   }

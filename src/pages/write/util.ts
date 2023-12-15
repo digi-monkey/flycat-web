@@ -116,8 +116,10 @@ export const publish = async (
 
     noticePubEventResult(worker.relays.length, handler, (eventId: string) => {
       const pathname = articleParams.slug
-      ? `${Paths.post + event.pubkey}/${encodeURIComponent(articleParams.slug)}`
-      : `${Paths.event}/${eventId}/`;
+        ? `${Paths.post + event.pubkey}/${encodeURIComponent(
+            articleParams.slug,
+          )}`
+        : `${Paths.event}/${eventId}/`;
       router.push({ pathname });
     });
   } catch (error: any) {

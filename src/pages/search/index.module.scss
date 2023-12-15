@@ -1,5 +1,6 @@
 .root {
   padding: 0 var(--basePadding5);
+
   :global {
     .ant-input-affix-wrapper {
       margin: var(--basePadding4) 0;
@@ -20,7 +21,6 @@
       svg {
         width: 24px;
         height: 24px;
-
         fill: var(--neutral-06);
       }
     }

@@ -20,19 +20,22 @@ export class Query {
     }
   }
 
-  createEventByIdQuerier(relayUrls: string[], eventId?: EventId): () => Promise<[DbEvent | undefined | null, boolean]> {
+  createEventByIdQuerier(
+    relayUrls: string[],
+    eventId?: EventId,
+  ): () => Promise<[DbEvent | undefined | null, boolean]> {
     return async () => {
       const finished = true;
-      
+
       if (!eventId) {
         return [null, finished];
       }
 
-      const normalizeRelayUrls = relayUrls.map(r => normalizeWsUrl(r)); 
+      const normalizeRelayUrls = relayUrls.map(r => normalizeWsUrl(r));
       const event = await this.table.get(eventId);
       if (event && relayUrls.length > 0) {
         const seenRelays = event.seen.map(r => normalizeWsUrl(r));
-        if(normalizeRelayUrls.some(relay => seenRelays.includes(relay))){
+        if (normalizeRelayUrls.some(relay => seenRelays.includes(relay))) {
           return [event, finished];
         }
         return [null, finished];
@@ -80,9 +83,15 @@ export class Query {
         return isValidEvent(event);
       }
       return true;
-    }
+    };
     const applyFilterTags = (event: DbEvent) => {
-      let isValid = !(!!filter['#e'] || !!filter['#p'] || !!filter['#d'] || !!filter['#t'] || !!filter['#a']);
+      let isValid = !(
+        !!filter['#e'] ||
+        !!filter['#p'] ||
+        !!filter['#d'] ||
+        !!filter['#t'] ||
+        !!filter['#a']
+      );
       if (filter['#e']) {
         const target = filter['#e'];
         isValid = event.tags.some(
@@ -115,19 +124,27 @@ export class Query {
       }
       return isValid;
     };
-    const doQuery = async (
-      collection: Collection<DbEvent, IndexableType>,
-    ) => {
-      const filterResults = collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).limit(maxLimit);
-      const data = (await filterResults.toArray());
+    const doQuery = async (collection: Collection<DbEvent, IndexableType>) => {
+      const filterResults = collection
+        .filter(applyRelayAndTimeRange)
+        .filter(applyIsValidEvent)
+        .filter(applyFilterTags)
+        .limit(maxLimit);
+      const data = await filterResults.toArray();
       return data;
     };
 
     const doQuerySort = async (
       collection: Collection<DbEvent, IndexableType>,
     ) => {
-      const filterResults = (await collection.filter(applyRelayAndTimeRange).filter(applyIsValidEvent).filter(applyFilterTags).sortBy('created_at')).reverse();
-      const data = filterResults.slice(0, maxLimit); 
+      const filterResults = (
+        await collection
+          .filter(applyRelayAndTimeRange)
+          .filter(applyIsValidEvent)
+          .filter(applyFilterTags)
+          .sortBy('created_at')
+      ).reverse();
+      const data = filterResults.slice(0, maxLimit);
       return data;
     };
 
@@ -258,15 +275,23 @@ export class ProfileQuery {
       if (!keyword) return false;
 
       const lowercase = keyword.toLowerCase().trim();
-      if(isValidPublicKey(lowercase) || lowercase.startsWith("npub")){
-        return e.pubkey.toLowerCase() === lowercase || Nip19.encode(e.pubkey, Nip19DataType.Npubkey).toLowerCase() === lowercase;
+      if (isValidPublicKey(lowercase) || lowercase.startsWith('npub')) {
+        return (
+          e.pubkey.toLowerCase() === lowercase ||
+          Nip19.encode(e.pubkey, Nip19DataType.Npubkey).toLowerCase() ===
+            lowercase
+        );
       }
       try {
         const profile = deserializeMetadata(e.content);
-        if(isNip05DomainName(lowercase)){
+        if (isNip05DomainName(lowercase)) {
           return profile.nip05.toLowerCase().trim() === lowercase;
         }
-        return profile.display_name.toLowerCase().includes(lowercase) || profile.name.toLowerCase().includes(lowercase) || profile.about.toLowerCase().includes(lowercase);
+        return (
+          profile.display_name.toLowerCase().includes(lowercase) ||
+          profile.name.toLowerCase().includes(lowercase) ||
+          profile.about.toLowerCase().includes(lowercase)
+        );
       } catch (error) {
         return false;
       }

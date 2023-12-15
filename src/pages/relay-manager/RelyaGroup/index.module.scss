@@ -5,13 +5,12 @@
   padding: 13px 8px 13px 20px;
   align-items: center;
   gap: 8px;
-
   border-top: 1px solid var(--neutral-02);
   color: var(--primary-06, #598022);
 
   /* Label */
   font-size: 14px;
-  font-family: Noto Sans;
+  font-family: 'Noto Sans', sans-serif;
   font-weight: 500;
   line-height: 22px;
 }
@@ -25,6 +24,7 @@
 .selectorMenu {
   background-color: var(--neutral-01);
 }
+
 .selectorMenuItem {
   :hover {
     border-radius: 4px;
@@ -35,22 +35,24 @@
 .menuText {
   display: flex;
   justify-content: space-between;
+
   .name {
     color: var(--neutral-09, #1e1e1e);
 
     /* Label-bold */
     font-size: 14px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 700;
     line-height: 22px;
   }
+
   .num {
     color: var(--neutral-06, #787878);
     text-align: right;
 
     /* Footnote */
     font-size: 12px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 500;
     line-height: 18px;
   }
@@ -59,12 +61,14 @@
 .table {
   background-color: var(--neutral-white, #fff);
   min-height: 500px;
+
   :global {
     .ant-table-thead {
       background-color: var(--neutral-white, #fff);
     }
   }
 }
+
 .rightHeader {
   display: flex;
   width: auto;
@@ -78,40 +82,46 @@
 
     /* Label-bold */
     font-size: 14px;
-    font-family: Noto Sans;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 700;
     line-height: 22px;
   }
+
   .searchBar {
     display: flex;
+
     .input {
       border-radius: 4px;
       padding: 4px 12px;
+
       button {
-        padding: 0px;
+        padding: 0;
       }
     }
   }
 }
 
-.mobileMenu{
+.mobileMenu {
   width: 100%;
-  :global{
-    .ant-tabs-nav{
-      margin: 0px var(--basePadding5);
+
+  :global {
+    .ant-tabs-nav {
+      margin: 0 var(--basePadding5);
     }
+
     .ant-tabs-nav-list {
       width: auto;
-      //overflow-x: scroll;
     }
   }
-  .title{
+
+  .title {
     margin: var(--basePadding2) var(--basePadding5);
+
     @include font-subheader1-bold;
   }
 }
 
-.menuBtnGroups{
+.menuBtnGroups {
   width: 100%;
   overflow-x: scroll;
   display: flex;

@@ -21,7 +21,17 @@ import {
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { Avatar, Button, Divider, Dropdown, Input, MenuProps, Tabs, Tooltip, message } from 'antd';
+import {
+  Avatar,
+  Button,
+  Divider,
+  Dropdown,
+  Input,
+  MenuProps,
+  Tabs,
+  Tooltip,
+  message,
+} from 'antd';
 import { copyToClipboard, stringHasImageUrl } from 'utils/common';
 import { Followings } from './followings';
 
@@ -57,7 +67,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const isMobile = useMatchMobile();
   const myPublicKey = useReadonlyMyPublicKey();
 
-  const publicKey = usePubkeyFromRouterQuery((router.query as UserParams).publicKey);
+  const publicKey = usePubkeyFromRouterQuery(
+    (router.query as UserParams).publicKey,
+  );
   const { worker, newConn } = useCallWorker();
 
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
@@ -247,13 +259,13 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     return isFollow
       ? {
-        label: 'unfollow',
-        action: () => _unfollowUser(publicKey),
-      }
+          label: 'unfollow',
+          action: () => _unfollowUser(publicKey),
+        }
       : {
-        label: 'follow',
-        action: () => _followUser(publicKey),
-      };
+          label: 'follow',
+          action: () => _followUser(publicKey),
+        };
   };
   const followOrUnfollow = buildFollowUnfollow(publicKey);
 
@@ -296,7 +308,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           message.error(`raw pubkey  copy failed! ${error.message}`);
         }
       },
-    }
+    },
   ];
 
   const actionBtnGroups =
@@ -525,11 +537,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           pks={userContactList?.keys || []}
           worker={worker}
         />
-        
-       {/*
+
+        {/*
           <Divider></Divider>
           <AnswerMachine pubkey={publicKey} />
-       */} 
+       */}
       </Right>
     </BaseLayout>
   );

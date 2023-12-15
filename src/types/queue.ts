@@ -5,7 +5,7 @@ export class Queue<T> {
     this.items = [];
   }
 
-  has(item: T): boolean{
+  has(item: T): boolean {
     return this.items.includes(item);
   }
 
@@ -17,7 +17,7 @@ export class Queue<T> {
     return this.items.shift();
   }
 
-  removeItem(item: T){
+  removeItem(item: T) {
     const index = this.items.indexOf(item);
     if (index !== -1) {
       this.items.splice(index, 1);

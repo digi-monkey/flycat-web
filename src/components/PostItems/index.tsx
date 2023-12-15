@@ -52,13 +52,16 @@ const PostItems: React.FC<PostItemsProps> = ({
     [] as DbEvent[],
   );
 
-  const getUser = useCallback((pubkey: string) => {
-    const user = profileEvents.find(e => e.pubkey === pubkey);
-    if (user) {
-      return deserializeMetadata(user.content);
-    }
-    return null;
-  }, [profileEvents]);
+  const getUser = useCallback(
+    (pubkey: string) => {
+      const user = profileEvents.find(e => e.pubkey === pubkey);
+      if (user) {
+        return deserializeMetadata(user.content);
+      }
+      return null;
+    },
+    [profileEvents],
+  );
 
   return (
     <>

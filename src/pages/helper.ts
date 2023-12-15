@@ -2,7 +2,14 @@ import { Dispatch, SetStateAction } from 'react';
 import { RootState } from 'store/configureStore';
 import { EventWithSeen } from './type';
 import { Event } from 'core/nostr/Event';
-import { EventMap, EventSetMetadataContent, EventTags, PublicKey, Tags, UserMap } from 'core/nostr/type';
+import {
+  EventMap,
+  EventSetMetadataContent,
+  EventTags,
+  PublicKey,
+  Tags,
+  UserMap,
+} from 'core/nostr/type';
 import { deserializeMetadata } from 'core/nostr/content';
 import { isValidPublicKey } from 'utils/validator';
 
@@ -17,16 +24,17 @@ export const loginMapStateToProps = (state: RootState) => {
   };
 };
 
-export const setEventWithSeenMsgList = (event: Event, relayUrl: string, setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>) => {
+export const setEventWithSeenMsgList = (
+  event: Event,
+  relayUrl: string,
+  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>,
+) => {
   return setMsgList(oldArray => {
     if (!oldArray.map(e => e.id).includes(event.id)) {
       // do not add duplicated msg
 
       // save event
-      const newItems = [
-        ...oldArray,
-        { ...event, ...{ seen: [relayUrl!] } },
-      ];
+      const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
       // sort by timestamp
       const sortedItems = newItems.sort((a, b) =>
         a.created_at >= b.created_at ? -1 : 1,
@@ -42,9 +50,14 @@ export const setEventWithSeenMsgList = (event: Event, relayUrl: string, setMsgLi
     }
     return oldArray;
   });
-}
+};
 
-export const setMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>, maxMsgLength: number) => {
+export const setMaxLimitEventWithSeenMsgList = (
+  event: Event,
+  relayUrl: string,
+  setMsgList: Dispatch<SetStateAction<EventWithSeen[]>>,
+  maxMsgLength: number,
+) => {
   return setMsgList(oldArray => {
     if (
       oldArray.length > maxMsgLength &&
@@ -57,10 +70,7 @@ export const setMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, 
       // do not add duplicated msg
 
       // save event
-      const newItems = [
-        ...oldArray,
-        { ...event, ...{ seen: [relayUrl!] } },
-      ];
+      const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
       // sort by timestamp
       const sortedItems = newItems.sort((a, b) =>
         a.created_at >= b.created_at ? -1 : 1,
@@ -80,18 +90,19 @@ export const setMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, 
     }
     return oldArray;
   });
-}
+};
 
-export const pushEventWithSeenMsgList = (event: Event, relayUrl: string, msgList:EventWithSeen[]) => {
+export const pushEventWithSeenMsgList = (
+  event: Event,
+  relayUrl: string,
+  msgList: EventWithSeen[],
+) => {
   const oldArray = msgList;
   if (!oldArray.map(e => e.id).includes(event.id)) {
     // do not add duplicated msg
 
     // save event
-    const newItems = [
-      ...oldArray,
-      { ...event, ...{ seen: [relayUrl!] } },
-    ];
+    const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
     // sort by timestamp
     const sortedItems = newItems.sort((a, b) =>
       a.created_at >= b.created_at ? -1 : 1,
@@ -106,9 +117,14 @@ export const pushEventWithSeenMsgList = (event: Event, relayUrl: string, msgList
     }
   }
   return oldArray;
-}
+};
 
-export const pushMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string, msgList: EventWithSeen[], maxMsgLength: number) => {
+export const pushMaxLimitEventWithSeenMsgList = (
+  event: Event,
+  relayUrl: string,
+  msgList: EventWithSeen[],
+  maxMsgLength: number,
+) => {
   const oldArray = msgList;
   if (
     oldArray.length > maxMsgLength &&
@@ -121,10 +137,7 @@ export const pushMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string,
     // do not add duplicated msg
 
     // save event
-    const newItems = [
-      ...oldArray,
-      { ...event, ...{ seen: [relayUrl!] } },
-    ];
+    const newItems = [...oldArray, { ...event, ...{ seen: [relayUrl!] } }];
     // sort by timestamp
     const sortedItems = newItems.sort((a, b) =>
       a.created_at >= b.created_at ? -1 : 1,
@@ -143,9 +156,12 @@ export const pushMaxLimitEventWithSeenMsgList = (event: Event, relayUrl: string,
     }
   }
   return oldArray;
-}
+};
 
-export const onSetEventMap = (event: Event, setEventMap: Dispatch<SetStateAction<EventMap>>) => {
+export const onSetEventMap = (
+  event: Event,
+  setEventMap: Dispatch<SetStateAction<EventMap>>,
+) => {
   return setEventMap(prev => {
     const newMap = new Map(prev);
     const oldData = newMap.get(event.id);
@@ -153,17 +169,18 @@ export const onSetEventMap = (event: Event, setEventMap: Dispatch<SetStateAction
       // the new data is outdated
       return newMap;
     }
-  
+
     newMap.set(event.id, event);
     return newMap;
-  });  
-}
+  });
+};
 
-export const onSetUserMap = (event: Event, setUserMap: Dispatch<SetStateAction<UserMap>>) => {
-  const metadata: EventSetMetadataContent = deserializeMetadata(
-    event.content,
-  );
-  
+export const onSetUserMap = (
+  event: Event,
+  setUserMap: Dispatch<SetStateAction<UserMap>>,
+) => {
+  const metadata: EventSetMetadataContent = deserializeMetadata(event.content);
+
   return setUserMap(prev => {
     const newMap = new Map(prev);
     const oldData = newMap.get(event.pubkey) as { created_at: number };
@@ -178,8 +195,10 @@ export const onSetUserMap = (event: Event, setUserMap: Dispatch<SetStateAction<U
     });
     return newMap;
   });
-}
+};
 
-export function parsePubKeyFromTags(tags: Tags){
-  return tags.filter(t => t[0] === EventTags.P && isValidPublicKey(t[1])).map(t => t[1] as PublicKey);
+export function parsePubKeyFromTags(tags: Tags) {
+  return tags
+    .filter(t => t[0] === EventTags.P && isValidPublicKey(t[1]))
+    .map(t => t[1] as PublicKey);
 }

@@ -8,7 +8,7 @@ import {
   EventSetMetadataContent,
   EventTags,
   Filter,
-  WellKnownEventKind
+  WellKnownEventKind,
 } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { Nip51 } from 'core/nip/51';
@@ -150,8 +150,8 @@ export function useBookmarkListFeed({
       limit,
       authors: [myPublicKey],
       kinds: [WellKnownEventKind.bookmark_list],
-      '#d': [Nip51.publicNoteBookmarkIdentifier]
-    }
+      '#d': [Nip51.publicNoteBookmarkIdentifier],
+    };
     const sub = worker.subFilter({ filter, callRelay })!;
 
     sub.iterating({ cb: handleEvent });
@@ -164,8 +164,12 @@ export function useBookmarkListFeed({
   useEffect(() => {
     if (!bookmarkEvent) return;
 
-    const events = bookmarkEvent.tags.filter(t => t[0] === EventTags.E).map(t => t[1]);
-    worker?.subFilter({ filter: { ids: events } })?.iterating({ cb: handleEvent });
+    const events = bookmarkEvent.tags
+      .filter(t => t[0] === EventTags.E)
+      .map(t => t[1]);
+    worker
+      ?.subFilter({ filter: { ids: events } })
+      ?.iterating({ cb: handleEvent });
   }, [bookmarkEvent]);
 
   return feed;

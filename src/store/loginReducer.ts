@@ -11,8 +11,11 @@ import {
   getPublicKeyFromWalletConnectSignIn,
 } from 'core/evm/walletConnect';
 import { disconnectWagmi } from 'core/evm/wagmi/helper';
-import { nostr as joyIdNostr, logout as joyIdLogout} from '@joyid/nostr';
-import { requestPublicKeyFromDotBit, requestPublicKeyFromNip05DomainName } from 'utils/common';
+import { nostr as joyIdNostr, logout as joyIdLogout } from '@joyid/nostr';
+import {
+  requestPublicKeyFromDotBit,
+  requestPublicKeyFromNip05DomainName,
+} from 'utils/common';
 
 export enum LoginMode {
   local = 'local', // default
@@ -123,10 +126,10 @@ export const loginReducer = (
 
     case LoginActionType.logout:
       clearTempMyPublicKey();
-      if(state.mode === LoginMode.walletConnect){
+      if (state.mode === LoginMode.walletConnect) {
         disconnectWagmi();
       }
-      if(state.mode === LoginMode.joyId){
+      if (state.mode === LoginMode.joyId) {
         joyIdLogout();
       }
       return defaultSigner;
@@ -268,9 +271,9 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       };
     }
 
-    case LoginMode.joyId:{
+    case LoginMode.joyId: {
       const pk = await joyIdNostr.getPublicKey();
-      console.log("joyId pk: ", pk);
+      console.log('joyId pk: ', pk);
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 

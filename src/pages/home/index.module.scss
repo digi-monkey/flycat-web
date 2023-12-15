@@ -1,12 +1,17 @@
 .tipsy {
   h1 {
     text-align: center;
+
     @include font-header3;
+
     margin-bottom: 20px;
   }
+
   p {
     text-align: center;
+
     @include font-body;
+
     color: var(--neutral-06);
   }
 }
@@ -25,15 +30,15 @@
 
   .explore {
     margin-top: 16px;
+
     @include font-label;
+
     cursor: pointer;
     color: var(--primary-06);
   }
 }
 
 .rightPanel {
-  //padding-left: var(--basePadding5);
-
   :global {
     .ant-input-affix-wrapper {
       margin: var(--basePadding4) 0;
@@ -54,7 +59,6 @@
       svg {
         width: 24px;
         height: 24px;
-
         fill: var(--neutral-06);
       }
     }
@@ -91,6 +95,7 @@
         background-color: var(--primary-06);
         color: var(--neutral-white);
         padding: 0 var(--padding);
+
         @include font-footnote;
       }
     }
@@ -104,8 +109,7 @@
 
   .friends {
     max-height: 400px;
-    overflow-x: auto;
-    overflow-y: scroll;
+    overflow: auto scroll;
 
     .friend {
       display: flex;
@@ -128,6 +132,7 @@
       .friendInfo {
         width: 100%;
         margin-left: var(--basePadding2);
+
         h3,
         p {
           margin: 0;
@@ -135,6 +140,7 @@
 
         h3 {
           @include font-label-bold;
+
           color: var(--neutral-09);
           white-space: nowrap;
           overflow: hidden;
@@ -144,6 +150,7 @@
 
         p {
           @include font-footnote;
+
           color: var(--neutral-06);
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -179,7 +186,9 @@
     a {
       margin-bottom: var(--basePadding2);
       text-decoration: none;
+
       @include font-label;
+
       color: var(--primary-06);
     }
   }
@@ -192,7 +201,6 @@
   align-items: flex-start;
   gap: 10px;
   align-self: stretch;
-  position: -webkit-sticky;
   position: sticky;
   top: 0; 
   z-index: 100;
@@ -204,6 +212,7 @@
       background: var(--neutral-01);
       display: flex;
     }
+
     .ant-segmented-item {
       display: flex;
       justify-content: flex-start;
@@ -211,10 +220,10 @@
       height: 32px;
       padding: 5px 24px;
       gap: 10px;
-
       border-radius: 20px;
       background: var(--neutral-02, #ededed);
     }
+
     .ant-segmented-item-selected {
       border-radius: 20px;
       background: var(--primary-03, #c0e085);
@@ -225,7 +234,6 @@
 }
 
 .mobileFilter {
-  position: -webkit-sticky;
   position: sticky;
   top: 64px; 
   z-index: 100;
@@ -235,15 +243,18 @@
     .ant-segmented {
       width: 100%;
     }
+
     .ant-segmented-group {
       width: 100%;
       display: flex;
       justify-content: flex-start;
     }
+
     .ant-segmented-item {
       flex: 1;
       padding: 2px 5px;
     }
   }
+
   overflow-x: scroll;
 }

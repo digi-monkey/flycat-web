@@ -18,9 +18,5 @@ export const Loader: React.FC<LoaderProp> = ({ isLoading }) => {
 };
 
 export const SmallLoader: React.FC<LoaderProp> = ({ isLoading }) => {
-  return (
-    <>
-      {isLoading && <SmallLoaderUI />}
-    </>
-  );
+  return <>{isLoading && <SmallLoaderUI />}</>;
 };

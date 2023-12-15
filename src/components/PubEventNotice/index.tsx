@@ -64,8 +64,8 @@ export async function noticePubEventResult(
       <div className={styles.messageContainer}>
         <div className={styles.title}>
           <h3>
-            Publish <Link href={'/event/' + pubStream.eventId}>note</Link> to {relayCount}{' '}
-            relays
+            Publish <Link href={'/event/' + pubStream.eventId}>note</Link> to{' '}
+            {relayCount} relays
           </h3>
           <button
             onClick={() => message.destroy(key)}

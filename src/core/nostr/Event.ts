@@ -1,4 +1,10 @@
-import { EventId, PublicKey, EventKind, Tags, Signature } from 'core/nostr/type';
+import {
+  EventId,
+  PublicKey,
+  EventKind,
+  Tags,
+  Signature,
+} from 'core/nostr/type';
 
 export interface Event {
   id: EventId;

@@ -16,12 +16,8 @@ import { ReactNode, useEffect, useState } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { createCallRelay } from 'core/worker/util';
 import styles from './index.module.scss';
-import Icon from "../../../components/Icon";
-import {
-  Input,
-  Avatar,
-  Tooltip
-} from "antd";
+import Icon from '../../../components/Icon';
+import { Input, Avatar, Tooltip } from 'antd';
 
 type UserParams = {
   addr: Naddr;
@@ -103,7 +99,6 @@ export default function NaddrCommunity() {
     return filteredParts;
   };
 
-
   let formattedText: JSX.Element[] | null = null;
 
   if (community?.rules) {
@@ -112,8 +107,9 @@ export default function NaddrCommunity() {
     for (let i = 0; i < parts.length; i += 2) {
       formattedText.push(
         <p key={i}>
-          {parts[i]}{parts[i + 1]}
-        </p>
+          {parts[i]}
+          {parts[i + 1]}
+        </p>,
       );
     }
   }
@@ -167,7 +163,7 @@ export default function NaddrCommunity() {
           <div className={styles.calendarRecord}>
             <div className={styles.recordHeader}>My Record</div>
             <div className={styles.recordTime}>
-              <Icon type='icon-Data' />
+              <Icon type="icon-Data" />
               <p> Since Jul 20, 2023 (1 days)</p>
             </div>
             <div className={styles.recordDataWrapper}>
@@ -176,14 +172,14 @@ export default function NaddrCommunity() {
                 <p className={styles.recordTitle}>Posts</p>
               </div>
               <div className={styles.recordDataContainer}>
-                <p className={styles.recordData}>{myUnApprovalPostCount + myPostCount}</p>
+                <p className={styles.recordData}>
+                  {myUnApprovalPostCount + myPostCount}
+                </p>
                 <p className={styles.recordTitle}>Submissions</p>
               </div>
             </div>
           </div>
-          <div className={styles.followButton}>
-            {actionButton}
-          </div>
+          <div className={styles.followButton}>{actionButton}</div>
         </div>
       </Right>
     </BaseLayout>

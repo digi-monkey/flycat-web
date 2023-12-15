@@ -20,7 +20,7 @@ const ASCIIArtAnimation: React.FC = () => {
         ((
          \)
 `,
-    String.raw`
+      String.raw`
       ⢀ /\___/\
        )       (
       =\       /=
@@ -34,7 +34,7 @@ const ASCIIArtAnimation: React.FC = () => {
          ((
            \)⠀
           `,
-    String.raw`
+      String.raw`
       ⢀ /\___/\
        )       (
       =\       /=
@@ -47,7 +47,7 @@ const ASCIIArtAnimation: React.FC = () => {
           //
           ((
             \)⠁⠀
-          `
+          `,
     ];
 
     let frameIndex = 0;
