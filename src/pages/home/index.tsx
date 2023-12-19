@@ -130,7 +130,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       return;
     }
 
-    const msgFilter = cloneDeep(selectedMsgFilter);
+    const msgFilter = cloneDeep(selectedMsgFilter.filter);
     const isValidEvent = selectedMsgFilter.isValidEvent;
     let placeholder: ReactNode | null = null;
 
