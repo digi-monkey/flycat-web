@@ -151,3 +151,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     },
   },
 ];
+
+export const homeMsgFiltersMap = homeMsgFilters.reduce(
+  (map, filter) => ({
+    ...map,
+    [filter.type]: filter,
+  }),
+  {} as Record<HomeMsgFilterType, HomeMsgFilter>,
+);

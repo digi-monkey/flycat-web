@@ -57,7 +57,6 @@ const Explore = () => {
 
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
-    const emptyDataReactNode: ReactNode | null = null;
 
     if (selectTabKey === 'All Tribes') {
       const addrs = Array.from(communities.keys());
@@ -109,7 +108,6 @@ const Explore = () => {
     const msgSubProp: MsgSubProp = {
       msgFilter,
       isValidEvent,
-      emptyDataReactNode,
     };
     setMsgSubProp(msgSubProp);
   };
