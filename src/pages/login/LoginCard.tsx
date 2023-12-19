@@ -215,7 +215,7 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
 
         <Button className={styles.button} onClick={signWithJoyId}>
           <img className={styles.icon} src="./icon/joyid-passkey.png" />
-          {'(Mainnet)'}
+          {process.env.NODE_ENV === 'production' ? '(Mainnet)' : '(Testnet)'}
         </Button>
 
         <Button className={styles.button} onClick={signWithEthWallet}>
