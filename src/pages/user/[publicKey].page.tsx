@@ -126,7 +126,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
-    const emptyDataReactNode: ReactNode | null = null;
 
     if (activeTabKey === 'all') {
       const kinds = [
@@ -181,7 +180,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     const msgSubProp: MsgSubProp = {
       msgFilter,
       isValidEvent,
-      emptyDataReactNode,
     };
     setMsgSubProp(msgSubProp);
   };

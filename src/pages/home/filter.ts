@@ -30,6 +30,7 @@ export interface HomeMsgFilter {
   label: string;
   filter: Filter;
   isValidEvent?: (event: Event) => boolean;
+  authors?: string[];
 }
 
 export const homeMsgFilters: HomeMsgFilter[] = [
@@ -151,3 +152,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     },
   },
 ];
+
+export const homeMsgFiltersMap = homeMsgFilters.reduce(
+  (map, filter) => ({
+    ...map,
+    [filter.type]: filter,
+  }),
+  {} as Record<HomeMsgFilterType, HomeMsgFilter>,
+);

@@ -23,7 +23,7 @@ import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
 import { CustomFilter } from './custom-filter';
-import { homeMsgFilters, HomeMsgFilterType } from './filter';
+import { homeMsgFilters, homeMsgFiltersMap, HomeMsgFilterType } from './filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks';
 import styles from './index.module.scss';
@@ -40,6 +40,12 @@ export interface HomePageProps {
   signEvent?: SignEvent;
 }
 
+enum TabKey {
+  Follow = 'follow',
+  Global = 'global',
+  Custom = 'custom',
+}
+
 const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { t } = useTranslation();
 
@@ -48,10 +54,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { worker, newConn } = useCallWorker();
   const isMobile = useMatchMobile();
 
-  const defaultTabActivateKey = isLoggedIn ? 'follow' : 'global';
+  const defaultTabActivateKey = isLoggedIn ? TabKey.Follow : TabKey.Global;
   const defaultSelectedFilter = HomeMsgFilterType.all;
 
-  const [lastSelectedTabKey, setLastSelectedTabKey] = useLocalStorage<string>(
+  const [lastSelectedTabKey, setLastSelectedTabKey] = useLocalStorage<TabKey>(
     SELECTED_TAB_KEY_STORAGE_KEY,
     defaultTabActivateKey,
   );
@@ -82,7 +88,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     });
   }, [isLoggedIn, myPublicKey]);
 
-  const emptyFollowReactData = useMemo(
+  const emptyFollowPlaceholder = useMemo(
     () => (
       <>
         <div className={styles.tipsy}>
@@ -111,49 +117,48 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 
   const onMsgFilterChanged = useCallback(() => {
-    if (lastSelectedTabKey == null) return 'unknown tab key';
-    if (lastSelectedFilter == null) return 'unknown filter type';
-    if (lastSelectedTabKey === 'custom') return;
+    if (
+      !lastSelectedTabKey ||
+      !lastSelectedFilter ||
+      lastSelectedTabKey === TabKey.Custom
+    ) {
+      return;
+    }
 
-    let msgFilter = homeMsgFilters.find(v => v.type === lastSelectedFilter)
-      ?.filter;
-    msgFilter = msgFilter ? cloneDeep(msgFilter) : undefined;
-    const isValidEvent = homeMsgFilters.find(v => v.type === lastSelectedFilter)
-      ?.isValidEvent;
-    let emptyDataReactNode: ReactNode | null = null;
+    const selectedMsgFilter = homeMsgFiltersMap[lastSelectedFilter] ?? {};
+    if (!selectedMsgFilter) {
+      return;
+    }
 
-    if (msgFilter == null) return 'unknown filter';
+    const msgFilter = cloneDeep(selectedMsgFilter);
+    const isValidEvent = selectedMsgFilter.isValidEvent;
+    let placeholder: ReactNode | null = null;
 
-    const pks: PublicKey[] = [];
-    if (lastSelectedTabKey === 'follow') {
-      if (!isLoggedIn) {
-        return console.debug('not login');
+    if (lastSelectedTabKey === TabKey.Follow) {
+      if (!isLoggedIn || myPublicKey == null || myPublicKey.length === 0) {
+        return;
       }
-      if (myPublicKey == null || myPublicKey.length === 0) {
-        return console.debug('no my public key', myPublicKey);
-      }
 
-      const followings: string[] = myContactEvent
+      const followings: PublicKey[] = myContactEvent
         ? parsePubKeyFromTags(myContactEvent.tags)
         : [];
       if (!followings.includes(myPublicKey)) {
         followings.push(myPublicKey);
       }
-      pks.push(...followings);
-      emptyDataReactNode = emptyFollowReactData;
-      if (pks.length > 0) {
-        msgFilter.authors = pks;
+      placeholder = emptyFollowPlaceholder;
+      if (followings.length > 0) {
+        msgFilter.authors = followings;
       }
     }
 
     const msgSubProp: MsgSubProp = {
       msgFilter,
       isValidEvent,
-      emptyDataReactNode,
+      placeholder,
     };
     setMsgSubProp(msgSubProp);
   }, [
-    emptyFollowReactData,
+    emptyFollowPlaceholder,
     isLoggedIn,
     myContactEvent,
     myPublicKey,
@@ -170,27 +175,21 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     <BaseLayout>
       <Left>
         <PageTitle title="Home" />
-        {!isMobile && (
-          <PubNoteTextarea
-            pubSuccessCallback={(eventId, relayUrl) => {
-              // todo
-            }}
-          />
-        )}
+        {!isMobile && <PubNoteTextarea />}
         <div>
           <Tabs
             items={[
-              { key: 'follow', label: 'Follow', disabled: !isLoggedIn },
-              { key: 'global', label: 'Global' },
-              { key: 'custom', label: <span>Custom</span> },
+              { key: TabKey.Follow, label: 'Follow', disabled: !isLoggedIn },
+              { key: TabKey.Global, label: 'Global' },
+              { key: TabKey.Custom, label: 'Custom' },
             ]}
             activeKey={lastSelectedTabKey}
-            onChange={key => setLastSelectedTabKey(key)}
+            onChange={key => setLastSelectedTabKey(key as TabKey)}
           />
         </div>
         <div className={isMobile ? styles.mobileFilter : styles.msgFilter}>
           <div>
-            {lastSelectedTabKey === 'custom' ? (
+            {lastSelectedTabKey === TabKey.Custom ? (
               <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp} />
             ) : (
               <Segmented

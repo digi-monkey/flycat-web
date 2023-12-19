@@ -28,7 +28,7 @@ import useScrollValue from './hook/useScrollValue';
 export interface MsgSubProp {
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
-  emptyDataReactNode?: React.ReactNode;
+  placeholder?: React.ReactNode;
 }
 
 export interface MsgFeedProp {
@@ -43,7 +43,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
-  const { msgFilter, isValidEvent, emptyDataReactNode } = msgSubProp;
+  const { msgFilter, isValidEvent, placeholder } = msgSubProp;
 
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
@@ -346,7 +346,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
                 <br />
               </>
             )}
-            {msgList.length === 0 && !isLoadingMsg && emptyDataReactNode}
+            {msgList.length === 0 && !isLoadingMsg && placeholder}
           </div>
         </>
       </PullToRefresh>
