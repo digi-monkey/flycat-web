@@ -1,4 +1,5 @@
 {
+  "root": true,
   "plugins": ["@typescript-eslint", "prettier"],
   "extends": [
     "next/core-web-vitals",
