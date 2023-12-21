@@ -3,14 +3,13 @@ const { i18n } = require('./next-i18next.config.js');
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
-})
+});
 
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   disable: process.env.NODE_ENV === 'development',
-})
-
+});
 
 const nextConfig = {
   i18n,
@@ -29,6 +28,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
 module.exports = withBundleAnalyzer(withPWA(nextConfig));
