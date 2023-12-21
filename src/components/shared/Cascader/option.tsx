@@ -1,11 +1,11 @@
-import { Option } from './types';
+import { ICascaderOption } from './types';
 import { FiCheck } from 'react-icons/fi';
 import { FiChevronRight } from 'react-icons/fi';
 import * as HoverCard from '@radix-ui/react-hover-card';
 import classnames from 'classnames';
 
 export type CascaderOptionProps = {
-  option: Option;
+  option: ICascaderOption;
   value: string[];
   path?: string[];
   onClick(value: string[]): void;
@@ -28,9 +28,10 @@ export function CascaderOption(props: CascaderOptionProps) {
       <HoverCard.Trigger asChild>
         <div
           className={classnames(
-            'min-w-[320px] py-2 px-1 flex justify-between cursor-pointer select-none',
+            'min-w-[320px] py-2 px-1 flex justify-between select-none',
             {
               'bg-conditional-selected01': isActive,
+              'cursor-pointer': !option.disabled,
               'cursor-not-allowed': option.disabled,
             },
             'hover:bg-conditional-hover01',

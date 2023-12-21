@@ -1,7 +1,7 @@
-export interface Option {
+export interface ICascaderOption {
   value: string;
   label?: React.ReactNode;
   disabled?: boolean;
-  children?: Option[];
+  children?: ICascaderOption[];
   group?: string;
 }

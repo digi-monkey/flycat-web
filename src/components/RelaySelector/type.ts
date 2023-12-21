@@ -64,20 +64,3 @@ export function toRelayMode(value: string) {
       return RelayMode.group;
   }
 }
-
-export interface RelayModeSelectOption {
-  value: RelayMode | string;
-  label: string;
-  children?: (RelayGroupSelectOption | RelayScriptSelectOption)[];
-  disabled?: boolean;
-}
-
-export interface RelayGroupSelectOption {
-  value: string;
-  label: string;
-}
-
-export interface RelayScriptSelectOption {
-  value: string;
-  label: string;
-}

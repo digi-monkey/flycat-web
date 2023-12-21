@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { RelaySelectorStore } from '../store';
 import { RelayMode } from '../type';
 
 export function useLoadSelectedStore(
   myPublicKey: string,
-  modeCb: (val: string[]) => any,
+  callback: (val: string[]) => any,
 ) {
-  const store = new RelaySelectorStore();
+  const store = useMemo(() => new RelaySelectorStore(), []);
   useEffect(() => {
     if (!myPublicKey) return;
 
@@ -19,7 +19,7 @@ export function useLoadSelectedStore(
           ? [selectedMode, selectedGroup]
           : [selectedMode];
 
-      modeCb(value);
+      callback(value);
     }
-  }, [myPublicKey]);
+  }, [myPublicKey, callback, store]);
 }

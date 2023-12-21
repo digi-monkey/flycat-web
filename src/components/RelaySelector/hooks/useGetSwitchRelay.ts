@@ -1,20 +1,14 @@
 import { useEffect } from 'react';
-import { db } from 'core/relay/auto';
 import { RelayMode, toRelayMode } from '../type';
 import { RelaySelectorStore } from '../store';
-import { RelayPool } from 'core/relay/pool';
 import { SwitchRelays } from 'core/worker/type';
 import { RelayGroupMap } from 'core/relay/group/type';
-import { OneTimeWebSocketClient } from 'core/api/onetime';
-import { isFastestRelayOutdated } from '../util';
 
 export function useGetSwitchRelay(
   myPublicKey: string,
   groups: RelayGroupMap,
   selectedValue: string[] | undefined,
   cb: (val: SwitchRelays) => any,
-  progressCb?: (restCount: number) => any,
-  progressEnd?: () => any,
 ) {
   const store = new RelaySelectorStore();
 
@@ -66,5 +60,5 @@ export function useGetSwitchRelay(
 
   useEffect(() => {
     onSelectedValueChange();
-  }, [selectedValue]);
+  }, []);
 }
