@@ -1,4 +1,5 @@
 import '../window';
+import 'styles/tailwind.css';
 import 'styles/global.scss';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';

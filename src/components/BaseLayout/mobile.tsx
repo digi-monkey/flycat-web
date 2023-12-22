@@ -71,7 +71,9 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
             onClick={() => router.push({ pathname: Paths.login })}
           />
         )}
-        <RelaySelector />
+        <div className="flex-1">
+          <RelaySelector />
+        </div>
       </header>
       <main>{body}</main>
       <footer>

@@ -19,7 +19,7 @@
     "baseUrl": "./src",
     "incremental": true
   },
-  "include": ["src", "public/locales", "wasm/pkg"],
+  "include": ["src", "public/locales", "wasm/pkg", ".storybook"],
   "ts-node": {
     "compilerOptions": {
       "esModuleInterop": true,

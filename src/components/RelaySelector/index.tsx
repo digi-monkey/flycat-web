@@ -1,37 +1,26 @@
+import { Cascader } from 'components/shared/Cascader';
+import { ICascaderOption } from 'components/shared/Cascader/types';
 import { Paths } from 'constants/path';
-import { useRouter } from 'next/router';
+import { NIP_65_RELAY_LIST } from 'constants/relay';
+import { Nip65 } from 'core/nip/65';
 import { RelayGroup } from 'core/relay/group';
 import { RelayGroupMap } from 'core/relay/group/type';
-import { useCallWorker } from 'hooks/useWorker';
-import { useTranslation } from 'next-i18next';
-import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
-import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { Button, Cascader, Divider, Modal, Tooltip, message } from 'antd';
-import { useEffect, useState } from 'react';
-import { RelayMode, RelayFooterMenus, toLabel, toRelayMode } from './type';
-import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import {
   RelaySwitchAlertMsg,
   SwitchRelays,
   WsConnectStatus,
 } from 'core/worker/type';
-import {
-  getConnectedRelayUrl,
-  getDisabledTitle,
-  getFooterMenus,
-  initModeOptions,
-  toConnectStatus,
-} from './util';
-import { normalizeWsUrl } from 'utils/common';
-import { ConnPool } from 'core/api/pool';
-
-import styles from './index.module.scss';
-import Icon from 'components/Icon';
-import classNames from 'classnames';
-import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { createCallRelay } from 'core/worker/util';
-import { Nip65 } from 'core/nip/65';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { useCallWorker } from 'hooks/useWorker';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FiChevronDown } from 'react-icons/fi';
+import { normalizeWsUrl } from 'utils/common';
+import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
+import { useSelectedRelay } from './hooks/useSelectedRelay';
+import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
+import { initModeOptions, toConnectStatus } from './util';
 
 export interface RelaySelectorProps {
   wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
@@ -48,114 +37,53 @@ export interface Option {
 export function RelaySelector({
   wsStatusCallback,
   newConnCallback,
-  className,
 }: RelaySelectorProps) {
-  const { t } = useTranslation();
   const { worker, newConn, wsConnectStatus } = useCallWorker();
-
   const router = useRouter();
-  const defaultGroup = useDefaultGroup();
   const myPublicKey = useReadonlyMyPublicKey();
-
+  const defaultGroup = useDefaultGroup();
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedCascaderMapRelay, setSelectedCascaderMapRelay] =
-    useState<string[]>();
-  const [selectCascaderOption, setSelectCascaderOption] = useState<string[]>();
-  const [switchRelays, setSwitchRelays] = useState<SwitchRelays>();
-
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const messageKey = 'relay-progress';
-
-  const progressCb = (restCount: number) => {
-    messageApi.open({
-      key: messageKey,
-      type: 'loading',
-      content: `${restCount} relays left to check..`,
-      duration: 0,
-    });
-  };
-
-  const progressEnd = () => {
-    messageApi.open({
-      key: messageKey,
-      type: 'success',
-      content: `done!`,
-      duration: 1,
-    });
-  };
-
-  useLoadSelectedStore(myPublicKey, value => {
-    setSelectedCascaderMapRelay(value);
-    if (value.length > 1) {
-      setSelectCascaderOption([value[1]]);
-    }
-  });
-  useGetSwitchRelay(
-    myPublicKey,
-    relayGroupMap,
-    selectedCascaderMapRelay,
-    setSwitchRelays,
-    progressCb,
-    progressEnd,
-  );
-
-  // detect if other page switch the relay
-  worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
-    if (worker?._portId === data.triggerByPortId) {
-      return;
-    }
-
-    if (worker?.relayGroupId === data.id) {
-      return;
-    }
-
-    const id = data.id;
-    // todo: change data structure to handle rule script mode
-    setSelectedCascaderMapRelay([RelayMode.group, id]);
-  });
-
-  useEffect(() => {
-    // new a default group for the forward-compatibility
-    const defaultGroupId = 'default';
-    const groups = new RelayGroup(myPublicKey);
-    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
-      groups.setGroup(defaultGroupId, defaultGroup);
-    }
-    setRelayGroupMap(groups.map);
-  }, [defaultGroup]);
-
-  // fetch nip-65 relay list group if it is not there
-  useEffect(() => {
-    if (!myPublicKey || myPublicKey.length === 0) return;
-    if (!worker) return;
-    const groups = new RelayGroup(myPublicKey);
-    if (groups.getGroupById(NIP_65_RELAY_LIST)) return;
-
-    const callRelay = createCallRelay(newConn);
-    worker
-      .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
-      .iterating({
-        cb: (event, relayUrl) => {
-          groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
-          setRelayGroupMap(groups.map);
-        },
-      });
-  }, [worker, newConn]);
+  const [selectedRelay, setSelectedRelay] = useSelectedRelay(myPublicKey);
 
   useEffect(() => {
     if (newConnCallback) {
       newConnCallback(newConn);
     }
-  }, [newConn]);
+  }, [newConn, newConnCallback]);
 
   useEffect(() => {
     if (wsStatusCallback) {
       wsStatusCallback(wsConnectStatus);
     }
-  }, [wsConnectStatus]);
+  }, [wsConnectStatus, wsStatusCallback]);
+
+  const switchRelays = useMemo<SwitchRelays | undefined>(() => {
+    const [mode, groupId] = selectedRelay;
+    if (mode === RelayMode.Rule) {
+      return {
+        id: mode,
+        relays: [],
+      };
+    }
+    if (mode === RelayMode.Group && groupId) {
+      const group = relayGroupMap.get(groupId);
+      return {
+        id: groupId,
+        relays: group ?? [],
+      };
+    }
+  }, [selectedRelay, relayGroupMap]);
 
   useEffect(() => {
+    if (!switchRelays?.relays?.length || !worker) {
+      return;
+    }
+
+    if (worker.relayGroupId !== switchRelays.id) {
+      worker.switchRelays(switchRelays);
+      worker.pullRelayInfo();
+    }
+
     if (switchRelays?.relays) {
       const keys = Array.from(wsConnectStatus.keys());
       for (const key of keys) {
@@ -168,93 +96,105 @@ export function RelaySelector({
         }
       }
     }
-  }, [switchRelays?.relays, wsConnectStatus]);
+  }, [switchRelays, wsConnectStatus, worker]);
 
   useEffect(() => {
-    if (switchRelays == null) return;
-    if (switchRelays.relays == null || switchRelays?.relays.length === 0)
-      return;
-    if (worker == null) return;
+    worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
+      if (
+        worker?._portId === data.triggerByPortId ||
+        worker?.relayGroupId === data.id
+      ) {
+        return;
+      }
+      const id = data.id;
+      setSelectedRelay([RelayMode.Group, id]);
+    });
+  }, [worker, setSelectedRelay]);
 
-    console.log('check: ', switchRelays.id, worker.relayGroupId);
-    if (worker.relayGroupId !== switchRelays.id) {
-      worker.switchRelays(switchRelays);
-      worker.pullRelayInfo();
+  useEffect(() => {
+    const defaultGroupId = 'default';
+    const groups = new RelayGroup(myPublicKey);
+    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
+      groups.setGroup(defaultGroupId, defaultGroup);
     }
-  }, [switchRelays, worker?.relayGroupId]);
+    setRelayGroupMap(groups.map);
+  }, [defaultGroup, myPublicKey]);
 
-  const onChange = (value: string[] | any) => {
-    if (!Array.isArray(value)) return;
-    if (value[0] === RelayFooterMenus.manageRelays) {
-      router.push(Paths.relayManager);
-      return;
-    }
+  // fetch nip-65 relay list group if it is not there
+  useEffect(() => {
+    if (!myPublicKey || myPublicKey.length === 0) return;
+    if (!worker) return;
 
-    // handle relay group
-    if (value.length === 1) {
-      setSelectCascaderOption(value);
-      setSelectedCascaderMapRelay([RelayMode.group, ...value]);
-      return;
-    }
+    const groups = new RelayGroup(myPublicKey);
+    if (groups.getGroupById(NIP_65_RELAY_LIST)) return;
 
-    setSelectedCascaderMapRelay(value);
-  };
+    const callRelay = createCallRelay(newConn);
+    worker
+      .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
+      .iterating({
+        cb: event => {
+          groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
+          setRelayGroupMap(groups.map);
+        },
+      });
+  }, [worker, newConn, myPublicKey]);
 
-  const connectedUrlTooltip = (
-    <>
-      {getConnectedRelayUrl(wsConnectStatus).length > 0
-        ? getConnectedRelayUrl(wsConnectStatus).map(url => (
-            <li key={url}>{url}</li>
-          ))
-        : 'No connected relays'}
-    </>
+  const onChange = useCallback(
+    (_: string[], options: ICascaderOption[]) => {
+      if (
+        options.length === 1 &&
+        options[0].value === RelayFooterMenus.ManageRelays
+      ) {
+        router.push(Paths.relayManager);
+        return;
+      }
+
+      const mode =
+        ((options.length > 1
+          ? options[0].value
+          : options[0]?.group) as RelayMode) ?? RelayMode.Group;
+      const groupId = options.length > 1 ? options[1].value : options[0].value;
+      setSelectedRelay([mode, groupId]);
+    },
+    [setSelectedRelay, router],
   );
 
+  const value = useMemo(() => {
+    const [mode, groupId] = selectedRelay;
+    if (mode === RelayMode.Group && groupId) {
+      return [groupId];
+    }
+    return ['default'];
+  }, [selectedRelay]);
+
   return (
-    <div className={classNames(styles.relaySelector, className)}>
-      {contextHolder}
-      <Cascader
-        defaultValue={['default']}
-        className={styles.cascader}
-        popupClassName={styles.popup}
-        expandIcon={
-          <Icon type="icon-chevron-down" className={styles.expandIcon} />
-        }
-        suffixIcon={
-          <Icon type="icon-chevron-down" className={styles.expandIcon} />
-        }
-        options={[
-          getDisabledTitle(),
-          ...initModeOptions(relayGroupMap),
-          ...getFooterMenus(),
-        ]}
-        allowClear={false}
-        value={selectCascaderOption}
-        onChange={onChange}
-        displayRender={_label => (
-          <>
-            <span className={styles.relayMode}>
-              {selectedCascaderMapRelay
-                ? toLabel(toRelayMode(selectedCascaderMapRelay[0]))
-                : toLabel(RelayMode.group)}
-            </span>
-            {
-              <Tooltip placement="bottom" title={connectedUrlTooltip}>
-                <span className={styles.childrenItem}>
-                  {toConnectStatus(
-                    selectedCascaderMapRelay &&
-                      selectedCascaderMapRelay.length > 1
-                      ? selectedCascaderMapRelay[1]
-                      : 'default',
-                    wsConnectStatus,
-                    worker?.relays?.length || 0,
-                  )}
+    <Cascader
+      value={value}
+      onChange={onChange}
+      options={initModeOptions(relayGroupMap)}
+      groupLabel={group => toLabel(toRelayMode(group))}
+      displayRender={() => {
+        const [mode, groupId] = selectedRelay;
+        return (
+          <div className="w-full flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
+                <span className="text-text-primary text-sm font-noto">
+                  {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
                 </span>
-              </Tooltip>
-            }
-          </>
-        )}
-      />
-    </div>
+              </div>
+              <span className="text-text-primary text-sm font-noto">
+                {toConnectStatus(
+                  groupId ?? 'default',
+                  wsConnectStatus,
+                  worker?.relays?.length || 0,
+                )}
+              </span>
+            </div>
+            <FiChevronDown className="w-5 h-5" />
+          </div>
+        );
+      }}
+    />
   );
 }

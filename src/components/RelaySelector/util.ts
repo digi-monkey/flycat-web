@@ -1,48 +1,42 @@
 import { RelayGroupMap } from 'core/relay/group/type';
-import {
-  RelayMode,
-  RelayFooterMenus,
-  RelayModeSelectOption,
-  toLabel,
-} from './type';
+import { RelayFooterMenus, RelayMode } from './type';
 import { WsConnectStatus } from 'core/worker/type';
+import { ICascaderOption } from 'components/shared/Cascader/types';
 
 export function getSelectGroupId(groups: RelayGroupMap) {
   return Array.from(groups.keys()).filter(key => groups.get(key) != null);
 }
 
-export function initRelayGroupOptions(groups: RelayGroupMap) {
+export function getRelayGroupOptions(groups: RelayGroupMap) {
   const ids = getSelectGroupId(groups);
   return ids.map(id => {
-    return { value: id, label: `${id}(${groups.get(id)!.length})` };
+    return {
+      value: id,
+      label: `${id}(${groups.get(id)!.length})`,
+      group: RelayMode.Group,
+    };
   });
 }
 
 export function initModeOptions(groups: RelayGroupMap) {
-  const mode: RelayModeSelectOption[] = [
-    ...initRelayGroupOptions(groups),
-    {
-      value: RelayMode.rule,
-      label: toLabel(RelayMode.rule),
-      disabled: true,
-      children: [{ value: '1', label: '1' }],
-    },
+  const options: ICascaderOption[][] = [
+    getRelayGroupOptions(groups),
+    [
+      {
+        value: 'Relay Script',
+        label: 'Relay Script (coming)',
+        disabled: true,
+      },
+      ...getFooterMenus(),
+    ],
   ];
-  return mode;
-}
-
-export function getDisabledTitle() {
-  return {
-    value: 'title',
-    label: 'Relay Groups',
-    disabled: true,
-  };
+  return options;
 }
 
 export function getFooterMenus() {
   return [
     {
-      value: RelayFooterMenus.manageRelays,
+      value: RelayFooterMenus.ManageRelays,
       label: 'Manage Relays..',
     },
   ];
@@ -62,14 +56,14 @@ export function toConnectStatus(
   all: number,
 ) {
   const connected = Array.from(wsConnectStatus).filter(
-    w => w[1] === true,
+    ([_, isConnected]) => !!isConnected,
   ).length;
-  return label.split('(')[0] + ` (${connected}/${all})`;
+  return `${label} (${connected}/${all})`;
 }
 
-export function getConnectedRelayUrl(wsConnectStatus: WsConnectStatus) {
-  const connected = Array.from(wsConnectStatus)
-    .filter(w => w[1] === true)
-    .map(w => w[0]);
-  return connected;
+export function getConnectedRelayUrls(wsConnectStatus: WsConnectStatus) {
+  const urls = Array.from(wsConnectStatus)
+    .filter(([_, isConnected]) => !!isConnected)
+    .map(([url]) => url);
+  return urls;
 }
