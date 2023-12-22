@@ -30,7 +30,7 @@ export function CascaderOption(props: CascaderOptionProps) {
           className={cn(
             'min-w-[320px] py-2 px-1 flex justify-between select-none cursor-pointer',
             {
-              'bg-conditional-selected01': isActive,
+              'bg-conditional-selected01 font-semibold': isActive,
               'cursor-not-allowed': option.disabled,
             },
             'hover:bg-conditional-hover01',

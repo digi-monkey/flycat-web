@@ -166,34 +166,31 @@ export function RelaySelector({
     return ['default'];
   }, [selectedRelay]);
 
-  console.log(selectedRelay);
-
   return (
-    <div className="flex px-4 mt-4">
-      <Cascader
-        value={value}
-        onChange={onChange}
-        options={initModeOptions(relayGroupMap)}
-        displayRender={() => {
-          const [mode, groupId] = selectedRelay;
-          return (
-            <div className="flex items-center gap-2">
-              <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
-                <span className="text-text-primary text-sm font-noto">
-                  {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
-                </span>
-              </div>
+    <Cascader
+      value={value}
+      onChange={onChange}
+      options={initModeOptions(relayGroupMap)}
+      groupLabel={group => toLabel(toRelayMode(group))}
+      displayRender={() => {
+        const [mode, groupId] = selectedRelay;
+        return (
+          <div className="flex items-center gap-2">
+            <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
               <span className="text-text-primary text-sm font-noto">
-                {toConnectStatus(
-                  groupId ?? 'default',
-                  wsConnectStatus,
-                  worker?.relays?.length || 0,
-                )}
+                {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
               </span>
             </div>
-          );
-        }}
-      />
-    </div>
+            <span className="text-text-primary text-sm font-noto">
+              {toConnectStatus(
+                groupId ?? 'default',
+                wsConnectStatus,
+                worker?.relays?.length || 0,
+              )}
+            </span>
+          </div>
+        );
+      }}
+    />
   );
 }

@@ -71,7 +71,9 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
             })}
           >
             <div className={styles.left}>
-              <RelaySelector />
+              <div className="px-4 mt-4">
+                <RelaySelector />
+              </div>
               {leftNodes}
             </div>
             {rightNodes.length > 0 && (
