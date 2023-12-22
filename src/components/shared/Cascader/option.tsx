@@ -2,7 +2,7 @@ import { ICascaderOption } from './types';
 import { FiCheck } from 'react-icons/fi';
 import { FiChevronRight } from 'react-icons/fi';
 import * as HoverCard from '@radix-ui/react-hover-card';
-import classnames from 'classnames';
+import { cn } from 'utils/classnames';
 
 export type CascaderOptionProps = {
   option: ICascaderOption;
@@ -27,11 +27,10 @@ export function CascaderOption(props: CascaderOptionProps) {
     <HoverCard.Root openDelay={200} closeDelay={200}>
       <HoverCard.Trigger asChild>
         <div
-          className={classnames(
-            'min-w-[320px] py-2 px-1 flex justify-between select-none',
+          className={cn(
+            'min-w-[320px] py-2 px-1 flex justify-between select-none cursor-pointer',
             {
               'bg-conditional-selected01': isActive,
-              'cursor-pointer': !option.disabled,
               'cursor-not-allowed': option.disabled,
             },
             'hover:bg-conditional-hover01',
@@ -40,12 +39,12 @@ export function CascaderOption(props: CascaderOptionProps) {
         >
           <div className="flex items-center gap-1">
             <FiCheck
-              className={classnames('text-text-primary w-4 h-4 opacity-0', {
+              className={cn('text-text-primary w-4 h-4 opacity-0', {
                 'opacity-100': isActive,
               })}
             />
             <span
-              className={classnames('font-noto text-text-primary text-sm', {
+              className={cn('font-noto text-text-primary text-sm', {
                 'text-text-secondary': option.disabled,
               })}
             >

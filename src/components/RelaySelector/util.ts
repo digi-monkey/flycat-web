@@ -1,5 +1,5 @@
 import { RelayGroupMap } from 'core/relay/group/type';
-import { RelayFooterMenus } from './type';
+import { RelayFooterMenus, RelayMode } from './type';
 import { WsConnectStatus } from 'core/worker/type';
 import { ICascaderOption } from 'components/shared/Cascader/types';
 
@@ -7,35 +7,36 @@ export function getSelectGroupId(groups: RelayGroupMap) {
   return Array.from(groups.keys()).filter(key => groups.get(key) != null);
 }
 
-export function initRelayGroupOptions(groups: RelayGroupMap) {
+export function getRelayGroupOptions(groups: RelayGroupMap) {
   const ids = getSelectGroupId(groups);
   return ids.map(id => {
     return {
       value: id,
       label: `${id}(${groups.get(id)!.length})`,
-      group: 'Relay Groups',
+      group: RelayMode.Group,
     };
   });
 }
 
 export function initModeOptions(groups: RelayGroupMap) {
-  const options: ICascaderOption[] = [
-    ...initRelayGroupOptions(groups),
-    {
-      value: 'Script',
-      label: 'Script',
-      disabled: true,
-      group: 'Rule',
-    },
+  const options: ICascaderOption[][] = [
+    getRelayGroupOptions(groups),
+    [
+      {
+        value: 'Script',
+        label: 'Script',
+        disabled: true,
+      },
+    ],
+    getFooterMenus(),
   ];
   return options;
 }
 
-// FIXME: show manage relays menu only when there are more than one relay groups
 export function getFooterMenus() {
   return [
     {
-      value: RelayFooterMenus.manageRelays,
+      value: RelayFooterMenus.ManageRelays,
       label: 'Manage Relays..',
     },
   ];
@@ -50,14 +51,14 @@ export function isFastestRelayOutdated(
 }
 
 export function toConnectStatus(
-  label: string[],
+  label: string,
   wsConnectStatus: WsConnectStatus,
   all: number,
 ) {
   const connected = Array.from(wsConnectStatus).filter(
     ([_, isConnected]) => !!isConnected,
   ).length;
-  return label.join('/') + ` (${connected}/${all})`;
+  return `${label} (${connected}/${all})`;
 }
 
 export function getConnectedRelayUrls(wsConnectStatus: WsConnectStatus) {

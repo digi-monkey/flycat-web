@@ -23,7 +23,6 @@ import { OneTimeWebSocketClient } from 'core/api/onetime';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import { maxStrings } from 'utils/common';
-import { RelaySelectorStore } from 'components/RelaySelector/store';
 import { useCallWorker } from 'hooks/useWorker';
 import { AUTO_RECOMMEND_LIST, NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';

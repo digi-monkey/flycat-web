@@ -17,10 +17,8 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { normalizeWsUrl } from 'utils/common';
 import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
-import { useGetSwitchRelay } from './hooks/useGetSwitchRelay';
-import { useLoadSelectedStore } from './hooks/useLoadSelectedStore';
 import { useSelectedRelay } from './hooks/useSelectedRelay';
-import { RelayFooterMenus, RelayMode } from './type';
+import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
 
 export interface RelaySelectorProps {
@@ -44,25 +42,7 @@ export function RelaySelector({
   const myPublicKey = useReadonlyMyPublicKey();
   const defaultGroup = useDefaultGroup();
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedOption, setSelectedOption] = useState<string[]>(['default']);
   const [selectedRelay, setSelectedRelay] = useSelectedRelay(myPublicKey);
-
-  const switchRelays = useMemo<SwitchRelays | undefined>(() => {
-    const [mode, groupId] = selectedRelay;
-    if (mode === RelayMode.rule) {
-      return {
-        id: mode,
-        relays: [],
-      };
-    }
-    if (mode === RelayMode.group && groupId) {
-      const group = relayGroupMap.get(groupId);
-      return {
-        id: groupId,
-        relays: group ?? [],
-      };
-    }
-  }, [selectedRelay, relayGroupMap]);
 
   useEffect(() => {
     if (newConnCallback) {
@@ -75,6 +55,60 @@ export function RelaySelector({
       wsStatusCallback(wsConnectStatus);
     }
   }, [wsConnectStatus, wsStatusCallback]);
+
+  const switchRelays = useMemo<SwitchRelays | undefined>(() => {
+    const [mode, groupId] = selectedRelay;
+    if (mode === RelayMode.Rule) {
+      return {
+        id: mode,
+        relays: [],
+      };
+    }
+    if (mode === RelayMode.Group && groupId) {
+      const group = relayGroupMap.get(groupId);
+      return {
+        id: groupId,
+        relays: group ?? [],
+      };
+    }
+  }, [selectedRelay, relayGroupMap]);
+
+  useEffect(() => {
+    if (!switchRelays?.relays?.length || !worker) {
+      return;
+    }
+
+    if (worker.relayGroupId !== switchRelays.id) {
+      worker.switchRelays(switchRelays);
+      worker.pullRelayInfo();
+    }
+
+    if (switchRelays?.relays) {
+      const keys = Array.from(wsConnectStatus.keys());
+      for (const key of keys) {
+        if (
+          !switchRelays.relays
+            .map(r => normalizeWsUrl(r.url))
+            .includes(normalizeWsUrl(key))
+        ) {
+          wsConnectStatus.delete(key);
+        }
+      }
+    }
+  }, [switchRelays, wsConnectStatus, worker]);
+
+  useEffect(() => {
+    worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
+      if (
+        worker?._portId === data.triggerByPortId ||
+        worker?.relayGroupId === data.id
+      ) {
+        return;
+      }
+      const id = data.id;
+      setSelectedRelay([RelayMode.Group, id]);
+    });
+  }, [worker, setSelectedRelay]);
 
   useEffect(() => {
     const defaultGroupId = 'default';
@@ -105,39 +139,53 @@ export function RelaySelector({
   }, [worker, newConn, myPublicKey]);
 
   const onChange = useCallback(
-    (value: string[]) => {
-      if (value.length === 1) {
-        setSelectedOption(value);
-        const [groupId] = value;
-        setSelectedRelay([RelayMode.group, groupId]);
+    (_: string[], options: ICascaderOption[]) => {
+      if (
+        options.length === 1 &&
+        options[0].value === RelayFooterMenus.ManageRelays
+      ) {
+        router.push(Paths.relayManager);
         return;
       }
-      setSelectedRelay(value as [RelayMode, string]);
+
+      const mode =
+        ((options.length > 1
+          ? options[0].value
+          : options[0]?.group) as RelayMode) ?? RelayMode.Group;
+      const groupId = options.length > 1 ? options[1].value : options[0].value;
+      setSelectedRelay([mode, groupId]);
     },
-    [setSelectedRelay],
+    [setSelectedRelay, router],
   );
+
+  const value = useMemo(() => {
+    const [mode, groupId] = selectedRelay;
+    if (mode === RelayMode.Group && groupId) {
+      return [groupId];
+    }
+    return ['default'];
+  }, [selectedRelay]);
+
+  console.log(selectedRelay);
 
   return (
     <div className="flex px-4 mt-4">
       <Cascader
-        options={[...initModeOptions(relayGroupMap)]}
-        defaultValue={['default']}
+        value={value}
         onChange={onChange}
-        displayRender={(_: unknown, selectedOptions?: ICascaderOption[]) => {
-          const [option] = selectedOptions ?? [];
-          const group = option?.group;
+        options={initModeOptions(relayGroupMap)}
+        displayRender={() => {
+          const [mode, groupId] = selectedRelay;
           return (
             <div className="flex items-center gap-2">
-              {group && (
-                <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
-                  <span className="text-text-primary text-sm font-noto">
-                    {group}
-                  </span>
-                </div>
-              )}
+              <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
+                <span className="text-text-primary text-sm font-noto">
+                  {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
+                </span>
+              </div>
               <span className="text-text-primary text-sm font-noto">
                 {toConnectStatus(
-                  selectedOption,
+                  groupId ?? 'default',
                   wsConnectStatus,
                   worker?.relays?.length || 0,
                 )}
