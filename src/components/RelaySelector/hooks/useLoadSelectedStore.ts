@@ -7,6 +7,7 @@ export function useLoadSelectedStore(
   callback: (val: string[]) => any,
 ) {
   const store = useMemo(() => new RelaySelectorStore(), []);
+
   useEffect(() => {
     if (!myPublicKey) return;
 
