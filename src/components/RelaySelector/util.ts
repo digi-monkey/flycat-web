@@ -23,12 +23,12 @@ export function initModeOptions(groups: RelayGroupMap) {
     getRelayGroupOptions(groups),
     [
       {
-        value: 'Script',
-        label: 'Script',
+        value: 'Relay Script',
+        label: 'Relay Script (coming)',
         disabled: true,
       },
+      ...getFooterMenus(),
     ],
-    getFooterMenus(),
   ];
   return options;
 }

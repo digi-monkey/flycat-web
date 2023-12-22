@@ -15,6 +15,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FiChevronDown } from 'react-icons/fi';
 import { normalizeWsUrl } from 'utils/common';
 import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useSelectedRelay } from './hooks/useSelectedRelay';
@@ -175,19 +176,22 @@ export function RelaySelector({
       displayRender={() => {
         const [mode, groupId] = selectedRelay;
         return (
-          <div className="flex items-center gap-2">
-            <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
+          <div className="w-full flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
+                <span className="text-text-primary text-sm font-noto">
+                  {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
+                </span>
+              </div>
               <span className="text-text-primary text-sm font-noto">
-                {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
+                {toConnectStatus(
+                  groupId ?? 'default',
+                  wsConnectStatus,
+                  worker?.relays?.length || 0,
+                )}
               </span>
             </div>
-            <span className="text-text-primary text-sm font-noto">
-              {toConnectStatus(
-                groupId ?? 'default',
-                wsConnectStatus,
-                worker?.relays?.length || 0,
-              )}
-            </span>
+            <FiChevronDown className="w-5 h-5" />
           </div>
         );
       }}
