@@ -12,9 +12,10 @@ import { CascaderOption } from './option';
 import { cn } from 'utils/classnames';
 
 export type CascaderProps = PropsWithChildren<{
-  value: string[];
   options: ICascaderOption[][];
-  onChange(value: string[], options: ICascaderOption[]): void;
+  defaultValue?: string[];
+  value?: string[];
+  onChange?(value: string[], options: ICascaderOption[]): void;
   displayRender?: (
     label: string[],
     selectedOptions?: ICascaderOption[],
@@ -24,12 +25,21 @@ export type CascaderProps = PropsWithChildren<{
 const defaultDisplayRender = (label: string[]) => label.join(' / ');
 
 export function Cascader(props: CascaderProps) {
-  const { options, onChange, value: optionValues } = props;
+  const { options, onChange } = props;
+  const [optionValues, setOptionValues] = useState(
+    props.value ?? props.defaultValue ?? [],
+  );
   const [opened, setOpened] = useState(false);
   const displayRender = useMemo(
     () => props.displayRender ?? defaultDisplayRender,
     [props.displayRender],
   );
+
+  useEffect(() => {
+    if (props.value) {
+      setOptionValues(props.value);
+    }
+  }, [props.value]);
 
   const flattenOptions = useMemo(() => flatten(options), [options]);
 
@@ -53,6 +63,7 @@ export function Cascader(props: CascaderProps) {
       const options = flattenOptions.filter(option => {
         return value.includes(option.value);
       });
+      setOptionValues(value);
       onChange?.(value, options);
     },
     [flattenOptions, onChange],
