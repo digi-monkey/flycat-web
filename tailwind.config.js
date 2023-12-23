@@ -3,6 +3,7 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     './.storybook/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  // safeList: ['f-container', 'f-grid'],
   corePlugins: {
     preflight: false,
   },
