@@ -7,9 +7,10 @@ import { MenuItemType } from 'antd/es/menu/hooks/useItems';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import { Avatar, Badge, Button, Dropdown } from 'antd';
+import { Badge, Button, Dropdown } from 'antd';
 import { Dispatch, SetStateAction } from 'react';
 import { MenuId, NavMenus, UserMenus, navClick, getNavLink } from './utils';
+import * as Avatar from '@radix-ui/react-avatar';
 
 import Link from 'next/link';
 import Icon from 'components/Icon';
@@ -57,41 +58,37 @@ const PcPadNav = ({
   }, [] as MenuItemType[]);
 
   return (
-    <nav>
-      <div className={styles.pcPadNav}>
-        <div className={styles.logo}>
-          <Link href={Paths.home}>
-            <img src="/logo512.png" alt="logo" />
+    <nav className="hidden md:block col-span-1 lg:col-span-3 border-0 border-r border-solid border-neutral-200">
+      <div className="sticky top-0">
+        <div className="py-4 px-5">
+          <Link href={Paths.home} className="inline-block">
+            <img
+              className="w-10 h-10 object-contain align-middle"
+              src="/logo512.png"
+              alt="logo"
+            />
           </Link>
         </div>
-        <ul>
-          <li>
-            {
-              <Dropdown
-                menu={{ items: isLoggedIn ? userMenus : [] }}
-                overlayClassName={styles.pcPadNavUserMenu}
-                placement="bottom"
-                arrow
-              >
-                <div
-                  className={styles.user}
-                  onClick={() =>
-                    isLoggedIn ? null : router.push({ pathname: Paths.login })
-                  }
-                >
-                  {user ? (
-                    <Avatar src={user.picture} />
-                  ) : (
-                    <Avatar icon={<Icon type="icon-user" />} />
-                  )}
-                  <h1>
-                    {isLoggedIn
-                      ? user?.name || shortifyPublicKey(myPublicKey)
-                      : t('nav.menu.signIn')}
-                  </h1>
-                </div>
-              </Dropdown>
-            }
+        <ul className="list-none p-0 m-0 mt-7">
+          <li className="px-5 hover:bg-conditional-hover01">
+            <div
+              className="flex items-center w-full h-16 cursor-pointer gap-3"
+              onClick={() =>
+                !isLoggedIn && router.push({ pathname: Paths.login })
+              }
+            >
+              <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400">
+                {user && <Avatar.Image src={user.picture} />}
+                <Avatar.Fallback className="w-full h-full flex justify-center items-center">
+                  <Icon type="icon-user" className="w-6 h-6 fill-gray-700" />
+                </Avatar.Fallback>
+              </Avatar.Root>
+              <h1>
+                {isLoggedIn
+                  ? user?.name || shortifyPublicKey(myPublicKey)
+                  : t('nav.menu.signIn')}
+              </h1>
+            </div>
           </li>
           {NavMenus.map((item, key) => (
             <li key={key}>

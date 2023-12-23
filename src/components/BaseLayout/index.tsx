@@ -55,41 +55,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
 
   return (
     <Container>
-      {isMobile ? (
-        <Mobile body={leftNodes} user={myProfile} setOpenWrite={setOpenWrite} />
-      ) : (
-        <>
-          <PcPadNav user={myProfile} setOpenWrite={setOpenWrite} />
-          <main
-            className={classNames(styles.pcPadMain, {
-              [styles.rightExists]: rightNodes.length,
-            })}
-          >
-            <div className={styles.left}>
-              <div className="px-4 mt-4">
-                <RelaySelector />
-              </div>
-              {leftNodes}
-            </div>
-            {rightNodes.length > 0 && (
-              <div className={styles.right}>
-                <div style={{ position: 'sticky', top: '0' }}>{rightNodes}</div>
-              </div>
-            )}
-          </main>
-        </>
-      )}
-      <Modal
-        title={t('baseLayout.modal.title')}
-        wrapClassName={styles.modal}
-        footer={null}
-        open={openWrite}
-        onCancel={() => setOpenWrite(false)}
-        closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
-      >
-        <p>{t('baseLayout.modal.desc')}</p>
-        <PubNoteTextarea pubSuccessCallback={() => setOpenWrite(false)} />
-      </Modal>
+      <PcPadNav user={myProfile} setOpenWrite={setOpenWrite} />
     </Container>
   );
 };
