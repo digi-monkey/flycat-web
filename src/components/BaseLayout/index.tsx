@@ -4,11 +4,11 @@ import { RelaySelector } from 'components/RelaySelector';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useTranslation } from 'next-i18next';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Icon from 'components/Icon';
 import Mobile from './mobile';
 import styles from './index.module.scss';
-import PcPadNav from './pc';
+import Navbar from './navbar';
 import Container from 'components/Container';
 import classNames from 'classnames';
 import PubNoteTextarea from '../PubNoteTextarea';
@@ -41,7 +41,6 @@ export const Right: React.FC<RightProps> = ({ children }) => (
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   const { t } = useTranslation();
   const { myProfile } = useUserInfo();
-  const isMobile = useMatchMobile();
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
 
@@ -53,9 +52,33 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
     if (child.type === Right) rightNodes.push(child);
   });
 
+  const onClickPost = useCallback(() => {
+    if (!myProfile) return;
+    setOpenWrite(true);
+  }, [myProfile]);
+
   return (
-    <Container>
-      <PcPadNav user={myProfile} setOpenWrite={setOpenWrite} />
-    </Container>
+    <div className="flex justify-center min-h-screen">
+      <div className="container font-body grid grid-cols-8 lg:grid-cols-12">
+        <aside className="hidden md:block md:col-span-1 xl:col-span-3">
+          <div className="sticky top-0 px-5 h-screen border-0 border-r border-solid border-neutral-200">
+            <Navbar user={myProfile} onClickPost={onClickPost} />
+          </div>
+        </aside>
+        <main className="col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-6">
+          <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
+            <div className="px-4 pt-4">
+              <RelaySelector />
+            </div>
+            {leftNodes}
+          </div>
+        </main>
+        {rightNodes.length > 0 && (
+          <div className="hidden lg:block lg:col-span-3">
+            <div className="sticky top-0 px-5 h-screen">{rightNodes}</div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
