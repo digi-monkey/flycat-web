@@ -17,7 +17,7 @@ export function useUserInfo() {
     if (!worker) return;
     if (!isValidPublicKey(myPublicKey)) return;
     worker.subMetadata([myPublicKey]);
-  }, [worker]);
+  }, [worker, myPublicKey]);
 
   useEffect(() => {
     if (!isValidPublicKey(myPublicKey)) return;

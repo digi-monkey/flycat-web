@@ -60,12 +60,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   return (
     <div className="flex justify-center min-h-screen">
       <div className="container font-body grid grid-cols-8 lg:grid-cols-12">
-        <aside className="hidden md:block md:col-span-1 xl:col-span-3">
+        <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
           <div className="sticky top-0 px-5 h-screen border-0 border-r border-solid border-neutral-200">
             <Navbar user={myProfile} onClickPost={onClickPost} />
           </div>
         </aside>
-        <main className="col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-6">
+        <main className="col-span-12 sm:col-span-7 lg:col-span-8 xl:col-span-6">
           <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
             <div className="px-4 pt-4">
               <RelaySelector />

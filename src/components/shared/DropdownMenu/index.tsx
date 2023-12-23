@@ -12,8 +12,15 @@ export function DropdownMenu(props: DropdownMenuProps) {
       <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
       <Dropdown.Portal>
         <Dropdown.Content>
-          <Dropdown.Label />
-          <Dropdown.Item />
+          <Dropdown.Item className="DropdownMenuItem">
+            New Tab <div className="RightSlot">⌘+T</div>
+          </Dropdown.Item>
+          <Dropdown.Item className="DropdownMenuItem">
+            New Window <div className="RightSlot">⌘+N</div>
+          </Dropdown.Item>
+          <Dropdown.Item className="DropdownMenuItem" disabled>
+            New Private Window <div className="RightSlot">⇧+⌘+N</div>
+          </Dropdown.Item>
           {props.arrow && <Dropdown.Arrow />}
         </Dropdown.Content>
       </Dropdown.Portal>

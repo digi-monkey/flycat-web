@@ -16,6 +16,7 @@ import { useNotification } from 'hooks/useNotification';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { cn } from 'utils/classnames';
 import { Badge } from 'components/shared/Badge';
+import { DropdownMenu } from 'components/shared/DropdownMenu';
 
 const Navbar = ({
   user,
@@ -67,24 +68,26 @@ const Navbar = ({
       </div>
       <ul className="list-none p-0 m-0 mt-6">
         <li className="lg:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer">
-          <div
-            className="flex justify-center xl:justify-normal items-center w-full h-14 gap-4"
-            onClick={() =>
-              !isLoggedIn && router.push({ pathname: Paths.login })
-            }
-          >
-            <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400">
-              {user && <Avatar.Image src={user.picture} />}
-              <Avatar.Fallback className="w-full h-full flex justify-center items-center">
-                <Icon type="icon-user" className="w-6 h-6 fill-gray-700" />
-              </Avatar.Fallback>
-            </Avatar.Root>
-            <h1 className="hidden xl:block my-0">
-              {isLoggedIn
-                ? user?.name || shortifyPublicKey(myPublicKey)
-                : t('nav.menu.signIn')}
-            </h1>
-          </div>
+          <DropdownMenu>
+            <div
+              className="flex justify-center xl:justify-normal items-center w-full h-14 gap-4"
+              onClick={() =>
+                !isLoggedIn && router.push({ pathname: Paths.login })
+              }
+            >
+              <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400">
+                {user && <Avatar.Image src={user.picture} />}
+                <Avatar.Fallback className="w-full h-full flex justify-center items-center">
+                  <Icon type="icon-user" className="w-6 h-6 fill-gray-700" />
+                </Avatar.Fallback>
+              </Avatar.Root>
+              <h1 className="hidden xl:block my-0">
+                {isLoggedIn
+                  ? user?.name || shortifyPublicKey(myPublicKey)
+                  : t('nav.menu.signIn')}
+              </h1>
+            </div>
+          </DropdownMenu>
         </li>
         {NavMenus.map((item, key) => (
           <li
