@@ -53,7 +53,7 @@ const Mobile: React.FC<Props> = ({ body, user, setOpenWrite }) => {
     );
     result.splice(2, 0, {
       id: MenuId.add,
-      icon: <Icon type="icon-plus" />,
+      icon: 'icon-plus',
       title: 'nav.menu.blogDashboard',
       link: Paths.write,
     });

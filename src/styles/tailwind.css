@@ -2,16 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .font-body {
+@layer components {
+  .body {
     @apply font-noto text-sm leading-6 font-normal;
   }
 
-  .font-subheader1 {
+  .subheader1 {
     @apply font-poppins text-base leading-6 font-normal;
   }
 
-  .font-subheader1-bold {
+  .subheader1-bold {
     @apply font-poppins text-base leading-6 font-semibold;
+  }
+
+  .label {
+    @apply font-noto text-sm leading-[22px] font-medium;
   }
 }

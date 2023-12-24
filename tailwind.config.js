@@ -82,15 +82,6 @@ module.exports = {
           800: '#593505',
           900: '#4e2c00',
         },
-        surface: {
-          '01': '#F9F9F9',
-          '01-accent': '#F2F2F2',
-          '02': '#FFFFFF',
-          '02-accent': '#EDEDED',
-          '03': '#F7FAF5',
-          '04': '#DDEEBA',
-          inverse: '#1E1E1E',
-        },
         text: {
           primary: '#1E1E1E',
           secondary: '#787878',
@@ -100,6 +91,21 @@ module.exports = {
           link: '#598022',
           inverseLink: '#C0E085',
           disabled: '#BCBCBC',
+        },
+        surface: {
+          '01': '#F9F9F9',
+          '01-accent': '#F2F2F2',
+          '02': '#FFFFFF',
+          '02-accent': '#EDEDED',
+          '03': '#F7FAF5',
+          '04': '#DDEEBA',
+          inverse: '#1E1E1E',
+        },
+        border: {
+          primary: '598022',
+          '01': '#EDEDED',
+          '02': '#D2D2D2',
+          '03': '#787878',
         },
         conditional: {
           hover01: `rgba(30, 30, 30, 0.08)`,

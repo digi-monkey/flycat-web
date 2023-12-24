@@ -1,17 +1,8 @@
-import { Modal } from 'antd';
 import { useUserInfo } from './hooks';
 import { RelaySelector } from 'components/RelaySelector';
-import { useMatchMobile } from 'hooks/useMediaQuery';
 import { useTranslation } from 'next-i18next';
-
 import React, { useCallback, useState } from 'react';
-import Icon from 'components/Icon';
-import Mobile from './mobile';
-import styles from './index.module.scss';
 import Navbar from './navbar';
-import Container from 'components/Container';
-import classNames from 'classnames';
-import PubNoteTextarea from '../PubNoteTextarea';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -59,7 +50,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="container font-body grid grid-cols-8 lg:grid-cols-12">
+      <div className="container body grid grid-cols-8 lg:grid-cols-12">
         <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
           <div className="sticky top-0 px-5 h-screen border-0 border-r border-solid border-neutral-200">
             <Navbar user={myProfile} onClickPost={onClickPost} />

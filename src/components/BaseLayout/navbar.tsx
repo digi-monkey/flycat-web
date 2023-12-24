@@ -2,11 +2,9 @@ import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';
 import { RootState } from 'store/configureStore';
 import { useDispatch, useSelector } from 'react-redux';
-import { MenuItemType } from 'antd/es/menu/hooks/useItems';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import { Dispatch, SetStateAction } from 'react';
 import { MenuId, NavMenus, UserMenus, navClick, getNavLink } from './utils';
 import * as Avatar from '@radix-ui/react-avatar';
 import Link from 'next/link';
@@ -17,6 +15,7 @@ import { shortifyPublicKey } from 'core/nostr/content';
 import { cn } from 'utils/classnames';
 import { Badge } from 'components/shared/Badge';
 import { DropdownMenu } from 'components/shared/DropdownMenu';
+import { DropdownMenuItem } from 'components/shared/DropdownMenu/type';
 
 const Navbar = ({
   user,
@@ -44,16 +43,15 @@ const Navbar = ({
     if (!item || item.id === MenuId.bookmarks) return result;
 
     result.push({
+      type: 'item',
       icon: item?.icon,
-      key: item?.id,
+      value: item?.id,
       label: t(item?.title),
-      onClick: () =>
-        item.id === MenuId.signOut
-          ? doLogout()
-          : navClick(item, myPublicKey, router, isLoggedIn, t),
+      id: item?.id,
+      link: item?.link,
     });
     return result;
-  }, [] as MenuItemType[]);
+  }, [] as DropdownMenuItem[]);
 
   return (
     <nav>
@@ -68,7 +66,16 @@ const Navbar = ({
       </div>
       <ul className="list-none p-0 m-0 mt-6">
         <li className="lg:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer">
-          <DropdownMenu>
+          <DropdownMenu
+            items={userMenus}
+            onSelect={item => {
+              if (item.id === MenuId.signOut) {
+                doLogout();
+                return;
+              }
+              navClick(item, myPublicKey, router, isLoggedIn, t);
+            }}
+          >
             <div
               className="flex justify-center xl:justify-normal items-center w-full h-14 gap-4"
               onClick={() =>
@@ -99,13 +106,13 @@ const Navbar = ({
               className={cn(
                 'flex px-5 w-full h-[56px] items-center no-underline text-neutral-600',
                 {
-                  'text-neutral-900 font-subheader1-bold':
+                  'text-neutral-900 subheader1-bold':
                     router.pathname === item.link,
                 },
               )}
             >
               <Badge
-                className="flex items-center gap-3  font-subheader1"
+                className="flex items-center gap-3 subheader1"
                 dot={item.id === MenuId.notifications && isNewUnread}
               >
                 <Icon
