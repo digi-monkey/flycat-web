@@ -6,16 +6,27 @@ import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { MenuId, NavMenus, UserMenus, navClick, getNavLink } from './utils';
-import * as Avatar from '@radix-ui/react-avatar';
 import Link from 'next/link';
 import Icon from 'components/Icon';
 import dynamic from 'next/dynamic';
 import { useNotification } from 'hooks/useNotification';
-import { shortifyPublicKey } from 'core/nostr/content';
 import { cn } from 'utils/classnames';
-import { Badge } from 'components/shared/Badge';
-import { DropdownMenu } from 'components/shared/DropdownMenu';
-import { DropdownMenuItem } from 'components/shared/DropdownMenu/type';
+import { Profile } from './profile';
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from 'components/shared/ui/DropdownMenu';
+import { Badge, BadgeDot } from 'components/shared/ui/Badge';
+
+type MenuItem = {
+  icon: string;
+  value: string;
+  label: string;
+  id: string;
+  link: string;
+};
 
 const Navbar = ({
   user,
@@ -43,7 +54,6 @@ const Navbar = ({
     if (!item || item.id === MenuId.bookmarks) return result;
 
     result.push({
-      type: 'item',
       icon: item?.icon,
       value: item?.id,
       label: t(item?.title),
@@ -51,7 +61,7 @@ const Navbar = ({
       link: item?.link,
     });
     return result;
-  }, [] as DropdownMenuItem[]);
+  }, [] as MenuItem[]);
 
   return (
     <nav>
@@ -65,35 +75,31 @@ const Navbar = ({
         </Link>
       </div>
       <ul className="list-none p-0 m-0 mt-6">
-        <li className="lg:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer">
-          <DropdownMenu
-            items={userMenus}
-            onSelect={item => {
-              if (item.id === MenuId.signOut) {
-                doLogout();
-                return;
-              }
-              navClick(item, myPublicKey, router, isLoggedIn, t);
-            }}
-          >
-            <div
-              className="flex justify-center xl:justify-normal items-center w-full h-14 gap-4"
-              onClick={() =>
-                !isLoggedIn && router.push({ pathname: Paths.login })
-              }
-            >
-              <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400">
-                {user && <Avatar.Image src={user.picture} />}
-                <Avatar.Fallback className="w-full h-full flex justify-center items-center">
-                  <Icon type="icon-user" className="w-6 h-6 fill-gray-700" />
-                </Avatar.Fallback>
-              </Avatar.Root>
-              <h1 className="hidden xl:block my-0">
-                {isLoggedIn
-                  ? user?.name || shortifyPublicKey(myPublicKey)
-                  : t('nav.menu.signIn')}
-              </h1>
-            </div>
+        <li className="xl:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Profile user={user} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {userMenus.map(item => (
+                <DropdownMenuItem
+                  key={item.id}
+                  onSelect={() => {
+                    if (item.id === MenuId.signOut) {
+                      doLogout();
+                      return;
+                    }
+                    navClick(item, myPublicKey, router, isLoggedIn, t);
+                  }}
+                >
+                  <Icon
+                    type={item.icon}
+                    className="w-[18px] h-[18px] fill-text-primary"
+                  />
+                  <span className="label">{item.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
           </DropdownMenu>
         </li>
         {NavMenus.map((item, key) => (
@@ -111,10 +117,7 @@ const Navbar = ({
                 },
               )}
             >
-              <Badge
-                className="flex items-center gap-3 subheader1"
-                dot={item.id === MenuId.notifications && isNewUnread}
-              >
+              <Badge className="flex items-center gap-3 subheader1">
                 <Icon
                   type={item.icon}
                   className={cn('w-6 h-6 fill-neutral-600', {
@@ -122,6 +125,9 @@ const Navbar = ({
                   })}
                 />
                 <div className="hidden xl:block">{t(item.title)}</div>
+                {item.id === MenuId.notifications && isNewUnread && (
+                  <BadgeDot />
+                )}
               </Badge>
             </Link>
           </li>

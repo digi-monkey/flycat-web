@@ -1,5 +1,5 @@
 import { Cascader } from 'components/shared/Cascader';
-import { ICascaderOption } from 'components/shared/Cascader/types';
+import { ICascaderOption } from 'components/shared/Cascader/type';
 import { Paths } from 'constants/path';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';

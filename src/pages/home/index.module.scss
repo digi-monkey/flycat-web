@@ -203,7 +203,6 @@
   align-self: stretch;
   position: sticky;
   top: 0; 
-  z-index: 100;
   background: var(--neutral-01);
 
   :global {
@@ -236,7 +235,6 @@
 .mobileFilter {
   position: sticky;
   top: 64px; 
-  z-index: 100;
   background: var(--neutral-01);
 
   :global {
