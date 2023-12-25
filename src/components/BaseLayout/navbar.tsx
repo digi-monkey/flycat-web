@@ -29,13 +29,7 @@ type MenuItem = {
   link: string;
 };
 
-const Navbar = ({
-  user,
-  onClickPost,
-}: {
-  user?: EventSetMetadataContent;
-  onClickPost(): void;
-}) => {
+const Navbar = ({ user }: { user?: EventSetMetadataContent }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
@@ -77,67 +71,77 @@ const Navbar = ({
       </div>
       <ul className="flex flex-col items-center xl:items-start list-none p-0 m-0 mt-6">
         <li className="w-[56px] xl:w-full xl:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer box-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Profile
-                user={user}
-                onClick={() =>
-                  !isLoggedIn && router.push({ pathname: Paths.login })
-                }
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {userMenus.map(item => (
-                <DropdownMenuItem
-                  key={item.id}
-                  onSelect={() => {
-                    if (item.id === MenuId.signOut) {
-                      doLogout();
-                      return;
-                    }
-                    navClick(item, myPublicKey, router, isLoggedIn, t);
-                  }}
-                >
+          {isLoggedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Profile user={user} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {userMenus.map(item => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onSelect={() => {
+                      if (item.id === MenuId.signOut) {
+                        doLogout();
+                        return;
+                      }
+                      navClick(item, myPublicKey, router, isLoggedIn, t);
+                    }}
+                  >
+                    <Icon
+                      type={item.icon}
+                      className="w-[18px] h-[18px] fill-text-primary"
+                    />
+                    <span className="label">{item.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Profile
+              user={user}
+              onClick={() => router.push({ pathname: Paths.login })}
+            />
+          )}
+        </li>
+        {NavMenus.map((item, key) => {
+          const isActive =
+            getNavLink(item, myPublicKey) ===
+            router.pathname.replace('[publicKey]', myPublicKey);
+
+          return (
+            <li
+              key={key}
+              className="w-[56px] xl:w-full xl:px-5 hover:bg-conditional-hover01 rounded-full cursor-pointer box-border"
+            >
+              <Link
+                href={getNavLink(item, myPublicKey)}
+                className={cn(
+                  'flex justify-center xl:justify-normal w-full h-[56px] items-center no-underline text-neutral-600',
+                )}
+              >
+                <Badge className="flex items-center gap-3 subheader1">
                   <Icon
                     type={item.icon}
-                    className="w-[18px] h-[18px] fill-text-primary"
+                    className={cn('w-6 h-6 fill-neutral-600', {
+                      'fill-neutral-900': isActive,
+                    })}
                   />
-                  <span className="label">{item.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </li>
-        {NavMenus.map((item, key) => (
-          <li
-            key={key}
-            className="w-[56px] xl:w-full xl:px-5 hover:bg-conditional-hover01 rounded-full cursor-pointer box-border"
-          >
-            <Link
-              href={getNavLink(item, myPublicKey)}
-              className={cn(
-                'flex justify-center xl:justify-normal w-full h-[56px] items-center no-underline text-neutral-600',
-                {
-                  'text-neutral-900 subheader1-bold':
-                    router.pathname === item.link,
-                },
-              )}
-            >
-              <Badge className="flex items-center gap-3 subheader1">
-                <Icon
-                  type={item.icon}
-                  className={cn('w-6 h-6 fill-neutral-600', {
-                    'fill-neutral-900': router.pathname === item.link,
-                  })}
-                />
-                <div className="hidden xl:block">{t(item.title)}</div>
-                {item.id === MenuId.notifications && isNewUnread && (
-                  <BadgeDot />
-                )}
-              </Badge>
-            </Link>
-          </li>
-        ))}
+                  <div
+                    className={cn('hidden xl:block', {
+                      'text-neutral-900 font-subheader1-bold': isActive,
+                    })}
+                  >
+                    {t(item.title)}
+                  </div>
+                  {item.id === MenuId.notifications && isNewUnread && (
+                    <BadgeDot />
+                  )}
+                </Badge>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
       <div className="flex justify-center xl:justify-normal">
         <AddNoteDialog>
@@ -150,8 +154,11 @@ const Navbar = ({
             )}
           >
             <div className="flex justify-center items-center w-full gap-2">
-              <Icon type="icon-Pencil" className="w-5 h-5 fill-white" />
-              <span className="hidden xl:block text-white">
+              <Icon
+                type="icon-Pencil"
+                className="xl:hidden w-5 h-5 fill-white"
+              />
+              <span className="hidden xl:block label text-white">
                 {t('nav.menu.blogDashboard')}
               </span>
             </div>

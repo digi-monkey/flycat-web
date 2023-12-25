@@ -19,11 +19,10 @@ import { MenuId, navClick, UserMenus } from './utils';
 
 export type UserDrawerProps = {
   user?: EventSetMetadataContent;
-  onClickPost(): void;
 };
 
 export function UserDrawer(props: UserDrawerProps) {
-  const { user, onClickPost } = props;
+  const { user } = props;
   const router = useRouter();
   const { t } = useTranslation();
   const isLoggedIn = useSelector(
@@ -63,10 +62,6 @@ export function UserDrawer(props: UserDrawerProps) {
                 className="flex items-center px-2 py-3 gap-3 hover:bg-conditional-hover01 rounded-full cursor-pointer"
                 onClick={() => {
                   setOpened(false);
-                  if (item.id === MenuId.add) {
-                    onClickPost();
-                    return;
-                  }
                   if (item.id === MenuId.signOut) {
                     doLogout();
                     return;

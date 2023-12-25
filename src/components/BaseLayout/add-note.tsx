@@ -16,11 +16,11 @@ const AddNoteDialog = (props: AddNoteDialogProps) => {
     <Dialog.Root open={opened} onOpenChange={setOpened}>
       <Dialog.Trigger asChild>{props.children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-overflay-01 animate-overlay-show" />
+        <Dialog.Overlay className="fixed inset-0 bg-overflay-01 animate-overlay-show z-40" />
         <Dialog.Content
           className={cn(
             'fixed w-[90vw] sm:w-auto sm:min-w-[630px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'py-4 bg-surface-03 rounded-lg shadow-sm',
+            'py-4 bg-surface-03 rounded-lg shadow-sm z-50',
             'animate-content-show',
           )}
         >

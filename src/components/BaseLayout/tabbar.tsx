@@ -10,12 +10,7 @@ import { cn } from 'utils/classnames';
 import AddNoteDialog from './add-note';
 import { NavMenus, MenuId, navClick, MenuItem } from './utils';
 
-export type TabbarProps = {
-  onClickPost(): void;
-};
-
-export function Tabbar(props: TabbarProps) {
-  const { onClickPost } = props;
+export function Tabbar() {
   const { t } = useTranslation();
   const router = useRouter();
   const myPublicKey = useMyPublicKey();
