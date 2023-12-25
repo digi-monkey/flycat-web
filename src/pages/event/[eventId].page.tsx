@@ -7,6 +7,7 @@ import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { useState, useEffect } from 'react';
 import { dexieDb } from 'core/db';
 import { NotePreview, getNotePreview } from 'core/api/preview';
+import { createCallRelay } from 'core/worker/util';
 
 import Head from 'next/head';
 import PostItems from 'components/PostItems';
@@ -21,24 +22,31 @@ export default function EventPage({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { worker } = useCallWorker();
+  const { worker, newConn } = useCallWorker();
   const { eventId } = router.query as { eventId: string };
   const [rootEvent, setRootEvent] = useState<EventWithSeen>();
 
   const subRootEvent = async () => {
     if (!worker) return;
 
-    const handle = worker.subMsgByEventIds([eventId]).getIterator();
+    const callRelay = createCallRelay(newConn);
+    const handle = worker
+      .subMsgByEventIds([eventId], undefined, callRelay)
+      .getIterator();
     for await (const data of handle) {
       if (data.event.id === eventId) {
+        worker.subMetadata([data.event.pubkey]);
+
         setRootEvent(data.event);
         break;
       }
     }
+    handle.unsubscribe();
   };
 
   useEffect(() => {
     if (!eventId) return;
+    if (rootEvent && rootEvent.id === eventId) return;
 
     dexieDb.event.get(eventId).then(event => {
       if (!event) {
@@ -47,7 +55,7 @@ export default function EventPage({
       }
       setRootEvent(event);
     });
-  }, [eventId]);
+  }, [eventId, worker, newConn]);
 
   return (
     <>
