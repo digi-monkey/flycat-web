@@ -7,6 +7,22 @@ import Icon from 'components/Icon';
 export function PostUserMenu({ event, publicKey, extraMenu }) {
   const items: MenuProps['items'] = [
     {
+      label: 'copy share link',
+      key: 'copy-share-link',
+      onClick: async () => {
+        try {
+          const { copyToClipboard } = await import('utils/common');
+          const shareLink = `${window.location.origin}/event/${event.id}`;
+          await copyToClipboard(shareLink);
+          message.success(
+            'Link copy! paste to web2 platform to share nostr contents!',
+          );
+        } catch (error: any) {
+          message.error(`share link copy failed! ${error.message}`);
+        }
+      },
+    },
+    {
       label: 'copy note id',
       key: '0',
       onClick: async () => {
