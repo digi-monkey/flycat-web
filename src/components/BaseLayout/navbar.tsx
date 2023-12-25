@@ -74,11 +74,16 @@ const Navbar = ({
           />
         </Link>
       </div>
-      <ul className="list-none p-0 m-0 mt-6">
-        <li className="xl:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer">
+      <ul className="flex flex-col items-center xl:items-start list-none p-0 m-0 mt-6">
+        <li className="w-[56px] xl:w-full xl:px-5 rounded-full hover:bg-conditional-hover01 cursor-pointer box-border">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Profile user={user} />
+            <DropdownMenuTrigger>
+              <Profile
+                user={user}
+                onClick={() =>
+                  !isLoggedIn && router.push({ pathname: Paths.login })
+                }
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {userMenus.map(item => (
@@ -105,12 +110,12 @@ const Navbar = ({
         {NavMenus.map((item, key) => (
           <li
             key={key}
-            className="flex justify-center xl:justify-normal hover:bg-conditional-hover01 rounded-full cursor-pointer"
+            className="w-[56px] xl:w-full xl:px-5 hover:bg-conditional-hover01 rounded-full cursor-pointer box-border"
           >
             <Link
               href={getNavLink(item, myPublicKey)}
               className={cn(
-                'flex px-5 w-full h-[56px] items-center no-underline text-neutral-600',
+                'flex justify-center xl:justify-normal w-full h-[56px] items-center no-underline text-neutral-600',
                 {
                   'text-neutral-900 subheader1-bold':
                     router.pathname === item.link,

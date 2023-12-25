@@ -16,6 +16,11 @@ import {
 } from 'components/shared/ui/Drawer';
 import { Profile } from './profile';
 import { UserDrawer } from './drawer';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { useRouter } from 'next/router';
+import { Paths } from 'constants/path';
+import { useMyPublicKey } from 'hooks/useMyPublicKey';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -44,7 +49,12 @@ export const Right: React.FC<RightProps> = ({ children }) => (
 
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { myProfile } = useUserInfo();
+  const myPublicKey = useMyPublicKey();
+  const isLoggedIn = useSelector(
+    (state: RootState) => state.loginReducer.isLoggedIn,
+  );
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
 
@@ -65,7 +75,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
     <div className="flex justify-center min-h-screen">
       <div className="container body grid grid-cols-8 lg:grid-cols-12">
         <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
-          <div className="sticky top-0 px-5 h-screen border-0 border-r border-solid border-neutral-200">
+          <div className="sticky top-0 pr-5 h-screen border-0 border-r border-solid border-neutral-200">
             <Navbar user={myProfile} onClickPost={onClickPost} />
           </div>
         </aside>
@@ -73,8 +83,22 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
           <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
             <div className="px-4 sticky top-0 sm:relative bg-white bg-opacity-80 backdrop-blur z-50">
               <div className="flex h-16 items-center gap-3">
-                <RelaySelector />
-                <UserDrawer user={myProfile} />
+                <div className="sm:hidden">
+                  <Profile
+                    user={myProfile}
+                    onClick={() => {
+                      if (!isLoggedIn) {
+                        router.push({ pathname: Paths.login });
+                        return;
+                      }
+                      router.push({ pathname: Paths.user + myPublicKey });
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <RelaySelector />
+                </div>
+                <UserDrawer user={myProfile} onClickPost={onClickPost} />
               </div>
             </div>
             {leftNodes}

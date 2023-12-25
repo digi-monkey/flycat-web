@@ -3,7 +3,23 @@ import { forwardRef } from 'react';
 import { cn } from 'utils/classnames';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+
+const DropdownMenuTrigger = forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
+  React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      'w-full bg-transparent border-none p-0 outline-none cursor-pointer',
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </DropdownMenuPrimitive.Trigger>
+));
+DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
 
 const DropdownMenuContent = forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
