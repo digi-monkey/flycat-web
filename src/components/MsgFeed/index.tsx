@@ -1,5 +1,5 @@
 import { Button, message } from 'antd';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { _handleEvent } from 'components/Comments/util';
@@ -12,12 +12,9 @@ import { validateFilter } from './util';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
-import {
-  createQueryCacheId,
-  queryCache,
-  scrollPositionCache,
-} from 'core/cache/query';
+import { createQueryCacheId, queryCache } from 'core/cache/query';
 import { useIntersectionObserver, useInterval } from 'usehooks-ts';
+import { useRestoreScrollPos } from './hook/useRestoreScrollPos';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import classNames from 'classnames';
@@ -48,9 +45,14 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
   const [isLoadingMsg, setIsLoadingMsg] = useState<boolean>(false);
+  const [isSubNewComingMsg, setIsSubNewComingMsg] = useState<boolean>(false);
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
   const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
+  const [isDBNoData, setIsDBNoData] = useState<boolean>(false);
 
+  const SUB_NEW_MSG_INTERVAL = 2000; // milsecs
+
+  // check if newMsgNotify UI is in view, if not, display floating one
   const newMsgNotifyRef = useRef<HTMLDivElement | null>(null);
   const entry = useIntersectionObserver(newMsgNotifyRef, {});
   const isNotifyVisible = !!entry?.isIntersecting;
@@ -69,12 +71,20 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       }),
     [msgFilter, isValidEvent, relayUrls],
   );
+  const queryLoading = useMemo(
+    () => isLoadingMsg && !isPullRefreshing,
+    [isLoadingMsg, isPullRefreshing],
+  );
+  const fetchWhenDBNoDataLoading = useMemo(
+    () => isDBNoData && isSubNewComingMsg,
+    [isDBNoData, isSubNewComingMsg],
+  );
   const scrollHeight = useScrollValue();
 
-  const subNewMsg = async () => {
+  const subNewComingMsg = useCallback(async () => {
     if (!worker) return;
     if (!msgFilter || !validateFilter(msgFilter)) return;
-    if (isLoadingMsg || isPullRefreshing) return;
+    if (isLoadingMsg || isPullRefreshing || isSubNewComingMsg) return;
 
     const request = async (latest: number | undefined) => {
       let since = msgFilter.since;
@@ -145,8 +155,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
         });
       events = mergeAndSortUniqueDbEvents(events as any, events as any);
       console.log('sub diff: ', events, events.length, filter);
-      setNewComingMsg(prev => mergeAndSortUniqueDbEvents(events as any, prev));
-
       dataStream.unsubscribe();
       console.debug('finished sub msg!');
 
@@ -159,15 +167,37 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           },
         });
       }
+
+      if (events.length > 0) {
+        if (isDBNoData && msgList.length === 0) {
+          setMsgList(events as DbEvent[]);
+          setIsDBNoData(false);
+        } else {
+          setNewComingMsg(prev =>
+            mergeAndSortUniqueDbEvents(events as any, prev),
+          );
+        }
+      }
     };
 
     const latest = memoMsgList[0]?.created_at || 0;
-    request(latest);
-  };
+    setIsSubNewComingMsg(true);
+    await request(latest);
+    setIsSubNewComingMsg(false);
+  }, [
+    worker,
+    msgFilter,
+    isValidEvent,
+    isLoadingMsg,
+    isPullRefreshing,
+    isSubNewComingMsg,
+  ]);
 
-  const query = async () => {
-    if (!msgFilter || !validateFilter(msgFilter)) return [] as DbEvent[];
+  const loadMsgFromDb = useCallback(async () => {
+    if (!msgFilter || !validateFilter(msgFilter)) return;
     setIsLoadingMsg(true);
+    setNewComingMsg([]);
+    setMsgList([]);
 
     // get from cache first
     const cache = queryCache.get(queryCacheId);
@@ -192,14 +222,31 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     });
     events = mergeAndSortUniqueDbEvents(events, events);
     console.log('query: ', events.length, relayUrls, msgFilter);
-    setMsgList(events);
-    // save cache
-    if (events.length > 0) {
-      queryCache.set(queryCacheId, events);
+
+    if (events.length === 0) {
+      if (msgList.length === 0) {
+        setIsDBNoData(true);
+      }
+      setIsLoadingMsg(false);
+      return;
     }
 
+    // save cache
+    setMsgList(events);
+    queryCache.set(queryCacheId, events);
+    setIsDBNoData(false);
+
     setIsLoadingMsg(false);
-  };
+  }, [msgFilter, isValidEvent, relayUrls, queryCache]);
+
+  useLastReplyEvent({ msgList: memoMsgList, worker });
+  useInterval(subNewComingMsg, SUB_NEW_MSG_INTERVAL);
+  useRestoreScrollPos(scrollHeight, queryCacheId, memoMsgList.length > 0);
+
+  useEffect(() => {
+    if (!worker?.relayGroupId || relayUrls.length === 0) return;
+    loadMsgFromDb();
+  }, [msgFilter, worker?.relayGroupId, relayUrls]);
 
   const loadMore = async () => {
     if (!worker) return;
@@ -237,32 +284,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setIsLoadMore(false);
   };
 
-  useLastReplyEvent({ msgList: memoMsgList, worker });
-  useInterval(subNewMsg, 8000);
-
-  // remember and restore the last visit position in the feed
-  // todo: better way to do this?
-  useEffect(() => {
-    if (scrollHeight > 0) {
-      scrollPositionCache.set(queryCacheId, scrollHeight);
-    }
-  }, [scrollHeight]);
-  useEffect(() => {
-    const pos = scrollPositionCache.get(queryCacheId);
-    if (pos && memoMsgList.length > 0) {
-      window.scrollTo({ top: pos, behavior: 'instant' as ScrollBehavior });
-    }
-  }, [queryCacheId, memoMsgList.length > 0]);
-
-  useEffect(() => {
-    if (!worker?.relayGroupId || !worker?.relays || worker?.relays.length === 0)
-      return;
-    setNewComingMsg([]);
-    setMsgList([]);
-
-    query();
-  }, [msgFilter, worker?.relayGroupId]);
-
   const onClickNewMsg = () => {
     setMsgList(prev => {
       const newData = mergeAndSortUniqueDbEvents(newComingMsg, prev);
@@ -280,7 +301,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
     setIsPullRefreshing(true);
     worker?.subFilter({ filter: msgFilter });
-    await query();
+    await loadMsgFromDb();
     setIsPullRefreshing(false);
   };
 
@@ -299,7 +320,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
 
   return (
     <>
-      <Loader isLoading={isLoadingMsg && !isPullRefreshing} />
+      <Loader isLoading={queryLoading || fetchWhenDBNoDataLoading} />
       <PullToRefresh onRefresh={onPullToRefresh}>
         <>
           {newComingMsg.length > 0 && (
