@@ -236,6 +236,7 @@
   position: sticky;
   top: 64px; 
   background: var(--neutral-01);
+  z-index: 10;
 
   :global {
     .ant-segmented {

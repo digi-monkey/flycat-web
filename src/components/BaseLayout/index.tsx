@@ -3,24 +3,14 @@ import { RelaySelector } from 'components/RelaySelector';
 import { useTranslation } from 'next-i18next';
 import React, { useCallback, useState } from 'react';
 import Navbar from './navbar';
-import { FiMenu, FiX } from 'react-icons/fi';
-import { Button } from 'antd';
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-  DrawerClose,
-} from 'components/shared/ui/Drawer';
-import { Profile } from './profile';
 import { UserDrawer } from './drawer';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { useRouter } from 'next/router';
-import { Paths } from 'constants/path';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
+import { Tabbar } from './tabbar';
+import PubNoteTextarea from 'components/PubNoteTextarea';
+import AddNoteDialog from './add-note';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -48,17 +38,11 @@ export const Right: React.FC<RightProps> = ({ children }) => (
 );
 
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
-  const { t } = useTranslation();
-  const router = useRouter();
   const { myProfile } = useUserInfo();
-  const myPublicKey = useMyPublicKey();
-  const isLoggedIn = useSelector(
-    (state: RootState) => state.loginReducer.isLoggedIn,
-  );
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
 
-  const [openWrite, setOpenWrite] = useState(false);
+  const [openNoteDialog, setOpenNoteDialog] = useState(false);
 
   React.Children.forEach(children, (child: React.ReactNode) => {
     if (!React.isValidElement(child)) return;
@@ -68,7 +52,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
 
   const onClickPost = useCallback(() => {
     if (!myProfile) return;
-    setOpenWrite(true);
+    setOpenNoteDialog(true);
   }, [myProfile]);
 
   return (
@@ -81,27 +65,16 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         </aside>
         <main className="col-span-12 sm:col-span-7 lg:col-span-8 xl:col-span-6">
           <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
-            <div className="px-4 sticky top-0 sm:relative bg-white bg-opacity-80 backdrop-blur z-50">
+            <header className="px-4 sticky top-0 sm:relative bg-white bg-opacity-80 backdrop-blur z-50">
               <div className="flex h-16 items-center gap-3">
-                <div className="sm:hidden">
-                  <Profile
-                    user={myProfile}
-                    onClick={() => {
-                      if (!isLoggedIn) {
-                        router.push({ pathname: Paths.login });
-                        return;
-                      }
-                      router.push({ pathname: Paths.user + myPublicKey });
-                    }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <RelaySelector />
-                </div>
+                <RelaySelector />
                 <UserDrawer user={myProfile} onClickPost={onClickPost} />
               </div>
-            </div>
+            </header>
             {leftNodes}
+            <footer className="sm:hidden">
+              <Tabbar onClickPost={onClickPost} />
+            </footer>
           </div>
         </main>
         {rightNodes.length > 0 && (

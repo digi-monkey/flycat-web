@@ -9,13 +9,13 @@ import { Paths } from 'constants/path';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { Profile } from './profile';
-import { NavMenus, MenuId, navClick } from './utils';
+import { MenuId, navClick, UserMenus } from './utils';
 
 export type UserDrawerProps = {
   user?: EventSetMetadataContent;
@@ -39,24 +39,6 @@ export function UserDrawer(props: UserDrawerProps) {
   const myPublicKey = useMyPublicKey();
   const [opened, setOpened] = useState(false);
 
-  const menu = useMemo(() => {
-    const result = NavMenus.filter(item =>
-      [
-        MenuId.home,
-        MenuId.communities,
-        MenuId.relays,
-        MenuId.notifications,
-      ].includes(item.id),
-    );
-    result.splice(2, 0, {
-      id: MenuId.add,
-      icon: 'icon-plus',
-      title: 'nav.menu.blogDashboard',
-      link: Paths.write,
-    });
-    return result;
-  }, []);
-
   return (
     <Drawer open={opened} onOpenChange={setOpened}>
       <DrawerTrigger asChild>
@@ -74,36 +56,29 @@ export function UserDrawer(props: UserDrawerProps) {
             </div>
             <Profile user={user} className="justify-start" showName />
           </div>
-          <div className="border-0 border-b border-solid border-border-01 pb-2 mb-2">
-            {menu.map(item => (
-              <div
+          <ul className="list-none p-0 y-0">
+            {UserMenus.map(item => (
+              <li
                 key={item.id}
                 className="flex items-center px-2 py-3 gap-3 hover:bg-conditional-hover01 rounded-full cursor-pointer"
                 onClick={() => {
                   setOpened(false);
                   if (item.id === MenuId.add) {
                     onClickPost();
+                    return;
+                  }
+                  if (item.id === MenuId.signOut) {
+                    doLogout();
+                    return;
                   }
                   navClick(item, myPublicKey, router, isLoggedIn, t);
                 }}
               >
                 <Icon type={item.icon} className="w-6 h-6 fill-text-primary" />
                 <span className="label text-text-primary">{t(item.title)}</span>
-              </div>
+              </li>
             ))}
-          </div>
-          <div
-            className="flex items-center px-2 py-3 gap-3 hover:bg-conditional-hover01 rounded-full cursor-pointer"
-            onClick={() => {
-              setOpened(false);
-              doLogout();
-            }}
-          >
-            <Icon type="icon-Move-out" className="w-6 h-6 fill-text-primary" />
-            <span className="label text-text-primary">
-              {t('nav.menu.signOut')}
-            </span>
-          </div>
+          </ul>
         </div>
       </DrawerContent>
     </Drawer>

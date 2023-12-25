@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from 'components/shared/ui/DropdownMenu';
 import { Badge, BadgeDot } from 'components/shared/ui/Badge';
+import AddNoteDialog from './add-note';
 
 type MenuItem = {
   icon: string;
@@ -139,22 +140,23 @@ const Navbar = ({
         ))}
       </ul>
       <div className="flex justify-center xl:justify-normal">
-        <button
-          className={cn(
-            'h-11 w-11 xl:w-full px-0 xl:px-5 mt-6 bg-primary-600 hover:bg-primary-500 transition-colors rounded-full cursor-pointer border-none',
-            {
-              'bg-gray-500 hover:bg-gray-500 cursor-not-allowed': !isLoggedIn,
-            },
-          )}
-          onClick={onClickPost}
-        >
-          <div className="flex justify-center items-center w-full gap-2">
-            <Icon type="icon-Pencil" className="w-5 h-5 fill-white" />
-            <span className="hidden xl:block text-white">
-              {t('nav.menu.blogDashboard')}
-            </span>
-          </div>
-        </button>
+        <AddNoteDialog>
+          <button
+            className={cn(
+              'h-11 w-11 xl:w-full px-0 xl:px-5 mt-6 bg-primary-600 hover:bg-primary-500 transition-colors rounded-full cursor-pointer border-none',
+              {
+                'bg-gray-500 hover:bg-gray-500 cursor-not-allowed': !isLoggedIn,
+              },
+            )}
+          >
+            <div className="flex justify-center items-center w-full gap-2">
+              <Icon type="icon-Pencil" className="w-5 h-5 fill-white" />
+              <span className="hidden xl:block text-white">
+                {t('nav.menu.blogDashboard')}
+              </span>
+            </div>
+          </button>
+        </AddNoteDialog>
       </div>
     </nav>
   );

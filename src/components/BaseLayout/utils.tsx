@@ -1,5 +1,4 @@
 import { Paths } from 'constants/path';
-import Icon from 'components/Icon';
 import { message } from 'antd';
 
 export enum MenuId {
@@ -19,7 +18,14 @@ export enum MenuId {
   about = 'about',
 }
 
-export const NavMenus = [
+export type MenuItem = {
+  id: MenuId;
+  icon: string;
+  title: string;
+  link: string;
+};
+
+export const NavMenus: MenuItem[] = [
   {
     id: MenuId.home,
     icon: 'icon-home',
@@ -76,21 +82,25 @@ export const NavMenus = [
   },
 ];
 
-export const UserMenus = [
+export const UserMenus: MenuItem[] = [
   {
     id: MenuId.profile,
     icon: 'icon-user',
     title: 'nav.menu.profile',
     link: Paths.user,
   },
-  NavMenus[3],
+  {
+    id: MenuId.bookmarks,
+    icon: 'icon-bookmark',
+    title: 'nav.menu.bookmarks',
+    link: Paths.bookmarks,
+  },
   {
     id: MenuId.search,
     icon: 'icon-search',
     title: 'nav.menu.search',
     link: Paths.search,
   },
-  ,
   {
     id: MenuId.drafts,
     icon: 'icon-Draft',

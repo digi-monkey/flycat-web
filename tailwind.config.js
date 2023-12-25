@@ -107,10 +107,28 @@ module.exports = {
           '02': '#D2D2D2',
           '03': '#787878',
         },
+        overflay: {
+          '01': 'rgba(30, 30, 30, 0.08)',
+          '02': 'rgba(30, 30, 30, 0.35)',
+        },
         conditional: {
           hover01: `rgba(30, 30, 30, 0.08)`,
           selected01: '#FBFFF0',
           selected02: '#C0E085',
+        },
+      },
+      animation: {
+        'overlay-show': 'overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'content-show': 'contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      keyframes: {
+        overlayShow: {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
+        },
+        contentShow: {
+          from: { opacity: 0, transform: 'translate(-50%, -48%) scale(0.96)' },
+          to: { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
         },
       },
     },
