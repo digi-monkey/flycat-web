@@ -10,32 +10,37 @@ const mixKinds = [
   WellKnownEventKind.reposts,
 ];
 
-export enum HomeMsgFilterType {
-  all = 'All',
-  article = 'Article',
+export enum MsgFilterKey {
+  follow = 'Follow',
+  followArticle = 'Follow-Article',
+  globalAll = 'Global-All',
   media = 'Media',
-  flycat = 'Flycat',
   zh = 'Chinese',
   foodstr = 'Foodstr',
-  nostr = 'Nostr',
-  dev = 'Dev',
   bitcoin = 'Bitcoin',
-  photography = 'Photography',
-  art = 'Art',
   meme = 'Meme',
 }
 
-export interface HomeMsgFilter {
-  type: HomeMsgFilterType;
+export enum MsgFilterMode {
+  global = 'Global',
+  follow = 'Follow',
+  custom = 'Custom',
+}
+
+export interface MsgFilter {
+  key: MsgFilterKey | string;
   label: string;
   filter: Filter;
   isValidEvent?: (event: Event) => boolean;
+  mode: MsgFilterMode;
+  description?: string;
+  wasm?: ArrayBuffer | undefined;
 }
 
-export const homeMsgFilters: HomeMsgFilter[] = [
+export const defaultMsgFilters: MsgFilter[] = [
   {
-    type: HomeMsgFilterType.all,
-    label: 'All',
+    key: MsgFilterKey.follow,
+    label: 'Follow',
     filter: {
       limit: 50,
       kinds: mixKinds,
@@ -43,10 +48,12 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     isValidEvent: (event: Event) => {
       return mixKinds.includes(event.kind);
     },
+    mode: MsgFilterMode.follow,
+    description: "all your followings's mixed posts",
   },
   {
-    type: HomeMsgFilterType.article,
-    label: 'Article',
+    key: MsgFilterKey.followArticle,
+    label: 'Follow-Article',
     filter: {
       limit: 50,
       kinds: [WellKnownEventKind.long_form],
@@ -54,9 +61,24 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.long_form;
     },
+    mode: MsgFilterMode.follow,
+    description: "all your followings's long-form posts",
   },
   {
-    type: HomeMsgFilterType.media,
+    key: MsgFilterKey.globalAll,
+    label: 'Global',
+    filter: {
+      limit: 50,
+      kinds: mixKinds,
+    },
+    isValidEvent: (event: Event) => {
+      return mixKinds.includes(event.kind);
+    },
+    mode: MsgFilterMode.global,
+    description: "all the realtime global's mixed posts",
+  },
+  {
+    key: MsgFilterKey.media,
     label: 'Media',
     filter: {
       limit: 50,
@@ -68,9 +90,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
         stringHasImageUrl(event.content)
       );
     },
+    mode: MsgFilterMode.global,
+    description: 'global posts including at least one picture',
   },
   {
-    type: HomeMsgFilterType.zh,
+    key: MsgFilterKey.zh,
     label: 'Chinese',
     filter: {
       kinds: [WellKnownEventKind.text_note],
@@ -81,9 +105,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
         isChineseLang(event.content)
       );
     },
+    mode: MsgFilterMode.global,
+    description: 'global posts which language is Chinese',
   },
   {
-    type: HomeMsgFilterType.foodstr,
+    key: MsgFilterKey.foodstr,
     label: '#Foodstr',
     filter: {
       kinds: [WellKnownEventKind.text_note],
@@ -92,9 +118,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
     },
+    mode: MsgFilterMode.global,
+    description: 'global posts including #Foodstr tag',
   },
   {
-    type: HomeMsgFilterType.meme,
+    key: MsgFilterKey.meme,
     label: '#Meme',
     filter: {
       kinds: [WellKnownEventKind.text_note],
@@ -103,9 +131,11 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
     },
+    mode: MsgFilterMode.global,
+    description: 'global posts including #meme tag',
   },
   {
-    type: HomeMsgFilterType.bitcoin,
+    key: MsgFilterKey.bitcoin,
     label: '#Bitcoin',
     filter: {
       kinds: [WellKnownEventKind.text_note],
@@ -114,48 +144,15 @@ export const homeMsgFilters: HomeMsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.text_note;
     },
-  },
-  {
-    type: HomeMsgFilterType.photography,
-    label: '#Photography',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-      '#t': ['photography'],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.text_note;
-    },
-  },
-  {
-    type: HomeMsgFilterType.art,
-    label: '#Art',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-      '#t': ['art'],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.text_note;
-    },
-  },
-  {
-    type: HomeMsgFilterType.flycat,
-    label: 'Flycat',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return (
-        event.kind === WellKnownEventKind.text_note &&
-        event.content.includes('flycat')
-      );
-    },
+    mode: MsgFilterMode.global,
+    description: 'global posts including #bitcoin tag',
   },
 ];
 
-export const homeMsgFiltersMap = homeMsgFilters.reduce(
+export const defaultMsgFiltersMap = defaultMsgFilters.reduce(
   (map, filter) => ({
     ...map,
-    [filter.type]: filter,
+    [filter.key]: filter,
   }),
-  {} as Record<HomeMsgFilterType, HomeMsgFilter>,
+  {} as Record<MsgFilterKey, MsgFilter>,
 );

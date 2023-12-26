@@ -5,7 +5,7 @@ import { dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { useCallWorker } from 'hooks/useWorker';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { HomeMsgFilter, homeMsgFilters } from 'pages/home/filter';
+import { MsgFilter, defaultMsgFilters } from 'core/msg-filter/filter';
 import { useEffect, useState } from 'react';
 
 const Perf = () => {
@@ -155,7 +155,7 @@ const Perf = () => {
   const [queryTime, setQueryTime] = useState<number>(0);
   const { worker } = useCallWorker();
 
-  const query = async (msgFilter: HomeMsgFilter) => {
+  const query = async (msgFilter: MsgFilter) => {
     setQueryTime(0);
     setMsg([]);
     const start = performance.now();
@@ -173,7 +173,7 @@ const Perf = () => {
   };
 
   useEffect(() => {
-    const msgFilter = homeMsgFilters[selectNumber];
+    const msgFilter = defaultMsgFilters[selectNumber];
     query(msgFilter);
   }, [selectNumber]);
 
@@ -181,13 +181,13 @@ const Perf = () => {
     <BaseLayout>
       <Left>
         <div>
-          {homeMsgFilters.map((item, index) => (
+          {defaultMsgFilters.map((item, index) => (
             <Button key={index} onClick={() => setSelectNumber(index)}>
               {item.label}
             </Button>
           ))}
           <hr />
-          selected {homeMsgFilters[selectNumber].label}, time:{' '}
+          selected {defaultMsgFilters[selectNumber].label}, time:{' '}
           {queryTime.toLocaleString()} ms
           <hr />
           <PostItems msgList={msg} worker={worker!} />
