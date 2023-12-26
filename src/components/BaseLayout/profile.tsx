@@ -38,8 +38,8 @@ export function Profile(props: ProfileProps) {
       )}
       onClick={onClick}
     >
-      <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400">
-        {user && <Avatar.Image src={user.picture} />}
+      <Avatar.Root className="w-8 h-8 rounded-full bg-gray-400 overflow-hidden">
+        {user && <Avatar.Image src={user.picture} className="w-8 h-8" />}
         <Avatar.Fallback className="w-full h-full flex justify-center items-center">
           <Icon type="icon-user" className="w-6 h-6 fill-gray-700" />
         </Avatar.Fallback>
