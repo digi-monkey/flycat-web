@@ -65,10 +65,8 @@ export function useQueryNoScript({
   }, [worker]);
 
   useEffect(() => {
-    if (filterOptions.length > 0) return;
-
     queryNoscript();
-  }, [worker, newConn]);
+  }, [worker]);
 
   const noscriptFiltersMaps = useMemo(
     () =>
