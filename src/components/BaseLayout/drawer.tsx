@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
+import { useWindowSize } from 'usehooks-ts';
 import { NavLink } from './nav-link';
 import { Profile } from './profile';
 import { MenuItem, UserMenus } from './utils';
@@ -23,6 +24,7 @@ export function UserDrawer(props: UserDrawerProps) {
   const { user } = props;
   const { t } = useTranslation();
   const [opened, setOpened] = useState(false);
+  const { height } = useWindowSize();
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
@@ -42,7 +44,7 @@ export function UserDrawer(props: UserDrawerProps) {
           <FiMenu className="w-7 h-7 fill-gray-700" />
         </div>
       </DrawerTrigger>
-      <DrawerContent className="h-[calc(100vh-60px)] bg-surface-02 rounded-none">
+      <DrawerContent className="bg-surface-02 rounded-none" style={{ height }}>
         <div className="mx-auto w-full p-4 box-border">
           <div className="mb-2 px-2">
             <div className="flex justify-end items-center">
