@@ -22,28 +22,25 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
-import { CustomFilter } from './custom-filter';
-import { homeMsgFilters, homeMsgFiltersMap, HomeMsgFilterType } from './filter';
+import { useQueryNoScript } from './hooks/useQueryNoscript';
+import {
+  MsgFilterMode,
+  defaultMsgFiltersMap,
+  MsgFilterKey,
+  MsgFilter,
+} from '../../core/msg-filter/filter';
 import { trendingTags } from './hashtags';
-import { useSubContactList } from './hooks';
+import { useSubContactList } from './hooks/useSubContactList';
 import styles from './index.module.scss';
 import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
-import {
-  SELECTED_FILTER_STORAGE_KEY,
-  SELECTED_TAB_KEY_STORAGE_KEY,
-} from './constants';
+import { SELECTED_FILTER_STORAGE_KEY } from './constants';
+import { initSync, is_valid_event } from 'pages/noscript/filter-binding';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
   mode?: LoginMode;
   signEvent?: SignEvent;
-}
-
-enum TabKey {
-  Follow = 'follow',
-  Global = 'global',
-  Custom = 'custom',
 }
 
 const HomePage = ({ isLoggedIn }: HomePageProps) => {
@@ -54,15 +51,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const { worker, newConn } = useCallWorker();
   const isMobile = useMatchMobile();
 
-  const defaultTabActivateKey = isLoggedIn ? TabKey.Follow : TabKey.Global;
-  const defaultSelectedFilter = HomeMsgFilterType.all;
+  const defaultSelectedFilter = isLoggedIn
+    ? MsgFilterKey.all
+    : MsgFilterKey.nostr;
 
-  const [lastSelectedTabKey, setLastSelectedTabKey] = useLocalStorage<TabKey>(
-    SELECTED_TAB_KEY_STORAGE_KEY,
-    defaultTabActivateKey,
-  );
   const [lastSelectedFilter, setLastSelectedFilter] =
-    useLocalStorage<HomeMsgFilterType>(
+    useLocalStorage<MsgFilterKey>(
       SELECTED_FILTER_STORAGE_KEY,
       defaultSelectedFilter,
     );
@@ -72,6 +66,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const [alreadyQueryMyContact, setAlreadyQueryMyContact] =
     useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
+
+  const noscriptFiltersMap = useQueryNoScript({ worker });
+
+  const filtersMap = useMemo(() => {
+    const filter: Record<MsgFilterKey, MsgFilter> = {
+      ...defaultMsgFiltersMap,
+      ...noscriptFiltersMap,
+    };
+    return filter;
+  }, [defaultMsgFiltersMap, noscriptFiltersMap]);
 
   useLiveQuery(() => {
     if (!isLoggedIn) {
@@ -117,37 +121,39 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   );
 
   const onMsgFilterChanged = useCallback(() => {
-    if (
-      !lastSelectedTabKey ||
-      !lastSelectedFilter ||
-      lastSelectedTabKey === TabKey.Custom
-    ) {
+    if (!lastSelectedFilter) {
       return;
     }
 
-    const selectedMsgFilter = homeMsgFiltersMap[lastSelectedFilter] ?? {};
+    const selectedMsgFilter = filtersMap[lastSelectedFilter];
     if (!selectedMsgFilter) {
       return;
     }
 
     const msgFilter = cloneDeep(selectedMsgFilter.filter);
-    const isValidEvent = selectedMsgFilter.isValidEvent;
+    let isValidEvent = selectedMsgFilter.isValidEvent;
+    if (selectedMsgFilter.wasm) {
+      initSync(selectedMsgFilter.wasm);
+      isValidEvent = is_valid_event;
+    }
     let placeholder: ReactNode | null = null;
 
-    if (lastSelectedTabKey === TabKey.Follow) {
-      if (!isLoggedIn || myPublicKey == null || myPublicKey.length === 0) {
-        return;
-      }
+    if (!msgFilter.authors) {
+      if (selectedMsgFilter.mode === MsgFilterMode.follow) {
+        if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
+          return;
+        }
 
-      const followings: PublicKey[] = myContactEvent
-        ? parsePubKeyFromTags(myContactEvent.tags)
-        : [];
-      if (!followings.includes(myPublicKey)) {
-        followings.push(myPublicKey);
-      }
-      placeholder = emptyFollowPlaceholder;
-      if (followings.length > 0) {
-        msgFilter.authors = followings;
+        const followings: PublicKey[] = myContactEvent
+          ? parsePubKeyFromTags(myContactEvent.tags)
+          : [];
+        if (!followings.includes(myPublicKey)) {
+          followings.push(myPublicKey);
+        }
+        placeholder = emptyFollowPlaceholder;
+        if (followings.length > 0) {
+          msgFilter.authors = followings;
+        }
       }
     }
 
@@ -163,7 +169,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     myContactEvent,
     myPublicKey,
     lastSelectedFilter,
-    lastSelectedTabKey,
+    noscriptFiltersMap,
   ]);
 
   useEffect(() => {
@@ -176,36 +182,22 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       <Left>
         <PageTitle title="Home" />
         {!isMobile && <PubNoteTextarea />}
-        <div>
-          <Tabs
-            items={[
-              { key: TabKey.Follow, label: 'Follow', disabled: !isLoggedIn },
-              { key: TabKey.Global, label: 'Global' },
-              { key: TabKey.Custom, label: 'Custom' },
-            ]}
-            activeKey={lastSelectedTabKey}
-            onChange={key => setLastSelectedTabKey(key as TabKey)}
-          />
-        </div>
         <div className={isMobile ? styles.mobileFilter : styles.msgFilter}>
           <div>
-            {lastSelectedTabKey === TabKey.Custom ? (
-              <CustomFilter worker={worker} onMsgPropChange={setMsgSubProp} />
-            ) : (
-              <Segmented
-                value={lastSelectedFilter}
-                onChange={val =>
-                  setLastSelectedFilter(val as HomeMsgFilterType)
-                }
-                options={homeMsgFilters.map(val => {
-                  return {
-                    value: val.type,
-                    label: val.label,
-                  };
-                })}
-              />
-            )}
+            <Segmented
+              value={lastSelectedFilter}
+              onChange={val => setLastSelectedFilter(val as MsgFilterKey)}
+              options={Object.values(filtersMap).map(val => {
+                return {
+                  value: val.key,
+                  label: val.label,
+                };
+              })}
+            />
           </div>
+        </div>
+        <div className="text-gray-600 m-4 capitalize">
+          {filtersMap[lastSelectedFilter]?.description}
         </div>
         <MsgFeed msgSubProp={msgSubProp} worker={worker} />
       </Left>
