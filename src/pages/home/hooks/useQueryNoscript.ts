@@ -20,6 +20,14 @@ export function useQueryNoScript({
 }) {
   const [filterOptions, setFilterOptions] = useState<MsgFilter[]>([]);
 
+  useEffect(() => {
+    if (!worker) return;
+
+    const filter: Filter = Nip188.createQueryNoscriptFilter([]);
+    const callRelay = createCallRelay(newConn);
+    worker.subFilter({ filter, callRelay });
+  }, [worker, newConn]);
+
   const queryNoscript = useCallback(async () => {
     if (!worker) return;
 
@@ -53,14 +61,12 @@ export function useQueryNoScript({
       return noscript;
     });
     console.log('noscripts: ', noscripts);
-    if (noscripts.length === 0) {
-      const callRelay = createCallRelay(newConn);
-      worker.subFilter({ filter, callRelay });
-    }
     setFilterOptions(noscripts);
-  }, [worker, newConn]);
+  }, [worker]);
 
   useEffect(() => {
+    if (filterOptions.length > 0) return;
+
     queryNoscript();
   }, [worker, newConn]);
 
