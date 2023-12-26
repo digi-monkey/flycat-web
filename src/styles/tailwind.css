@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .body {
+    @apply font-noto text-sm leading-6 font-normal;
+  }
+
+  .subheader1 {
+    @apply font-poppins text-base leading-6 font-normal;
+  }
+
+  .subheader1-bold {
+    @apply font-poppins text-base leading-6 font-semibold;
+  }
+
+  .label {
+    @apply font-noto text-sm leading-[22px] font-medium;
+  }
+}

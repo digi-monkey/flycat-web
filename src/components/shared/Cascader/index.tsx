@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { ICascaderOption } from './types';
+import { ICascaderOption } from './type';
 import { CascaderOption } from './option';
 import { cn } from 'utils/classnames';
 

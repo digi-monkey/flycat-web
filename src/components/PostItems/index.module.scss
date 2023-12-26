@@ -10,19 +10,19 @@
   }
 
   .content {
-    padding-left: calc(var(--padding) * 14);
+    padding-left: calc(var(--padding) * 1);
     margin-top: var(--basePadding3);
     overflow-wrap: anywhere;
     white-space: pre-line;
 
-    @include for-mobile{
-      padding-left: calc(var(--padding) * 1);
+    @media (width >= 767px) {
+      padding-left: calc(var(--padding) * 14);
     }
   }
 }
 
-.post .embed{
-  padding: 0; 
+.post .embed {
+  padding: 0;
   border-bottom: none;
 }
 
@@ -42,7 +42,7 @@
   }
 }
 
-.communityPostTitle{
+.communityPostTitle {
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -55,5 +55,5 @@
   svg {
     width: 18px;
     height: 18px;
-  } 
+  }
 }
