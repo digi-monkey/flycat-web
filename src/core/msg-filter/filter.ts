@@ -72,7 +72,7 @@ export const defaultMsgFilters: MsgFilter[] = [
       kinds: mixKinds,
     },
     isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.long_form;
+      return mixKinds.includes(event.kind);
     },
     mode: MsgFilterMode.global,
     description: "all the realtime global's mixed posts",

@@ -9,19 +9,22 @@ import {
   MsgFilterKey,
   MsgFilterMode,
 } from '../../../core/msg-filter/filter';
+import { createCallRelay } from 'core/worker/util';
 
 export function useQueryNoScript({
   worker,
+  newConn,
 }: {
   worker: CallWorker | undefined;
+  newConn: string[];
 }) {
   const [filterOptions, setFilterOptions] = useState<MsgFilter[]>([]);
 
   const queryNoscript = useCallback(async () => {
-    if (!worker) return [];
+    if (!worker) return;
 
     const filter: Filter = Nip188.createQueryNoscriptFilter([]);
-    worker.subFilter({ filter });
+
     const relayUrls = worker.relays.map(r => r.url);
     const scriptEvents = await dbQuery.matchFilterRelay(
       filter,
@@ -50,13 +53,16 @@ export function useQueryNoScript({
       return noscript;
     });
     console.log('noscripts: ', noscripts);
+    if (noscripts.length === 0) {
+      const callRelay = createCallRelay(newConn);
+      worker.subFilter({ filter, callRelay });
+    }
     setFilterOptions(noscripts);
-    return noscripts;
-  }, [worker]);
+  }, [worker, newConn]);
 
   useEffect(() => {
     queryNoscript();
-  }, [worker]);
+  }, [worker, newConn]);
 
   const noscriptFiltersMaps = useMemo(
     () =>

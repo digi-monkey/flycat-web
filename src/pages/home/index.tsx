@@ -28,7 +28,6 @@ import {
   defaultMsgFiltersMap,
   MsgFilterKey,
   MsgFilter,
-  defaultMsgFilters,
 } from '../../core/msg-filter/filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
@@ -68,7 +67,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
 
-  const noscriptFiltersMap = useQueryNoScript({ worker });
+  const noscriptFiltersMap = useQueryNoScript({ worker, newConn });
 
   const filtersMap = useMemo(() => {
     const filter: Record<MsgFilterKey, MsgFilter> = {
