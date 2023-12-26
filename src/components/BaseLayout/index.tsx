@@ -4,6 +4,7 @@ import React, { useCallback, useState } from 'react';
 import Navbar from './navbar';
 import { UserDrawer } from './drawer';
 import { Tabbar } from './tabbar';
+import { cn } from 'utils/classnames';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -49,7 +50,14 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             <Navbar user={myProfile} />
           </div>
         </aside>
-        <main className="col-span-12 sm:col-span-7 lg:col-span-8 xl:col-span-6">
+        <main
+          className={cn(
+            'col-span-12 sm:col-span-7 lg:col-span-8 xl:col-span-6',
+            {
+              'lg:col-span-11 xl:col-span-9': rightNodes.length === 0,
+            },
+          )}
+        >
           <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
             <header className="px-4 sticky top-0 sm:relative bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-50">
               <div className="flex h-16 items-center gap-3">
