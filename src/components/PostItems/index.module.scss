@@ -10,13 +10,13 @@
   }
 
   .content {
-    padding-left: calc(var(--padding) * 14);
+    padding-left: calc(var(--padding) * 1);
     margin-top: var(--basePadding3);
     overflow-wrap: anywhere;
     white-space: pre-line;
 
-    @media (width <= 767px) {
-      padding-left: calc(var(--padding) * 1);
+    @media (width >= 767px) {
+      padding-left: calc(var(--padding) * 14);
     }
   }
 }
