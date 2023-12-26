@@ -15,14 +15,14 @@
     overflow-wrap: anywhere;
     white-space: pre-line;
 
-    @include for-mobile{
+    @media (width <= 767px) {
       padding-left: calc(var(--padding) * 1);
     }
   }
 }
 
-.post .embed{
-  padding: 0; 
+.post .embed {
+  padding: 0;
   border-bottom: none;
 }
 
@@ -42,7 +42,7 @@
   }
 }
 
-.communityPostTitle{
+.communityPostTitle {
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -55,5 +55,5 @@
   svg {
     width: 18px;
     height: 18px;
-  } 
+  }
 }

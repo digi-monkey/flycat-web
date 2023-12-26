@@ -8,6 +8,7 @@ import { EventSetMetadataContent } from 'core/nostr/type';
 
 import styles from '../index.module.scss';
 import dynamic from 'next/dynamic';
+import { cn } from 'utils/classnames';
 
 const PostUser = dynamic(
   async () => {
@@ -62,7 +63,7 @@ export const PostUI: React.FC<PostUIProp> = ({
       event={event}
       extraMenu={extraMenu}
     />
-    <div className={styles.content}>
+    <div className={cn(styles.content)}>
       {content}
       <PostReactions
         ownerEvent={toUnSeenEvent(event)}

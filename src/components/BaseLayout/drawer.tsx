@@ -44,7 +44,10 @@ export function UserDrawer(props: UserDrawerProps) {
           <FiMenu className="w-7 h-7 fill-gray-700" />
         </div>
       </DrawerTrigger>
-      <DrawerContent className="bg-surface-02 rounded-none" style={{ height }}>
+      <DrawerContent
+        className="h-screen bg-surface-02 rounded-none"
+        style={{ height }}
+      >
         <div className="mx-auto w-full p-4 box-border">
           <div className="mb-2 px-2">
             <div className="flex justify-end items-center">
