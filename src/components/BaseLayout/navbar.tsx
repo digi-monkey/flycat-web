@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import { MenuId, NavMenus, UserMenus, navClick, getNavLink } from './utils';
+import { MenuId, NavMenus, UserMenus, getNavLink, MenuItem } from './utils';
 import Link from 'next/link';
 import Icon from 'components/Icon';
 import dynamic from 'next/dynamic';
@@ -20,41 +20,28 @@ import {
 } from 'components/shared/ui/DropdownMenu';
 import { Badge, BadgeDot } from 'components/shared/ui/Badge';
 import AddNoteDialog from './add-note';
-
-type MenuItem = {
-  icon: string;
-  value: string;
-  label: string;
-  id: string;
-  link: string;
-};
+import { NavLink } from './nav-link';
 
 const Navbar = ({ user }: { user?: EventSetMetadataContent }) => {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
   const isNewUnread = useNotification();
-  const doLogout = () => {
-    dispatch({
-      type: 'LOGOUT',
-    });
-    router.push(Paths.login);
-  };
 
   const userMenus = UserMenus.reduce((result, item) => {
     if (!item || item.id === MenuId.bookmarks) return result;
+    result.push(item);
+    return result;
+  }, [] as MenuItem[]);
 
-    result.push({
-      icon: item?.icon,
-      value: item?.id,
-      label: t(item?.title),
-      id: item?.id,
-      link: item?.link,
-    });
+  const navMenus = NavMenus.reduce((result, item) => {
+    if (!isLoggedIn && item.needLogin) {
+      return result;
+    }
+    result.push(item);
     return result;
   }, [] as MenuItem[]);
 
@@ -78,33 +65,21 @@ const Navbar = ({ user }: { user?: EventSetMetadataContent }) => {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {userMenus.map(item => (
-                  <DropdownMenuItem
-                    key={item.id}
-                    onSelect={() => {
-                      if (item.id === MenuId.signOut) {
-                        doLogout();
-                        return;
-                      }
-                      navClick(item, myPublicKey, router, isLoggedIn, t);
-                    }}
-                  >
+                  <NavLink key={item.id} as={DropdownMenuItem} item={item}>
                     <Icon
                       type={item.icon}
                       className="w-[18px] h-[18px] fill-text-primary"
                     />
-                    <span className="label">{item.label}</span>
-                  </DropdownMenuItem>
+                    <span className="label">{t(item.title)}</span>
+                  </NavLink>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Profile
-              user={user}
-              onClick={() => router.push({ pathname: Paths.login })}
-            />
+            <Profile user={user} />
           )}
         </li>
-        {NavMenus.map((item, key) => {
+        {navMenus.map((item, key) => {
           const isActive =
             getNavLink(item, myPublicKey) ===
             router.pathname.replace('[publicKey]', myPublicKey);
@@ -129,7 +104,7 @@ const Navbar = ({ user }: { user?: EventSetMetadataContent }) => {
                   />
                   <div
                     className={cn('hidden xl:block', {
-                      'text-neutral-900 font-subheader1-bold': isActive,
+                      'text-neutral-900 subheader1-bold': isActive,
                     })}
                   >
                     {t(item.title)}

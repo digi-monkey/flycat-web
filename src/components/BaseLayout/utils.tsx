@@ -1,5 +1,4 @@
 import { Paths } from 'constants/path';
-import { message } from 'antd';
 
 export enum MenuId {
   home = 'home',
@@ -23,6 +22,7 @@ export type MenuItem = {
   icon: string;
   title: string;
   link: string;
+  needLogin?: boolean;
 };
 
 export const NavMenus: MenuItem[] = [
@@ -49,6 +49,7 @@ export const NavMenus: MenuItem[] = [
     icon: 'icon-bookmark',
     title: 'nav.menu.bookmarks',
     link: Paths.bookmarks,
+    needLogin: true,
   },
   {
     id: MenuId.search,
@@ -61,6 +62,7 @@ export const NavMenus: MenuItem[] = [
     icon: 'icon-notification',
     title: 'nav.menu.notifications',
     link: Paths.notification,
+    needLogin: true,
   },
   {
     id: MenuId.preference,
@@ -73,6 +75,7 @@ export const NavMenus: MenuItem[] = [
     icon: 'icon-user',
     title: 'nav.menu.profile',
     link: Paths.user,
+    needLogin: true,
   },
   {
     id: MenuId.about,
@@ -88,12 +91,14 @@ export const UserMenus: MenuItem[] = [
     icon: 'icon-user',
     title: 'nav.menu.profile',
     link: Paths.user,
+    needLogin: true,
   },
   {
     id: MenuId.bookmarks,
     icon: 'icon-bookmark',
     title: 'nav.menu.bookmarks',
     link: Paths.bookmarks,
+    needLogin: true,
   },
   {
     id: MenuId.search,
@@ -106,6 +111,7 @@ export const UserMenus: MenuItem[] = [
     icon: 'icon-Draft',
     title: 'nav.menu.drafts',
     link: Paths.draft,
+    needLogin: true,
   },
   {
     id: MenuId.settings,
@@ -124,40 +130,13 @@ export const UserMenus: MenuItem[] = [
     icon: 'icon-Move-out',
     title: 'nav.menu.signOut',
     link: Paths.login,
+    needLogin: true,
   },
 ];
 
-/**
- * Get nav link
- * @param item
- * @param  myPublicKey
- * @returns {string}
- */
-export const getNavLink = (item, myPublicKey) => {
-  let link = item.link;
-  if (item.id === MenuId.profile) link = item.link + myPublicKey;
-  return link;
-};
-
-/**
- * Navigation action
- * @param item
- * @param myPublicKey
- * @param router
- * @param isLoggedIn
- * @param t
- * @returns {undefined}
- */
-export const navClick = (item, myPublicKey, router, isLoggedIn, t) => {
-  const link: string | undefined = getNavLink(item, myPublicKey);
-
-  if (
-    !isLoggedIn &&
-    [MenuId.notifications, MenuId.bookmarks].includes(item.id)
-  ) {
-    message.warning(t('comment.login'));
-    return;
+export const getNavLink = (item: MenuItem, myPublicKey: string) => {
+  if (item.id === MenuId.profile) {
+    return `${item.link}/${myPublicKey}`;
   }
-
-  router.push(link);
+  return item.link;
 };

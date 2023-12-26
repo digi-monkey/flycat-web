@@ -5,19 +5,30 @@ import { EventSetMetadataContent } from 'core/nostr/type';
 import { useTranslation } from 'react-i18next';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { cn } from 'utils/classnames';
+import { useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { Paths } from 'constants/path';
 
 type ProfileProps = {
   user?: EventSetMetadataContent;
   showName?: boolean;
   className?: string;
-  onClick?(): void;
 };
 
 export function Profile(props: ProfileProps) {
   const { t } = useTranslation();
-  const { user, showName, className, onClick } = props;
+  const { user, showName, className } = props;
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = !!myPublicKey;
+  const router = useRouter();
+
+  const onClick = useCallback(() => {
+    if (!isLoggedIn) {
+      router.push(Paths.login);
+      return;
+    }
+    router.push(Paths.user + myPublicKey);
+  }, [isLoggedIn, router, myPublicKey]);
 
   return (
     <div

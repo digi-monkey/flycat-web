@@ -25,7 +25,7 @@ const AddNoteDialog = (props: AddNoteDialogProps) => {
           )}
         >
           <div className="flex flex-col px-6 gap-3 mb-3">
-            <Dialog.Title className="my-0 font-subheader01-bold text-text-primary">
+            <Dialog.Title className="my-0 subheader01-bold text-text-primary">
               {t('baseLayout.modal.title')}
             </Dialog.Title>
             <Dialog.Description className="label text-text-secondary my-0">

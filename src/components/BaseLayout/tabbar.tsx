@@ -1,22 +1,14 @@
 import Icon from 'components/Icon';
 import { Paths } from 'constants/path';
-import { useMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { RootState } from 'store/configureStore';
 import { cn } from 'utils/classnames';
 import AddNoteDialog from './add-note';
-import { NavMenus, MenuId, navClick, MenuItem } from './utils';
+import { NavLink } from './nav-link';
+import { NavMenus, MenuId, MenuItem } from './utils';
 
 export function Tabbar() {
-  const { t } = useTranslation();
   const router = useRouter();
-  const myPublicKey = useMyPublicKey();
-  const isLoggedIn = useSelector(
-    (state: RootState) => state.loginReducer.isLoggedIn,
-  );
 
   const navs = useMemo(() => {
     const result = NavMenus.filter(item =>
@@ -39,13 +31,11 @@ export function Tabbar() {
   const renderItem = useCallback(
     (item: MenuItem) => {
       return (
-        <li
+        <NavLink
           key={item.id}
-          className="flex justify-center flex-1 pt-2 cursor-pointer"
-          onClick={() =>
-            item.id !== MenuId.add &&
-            navClick(item, myPublicKey, router, isLoggedIn, t)
-          }
+          as="li"
+          item={item}
+          className="flex justify-center flex-1 py-2 cursor-pointer"
         >
           <div
             className={cn(
@@ -63,14 +53,14 @@ export function Tabbar() {
               })}
             />
           </div>
-        </li>
+        </NavLink>
       );
     },
-    [myPublicKey, router, isLoggedIn, t],
+    [router],
   );
 
   return (
-    <div className="fixed bottom-0 h-[60px] w-screen bg-white bg-opacity-80 backdrop-blur z-50">
+    <div className="fixed bottom-0 pb-[env(safe-area-inset-bottom)] h-[44px] w-screen bg-white bg-opacity-80 backdrop-blur z-50">
       <ul className="flex list-none p-0 m-0">
         {navs.map(item => (
           <>

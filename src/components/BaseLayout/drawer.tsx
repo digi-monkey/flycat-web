@@ -5,17 +5,15 @@ import {
   DrawerContent,
   DrawerClose,
 } from 'components/shared/ui/Drawer';
-import { Paths } from 'constants/path';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import { useMyPublicKey } from 'hooks/useMyPublicKey';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
+import { NavLink } from './nav-link';
 import { Profile } from './profile';
-import { MenuId, navClick, UserMenus } from './utils';
+import { MenuItem, UserMenus } from './utils';
 
 export type UserDrawerProps = {
   user?: EventSetMetadataContent;
@@ -23,20 +21,19 @@ export type UserDrawerProps = {
 
 export function UserDrawer(props: UserDrawerProps) {
   const { user } = props;
-  const router = useRouter();
   const { t } = useTranslation();
+  const [opened, setOpened] = useState(false);
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
-  const dispatch = useDispatch();
-  const doLogout = () => {
-    dispatch({
-      type: 'LOGOUT',
-    });
-    router.push(Paths.login);
-  };
-  const myPublicKey = useMyPublicKey();
-  const [opened, setOpened] = useState(false);
+
+  const userMenus = UserMenus.reduce((result, item) => {
+    if (!isLoggedIn && item.needLogin) {
+      return result;
+    }
+    result.push(item);
+    return result;
+  }, [] as MenuItem[]);
 
   return (
     <Drawer open={opened} onOpenChange={setOpened}>
@@ -56,22 +53,17 @@ export function UserDrawer(props: UserDrawerProps) {
             <Profile user={user} className="justify-start" showName />
           </div>
           <ul className="list-none p-0 y-0">
-            {UserMenus.map(item => (
-              <li
+            {userMenus.map(item => (
+              <NavLink
                 key={item.id}
+                as="li"
+                item={item}
                 className="flex items-center px-2 py-3 gap-3 hover:bg-conditional-hover01 rounded-full cursor-pointer"
-                onClick={() => {
-                  setOpened(false);
-                  if (item.id === MenuId.signOut) {
-                    doLogout();
-                    return;
-                  }
-                  navClick(item, myPublicKey, router, isLoggedIn, t);
-                }}
+                onClick={() => setOpened(false)}
               >
                 <Icon type={item.icon} className="w-6 h-6 fill-text-primary" />
                 <span className="label text-text-primary">{t(item.title)}</span>
-              </li>
+              </NavLink>
             ))}
           </ul>
         </div>
