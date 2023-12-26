@@ -42,7 +42,7 @@ export function UserDrawer(props: UserDrawerProps) {
           <FiMenu className="w-7 h-7 fill-gray-700" />
         </div>
       </DrawerTrigger>
-      <DrawerContent className="h-screen bg-surface-02 rounded-none">
+      <DrawerContent className="h-[calc(100vh-60px)] bg-surface-02 rounded-none">
         <div className="mx-auto w-full p-4 box-border">
           <div className="mb-2 px-2">
             <div className="flex justify-end items-center">
@@ -59,7 +59,10 @@ export function UserDrawer(props: UserDrawerProps) {
                 as="li"
                 item={item}
                 className="flex items-center px-2 py-3 gap-3 hover:bg-conditional-hover01 rounded-full cursor-pointer"
-                onClick={() => setOpened(false)}
+                onClick={() => {
+                  setOpened(false);
+                  return true;
+                }}
               >
                 <Icon type={item.icon} className="w-6 h-6 fill-text-primary" />
                 <span className="label text-text-primary">{t(item.title)}</span>

@@ -36,6 +36,7 @@ export function Tabbar() {
           as="li"
           item={item}
           className="flex justify-center flex-1 py-2 cursor-pointer"
+          onClick={() => item.id !== MenuId.add}
         >
           <div
             className={cn(
@@ -60,7 +61,7 @@ export function Tabbar() {
   );
 
   return (
-    <div className="fixed bottom-0 pb-[env(safe-area-inset-bottom)] h-[44px] w-screen bg-white bg-opacity-80 backdrop-blur z-50">
+    <div className="fixed bottom-0 h-[56px] w-screen bg-white bg-opacity-80 backdrop-blur z-50">
       <ul className="flex list-none p-0 m-0">
         {navs.map(item => (
           <>

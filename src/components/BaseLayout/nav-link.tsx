@@ -24,7 +24,10 @@ export function NavLink(props: NavLinkProps) {
   );
 
   const onClick = useCallback(() => {
-    props.onClick?.(item);
+    const success = props.onClick?.(item);
+    if (!success) {
+      return;
+    }
     if (item.id === MenuId.signOut) {
       dispatch({
         type: 'LOGOUT',
