@@ -52,8 +52,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
 
   const defaultSelectedFilter = isLoggedIn
-    ? MsgFilterKey.all
-    : MsgFilterKey.nostr;
+    ? MsgFilterKey.follow
+    : MsgFilterKey.globalAll;
 
   const [lastSelectedFilter, setLastSelectedFilter] =
     useLocalStorage<MsgFilterKey>(

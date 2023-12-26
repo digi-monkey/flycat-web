@@ -11,17 +11,13 @@ const mixKinds = [
 ];
 
 export enum MsgFilterKey {
-  all = 'All',
-  article = 'Article',
+  follow = 'Follow',
+  followArticle = 'Follow-Article',
+  globalAll = 'Global-All',
   media = 'Media',
-  flycat = 'Flycat',
   zh = 'Chinese',
   foodstr = 'Foodstr',
-  nostr = 'Nostr',
-  dev = 'Dev',
   bitcoin = 'Bitcoin',
-  photography = 'Photography',
-  art = 'Art',
   meme = 'Meme',
 }
 
@@ -43,7 +39,7 @@ export interface MsgFilter {
 
 export const defaultMsgFilters: MsgFilter[] = [
   {
-    key: MsgFilterKey.all,
+    key: MsgFilterKey.follow,
     label: 'Follow',
     filter: {
       limit: 50,
@@ -56,7 +52,7 @@ export const defaultMsgFilters: MsgFilter[] = [
     description: "all your followings's mixed posts",
   },
   {
-    key: MsgFilterKey.article,
+    key: MsgFilterKey.followArticle,
     label: 'Follow-Article',
     filter: {
       limit: 50,
@@ -67,6 +63,19 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.follow,
     description: "all your followings's long-form posts",
+  },
+  {
+    key: MsgFilterKey.globalAll,
+    label: 'Global',
+    filter: {
+      limit: 50,
+      kinds: mixKinds,
+    },
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.long_form;
+    },
+    mode: MsgFilterMode.global,
+    description: "all the realtime global's mixed posts",
   },
   {
     key: MsgFilterKey.media,
