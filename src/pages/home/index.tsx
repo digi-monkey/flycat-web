@@ -28,6 +28,7 @@ import {
   defaultMsgFiltersMap,
   MsgFilterKey,
   MsgFilter,
+  defaultMsgFilters,
 } from '../../core/msg-filter/filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
@@ -74,8 +75,19 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       ...defaultMsgFiltersMap,
       ...noscriptFiltersMap,
     };
+    if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
+      return Object.values(filter)
+        .filter(v => v.mode !== MsgFilterMode.follow)
+        .reduce(
+          (map, filter) => ({
+            ...map,
+            [filter.key]: filter,
+          }),
+          {} as Record<MsgFilterKey, MsgFilter>,
+        );
+    }
     return filter;
-  }, [defaultMsgFiltersMap, noscriptFiltersMap]);
+  }, [defaultMsgFiltersMap, noscriptFiltersMap, isLoggedIn, myPublicKey]);
 
   useLiveQuery(() => {
     if (!isLoggedIn) {
