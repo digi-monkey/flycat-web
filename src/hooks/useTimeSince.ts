@@ -1,34 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'next-i18next';
 
 export function useTimeSince(timestamp: number): string {
   const { t } = useTranslation();
-  const [timeSince, setTimeSince] = useState<string>('');
 
-  useEffect(() => {
+  const timeSince = useMemo(() => {
     const currentTime = Date.now() / 1000;
-    const timeDifference = currentTime - timestamp;
+    const timeDifference = Math.max(currentTime - timestamp, 0);
+
+    if (timeDifference === 0) {
+      return t('timeSince.now') as string;
+    }
 
     if (timeDifference < 60) {
-      setTimeSince(`${Math.floor(timeDifference)} ${t('timeSince.seconds')}`);
-    } else if (timeDifference < 3600) {
-      setTimeSince(
-        `${Math.floor(timeDifference / 60)} ${t('timeSince.minutes')}`,
-      );
-    } else if (timeDifference < 86400) {
-      setTimeSince(
-        `${Math.floor(timeDifference / 3600)} ${t('timeSince.hours')}`,
-      );
-    } else if (timeDifference < 2592000) {
-      setTimeSince(
-        `${Math.floor(timeDifference / 86400)} ${t('timeSince.days')}`,
-      );
-    } else {
-      setTimeSince(
-        `${Math.floor(timeDifference / 2592000)} ${t('timeSince.month')}`,
-      );
+      return `${Math.floor(timeDifference)} ${t('timeSince.seconds')}`;
     }
-  }, [timestamp]);
+    if (timeDifference < 3600) {
+      return `${Math.floor(timeDifference / 60)} ${t('timeSince.minutes')}`;
+    }
+    if (timeDifference < 86400) {
+      return `${Math.floor(timeDifference / 3600)} ${t('timeSince.hours')}`;
+    }
+    if (timeDifference < 2592000) {
+      return `${Math.floor(timeDifference / 86400)} ${t('timeSince.days')}`;
+    }
+    return `${Math.floor(timeDifference / 2592000)} ${t('timeSince.month')}`;
+  }, [timestamp, t]);
 
   return timeSince;
 }

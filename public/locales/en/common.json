@@ -4,6 +4,7 @@
     "noNumberData": "?"
   },
   "timeSince": {
+    "now": "just now",
     "seconds": "seconds ago",
     "minutes": "minutes ago",
     "hours": "hours ago",

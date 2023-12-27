@@ -1,4 +1,4 @@
-import { Avatar, message } from 'antd';
+import { message } from 'antd';
 import { Paths } from 'constants/path';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { EventWithSeen } from 'pages/type';
@@ -7,8 +7,7 @@ import { useEffect, useState } from 'react';
 import { isNip05DomainName } from 'core/nip/05';
 import { PostUserMenu } from './menu';
 import { EventSetMetadataContent } from 'core/nostr/type';
-
-import styles from './index.module.scss';
+import * as Avatar from '@radix-ui/react-avatar';
 import Link from 'next/link';
 
 interface PostUserProps {
@@ -37,17 +36,34 @@ const PostUser: React.FC<PostUserProps> = ({
     }
   }, [profile]);
 
+  const name =
+    profile?.display_name ||
+    profile?.name ||
+    `${publicKey.slice(0, 8)}...${publicKey.slice(-8)}`;
+
   return (
-    <div className={styles.postUser}>
-      <div className={styles.user}>
-        <Link href={userUrl}>
-          <Avatar src={profile?.picture} alt="picture" />
+    <div className="flex justify-between">
+      <div className="flex gap-3">
+        <Link href={userUrl} className="no-underline">
+          <Avatar.Root className="flex justify-center items-center w-11 h-11 bg-gray-200 rounded-full overflow-hidden">
+            <Avatar.Image
+              src={profile?.picture}
+              alt={name}
+              className="w-full h-full"
+            />
+            <Avatar.Fallback className="text-lg font-medium uppercase text-gray-400">
+              {name.slice(0, 2)}
+            </Avatar.Fallback>
+          </Avatar.Root>
         </Link>
-        <div className={styles.info}>
-          <Link href={userUrl}>{profile?.name || '...'}</Link>
-          <p>
-            <time>{timeSince}</time>
-          </p>
+        <div className="flex flex-col gap-0.5">
+          <Link
+            className="text-neutral-900 subheader2 no-underline"
+            href={userUrl}
+          >
+            {name}
+          </Link>
+          <time className="text-neutral-600 footnote">{timeSince}</time>
         </div>
       </div>
       <PostUserMenu publicKey={publicKey} event={event} extraMenu={extraMenu} />
