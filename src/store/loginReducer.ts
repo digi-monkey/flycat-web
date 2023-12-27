@@ -178,6 +178,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       return {
         mode,
         isLoggedIn: isLoggedIn,
+        publicKey: pk,
         getPublicKey: async () => {
           return await window.nostr!.getPublicKey();
         },
@@ -198,6 +199,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       return {
         mode,
         isLoggedIn: isLoggedIn,
+        publicKey: pk,
         getPublicKey: async () => {
           return await requestPublicKeyFromDotBit(request.didAlias!);
         },
@@ -219,6 +221,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       return {
         mode,
         isLoggedIn: true,
+        publicKey: pk,
         getPublicKey: async () => {
           return await requestPublicKeyFromNip05DomainName(
             request.nip05DomainName!,
@@ -244,6 +247,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
       return {
         mode,
         isLoggedIn: isLoggedIn,
+        publicKey: pk,
         getPublicKey: getPublicKey,
         signEvent: createMetamaskSignEvent(request.evmUsername),
         evmUsername: request.evmUsername,
@@ -264,6 +268,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
 
       return {
         mode,
+        publicKey: pk,
         isLoggedIn: isLoggedIn,
         getPublicKey: getPublicKey,
         signEvent: createWalletConnectSignEvent(request.evmUsername),
@@ -279,6 +284,7 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
 
       return {
         mode,
+        publicKey: pk,
         isLoggedIn: isLoggedIn,
         getPublicKey: async () => {
           return await joyIdNostr.getPublicKey();
