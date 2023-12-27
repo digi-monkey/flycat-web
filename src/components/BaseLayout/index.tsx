@@ -58,7 +58,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             },
           )}
         >
-          <div className="min-h-screen border-0 border-r border-solid border-neutral-200">
+          <div className="pb-[56px] sm:pb-0 min-h-screen border-0 border-r border-solid border-neutral-200">
             <header className="px-4 sticky top-0 bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-50">
               <div className="flex h-16 items-center gap-3">
                 <RelaySelector />

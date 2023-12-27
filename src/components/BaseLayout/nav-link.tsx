@@ -25,7 +25,7 @@ export function NavLink(props: NavLinkProps) {
 
   const onClick = useCallback(() => {
     const success = props.onClick?.(item);
-    if (!success) {
+    if (props.onClick && !success) {
       return;
     }
     if (item.id === MenuId.signOut) {
