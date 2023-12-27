@@ -16,9 +16,6 @@ export enum MsgFilterKey {
   globalAll = 'Global-All',
   media = 'Media',
   zh = 'Chinese',
-  foodstr = 'Foodstr',
-  bitcoin = 'Bitcoin',
-  meme = 'Meme',
 }
 
 export enum MsgFilterMode {
@@ -107,45 +104,6 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.global,
     description: 'global posts which language is Chinese',
-  },
-  {
-    key: MsgFilterKey.foodstr,
-    label: '#Foodstr',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-      '#t': ['foodstr'],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.text_note;
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts including #Foodstr tag',
-  },
-  {
-    key: MsgFilterKey.meme,
-    label: '#Meme',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-      '#t': ['meme'],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.text_note;
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts including #meme tag',
-  },
-  {
-    key: MsgFilterKey.bitcoin,
-    label: '#Bitcoin',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-      '#t': ['bitcoin'],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.text_note;
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts including #bitcoin tag',
   },
 ];
 
