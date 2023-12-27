@@ -13,7 +13,7 @@ import { mergeAndSortUniqueDbEvents } from 'utils/common';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { Loader } from 'components/Loader';
 import { createQueryCacheId, queryCache } from 'core/cache/query';
-import { useIntersectionObserver, useInterval } from 'usehooks-ts';
+import { useInterval } from 'usehooks-ts';
 import { useRestoreScrollPos } from './hook/useRestoreScrollPos';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
@@ -51,11 +51,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [isDBNoData, setIsDBNoData] = useState<boolean>(false);
 
   const SUB_NEW_MSG_INTERVAL = 2000; // milsecs
-
-  // check if newMsgNotify UI is in view, if not, display floating one
-  const newMsgNotifyRef = useRef<HTMLDivElement | null>(null);
-  const entry = useIntersectionObserver(newMsgNotifyRef, {});
-  const isNotifyVisible = !!entry?.isIntersecting;
 
   const relayUrls = useMemo(
     () => worker?.relays.map(r => r.url) || [],
@@ -291,9 +286,6 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return newData;
     });
     setNewComingMsg([]);
-    if (!isNotifyVisible) {
-      window.scrollTo({ top: 0 });
-    }
   };
 
   const onPullToRefresh = async () => {
@@ -324,15 +316,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       <PullToRefresh onRefresh={onPullToRefresh}>
         <>
           {newComingMsg.length > 0 && (
-            <div ref={newMsgNotifyRef} className={styles.reloadFeedBtn}>
-              <Button onClick={onClickNewMsg} type="link">
-                Show {newComingMsg.length} new posts
-              </Button>
-            </div>
-          )}
-
-          {newComingMsg.length > 0 && !isNotifyVisible && (
-            <div className={classNames(styles.reloadFeedBtn, styles.fixed)}>
+            <div className={styles.reloadFeedBtn}>
               <Button onClick={onClickNewMsg} type="link">
                 Show {newComingMsg.length} new posts
               </Button>
