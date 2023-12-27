@@ -1,6 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { RelayMode } from '../type';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { isValidPublicKey } from 'utils/validator';
 
 const SELECTED_RELAY_MODE_KEY = 'relay-selector:selected-mode:{{pubKey}}';
 const SELECTED_RELAY_GROUP_ID_KEY =
@@ -23,14 +27,19 @@ const getLegacyLocalValue = (key: string) => {
   }
 };
 
-export function useSelectedRelay(myPublicKey: string) {
+export function useSelectedRelay() {
+  const localPubkey = useReadonlyMyPublicKey();
+  const pubkey = useSelector(
+    (state: RootState) => state.loginReducer.publicKey,
+  );
+  const myPublicKey = isValidPublicKey(localPubkey) ? localPubkey : pubkey;
   const selectedModeKey = SELECTED_RELAY_MODE_KEY.replace(
     '{{pubKey}}',
-    myPublicKey,
+    myPublicKey ?? 'unknown',
   );
   const selectedGroupIdKey = SELECTED_RELAY_GROUP_ID_KEY.replace(
     '{{pubKey}}',
-    myPublicKey,
+    myPublicKey ?? 'unknown',
   );
 
   const [selectedMode = getLegacyLocalValue(selectedModeKey), setSelectedMode] =
