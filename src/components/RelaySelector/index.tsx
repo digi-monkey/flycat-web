@@ -179,11 +179,11 @@ export function RelaySelector({
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
-                <span className="text-text-primary text-sm font-noto">
+                <span className="text-text-primary text-sm font-noto whitespace-nowrap">
                   {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
                 </span>
               </div>
-              <span className="text-text-primary text-sm font-noto">
+              <span className="text-text-primary text-sm font-noto whitespace-nowrap">
                 {toConnectStatus(
                   groupId ?? 'default',
                   wsConnectStatus,
