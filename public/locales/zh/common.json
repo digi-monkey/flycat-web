@@ -4,6 +4,7 @@
     "noNumberData": "?"
   },
   "timeSince": {
+    "now": "刚刚",
     "seconds": "秒钟前",
     "minutes": "分钟前",
     "hours": "小时前",

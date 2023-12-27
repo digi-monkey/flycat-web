@@ -1,6 +1,5 @@
 import { EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { useTranslation } from 'next-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from 'antd';
 import { CallWorker } from 'core/worker/caller';
@@ -34,7 +33,6 @@ export const PostContent: React.FC<PostContentProp> = ({
   showLastReplyToEvent = true,
   isExpanded = false,
 }) => {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const lastReplyToEventId = useMemo(() => {
@@ -45,7 +43,7 @@ export const PostContent: React.FC<PostContentProp> = ({
       })
       .pop();
     return lastReply?.id;
-  }, [msgEvent.id]);
+  }, [msgEvent]);
 
   const [expanded, setExpanded] = useState(isExpanded);
   const [content, setContent] = useState<any[]>([]);
@@ -63,7 +61,7 @@ export const PostContent: React.FC<PostContentProp> = ({
   useEffect(() => {
     const elements = doTextTransformer(msgEvent.id, msgEvent.content, []);
     setContent(renderContent(elements, isNsfwEvent(msgEvent)));
-  }, []);
+  }, [msgEvent]);
 
   const contentStyle = { cursor: 'pointer' };
   const onContentClick = e => {

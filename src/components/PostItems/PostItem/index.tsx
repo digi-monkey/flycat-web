@@ -46,7 +46,7 @@ const PostArticle = dynamic(
 
 const PostContent = dynamic(
   async () => {
-    const { PostContent } = await import('../PostContent/index');
+    const { PostContent } = await import('../PostContent');
     return PostContent;
   },
   {
@@ -159,7 +159,16 @@ export const PostItem: React.FC<PostItemProps> = ({
         extraHeader={extraHeader}
       />
     );
-  }, [event.id, profile]);
+  }, [
+    event,
+    profile,
+    worker,
+    showLastReplyToEvent,
+    showFromCommunity,
+    extraMenu,
+    extraHeader,
+    isExpanded,
+  ]);
 
   return render;
 };

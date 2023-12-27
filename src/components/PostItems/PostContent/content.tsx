@@ -96,6 +96,7 @@ export const renderContent = (elements: ParsedFragment[], isNsfw = false) => {
           src={element.content}
           width={15}
           height={15}
+          alt={element.content}
           className="custom-emoji"
         />,
       );
