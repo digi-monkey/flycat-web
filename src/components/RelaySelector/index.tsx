@@ -43,7 +43,7 @@ export function RelaySelector({
   const myPublicKey = useReadonlyMyPublicKey();
   const defaultGroup = useDefaultGroup();
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedRelay, setSelectedRelay] = useSelectedRelay(myPublicKey);
+  const [selectedRelay, setSelectedRelay] = useSelectedRelay();
 
   useEffect(() => {
     if (newConnCallback) {
