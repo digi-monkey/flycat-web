@@ -34,10 +34,16 @@ export function useQueryNoScript({
     const filter: Filter = Nip188.createQueryNoscriptFilter([]);
 
     const relayUrls = worker.relays.map(r => r.url);
-    const scriptEvents = await dbQuery.matchFilterRelay(
-      filter,
-      relayUrls,
-      Nip188.isValidCustomMsgFilterNoscript(),
+    const scriptEvents = (
+      await dbQuery.matchFilterRelay(
+        filter,
+        relayUrls,
+        Nip188.isValidCustomMsgFilterNoscript(),
+      )
+    ).filter(
+      e =>
+        e.id !==
+        '9cfe0338768a5896df7c2939cb362dbb431eb1a7f02a57c2c37bda041b27adc5',
     );
     const noscripts = scriptEvents.map((e, idx) => {
       const authorPubkey = Nip19.encode(e.pubkey, Nip19DataType.Npubkey).slice(
