@@ -6,10 +6,9 @@ import { dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { deserializeMetadata } from 'core/nostr/content';
 import { EventWithSeen } from 'pages/type';
-
 import LazyLoad from 'react-lazyload';
 import dynamic from 'next/dynamic';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 const PostItem = dynamic(
   async () => {

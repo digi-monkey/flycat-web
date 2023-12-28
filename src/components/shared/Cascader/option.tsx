@@ -1,4 +1,4 @@
-import { ICascaderOption } from './types';
+import { ICascaderOption } from './type';
 import { FiCheck } from 'react-icons/fi';
 import { FiChevronRight } from 'react-icons/fi';
 import * as HoverCard from '@radix-ui/react-hover-card';

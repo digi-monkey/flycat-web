@@ -52,6 +52,9 @@ export const EditProfilePage = ({ commitId }) => {
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
+  const isLoggedIn = useSelector(
+    (state: RootState) => state.loginReducer.isLoggedIn,
+  );
   const [profile, setProfile] = useState<
     EventSetMetadataContent & { created_at: number }
   >();
@@ -251,12 +254,16 @@ export const EditProfilePage = ({ commitId }) => {
     <BaseLayout>
       <Left>
         <PageTitle title="Settings" />
-        <Tabs
-          centered
-          items={items}
-          activeKey={tabKey}
-          onChange={handleTabChange}
-        />
+        {isLoggedIn ? (
+          <Tabs
+            centered
+            items={items}
+            activeKey={tabKey}
+            onChange={handleTabChange}
+          />
+        ) : (
+          <Preference />
+        )}
       </Left>
       <Right></Right>
     </BaseLayout>

@@ -1,7 +1,7 @@
 import { RelayGroupMap } from 'core/relay/group/type';
 import { RelayFooterMenus, RelayMode } from './type';
 import { WsConnectStatus } from 'core/worker/type';
-import { ICascaderOption } from 'components/shared/Cascader/types';
+import { ICascaderOption } from 'components/shared/Cascader/type';
 
 export function getSelectGroupId(groups: RelayGroupMap) {
   return Array.from(groups.keys()).filter(key => groups.get(key) != null);

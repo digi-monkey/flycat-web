@@ -1,18 +1,10 @@
-import { Modal } from 'antd';
 import { useUserInfo } from './hooks';
 import { RelaySelector } from 'components/RelaySelector';
-import { useMatchMobile } from 'hooks/useMediaQuery';
-import { useTranslation } from 'next-i18next';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-
-import React, { useState } from 'react';
-import Icon from 'components/Icon';
-import Mobile from './mobile';
-import styles from './index.module.scss';
-import PcPadNav from './pc';
-import Container from 'components/Container';
-import classNames from 'classnames';
-import PubNoteTextarea from '../PubNoteTextarea';
+import React, { useCallback, useState } from 'react';
+import Navbar from './navbar';
+import { UserDrawer } from './drawer';
+import { Tabbar } from './tabbar';
+import { cn } from 'utils/classnames';
 
 export interface BaseLayoutProps {
   children: React.ReactNode;
@@ -39,18 +31,10 @@ export const Right: React.FC<RightProps> = ({ children }) => (
   <div>{children}</div>
 );
 
-export const BaseLayout: React.FC<BaseLayoutProps> = ({
-  children,
-  silent,
-  metaPage,
-}) => {
-  const { t } = useTranslation();
+export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   const { myProfile } = useUserInfo();
-  const isMobile = useMatchMobile();
   const leftNodes: React.ReactNode[] = [];
   const rightNodes: React.ReactNode[] = [];
-
-  const [openWrite, setOpenWrite] = useState(false);
 
   React.Children.forEach(children, (child: React.ReactNode) => {
     if (!React.isValidElement(child)) return;
@@ -59,42 +43,40 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
   });
 
   return (
-    <Container>
-      {isMobile ? (
-        <Mobile body={leftNodes} user={myProfile} setOpenWrite={setOpenWrite} />
-      ) : (
-        <>
-          <PcPadNav user={myProfile} setOpenWrite={setOpenWrite} />
-          <main
-            className={classNames(styles.pcPadMain, {
-              [styles.rightExists]: rightNodes.length,
-            })}
-          >
-            <div className={styles.left}>
-              <div className="px-4 mt-4">
+    <div className="flex justify-center min-h-screen">
+      <div className="container body grid grid-cols-8 lg:grid-cols-12">
+        <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
+          <div className="sticky top-0 pr-5 h-screen border-0 border-r border-solid border-neutral-200">
+            <Navbar user={myProfile} />
+          </div>
+        </aside>
+        <main
+          className={cn(
+            'col-span-12 sm:col-span-7 lg:col-span-8 xl:col-span-6',
+            {
+              'lg:col-span-11 xl:col-span-9': rightNodes.length === 0,
+            },
+          )}
+        >
+          <div className="pb-[56px] sm:pb-0 min-h-screen border-0 border-r border-solid border-neutral-200">
+            <header className="px-4 sticky top-0 bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-50">
+              <div className="flex h-16 items-center gap-3">
                 <RelaySelector />
+                <UserDrawer user={myProfile} />
               </div>
-              {leftNodes}
-            </div>
-            {rightNodes.length > 0 && (
-              <div className={styles.right}>
-                <div style={{ position: 'sticky', top: '0' }}>{rightNodes}</div>
-              </div>
-            )}
-          </main>
-        </>
-      )}
-      <Modal
-        title={t('baseLayout.modal.title')}
-        wrapClassName={styles.modal}
-        footer={null}
-        open={openWrite}
-        onCancel={() => setOpenWrite(false)}
-        closeIcon={<Icon type="icon-cross" className={styles.modalCoseIcons} />}
-      >
-        <p>{t('baseLayout.modal.desc')}</p>
-        <PubNoteTextarea pubSuccessCallback={() => setOpenWrite(false)} />
-      </Modal>
-    </Container>
+            </header>
+            {leftNodes}
+            <footer className="sm:hidden">
+              <Tabbar />
+            </footer>
+          </div>
+        </main>
+        {rightNodes.length > 0 && (
+          <div className="hidden lg:block lg:col-span-3">
+            <div className="sticky top-0 px-5 h-screen">{rightNodes}</div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

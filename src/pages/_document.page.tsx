@@ -13,13 +13,7 @@ class FlyCatDocument extends Document {
       <Html>
         <Head>
           <meta name="application-name" content="flycat" />
-          <meta name="description" content="a beautiful nostr client" />
-          <meta
-            name="keywords"
-            content="nostr, nostr-protocol, social-network, bitcoin, lighting-network, decentralization"
-          />
           <meta name="format-detection" content="telephone=no" />
-
           {/* apple pwa */}
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,25 +26,6 @@ class FlyCatDocument extends Document {
           {/* windows */}
           <meta name="msapplication-TileColor" content="#2B5797" />
           <meta name="msapplication-tap-highlight" content="no" />
-
-          {/* twitter */}
-          <meta name="twitter:card" content="summary" />
-          <meta name="twitter:title" content="flycat" />
-          <meta name="twitter:url" content="https://flycat.club" />
-          <meta name="twitter:description" content="a beautiful nostr client" />
-          <meta
-            name="twitter:image"
-            content="https://flycat.club/logo512.png"
-          />
-          <meta name="twitter:creator" content="@flycatclub" />
-
-          {/* ogp */}
-          <meta property="og:type" content="website" />
-          <meta property="og:title" content="flycat" />
-          <meta property="og:description" content="a beautiful nostr client" />
-          <meta property="og:site_name" content="flycat" />
-          <meta property="og:url" content="https://flycat.club" />
-          <meta property="og:image" content="https://flycat.club/logo512.png" />
 
           <link rel="manifest" href="/manifest.json" />
 

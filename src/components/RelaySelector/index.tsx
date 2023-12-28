@@ -1,5 +1,5 @@
 import { Cascader } from 'components/shared/Cascader';
-import { ICascaderOption } from 'components/shared/Cascader/types';
+import { ICascaderOption } from 'components/shared/Cascader/type';
 import { Paths } from 'constants/path';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
@@ -43,7 +43,7 @@ export function RelaySelector({
   const myPublicKey = useReadonlyMyPublicKey();
   const defaultGroup = useDefaultGroup();
   const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
-  const [selectedRelay, setSelectedRelay] = useSelectedRelay(myPublicKey);
+  const [selectedRelay, setSelectedRelay] = useSelectedRelay();
 
   useEffect(() => {
     if (newConnCallback) {
@@ -179,11 +179,11 @@ export function RelaySelector({
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
-                <span className="text-text-primary text-sm font-noto">
+                <span className="text-text-primary text-sm font-noto whitespace-nowrap">
                   {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
                 </span>
               </div>
-              <span className="text-text-primary text-sm font-noto">
+              <span className="text-text-primary text-sm font-noto whitespace-nowrap">
                 {toConnectStatus(
                   groupId ?? 'default',
                   wsConnectStatus,

@@ -34,6 +34,29 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
+          <meta name="description" content="a beautiful nostr client" />
+          <meta
+            name="keywords"
+            content="nostr, nostr-protocol, social-network, bitcoin, lighting-network, decentralization"
+          />
+          {/* twitter */}
+          <meta name="twitter:card" content="summary" />
+          <meta name="twitter:title" content="flycat" />
+          <meta name="twitter:url" content="https://flycat.club" />
+          <meta name="twitter:description" content="a beautiful nostr client" />
+          <meta
+            name="twitter:image"
+            content="https://flycat.club/logo512.png"
+          />
+          <meta name="twitter:creator" content="@flycatclub" />
+
+          {/* ogp */}
+          <meta property="og:type" content="website" />
+          <meta property="og:title" content="flycat" />
+          <meta property="og:description" content="a beautiful nostr client" />
+          <meta property="og:site_name" content="flycat" />
+          <meta property="og:url" content="https://flycat.club" />
+          <meta property="og:image" content="https://flycat.club/logo512.png" />
         </Head>
         <Component {...pageProps} />
         <Analytics />

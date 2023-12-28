@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .body {
+    @apply font-noto text-sm leading-6 font-normal;
+  }
+
+  .subheader1 {
+    @apply font-poppins text-base leading-6 font-normal;
+  }
+
+  .subheader1-bold {
+    @apply font-poppins text-base leading-6 font-semibold;
+  }
+
+  .subheader2 {
+    @apply font-noto text-base leading-6 font-medium;
+  }
+
+  .label {
+    @apply font-noto text-sm leading-[22px] font-medium;
+  }
+
+  .label-bold {
+    @apply font-noto text-sm leading-[22px] font-semibold;
+  }
+
+  .footnote {
+    @apply font-noto text-xs leading-[18px] font-medium;
+  }
+}

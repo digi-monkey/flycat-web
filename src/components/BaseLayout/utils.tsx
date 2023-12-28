@@ -1,6 +1,4 @@
 import { Paths } from 'constants/path';
-import Icon from 'components/Icon';
-import { message } from 'antd';
 
 export enum MenuId {
   home = 'home',
@@ -19,135 +17,126 @@ export enum MenuId {
   about = 'about',
 }
 
-export const NavMenus = [
+export type MenuItem = {
+  id: MenuId;
+  icon: string;
+  title: string;
+  link: string;
+  needLogin?: boolean;
+};
+
+export const NavMenus: MenuItem[] = [
   {
     id: MenuId.home,
-    icon: <Icon type="icon-home" />,
+    icon: 'icon-home',
     title: 'nav.menu.home',
     link: Paths.home,
   },
   {
     id: MenuId.communities,
-    icon: <Icon type="icon-explore" />,
+    icon: 'icon-explore',
     title: 'nav.menu.communities',
     link: Paths.communities,
   },
   {
     id: MenuId.relays,
-    icon: <Icon type="icon-Relay" />,
+    icon: 'icon-Relay',
     title: 'nav.menu.relays',
     link: Paths.relay,
   },
   {
     id: MenuId.bookmarks,
-    icon: <Icon type="icon-bookmark" />,
+    icon: 'icon-bookmark',
     title: 'nav.menu.bookmarks',
     link: Paths.bookmarks,
+    needLogin: true,
   },
   {
     id: MenuId.search,
-    icon: <Icon type="icon-search" />,
+    icon: 'icon-search',
     title: 'nav.menu.search',
     link: Paths.search,
   },
   {
     id: MenuId.notifications,
-    icon: <Icon type="icon-notification" />,
+    icon: 'icon-notification',
     title: 'nav.menu.notifications',
     link: Paths.notification,
+    needLogin: true,
   },
   {
     id: MenuId.preference,
-    icon: <Icon type="icon-Gear" />,
+    icon: 'icon-Gear',
     title: 'nav.menu.preference',
     link: Paths.preference,
   },
   {
     id: MenuId.profile,
-    icon: <Icon type="icon-user" />,
+    icon: 'icon-user',
     title: 'nav.menu.profile',
     link: Paths.user,
+    needLogin: true,
   },
   {
     id: MenuId.about,
-    icon: <Icon type="icon-emoji" />,
+    icon: 'icon-emoji',
     title: 'nav.menu.about',
     link: Paths.about,
   },
 ];
 
-export const UserMenus = [
+export const UserMenus: MenuItem[] = [
   {
     id: MenuId.profile,
-    icon: <Icon type="icon-user" />,
+    icon: 'icon-user',
     title: 'nav.menu.profile',
     link: Paths.user,
+    needLogin: true,
   },
-  NavMenus[3],
+  {
+    id: MenuId.bookmarks,
+    icon: 'icon-bookmark',
+    title: 'nav.menu.bookmarks',
+    link: Paths.bookmarks,
+    needLogin: true,
+  },
   {
     id: MenuId.search,
-    icon: <Icon type="icon-search" />,
+    icon: 'icon-search',
     title: 'nav.menu.search',
     link: Paths.search,
   },
-  ,
   {
     id: MenuId.drafts,
-    icon: <Icon type="icon-Draft" />,
+    icon: 'icon-Draft',
     title: 'nav.menu.drafts',
     link: Paths.draft,
+    needLogin: true,
   },
   {
     id: MenuId.settings,
-    icon: <Icon type="icon-Gear" />,
+    icon: 'icon-Gear',
     title: 'nav.menu.setting',
     link: Paths.setting,
   },
   {
     id: MenuId.about,
-    icon: <Icon type="icon-emoji" />,
+    icon: 'icon-emoji',
     title: 'nav.menu.about',
     link: Paths.about,
   },
   {
     id: MenuId.signOut,
-    icon: <Icon type="icon-Move-out" />,
+    icon: 'icon-Move-out',
     title: 'nav.menu.signOut',
     link: Paths.login,
+    needLogin: true,
   },
 ];
 
-/**
- * Get nav link
- * @param item
- * @param  myPublicKey
- * @returns {string}
- */
-export const getNavLink = (item, myPublicKey) => {
-  let link = item.link;
-  if (item.id === MenuId.profile) link = item.link + myPublicKey;
-  return link;
-};
-
-/**
- * Navigation action
- * @param item
- * @param myPublicKey
- * @param router
- * @param isLoggedIn
- * @param t
- * @returns {undefined}
- */
-export const navClick = (item, myPublicKey, router, isLoggedIn, t) => {
-  const link: string | undefined = getNavLink(item, myPublicKey);
-
-  if (
-    !isLoggedIn &&
-    [MenuId.notifications, MenuId.bookmarks].includes(item.id)
-  ) {
-    message.warning(t('comment.login'));
-    return;
+export const getNavLink = (item: MenuItem, myPublicKey: string) => {
+  if (item.id === MenuId.profile) {
+    return `${item.link}/${myPublicKey}`;
   }
-
-  router.push(link);
+  return item.link;
 };

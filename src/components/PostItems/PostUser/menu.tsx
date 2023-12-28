@@ -1,11 +1,25 @@
 import type { MenuProps } from 'antd';
 import { Dropdown, Modal, message } from 'antd';
-
-import styles from './index.module.scss';
 import Icon from 'components/Icon';
 
 export function PostUserMenu({ event, publicKey, extraMenu }) {
   const items: MenuProps['items'] = [
+    {
+      label: 'copy share link',
+      key: 'copy-share-link',
+      onClick: async () => {
+        try {
+          const { copyToClipboard } = await import('utils/common');
+          const shareLink = `${window.location.origin}/event/${event.id}`;
+          await copyToClipboard(shareLink);
+          message.success(
+            'Link copy! paste to web2 platform to share nostr contents!',
+          );
+        } catch (error: any) {
+          message.error(`share link copy failed! ${error.message}`);
+        }
+      },
+    },
     {
       label: 'copy note id',
       key: '0',
@@ -74,10 +88,11 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
   }
 
   return (
-    <div className={styles.slot}>
-      <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-        <Icon type="icon-more-vertical" className={styles.more} />
-      </Dropdown>
-    </div>
+    <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+      <Icon
+        type="icon-more-vertical"
+        className="w-5 h-5 fill-neutral-600 cursor-pointer"
+      />
+    </Dropdown>
   );
 }

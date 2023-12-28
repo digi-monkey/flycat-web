@@ -11,19 +11,20 @@ type Story = StoryObj<typeof Cascader>;
 const options = [
   [
     {
-      value: 'Relay Group',
-      children: [
-        {
-          value: 'NIP Relay List',
-        },
-        {
-          value: 'Default Group',
-        },
-      ],
+      label: 'NIP Relay List',
+      value: 'NIPRelayList',
       group: 'Global',
     },
     {
-      value: 'Single Relay',
+      label: 'Default Group',
+      value: 'DefaultGroup',
+      group: 'Global',
+    },
+  ],
+  [
+    {
+      label: 'Single Relay',
+      value: 'SingleRelay',
       children: [
         {
           value: 'relay.nostr.band',
@@ -32,12 +33,11 @@ const options = [
           value: 'relay.snort.social',
         },
       ],
-      group: 'Global',
     },
     {
-      value: 'Script',
+      label: 'Relay Script',
+      value: 'script',
       disabled: true,
-      group: 'Rules',
     },
   ],
 ];
@@ -45,7 +45,7 @@ const options = [
 export const Primary: Story = {
   render: () => (
     <div className="max-w-screen-sm">
-      <Cascader options={options} />
+      <Cascader options={options} defaultValue={['DefaultGroup']} />
     </div>
   ),
 };
