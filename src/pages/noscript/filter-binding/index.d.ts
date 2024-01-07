@@ -1,4 +1,18 @@
+/* tslint:disable */
+/* eslint-disable */
+/**
+ */
+export function pre_validate(): void;
+/**
+ * @param {any} event
+ * @returns {boolean}
+ */
 export function is_valid_event(event: any): boolean;
+/**
+ * @param {string} msg
+ * @returns {Float32Array}
+ */
+export function rating(msg: string): Float32Array;
 
 export type InitInput =
   | RequestInfo
@@ -9,8 +23,9 @@ export type InitInput =
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly pre_validate: () => void;
   readonly is_valid_event: (a: number) => number;
-  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly rating: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (
     a: number,
@@ -18,6 +33,7 @@ export interface InitOutput {
     c: number,
     d: number,
   ) => number;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
@@ -41,3 +57,6 @@ export function initSync(module: SyncInitInput): InitOutput;
  *
  * @returns {Promise<InitOutput>}
  */
+export default function __wbg_init(
+  module_or_path?: InitInput | Promise<InitInput>,
+): Promise<InitOutput>;
