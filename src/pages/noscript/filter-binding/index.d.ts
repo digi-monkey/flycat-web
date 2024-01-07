@@ -48,15 +48,3 @@ export type SyncInitInput = BufferSource | WebAssembly.Module;
  * @returns {InitOutput}
  */
 export function initSync(module: SyncInitInput): InitOutput;
-
-/**
- * If `module_or_path` is {RequestInfo} or {URL}, makes a request and
- * for everything else, calls `WebAssembly.instantiate` directly.
- *
- * @param {InitInput | Promise<InitInput>} module_or_path
- *
- * @returns {Promise<InitOutput>}
- */
-export default function __wbg_init(
-  module_or_path?: InitInput | Promise<InitInput>,
-): Promise<InitOutput>;

@@ -63,6 +63,7 @@ export function useQueryNoScript({
         filter: Nip188.parseNoscriptMsgFilterTag(e),
         wasm: Nip188.parseNoscript(e),
         mode: MsgFilterMode.global,
+        selfEvent: e,
       };
       return noscript;
     });

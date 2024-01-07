@@ -40,6 +40,7 @@ import {
   is_valid_event,
   pre_validate,
 } from 'pages/noscript/filter-binding';
+import { createRuntime } from 'pages/noscript/filter-binding/runtime';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -149,9 +150,17 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     let isValidEvent = selectedMsgFilter.isValidEvent;
     if (selectedMsgFilter.wasm) {
       initSync(selectedMsgFilter.wasm);
+      if (selectedMsgFilter.selfEvent) {
+        createRuntime(selectedMsgFilter.selfEvent);
+      }
       isValidEvent = is_valid_event;
       if (typeof pre_validate === 'function') {
-        pre_validate();
+        try {
+          pre_validate();
+          console.log('exec pre_validate');
+        } catch (error: any) {
+          console.log(error.message);
+        }
       }
     }
     let placeholder: ReactNode | null = null;
