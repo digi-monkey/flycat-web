@@ -101,22 +101,17 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       const pks: string[] = [];
       let events: Event[] = [];
 
-      console.debug(
-        'start sub msg..',
-        filter,
-        isValidEvent,
-        typeof isValidEvent,
-      );
+      console.debug('start sub msg..', filter, isValidEvent);
       const dataStream = worker.subFilter({ filter }).getIterator();
       for await (const data of dataStream) {
         const event = data.event;
-        if (isValidEvent) {
-          if (!isValidEvent(event)) {
+        if (latest) {
+          if (event.created_at <= latest) {
             continue;
           }
         }
-        if (latest) {
-          if (event.created_at <= latest) {
+        if (isValidEvent) {
+          if (!isValidEvent(event)) {
             continue;
           }
         }
@@ -149,7 +144,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           return e;
         });
       events = mergeAndSortUniqueDbEvents(events as any, events as any);
-      console.log('sub diff: ', events, events.length, filter);
+      console.log('sub diff: ', events.length, filter.since);
       dataStream.unsubscribe();
       console.debug('finished sub msg!');
 
@@ -175,13 +170,16 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       }
     };
 
-    const latest = memoMsgList[0]?.created_at || 0;
+    const latest =
+      newComingMsg[0]?.created_at || memoMsgList[0]?.created_at || 0;
     setIsSubNewComingMsg(true);
     await request(latest);
     setIsSubNewComingMsg(false);
   }, [
     worker,
     msgFilter,
+    newComingMsg,
+    memoMsgList,
     isValidEvent,
     isLoadingMsg,
     isPullRefreshing,
