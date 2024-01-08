@@ -13,6 +13,7 @@ const mixKinds = [
 export enum MsgFilterKey {
   follow = 'Follow',
   followArticle = 'Follow-Article',
+  globalHighLight = 'HighLights',
   globalAll = 'Global-All',
   media = 'Media',
   zh = 'Chinese',
@@ -60,6 +61,19 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.follow,
     description: "all your followings's long-form posts",
+  },
+  {
+    key: MsgFilterKey.globalHighLight,
+    label: 'HighLights',
+    filter: {
+      limit: 50,
+      kinds: [WellKnownEventKind.article_highlight],
+    },
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.article_highlight;
+    },
+    mode: MsgFilterMode.global,
+    description: 'global post for highlights(kind:9802)',
   },
   {
     key: MsgFilterKey.globalAll,

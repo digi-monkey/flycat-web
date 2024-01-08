@@ -22,6 +22,17 @@ const PostRepost = dynamic(
   },
 );
 
+const PostHighLight = dynamic(
+  async () => {
+    return await import('../PostHighLight');
+  },
+  {
+    loading: () => <p>Loading PostHighLight...</p>,
+    ssr: false,
+    suspense: true,
+  },
+);
+
 const PostArticleComment = dynamic(
   async () => {
     return await import('../PostArticleComment');
@@ -127,11 +138,9 @@ export const PostItem: React.FC<PostItemProps> = ({
       );
     }
 
-    if (Nip9802.isBlogHighlightMsg(event)) {
+    if (Nip9802.isHighlightMsg(event)) {
       return (
-        <PostUI
-          content={<>HighlightMsg</>}
-          profile={profile}
+        <PostHighLight
           event={event}
           worker={worker}
           showFromCommunity={showFromCommunity}
