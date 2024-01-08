@@ -32,6 +32,28 @@ export async function connectToMetaMask() {
   return { signer, address, chainId };
 }
 
+export async function getNostrAccountInfoFromMetamaskSignIn(
+  username: string,
+  password?: string,
+) {
+  const walletExt = await connectToMetaMask();
+  if (walletExt == null) {
+    alert('metamask not installed');
+    return null;
+  }
+  const caip10 = getCaip10(walletExt.chainId, walletExt.address);
+  const message = getMessage(username, caip10);
+  const sig = await getSignature(message, walletExt.signer);
+  const privKey = await privateKeyFromX(username, caip10, sig, password);
+  const pubkey = getPublicKey(privKey);
+  return {
+    pubkey,
+    privKey,
+    chainId: walletExt.chainId,
+    address: walletExt.address,
+  };
+}
+
 export async function getPrivateKeyFromMetamaskSignIn(
   username: string,
   password?: string,

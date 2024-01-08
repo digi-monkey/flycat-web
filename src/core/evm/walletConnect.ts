@@ -52,6 +52,38 @@ export async function getPublicKeyFromWalletConnectSignIn(
   return getPublicKey(privKey);
 }
 
+export async function getNostrAccountInfoFromWalletConnectSignIn(
+  username: string,
+  password?: string,
+) {
+  const { isWalletDisconnected } = await import('./wagmi/helper');
+  if (await isWalletDisconnected()) {
+    alert(
+      'your wallet is disconnected, in order to use it, you need to sign out and sign in again with WalletConnect!',
+    );
+    throw new Error('wallectConnect signer not found');
+  }
+
+  const { fetchSigner } = await import('@wagmi/core');
+  const signer = await fetchSigner();
+  if (signer == null) throw new Error('wallectConnect signer not found');
+
+  const chainId: number = await signer.getChainId();
+  const address = await signer.getAddress();
+  const caip10 = getCaip10(chainId, address);
+  const message = getMessage(username, caip10);
+
+  const sig: string = await signer.signMessage(message)!;
+  const privKey = await privateKeyFromX(username, caip10, sig, password);
+  const pubkey = getPublicKey(privKey);
+  return {
+    privKey,
+    pubkey,
+    chainId,
+    address,
+  };
+}
+
 export function createWalletConnectGetPublicKey(username?: string) {
   return async () => {
     if (username == null) {
