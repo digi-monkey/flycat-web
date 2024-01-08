@@ -30,7 +30,7 @@ import { CallRelayType } from 'core/worker/type';
 import Link from 'next/link';
 import {
   updateGroupClassState,
-  useLoadRelayGroup,
+  useRelayGroupState,
 } from '../hooks/useLoadRelayGroup';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import { createCallRelay } from 'core/worker/util';

@@ -6,7 +6,7 @@ import { ActionType, RelayActionModal } from '../Modal/action';
 import { Dispatch, SetStateAction, useState } from 'react';
 import {
   updateGroupClassState,
-  useLoadRelayGroup,
+  useRelayGroupState,
 } from '../hooks/useLoadRelayGroup';
 
 export interface MultipleItemsActionProp {

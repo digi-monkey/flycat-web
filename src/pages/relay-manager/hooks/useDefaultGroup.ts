@@ -1,8 +1,7 @@
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { seedRelays } from 'core/relay/pool/seed';
-import { Relay } from 'core/relay/type';
 import { RootState } from 'store/configureStore';
 
 export function useDefaultGroup() {
@@ -12,10 +11,7 @@ export function useDefaultGroup() {
   );
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
 
-  const [defaultGroup, setDefaultGroup] = useState<Relay[]>();
-
-  useEffect(() => {
-    // remove duplicated relay
+  const defaultGroup = useMemo(() => {
     let relayUrls = seedRelays;
     if (isLoggedIn === true) {
       relayUrls = relayUrls
@@ -30,8 +26,8 @@ export function useDefaultGroup() {
         write: true,
       };
     });
-    setDefaultGroup(relays);
-  }, [isLoggedIn, myCustomRelay]);
+    return relays;
+  }, [isLoggedIn, myCustomRelay, myPublicKey]);
 
   return defaultGroup;
 }

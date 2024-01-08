@@ -9,7 +9,7 @@ import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import { useDefaultGroup } from './hooks/useDefaultGroup';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useLoadRelayGroup } from './hooks/useLoadRelayGroup';
+import { useRelayGroupState } from './hooks/useLoadRelayGroup';
 import { Input, Modal } from 'antd';
 import { RelayPool } from 'core/relay/pool';
 import { SearchResult } from './SearchResult';
@@ -66,14 +66,10 @@ export const RelayMenu: React.FC<RelayMenuProp> = ({
 };
 
 export function RelayManager() {
-  const { t } = useTranslation();
-
   const myPublicKey = useReadonlyMyPublicKey();
   const [showRelayPool, setShowRelayPool] = useState(false);
-  const [groups, setGroups] = useState<RelayGroupClass>();
-
   const defaultGroup = useDefaultGroup();
-  useLoadRelayGroup({ myPublicKey, defaultGroup, setGroups });
+  const [groups, setGroups] = useRelayGroupState(myPublicKey, defaultGroup);
 
   return (
     <BaseLayout>

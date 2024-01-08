@@ -1,15 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { RelayGroup as RelayGroupClass } from 'core/relay/group';
+import { Relay } from 'core/relay/type';
 
-export function useLoadRelayGroup({ myPublicKey, defaultGroup, setGroups }) {
+export function useRelayGroupState(myPublicKey: string, defaultGroup: Relay[]) {
+  const [relayGroup, setRelayGroup] = useState<RelayGroupClass>();
+
   useEffect(() => {
     const groups = new RelayGroupClass(myPublicKey);
     const defaultGroupId = 'default';
-    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
+    if (groups.getGroupById(defaultGroupId) === null && defaultGroup) {
       groups.setGroup(defaultGroupId, defaultGroup);
     }
-    setGroups(groups);
+    setRelayGroup(groups);
   }, [myPublicKey, defaultGroup]);
+  return [relayGroup, setRelayGroup] as const;
 }
 
 export const updateGroupClassState = (
