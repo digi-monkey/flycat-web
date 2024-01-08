@@ -65,6 +65,12 @@ export function toSavableRootState(state: RootState): SavableRootState {
   if (state.loginReducer.evmUsername) {
     savableState.loginReducer.evmUsername = state.loginReducer.evmUsername;
   }
+  if (state.loginReducer.evmAddress) {
+    savableState.loginReducer.evmAddress = state.loginReducer.evmAddress;
+  }
+  if (state.loginReducer.evmChainId) {
+    savableState.loginReducer.evmChainId = state.loginReducer.evmChainId;
+  }
   return savableState;
 }
 
@@ -177,6 +183,12 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
   }
   if (state.loginReducer.evmUsername) {
     loginReducer.evmUsername = state.loginReducer.evmUsername;
+  }
+  if (state.loginReducer.evmAddress) {
+    loginReducer.evmAddress = state.loginReducer.evmAddress;
+  }
+  if (state.loginReducer.evmChainId) {
+    loginReducer.evmChainId = state.loginReducer.evmChainId;
   }
 
   const rootState: RootState = {
