@@ -95,9 +95,9 @@ export const PostHighLight: React.FC<PostHighLightProp> = ({
     const index = fullString.indexOf(substring);
     if (index !== -1) {
       return (
-        <span>
+        <span className="text-gray-400">
           {fullString.substring(0, index)}
-          <span className="text-yellow-500">{substring}</span>
+          <span className="text-gray-800">{substring}</span>
           {fullString.substring(index + substring.length)}
         </span>
       );
@@ -107,10 +107,12 @@ export const PostHighLight: React.FC<PostHighLightProp> = ({
 
   const contentUI = (
     <div>
-      <div className="border-solid border-0 border-l-4 pl-4">
+      <div className="rounded-lg border border-solid border-gray-300 p-4">
         {context ? highlightSubstring(context, event.content) : ''}
       </div>
-      <div>From: {sourceUI}</div>
+      <div className="mt-4">
+        <div>Highlight from {sourceUI}</div>
+      </div>
     </div>
   );
 

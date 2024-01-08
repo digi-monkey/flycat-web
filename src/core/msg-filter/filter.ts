@@ -63,19 +63,6 @@ export const defaultMsgFilters: MsgFilter[] = [
     description: "all your followings's long-form posts",
   },
   {
-    key: MsgFilterKey.globalHighLight,
-    label: 'HighLights',
-    filter: {
-      limit: 50,
-      kinds: [WellKnownEventKind.article_highlight],
-    },
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.article_highlight;
-    },
-    mode: MsgFilterMode.global,
-    description: 'global post for highlights(kind:9802)',
-  },
-  {
     key: MsgFilterKey.globalAll,
     label: 'Global',
     filter: {
@@ -87,6 +74,19 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.global,
     description: "all the realtime global's mixed posts",
+  },
+  {
+    key: MsgFilterKey.globalHighLight,
+    label: 'HighLights',
+    filter: {
+      limit: 50,
+      kinds: [WellKnownEventKind.article_highlight],
+    },
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.article_highlight;
+    },
+    mode: MsgFilterMode.global,
+    description: 'global post for highlights(kind:9802)',
   },
   {
     key: MsgFilterKey.media,
