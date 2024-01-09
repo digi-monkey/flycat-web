@@ -153,10 +153,18 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         return undefined;
 
       case LoginMode.metamask:
-        return createMetamaskSignEvent(state.loginReducer.evmUsername);
+        return createMetamaskSignEvent(
+          state.loginReducer.evmUsername,
+          state.loginReducer.evmChainId,
+          state.loginReducer.evmAddress,
+        );
 
       case LoginMode.walletConnect:
-        return createWalletConnectSignEvent(state.loginReducer.evmUsername);
+        return createWalletConnectSignEvent(
+          state.loginReducer.evmUsername,
+          state.loginReducer.evmChainId,
+          state.loginReducer.evmAddress,
+        );
 
       default:
         throw new Error('unsupported mode');

@@ -16,6 +16,7 @@ import {
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
 } from 'utils/common';
+import { clearTempMyPublicKey, saveTempMyPublicKey } from './util';
 
 export enum LoginMode {
   local = 'local', // default
@@ -243,7 +244,10 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         request.evmUsername,
         request.evmPassword,
       );
-      const pk = info?.pubkey;
+      if (info == null) {
+        throw new Error('getNostrAccountInfoFromMetamask error!');
+      }
+      const pk = info.pubkey;
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 
@@ -252,10 +256,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         isLoggedIn: isLoggedIn,
         publicKey: pk,
         getPublicKey: getPublicKey,
-        signEvent: createMetamaskSignEvent(request.evmUsername),
+        signEvent: createMetamaskSignEvent(
+          request.evmUsername,
+          info.chainId,
+          info.address,
+        ),
         evmUsername: request.evmUsername,
-        evmChainId: info?.chainId,
-        evmAddress: info?.address,
+        evmChainId: info.chainId,
+        evmAddress: info.address,
       };
     }
 
@@ -268,7 +276,10 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         request.evmUsername,
         request.evmPassword,
       );
-      const pk = info?.pubkey;
+      if (info == null) {
+        throw new Error('getNostrAccountInfoFromWalletConnect error!');
+      }
+      const pk = info.pubkey;
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 
@@ -277,10 +288,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         publicKey: pk,
         isLoggedIn: isLoggedIn,
         getPublicKey: getPublicKey,
-        signEvent: createWalletConnectSignEvent(request.evmUsername),
+        signEvent: createWalletConnectSignEvent(
+          request.evmUsername,
+          info.chainId,
+          info.address,
+        ),
         evmUsername: request.evmUsername,
-        evmChainId: info?.chainId,
-        evmAddress: info?.address,
+        evmChainId: info.chainId,
+        evmAddress: info.address,
       };
     }
 
@@ -309,19 +324,4 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
     default:
       throw new Error('invalid action mode ' + mode);
   }
-}
-
-const tempMyPkItemKey = 'temp.myPublicKey';
-
-export function saveTempMyPublicKey(pk: string | undefined) {
-  if (pk == null || pk.length === 0) return;
-  localStorage.setItem(tempMyPkItemKey, pk);
-}
-
-export function loadTempMyPublicKey() {
-  return localStorage.getItem(tempMyPkItemKey);
-}
-
-export function clearTempMyPublicKey() {
-  if (loadTempMyPublicKey() != null) localStorage.removeItem(tempMyPkItemKey);
 }

@@ -7,6 +7,7 @@ import {
   privateKeyFromX,
 } from '../nip/111';
 import { getPublicKey } from 'core/crypto';
+import { loadTempMyPublicKey } from 'store/util';
 
 export async function connectToMetaMask() {
   const { Web3Provider } = await import('@ethersproject/providers');
@@ -104,6 +105,8 @@ export function createMetamaskGetPublicKey(username?: string) {
 
 export function createMetamaskSignEvent(
   username?: string,
+  chainId?: number,
+  address?: string,
 ): (raw: RawEvent) => Promise<Event> {
   return async (raw: RawEvent) => {
     if (username == null) {
@@ -118,12 +121,36 @@ export function createMetamaskSignEvent(
     }
 
     const password = window.prompt('Your Evm sign-in password: ') || undefined;
-    const privKey = await getPrivateKeyFromMetamaskSignIn(username, password);
-    if (privKey == null) {
-      const errMsg = "generate private key failed, can't sign event";
+    const info = await getNostrAccountInfoFromMetamaskSignIn(
+      username,
+      password,
+    );
+    if (info == null) {
+      const errMsg = "get private key failed, can't sign event";
       alert(errMsg);
       throw new Error(errMsg);
     }
+    if (chainId && info.chainId !== chainId) {
+      const errMsg =
+        "chainId not matched! did you change your metamask's network?";
+      alert(errMsg);
+      throw new Error(errMsg);
+    }
+    if (address && info.address !== address) {
+      const errMsg =
+        "eth address not matched! did you select different metamask's account?";
+      alert(errMsg);
+      throw new Error(errMsg);
+    }
+    const pk = loadTempMyPublicKey();
+    if (pk && pk != info.pubkey) {
+      const errMsg =
+        'nostr pubkey not matched! you are trying with account different with what we remember last time, please make sure you input the exact same info and try logout and then login.';
+      alert(errMsg);
+      throw new Error(errMsg);
+    }
+
+    const privKey = info.privKey;
     return await raw.toEvent(privKey);
   };
 }
