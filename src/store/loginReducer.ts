@@ -3,12 +3,12 @@ import { RawEvent } from 'core/nostr/RawEvent';
 import {
   createMetamaskSignEvent,
   createMetamaskGetPublicKey,
-  getPublicKeyFromMetamaskSignIn,
+  getNostrAccountInfoFromMetamaskSignIn,
 } from 'core/evm/metamask';
 import {
   createWalletConnectSignEvent,
   createWalletConnectGetPublicKey,
-  getPublicKeyFromWalletConnectSignIn,
+  getNostrAccountInfoFromWalletConnectSignIn,
 } from 'core/evm/walletConnect';
 import { disconnectWagmi } from 'core/evm/wagmi/helper';
 import { nostr as joyIdNostr, logout as joyIdLogout } from '@joyid/nostr';
@@ -16,6 +16,7 @@ import {
   requestPublicKeyFromDotBit,
   requestPublicKeyFromNip05DomainName,
 } from 'utils/common';
+import { clearTempMyPublicKey, saveTempMyPublicKey } from './util';
 
 export enum LoginMode {
   local = 'local', // default
@@ -69,6 +70,8 @@ export interface Signer {
   nip05DomainName?: string; // only for nip05 mode
 
   evmUsername?: string; // only for evm chain sign-in mode like metamask
+  evmChainId?: number; // only for evm chain sign-in mode like metamask
+  evmAddress?: string; // only for evm chain sign-in mode like metamask
 }
 
 function loginPending() {
@@ -237,10 +240,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         throw new Error('eth username not found!');
       }
       const getPublicKey = createMetamaskGetPublicKey(request.evmUsername);
-      const pk = await getPublicKeyFromMetamaskSignIn(
+      const info = await getNostrAccountInfoFromMetamaskSignIn(
         request.evmUsername,
         request.evmPassword,
       );
+      if (info == null) {
+        throw new Error('getNostrAccountInfoFromMetamask error!');
+      }
+      const pk = info.pubkey;
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 
@@ -249,8 +256,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         isLoggedIn: isLoggedIn,
         publicKey: pk,
         getPublicKey: getPublicKey,
-        signEvent: createMetamaskSignEvent(request.evmUsername),
+        signEvent: createMetamaskSignEvent(
+          request.evmUsername,
+          info.chainId,
+          info.address,
+        ),
         evmUsername: request.evmUsername,
+        evmChainId: info.chainId,
+        evmAddress: info.address,
       };
     }
 
@@ -259,10 +272,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         throw new Error('eth username not found!');
       }
       const getPublicKey = createWalletConnectGetPublicKey(request.evmUsername);
-      const pk = await getPublicKeyFromWalletConnectSignIn(
+      const info = await getNostrAccountInfoFromWalletConnectSignIn(
         request.evmUsername,
         request.evmPassword,
       );
+      if (info == null) {
+        throw new Error('getNostrAccountInfoFromWalletConnect error!');
+      }
+      const pk = info.pubkey;
       const isLoggedIn = pk != null && pk.length > 0;
       saveTempMyPublicKey(pk);
 
@@ -271,8 +288,14 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
         publicKey: pk,
         isLoggedIn: isLoggedIn,
         getPublicKey: getPublicKey,
-        signEvent: createWalletConnectSignEvent(request.evmUsername),
+        signEvent: createWalletConnectSignEvent(
+          request.evmUsername,
+          info.chainId,
+          info.address,
+        ),
         evmUsername: request.evmUsername,
+        evmChainId: info.chainId,
+        evmAddress: info.address,
       };
     }
 
@@ -301,19 +324,4 @@ export async function getLoginInfo(request: LoginRequest): Promise<Signer> {
     default:
       throw new Error('invalid action mode ' + mode);
   }
-}
-
-const tempMyPkItemKey = 'temp.myPublicKey';
-
-export function saveTempMyPublicKey(pk: string | undefined) {
-  if (pk == null || pk.length === 0) return;
-  localStorage.setItem(tempMyPkItemKey, pk);
-}
-
-export function loadTempMyPublicKey() {
-  return localStorage.getItem(tempMyPkItemKey);
-}
-
-export function clearTempMyPublicKey() {
-  if (loadTempMyPublicKey() != null) localStorage.removeItem(tempMyPkItemKey);
 }

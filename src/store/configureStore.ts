@@ -65,6 +65,12 @@ export function toSavableRootState(state: RootState): SavableRootState {
   if (state.loginReducer.evmUsername) {
     savableState.loginReducer.evmUsername = state.loginReducer.evmUsername;
   }
+  if (state.loginReducer.evmAddress) {
+    savableState.loginReducer.evmAddress = state.loginReducer.evmAddress;
+  }
+  if (state.loginReducer.evmChainId) {
+    savableState.loginReducer.evmChainId = state.loginReducer.evmChainId;
+  }
   return savableState;
 }
 
@@ -147,10 +153,18 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
         return undefined;
 
       case LoginMode.metamask:
-        return createMetamaskSignEvent(state.loginReducer.evmUsername);
+        return createMetamaskSignEvent(
+          state.loginReducer.evmUsername,
+          state.loginReducer.evmChainId,
+          state.loginReducer.evmAddress,
+        );
 
       case LoginMode.walletConnect:
-        return createWalletConnectSignEvent(state.loginReducer.evmUsername);
+        return createWalletConnectSignEvent(
+          state.loginReducer.evmUsername,
+          state.loginReducer.evmChainId,
+          state.loginReducer.evmAddress,
+        );
 
       default:
         throw new Error('unsupported mode');
@@ -177,6 +191,12 @@ export function loadRootStateFromStore(state: SavableRootState): RootState {
   }
   if (state.loginReducer.evmUsername) {
     loginReducer.evmUsername = state.loginReducer.evmUsername;
+  }
+  if (state.loginReducer.evmAddress) {
+    loginReducer.evmAddress = state.loginReducer.evmAddress;
+  }
+  if (state.loginReducer.evmChainId) {
+    loginReducer.evmChainId = state.loginReducer.evmChainId;
   }
 
   const rootState: RootState = {

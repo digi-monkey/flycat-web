@@ -102,7 +102,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
     ); // only copy the e and p tags.
 
     const rawEvent = new RawEvent(
-      '',
+      myPublicKey,
       WellKnownEventKind.text_note,
       [...originTags, ...tags],
       text,
