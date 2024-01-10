@@ -41,7 +41,6 @@ if (typeof TextDecoder !== 'undefined') {
   cachedTextDecoder.decode();
 }
 
-
 function getUint8Memory0() {
   if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
     cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
@@ -67,8 +66,6 @@ function isLikeNone(x) {
   return x === undefined || x === null;
 }
 
-
-
 function getBigInt64Memory0() {
   if (
     cachedBigInt64Memory0 === null ||
@@ -79,14 +76,12 @@ function getBigInt64Memory0() {
   return cachedBigInt64Memory0;
 }
 
-
 function getInt32Memory0() {
   if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
     cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
   }
   return cachedInt32Memory0;
 }
-
 
 const cachedTextEncoder =
   typeof TextEncoder !== 'undefined'
@@ -235,7 +230,6 @@ export function is_valid_event(event) {
   const ret = wasm.is_valid_event(addHeapObject(event));
   return ret !== 0;
 }
-
 
 function getFloat32Memory0() {
   if (cachedFloat32Memory0 === null || cachedFloat32Memory0.byteLength === 0) {
@@ -522,13 +516,13 @@ function initSync(module) {
   heap = new Array(128).fill(undefined);
   heap.push(undefined, null, true, false);
   heap_next = heap.length;
-  
+
   cachedUint8Memory0 = null;
   cachedInt32Memory0 = null;
   cachedFloat32Memory0 = null;
   cachedBigInt64Memory0 = null;
   cachedFloat64Memory0 = null;
-  
+
   WASM_VECTOR_LEN = 0;
 
   const imports = __wbg_get_imports();
