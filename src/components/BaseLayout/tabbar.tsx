@@ -64,13 +64,13 @@ export function Tabbar() {
     <div className="fixed bottom-0 h-[56px] w-screen bg-white bg-opacity-80 backdrop-blur z-50">
       <ul className="flex list-none p-0 m-0">
         {navs.map(item => (
-          <>
+          <div key={item.id}>
             {item.id === MenuId.add ? (
               <AddNoteDialog>{renderItem(item)}</AddNoteDialog>
             ) : (
               renderItem(item)
             )}
-          </>
+          </div>
         ))}
       </ul>
     </div>
