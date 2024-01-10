@@ -33,6 +33,7 @@ export interface MsgFilter {
   mode: MsgFilterMode;
   description?: string;
   wasm?: ArrayBuffer | undefined;
+  selfEvent?: Event;
 }
 
 export const defaultMsgFilters: MsgFilter[] = [

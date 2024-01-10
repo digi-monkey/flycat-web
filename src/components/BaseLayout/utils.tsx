@@ -136,7 +136,7 @@ export const UserMenus: MenuItem[] = [
 
 export const getNavLink = (item: MenuItem, myPublicKey: string) => {
   if (item.id === MenuId.profile) {
-    return `${item.link}/${myPublicKey}`;
+    return `${item.link}${myPublicKey}`;
   }
   return item.link;
 };

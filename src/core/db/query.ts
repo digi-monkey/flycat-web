@@ -79,8 +79,19 @@ export class Query {
       return event.created_at > startTime && event.created_at < endTime;
     };
     const applyIsValidEvent = (event: DbEvent) => {
-      if (isValidEvent) {
-        return isValidEvent(event);
+      if (typeof isValidEvent === 'function') {
+        try {
+          const isValid = isValidEvent(event);
+          return isValid;
+        } catch (error: any) {
+          console.debug(
+            'query isValidEvent error: ',
+            error.message,
+            event.content,
+            event.kind,
+          );
+          return false;
+        }
       }
       return true;
     };
