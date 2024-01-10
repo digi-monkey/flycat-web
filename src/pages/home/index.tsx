@@ -185,6 +185,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     }
 
     const msgSubProp: MsgSubProp = {
+      msgId: selectedMsgFilter.label,
       msgFilter,
       isValidEvent,
       placeholder,
@@ -197,6 +198,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     myPublicKey,
     lastSelectedFilter,
     noscriptFiltersMap,
+    filtersMap,
   ]);
 
   useEffect(() => {

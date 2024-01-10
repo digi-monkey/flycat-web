@@ -23,6 +23,7 @@ import styles from './index.module.scss';
 import useScrollValue from './hook/useScrollValue';
 
 export interface MsgSubProp {
+  msgId?: string;
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   placeholder?: React.ReactNode;
@@ -40,7 +41,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
-  const { msgFilter, isValidEvent, placeholder } = msgSubProp;
+  const { msgId, msgFilter, isValidEvent, placeholder } = msgSubProp;
 
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
@@ -60,11 +61,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const queryCacheId = useMemo(
     () =>
       createQueryCacheId({
+        msgId,
         msgFilter,
         isValidEvent,
         relayUrls,
       }),
-    [msgFilter, isValidEvent, relayUrls],
+    [msgId, msgFilter, isValidEvent, relayUrls],
   );
   const queryLoading = useMemo(
     () => isLoadingMsg && !isPullRefreshing,
@@ -111,7 +113,13 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           }
         }
         if (isValidEvent) {
-          if (!isValidEvent(event)) {
+          try {
+            const isValid = isValidEvent(event);
+            if (!isValid) {
+              continue;
+            }
+          } catch (error: any) {
+            console.debug(error.message);
             continue;
           }
         }
@@ -177,6 +185,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setIsSubNewComingMsg(false);
   }, [
     worker,
+    msgId,
     msgFilter,
     newComingMsg,
     memoMsgList,
@@ -214,7 +223,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return e;
     });
     events = mergeAndSortUniqueDbEvents(events, events);
-    console.log('query: ', events.length, relayUrls, msgFilter);
+    console.log('load query: ', events.length, relayUrls, msgFilter);
 
     if (events.length === 0) {
       if (msgList.length === 0) {
@@ -230,7 +239,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
     setIsDBNoData(false);
 
     setIsLoadingMsg(false);
-  }, [msgFilter, isValidEvent, relayUrls, queryCache]);
+  }, [msgId, msgFilter, isValidEvent, relayUrls, queryCache]);
 
   useLastReplyEvent({ msgList: memoMsgList, worker });
   useInterval(subNewComingMsg, SUB_NEW_MSG_INTERVAL);
@@ -239,7 +248,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useEffect(() => {
     if (!worker?.relayGroupId || relayUrls.length === 0) return;
     loadMsgFromDb();
-  }, [msgFilter, worker?.relayGroupId, relayUrls]);
+  }, [msgId, msgFilter, isValidEvent, worker?.relayGroupId, relayUrls]);
 
   const loadMore = async () => {
     if (!worker) return;
