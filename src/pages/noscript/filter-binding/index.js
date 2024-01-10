@@ -1,14 +1,20 @@
 let wasm;
 
-const heap = new Array(128).fill(undefined);
-
+let heap = new Array(128).fill(undefined);
 heap.push(undefined, null, true, false);
+let heap_next = heap.length;
+
+let cachedUint8Memory0 = null;
+let cachedInt32Memory0 = null;
+let cachedFloat32Memory0 = null;
+let cachedBigInt64Memory0 = null;
+let cachedFloat64Memory0 = null;
+
+let WASM_VECTOR_LEN = 0;
 
 function getObject(idx) {
   return heap[idx];
 }
-
-let heap_next = heap.length;
 
 function dropObject(idx) {
   if (idx < 132) return;
@@ -35,7 +41,6 @@ if (typeof TextDecoder !== 'undefined') {
   cachedTextDecoder.decode();
 }
 
-let cachedUint8Memory0 = null;
 
 function getUint8Memory0() {
   if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
@@ -62,7 +67,7 @@ function isLikeNone(x) {
   return x === undefined || x === null;
 }
 
-let cachedBigInt64Memory0 = null;
+
 
 function getBigInt64Memory0() {
   if (
@@ -74,7 +79,6 @@ function getBigInt64Memory0() {
   return cachedBigInt64Memory0;
 }
 
-let cachedInt32Memory0 = null;
 
 function getInt32Memory0() {
   if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
@@ -83,7 +87,6 @@ function getInt32Memory0() {
   return cachedInt32Memory0;
 }
 
-let WASM_VECTOR_LEN = 0;
 
 const cachedTextEncoder =
   typeof TextEncoder !== 'undefined'
@@ -146,8 +149,6 @@ function passStringToWasm0(arg, malloc, realloc) {
   WASM_VECTOR_LEN = offset;
   return ptr;
 }
-
-let cachedFloat64Memory0 = null;
 
 function getFloat64Memory0() {
   if (cachedFloat64Memory0 === null || cachedFloat64Memory0.byteLength === 0) {
@@ -235,7 +236,6 @@ export function is_valid_event(event) {
   return ret !== 0;
 }
 
-let cachedFloat32Memory0 = null;
 
 function getFloat32Memory0() {
   if (cachedFloat32Memory0 === null || cachedFloat32Memory0.byteLength === 0) {
@@ -517,7 +517,19 @@ function __wbg_finalize_init(instance, module) {
 }
 
 function initSync(module) {
-  if (wasm !== undefined) return wasm;
+  //if (wasm !== undefined) return wasm;
+
+  heap = new Array(128).fill(undefined);
+  heap.push(undefined, null, true, false);
+  heap_next = heap.length;
+  
+  cachedUint8Memory0 = null;
+  cachedInt32Memory0 = null;
+  cachedFloat32Memory0 = null;
+  cachedBigInt64Memory0 = null;
+  cachedFloat64Memory0 = null;
+  
+  WASM_VECTOR_LEN = 0;
 
   const imports = __wbg_get_imports();
 
