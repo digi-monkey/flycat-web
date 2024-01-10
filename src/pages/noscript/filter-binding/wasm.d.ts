@@ -3,7 +3,6 @@
 export const memory: WebAssembly.Memory;
 export function pre_validate(): void;
 export function is_valid_event(a: number): number;
-export function rating(a: number, b: number, c: number): void;
 export function __wbindgen_malloc(a: number, b: number): number;
 export function __wbindgen_realloc(
   a: number,

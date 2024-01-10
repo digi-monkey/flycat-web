@@ -8,11 +8,6 @@ export function pre_validate(): void;
  * @returns {boolean}
  */
 export function is_valid_event(event: any): boolean;
-/**
- * @param {string} msg
- * @returns {Float32Array}
- */
-export function rating(msg: string): Float32Array;
 
 export type InitInput =
   | RequestInfo
@@ -25,7 +20,6 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly pre_validate: () => void;
   readonly is_valid_event: (a: number) => number;
-  readonly rating: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (
     a: number,

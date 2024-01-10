@@ -112,7 +112,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
             continue;
           }
         }
-        if (isValidEvent) {
+        if (typeof isValidEvent === 'function') {
           try {
             const isValid = isValidEvent(event);
             if (!isValid) {
