@@ -7,6 +7,7 @@ export const scrollPositionCache = new Map<string, number>();
 export const queryCache = new Map<string, DbEvent[]>();
 
 export function createQueryCacheId(deps: {
+  msgId?: string;
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   relayUrls?: string[];
@@ -15,7 +16,7 @@ export function createQueryCacheId(deps: {
   const isValidEventStr = deps.isValidEvent?.toString() || '';
   const relayUrlsStr = JSON.stringify(deps.relayUrls); // todo: order doesn't matter
 
-  const combinedString = `${msgFilterStr}-${isValidEventStr}-${relayUrlsStr}`;
+  const combinedString = `${deps.msgId}-${msgFilterStr}-${isValidEventStr}-${relayUrlsStr}`;
   const hash = createHash('sha256');
   hash.update(combinedString);
   const uniqueId = hash.digest('hex');

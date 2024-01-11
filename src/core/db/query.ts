@@ -20,6 +20,10 @@ export class Query {
     }
   }
 
+  tableName() {
+    return this.table.name;
+  }
+
   createEventByIdQuerier(
     relayUrls: string[],
     eventId?: EventId,
@@ -59,7 +63,7 @@ export class Query {
     };
   }
 
-  // pass [] to allow for any relay urls
+  // pass [] to allow match for any relay urls
   async matchFilterRelay(
     filter: Filter,
     relayUrls: string[],
@@ -79,8 +83,19 @@ export class Query {
       return event.created_at > startTime && event.created_at < endTime;
     };
     const applyIsValidEvent = (event: DbEvent) => {
-      if (isValidEvent) {
-        return isValidEvent(event);
+      if (typeof isValidEvent === 'function') {
+        try {
+          const isValid = isValidEvent(event);
+          return isValid;
+        } catch (error: any) {
+          console.debug(
+            'query isValidEvent error: ',
+            error.message,
+            event.content,
+            event.kind,
+          );
+          return false;
+        }
       }
       return true;
     };
@@ -186,6 +201,10 @@ export class ContactQuery {
     this.table = table;
   }
 
+  tableName() {
+    return this.table.name;
+  }
+
   getContactByPubkey(pubkey: string) {
     return this.table.get(pubkey);
   }
@@ -212,6 +231,10 @@ export class ProfileQuery {
   table: Table<DbEvent>;
   constructor(table: Table<DbEvent>) {
     this.table = table;
+  }
+
+  tableName() {
+    return this.table.name;
   }
 
   getProfileByPubkey(pubkey: string) {

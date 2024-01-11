@@ -6,7 +6,7 @@ import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useTranslation } from 'react-i18next';
-import { dbQuery } from 'core/db';
+import { cancelableQuery, dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
@@ -23,6 +23,7 @@ import styles from './index.module.scss';
 import useScrollValue from './hook/useScrollValue';
 
 export interface MsgSubProp {
+  msgId?: string;
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   placeholder?: React.ReactNode;
@@ -40,7 +41,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   maxMsgLength: _maxMsgLength,
 }) => {
   const { t } = useTranslation();
-  const { msgFilter, isValidEvent, placeholder } = msgSubProp;
+  const { msgId, msgFilter, isValidEvent, placeholder } = msgSubProp;
 
   const [msgList, setMsgList] = useState<DbEvent[]>([]);
   const [newComingMsg, setNewComingMsg] = useState<DbEvent[]>([]);
@@ -49,6 +50,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
   const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
   const [isDBNoData, setIsDBNoData] = useState<boolean>(false);
+  const [cancelLoadingMsg, setCancelLoadingMsg] = useState<() => void>();
 
   const SUB_NEW_MSG_INTERVAL = 2000; // milsecs
 
@@ -60,11 +62,12 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const queryCacheId = useMemo(
     () =>
       createQueryCacheId({
+        msgId,
         msgFilter,
         isValidEvent,
         relayUrls,
       }),
-    [msgFilter, isValidEvent, relayUrls],
+    [msgId, msgFilter, isValidEvent, relayUrls],
   );
   const queryLoading = useMemo(
     () => isLoadingMsg && !isPullRefreshing,
@@ -101,22 +104,23 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       const pks: string[] = [];
       let events: Event[] = [];
 
-      console.debug(
-        'start sub msg..',
-        filter,
-        isValidEvent,
-        typeof isValidEvent,
-      );
+      console.debug('start sub msg..', filter, isValidEvent);
       const dataStream = worker.subFilter({ filter }).getIterator();
       for await (const data of dataStream) {
         const event = data.event;
-        if (isValidEvent) {
-          if (!isValidEvent(event)) {
+        if (latest) {
+          if (event.created_at <= latest) {
             continue;
           }
         }
-        if (latest) {
-          if (event.created_at <= latest) {
+        if (typeof isValidEvent === 'function') {
+          try {
+            const isValid = isValidEvent(event);
+            if (!isValid) {
+              continue;
+            }
+          } catch (error: any) {
+            console.debug(error.message);
             continue;
           }
         }
@@ -149,7 +153,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
           return e;
         });
       events = mergeAndSortUniqueDbEvents(events as any, events as any);
-      console.log('sub diff: ', events, events.length, filter);
+      console.log('sub diff: ', events.length, filter.since);
       dataStream.unsubscribe();
       console.debug('finished sub msg!');
 
@@ -175,13 +179,17 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       }
     };
 
-    const latest = memoMsgList[0]?.created_at || 0;
+    const latest =
+      newComingMsg[0]?.created_at || memoMsgList[0]?.created_at || 0;
     setIsSubNewComingMsg(true);
     await request(latest);
     setIsSubNewComingMsg(false);
   }, [
     worker,
+    msgId,
     msgFilter,
+    newComingMsg,
+    memoMsgList,
     isValidEvent,
     isLoadingMsg,
     isPullRefreshing,
@@ -203,36 +211,52 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return;
     }
 
-    let events = await dbQuery.matchFilterRelay(
-      msgFilter,
-      relayUrls,
-      isValidEvent,
+    const queryFn = () =>
+      dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
+
+    const { queryPromise, cancel } = cancelableQuery(
+      dbQuery.tableName(),
+      queryFn,
     );
-    events = events.map(e => {
-      if (e.kind === WellKnownEventKind.community_approval) {
-        const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
-        return event;
+    setCancelLoadingMsg(prev => {
+      if (typeof prev === 'function') {
+        prev(); // abort last query
       }
-      return e;
+      return cancel;
     });
-    events = mergeAndSortUniqueDbEvents(events, events);
-    console.log('query: ', events.length, relayUrls, msgFilter);
 
-    if (events.length === 0) {
-      if (msgList.length === 0) {
-        setIsDBNoData(true);
-      }
-      setIsLoadingMsg(false);
-      return;
-    }
+    queryPromise
+      .then((events: DbEvent[]) => {
+        events = events.map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
+        events = mergeAndSortUniqueDbEvents(events, events);
+        console.log('load query: ', events.length, relayUrls, msgFilter);
 
-    // save cache
-    setMsgList(events);
-    queryCache.set(queryCacheId, events);
-    setIsDBNoData(false);
+        if (events.length === 0) {
+          if (msgList.length === 0) {
+            setIsDBNoData(true);
+          }
+          setIsLoadingMsg(false);
+          setIsLoadingMsg(false);
+          return;
+        }
 
-    setIsLoadingMsg(false);
-  }, [msgFilter, isValidEvent, relayUrls, queryCache]);
+        // save cache
+        setMsgList(events);
+        queryCache.set(queryCacheId, events);
+        setIsDBNoData(false);
+        setIsLoadingMsg(false);
+      })
+      .catch((error: any) => {
+        console.debug('query cancel: ', error.message);
+        //setIsLoadingMsg(false);
+      });
+  }, [msgId, msgFilter, isValidEvent, relayUrls, queryCache]);
 
   useLastReplyEvent({ msgList: memoMsgList, worker });
   useInterval(subNewComingMsg, SUB_NEW_MSG_INTERVAL);
@@ -241,7 +265,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   useEffect(() => {
     if (!worker?.relayGroupId || relayUrls.length === 0) return;
     loadMsgFromDb();
-  }, [msgFilter, worker?.relayGroupId, relayUrls]);
+  }, [msgId, msgFilter, isValidEvent, worker?.relayGroupId, relayUrls]);
 
   const loadMore = async () => {
     if (!worker) return;

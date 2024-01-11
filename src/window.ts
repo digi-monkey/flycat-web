@@ -7,5 +7,6 @@ declare global {
     webln?: WebLNProvider;
     ethereum?: any;
     twttr?: any;
+    selfEvent?: any;
   }
 }

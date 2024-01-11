@@ -1,7 +1,6 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
-import { isChineseLang } from './util';
 
 const mixKinds = [
   WellKnownEventKind.text_note,
@@ -13,9 +12,9 @@ const mixKinds = [
 export enum MsgFilterKey {
   follow = 'Follow',
   followArticle = 'Follow-Article',
+  globalHighLight = 'HighLights',
   globalAll = 'Global-All',
   media = 'Media',
-  zh = 'Chinese',
 }
 
 export enum MsgFilterMode {
@@ -32,6 +31,7 @@ export interface MsgFilter {
   mode: MsgFilterMode;
   description?: string;
   wasm?: ArrayBuffer | undefined;
+  selfEvent?: Event;
 }
 
 export const defaultMsgFilters: MsgFilter[] = [
@@ -75,6 +75,19 @@ export const defaultMsgFilters: MsgFilter[] = [
     description: "all the realtime global's mixed posts",
   },
   {
+    key: MsgFilterKey.globalHighLight,
+    label: 'HighLights',
+    filter: {
+      limit: 50,
+      kinds: [WellKnownEventKind.article_highlight],
+    },
+    isValidEvent: (event: Event) => {
+      return event.kind === WellKnownEventKind.article_highlight;
+    },
+    mode: MsgFilterMode.global,
+    description: 'global post for highlights(kind:9802)',
+  },
+  {
     key: MsgFilterKey.media,
     label: 'Media',
     filter: {
@@ -89,21 +102,6 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.global,
     description: 'global posts including at least one picture',
-  },
-  {
-    key: MsgFilterKey.zh,
-    label: 'Chinese',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return (
-        event.kind === WellKnownEventKind.text_note &&
-        isChineseLang(event.content)
-      );
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts which language is Chinese',
   },
 ];
 

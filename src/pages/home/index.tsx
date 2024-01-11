@@ -35,7 +35,12 @@ import styles from './index.module.scss';
 import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
-import { initSync, is_valid_event } from 'pages/noscript/filter-binding';
+import {
+  initSync,
+  is_valid_event,
+  pre_validate,
+} from 'pages/noscript/filter-binding';
+import { createRuntime } from 'pages/noscript/filter-binding/runtime';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -145,7 +150,18 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     let isValidEvent = selectedMsgFilter.isValidEvent;
     if (selectedMsgFilter.wasm) {
       initSync(selectedMsgFilter.wasm);
+      if (selectedMsgFilter.selfEvent) {
+        createRuntime(selectedMsgFilter.selfEvent);
+      }
       isValidEvent = is_valid_event;
+      if (typeof pre_validate === 'function') {
+        try {
+          pre_validate();
+          console.log('exec pre_validate');
+        } catch (error: any) {
+          console.log(error.message);
+        }
+      }
     }
     let placeholder: ReactNode | null = null;
 
@@ -169,6 +185,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     }
 
     const msgSubProp: MsgSubProp = {
+      msgId: selectedMsgFilter.label,
       msgFilter,
       isValidEvent,
       placeholder,
@@ -181,6 +198,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     myPublicKey,
     lastSelectedFilter,
     noscriptFiltersMap,
+    filtersMap,
   ]);
 
   useEffect(() => {

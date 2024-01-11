@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { loadTempMyPublicKey, saveTempMyPublicKey } from 'store/loginReducer';
+import { loadTempMyPublicKey, saveTempMyPublicKey } from 'store/util';
 
 export function useMyPublicKey() {
   const getMyPublicKey = useSelector(
