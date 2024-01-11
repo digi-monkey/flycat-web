@@ -1,7 +1,6 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
-import { isChineseLang } from './util';
 
 const mixKinds = [
   WellKnownEventKind.text_note,
@@ -16,7 +15,6 @@ export enum MsgFilterKey {
   globalHighLight = 'HighLights',
   globalAll = 'Global-All',
   media = 'Media',
-  zh = 'Chinese',
 }
 
 export enum MsgFilterMode {
@@ -104,21 +102,6 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.global,
     description: 'global posts including at least one picture',
-  },
-  {
-    key: MsgFilterKey.zh,
-    label: 'Chinese',
-    filter: {
-      kinds: [WellKnownEventKind.text_note],
-    } as Filter,
-    isValidEvent: (event: Event) => {
-      return (
-        event.kind === WellKnownEventKind.text_note &&
-        isChineseLang(event.content)
-      );
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts which language is Chinese',
   },
 ];
 
