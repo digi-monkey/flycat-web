@@ -6,7 +6,7 @@ import { _handleEvent } from 'components/Comments/util';
 import { Event } from 'core/nostr/Event';
 import { useLastReplyEvent } from './hook/useSubLastReply';
 import { useTranslation } from 'react-i18next';
-import { dbQuery } from 'core/db';
+import { cancelableQuery, dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { validateFilter } from './util';
 import { mergeAndSortUniqueDbEvents } from 'utils/common';
@@ -50,6 +50,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
   const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
   const [isLoadMore, setIsLoadMore] = useState<boolean>(false);
   const [isDBNoData, setIsDBNoData] = useState<boolean>(false);
+  const [cancelLoadingMsg, setCancelLoadingMsg] = useState<() => void>();
 
   const SUB_NEW_MSG_INTERVAL = 2000; // milsecs
 
@@ -210,35 +211,51 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       return;
     }
 
-    let events = await dbQuery.matchFilterRelay(
-      msgFilter,
-      relayUrls,
-      isValidEvent,
+    const queryFn = () =>
+      dbQuery.matchFilterRelay(msgFilter, relayUrls, isValidEvent);
+
+    const { queryPromise, cancel } = cancelableQuery(
+      dbQuery.tableName(),
+      queryFn,
     );
-    events = events.map(e => {
-      if (e.kind === WellKnownEventKind.community_approval) {
-        const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
-        return event;
+    setCancelLoadingMsg(prev => {
+      if (typeof prev === 'function') {
+        prev(); // abort last query
       }
-      return e;
+      return cancel;
     });
-    events = mergeAndSortUniqueDbEvents(events, events);
-    console.log('load query: ', events.length, relayUrls, msgFilter);
 
-    if (events.length === 0) {
-      if (msgList.length === 0) {
-        setIsDBNoData(true);
-      }
-      setIsLoadingMsg(false);
-      return;
-    }
+    queryPromise
+      .then((events: DbEvent[]) => {
+        events = events.map(e => {
+          if (e.kind === WellKnownEventKind.community_approval) {
+            const event = { ...e, ...(JSON.parse(e.content) as DbEvent) };
+            return event;
+          }
+          return e;
+        });
+        events = mergeAndSortUniqueDbEvents(events, events);
+        console.log('load query: ', events.length, relayUrls, msgFilter);
 
-    // save cache
-    setMsgList(events);
-    queryCache.set(queryCacheId, events);
-    setIsDBNoData(false);
+        if (events.length === 0) {
+          if (msgList.length === 0) {
+            setIsDBNoData(true);
+          }
+          setIsLoadingMsg(false);
+          setIsLoadingMsg(false);
+          return;
+        }
 
-    setIsLoadingMsg(false);
+        // save cache
+        setMsgList(events);
+        queryCache.set(queryCacheId, events);
+        setIsDBNoData(false);
+        setIsLoadingMsg(false);
+      })
+      .catch((error: any) => {
+        console.debug('query cancel: ', error.message);
+        //setIsLoadingMsg(false);
+      });
   }, [msgId, msgFilter, isValidEvent, relayUrls, queryCache]);
 
   useLastReplyEvent({ msgList: memoMsgList, worker });
