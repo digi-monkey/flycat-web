@@ -46,7 +46,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
     <div className="flex justify-center min-h-screen">
       <div className="container body grid grid-cols-8 lg:grid-cols-12">
         <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
-          <div className="sticky top-0 pr-5 h-screen border-0 border-r border-solid border-neutral-200">
+          <div className="sticky top-0 pr-5 h-screen overflow-scroll border-0 border-r border-solid border-neutral-200">
             <Navbar user={myProfile} />
           </div>
         </aside>
