@@ -254,7 +254,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       })
       .catch((error: any) => {
         console.debug('query cancel: ', error.message);
-        setIsLoadingMsg(false);
+        //setIsLoadingMsg(false);
       });
   }, [msgId, msgFilter, isValidEvent, relayUrls, queryCache]);
 
