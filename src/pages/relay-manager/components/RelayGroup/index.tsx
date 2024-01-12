@@ -1,7 +1,7 @@
 import { Button } from 'components/shared/ui/Button';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useMemo, useRef, useState } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { FaPlus } from 'react-icons/fa6';
 import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
 import { useRelayGroupManager } from '../../hooks/useRelayManagerContext';
 import CreateGroupModal, { CreateGroupModalRef } from './create-group';
@@ -45,25 +45,25 @@ export default function RelayGroup() {
               ))}
             </div>
           </div>
-          <div className="border-0 border-t border-border-01 border-solid h-12">
+          <div className="border-0 border-t border-border-01 border-solid h-12 box-border">
             <CreateGroupModal ref={createModalRef} onConfirm={onCreateNewGroup}>
               <Button
                 variant="link"
                 className="flex items-center gap-2 h-full hover:no-underline cursor-pointer"
               >
-                <FiPlus className="text-text-link" />
+                <FaPlus className="text-text-link" />
                 <span className="text-text-link">Create New Group</span>
               </Button>
             </CreateGroupModal>
           </div>
         </div>
       </div>
-      <div className="col-span-3 bg-surface-02 px-5 py-2">
-        <div className="label-bold text-text-primary capitalize pb-2">
+      <div className="col-span-3 bg-surface-02">
+        <div className="label-bold text-text-primary capitalize px-5 py-2">
           {selectedGroupId}{' '}
           {activeGroup?.length ? `(${activeGroup?.length ?? 0})` : ''}
         </div>
-        <RelayTable groupId={selectedGroupId} />
+        <RelayTable key={selectedGroupId} groupId={selectedGroupId} />
       </div>
     </div>
   );

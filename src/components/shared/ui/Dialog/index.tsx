@@ -1,7 +1,7 @@
 import React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from 'utils/classnames';
-import { FiX } from 'react-icons/fi';
+import { FaX } from 'react-icons/fa6';
 
 export type DialogProps = React.ComponentProps<typeof Dialog>;
 
@@ -44,7 +44,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground bg-transparent border-none flex items-center cursor-pointer">
-        <FiX className="h-6 w-6" />
+        <FaX className="h-6 w-6" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

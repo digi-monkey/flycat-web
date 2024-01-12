@@ -15,7 +15,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FaChevronDown } from 'react-icons/fa6';
 import { normalizeWsUrl } from 'utils/common';
 import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useSelectedRelay } from './hooks/useSelectedRelay';
@@ -191,7 +191,7 @@ export function RelaySelector({
                 )}
               </span>
             </div>
-            <FiChevronDown className="w-5 h-5" />
+            <FaChevronDown className="w-5 h-5" />
           </div>
         );
       }}

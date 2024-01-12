@@ -6,7 +6,7 @@ import {
 } from 'components/shared/ui/DropdownMenu';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { MouseEvent } from 'react';
-import { FiFolder, FiMoreVertical } from 'react-icons/fi';
+import { FaRegFolder, FaEllipsisVertical } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
 import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
 import { useRelayGroupManager } from '../../hooks/useRelayManagerContext';
@@ -48,7 +48,7 @@ export default function GroupItem(props: GroupItemProps) {
       )}
       onClick={() => setSelectedGroupId(groupId)}
     >
-      <FiFolder className="h-4 w-4 text-text-secondary" />
+      <FaRegFolder className="h-4 w-4 text-text-secondary" />
       <div className="w-full flex justify-between items-center">
         <span className="flex-1 line-clamp-1 label text-text-primary selected:font-semibold capitalize">
           {groupId} ({relayGroups[groupId]?.length})
@@ -56,7 +56,7 @@ export default function GroupItem(props: GroupItemProps) {
         <div className="flex items-center relative">
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <FiMoreVertical className="w-[18px] h-[18px] text-text-secondary" />
+              <FaEllipsisVertical className="w-[18px] h-[18px] text-text-secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={onEditGroup}>Edit</DropdownMenuItem>

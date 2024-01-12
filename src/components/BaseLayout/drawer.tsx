@@ -8,7 +8,7 @@ import {
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FaBars, FaX } from 'react-icons/fa6';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { useWindowSize } from 'usehooks-ts';
@@ -41,7 +41,7 @@ export function UserDrawer(props: UserDrawerProps) {
     <Drawer open={opened} onOpenChange={setOpened}>
       <DrawerTrigger asChild>
         <div className="sm:hidden flex items-center">
-          <FiMenu className="w-7 h-7 fill-gray-700" />
+          <FaBars className="w-7 h-7 fill-gray-700" />
         </div>
       </DrawerTrigger>
       <DrawerContent
@@ -52,7 +52,7 @@ export function UserDrawer(props: UserDrawerProps) {
           <div className="mb-2 px-2">
             <div className="flex justify-end items-center">
               <DrawerClose asChild>
-                <FiX className="w-7 h-7 fill-gray-700" />
+                <FaX className="w-7 h-7 fill-gray-700" />
               </DrawerClose>
             </div>
             <Profile user={user} className="justify-start" showName />

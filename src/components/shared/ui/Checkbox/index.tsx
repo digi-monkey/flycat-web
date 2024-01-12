@@ -1,5 +1,5 @@
 import * as RadixCheckbox from '@radix-ui/react-checkbox';
-import { FiCheck, FiMinus } from 'react-icons/fi';
+import { FaCheck, FaMinus } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
 
 export interface CheckboxProps {
@@ -26,11 +26,11 @@ export default function MyCheckbox(props: CheckboxProps) {
         className,
       )}
     >
-      <RadixCheckbox.Indicator>
+      <RadixCheckbox.Indicator className="flex justify-center items-center">
         {checked === 'indeterminate' ? (
-          <FiMinus className="w-4 h-4 selected:text-white" />
+          <FaMinus className="w-3 h-3 selected:text-white" />
         ) : (
-          <FiCheck className="w-4 h-4 selected:text-white" />
+          <FaCheck className="w-3 h-3 selected:text-white" />
         )}
       </RadixCheckbox.Indicator>
     </RadixCheckbox.Root>
