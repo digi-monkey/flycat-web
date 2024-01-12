@@ -1,6 +1,6 @@
 import { EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from 'antd';
 import { CallWorker } from 'core/worker/caller';
 import { isNsfwEvent } from 'utils/validator';
@@ -9,6 +9,7 @@ import { doTextTransformer } from 'hooks/useTransformText';
 import { useRouter } from 'next/router';
 import { Paths } from 'constants/path';
 import { TEXT_NOTE_MAX_WORD_LIMIT } from 'constants/common';
+import { DecodedNeventResult, Nip19, Nip19DataType } from 'core/nip/19';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
@@ -48,14 +49,44 @@ export const PostContent: React.FC<PostContentProp> = ({
     return lastReply?.id;
   }, [msgEvent]);
 
+  const elements = useMemo(
+    () => doTextTransformer(msgEvent.id, msgEvent.content, msgEvent.tags),
+    [msgEvent],
+  );
+
+  const isSubPostDuplicateWithEmbedNote = useMemo(() => {
+    return elements.find(e => {
+      if (e.type === 'mention') {
+        const content = e.content;
+        if (content.startsWith('nostr:nevent1')) {
+          try {
+            const data = content.split(':')[1];
+            const res = Nip19.decodeShareable(data).data as DecodedNeventResult;
+            return res.id === lastReplyToEventId;
+          } catch (error) {}
+        }
+
+        if (content.startsWith('nostr:note1')) {
+          try {
+            const data = content.split(':')[1];
+            const res = Nip19.decode(data);
+            if (res.type === Nip19DataType.EventId) {
+              return res.data === lastReplyToEventId;
+            }
+          } catch (error) {}
+        }
+      }
+      return false;
+    });
+  }, [lastReplyToEventId, elements]);
+
   const content = useMemo(() => {
-    const elements = doTextTransformer(msgEvent.id, msgEvent.content, []);
     return renderContent(
       elements,
       isNsfwEvent(msgEvent),
       expanded ? 0 : TEXT_NOTE_MAX_WORD_LIMIT,
     );
-  }, [msgEvent, expanded]);
+  }, [msgEvent, elements, expanded]);
 
   const isOverflow = useMemo(
     () => msgEvent.content.length > TEXT_NOTE_MAX_WORD_LIMIT,
@@ -90,9 +121,11 @@ export const PostContent: React.FC<PostContentProp> = ({
           </div>
         )}
       </div>
-      {showLastReplyToEvent && lastReplyToEventId && (
-        <SubPostItem eventId={lastReplyToEventId} worker={worker} />
-      )}
+      {showLastReplyToEvent &&
+        lastReplyToEventId &&
+        !isSubPostDuplicateWithEmbedNote && (
+          <SubPostItem eventId={lastReplyToEventId} worker={worker} />
+        )}
     </>
   );
 };
