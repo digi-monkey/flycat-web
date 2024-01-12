@@ -19,6 +19,7 @@ import { cn } from 'utils/classnames';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRelaysQuery } from '../../hooks/useRelaysQuery';
 import { Button } from 'components/shared/ui/Button';
+import useRemoveRelayMutation from 'pages/relay-manager/hooks/useRemoveRelayMutation';
 
 interface RelayTableProps {
   groupId: string;
@@ -89,6 +90,7 @@ export default function RelayTable(props: RelayTableProps) {
   const { groupId } = props;
   const myPublicKey = useReadonlyMyPublicKey();
   const { data: relays = [] } = useRelaysQuery(myPublicKey, groupId);
+  const removeMutation = useRemoveRelayMutation(groupId);
 
   const table = useReactTable({
     data: relays,
@@ -168,6 +170,13 @@ export default function RelayTable(props: RelayTableProps) {
               <Button
                 variant="link"
                 className="text-functional-danger hover:text-functional-danger/80"
+                onClick={() => {
+                  const relays = table
+                    .getSelectedRowModel()
+                    .rows.map(row => row.original);
+                  removeMutation.mutate(relays);
+                  table.resetRowSelection();
+                }}
               >
                 Remove
               </Button>
