@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { FiFolder, FiPlus } from 'react-icons/fi';
 import { cn } from 'utils/classnames';
 import { useRelayGroupQuery } from '../hooks/useRelayGroupsQuery';
+import CreateGroupModal from './create-group';
 import RelayTable from './table';
 
 export default function RelayGroup() {
@@ -52,13 +53,15 @@ export default function RelayGroup() {
             </div>
           </div>
           <div className="border-0 border-t border-border-01 border-solid h-12">
-            <Button
-              variant="link"
-              className="flex items-center gap-2 h-full hover:no-underline cursor-pointer"
-            >
-              <FiPlus className="text-text-link" />
-              <span className="text-text-link">Create new group</span>
-            </Button>
+            <CreateGroupModal>
+              <Button
+                variant="link"
+                className="flex items-center gap-2 h-full hover:no-underline cursor-pointer"
+              >
+                <FiPlus className="text-text-link" />
+                <span className="text-text-link">Create new group</span>
+              </Button>
+            </CreateGroupModal>
           </div>
         </div>
       </div>

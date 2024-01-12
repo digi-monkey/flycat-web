@@ -1,5 +1,5 @@
 import { RelayPoolDatabase } from 'core/relay/pool/db';
-import { useMemo, createContext, useContext, useCallback } from 'react';
+import { useMemo, createContext, useContext } from 'react';
 import { RelayGroupManager } from '../../../core/relay/group';
 import { useDefaultGroup } from './useDefaultGroup';
 
