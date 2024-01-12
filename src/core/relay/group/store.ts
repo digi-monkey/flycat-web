@@ -10,10 +10,6 @@ export interface StoreAdapter {
   get(key: string): string | null;
   set(key: string, val: string): any;
   del(key: string): any;
-  subscribe: (
-    key: string,
-    callback: (val: string | null) => void,
-  ) => () => void;
 }
 
 export class LocalStorageAdapter implements StoreAdapter {
@@ -36,21 +32,6 @@ export class LocalStorageAdapter implements StoreAdapter {
       return;
     }
     localStorage.removeItem(key);
-  }
-
-  subscribe(key: string, callback: (val: string | null) => void) {
-    if (typeof window === 'undefined') {
-      return () => {};
-    }
-    const listener = (e: StorageEvent) => {
-      if (e.key === key) {
-        callback(e.newValue);
-      }
-    };
-    window.addEventListener('storage', listener);
-    return () => {
-      window.removeEventListener('storage', listener);
-    };
   }
 }
 
@@ -85,13 +66,6 @@ export class RelayGroupStorage implements RelayGroupStore {
     const jsonData = JSON.parse(strData);
     const data: RelayGroupMap = new Map(jsonData);
     return data;
-  }
-
-  subscribe(callback: (val: string | null) => void) {
-    const key = this.storeKey();
-    return this.storeAdapter.subscribe(key, val => {
-      callback(val);
-    });
   }
 
   clean() {

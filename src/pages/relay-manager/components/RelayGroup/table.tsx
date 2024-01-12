@@ -7,7 +7,6 @@ import {
   TableRow,
 } from 'components/shared/ui/Table';
 import { Relay } from 'core/relay/type';
-import Link from 'next/link';
 import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import {
   useReactTable,
@@ -18,7 +17,7 @@ import {
 import Checkbox from 'components/shared/ui/Checkbox';
 import { cn } from 'utils/classnames';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useRelaysQuery } from '../hooks/useRelaysQuery';
+import { useRelaysQuery } from '../../hooks/useRelaysQuery';
 
 interface RelayTableProps {
   groupId: string;
@@ -62,14 +61,7 @@ export const columns: ColumnDef<Relay>[] = [
     header: 'URL',
     cell: ({ row }) => {
       const url = row.getValue('url') as string;
-      return (
-        <Link
-          href={`/relay-manager/relays/${url}`}
-          className="text-text-link no-underline"
-        >
-          {url}
-        </Link>
-      );
+      return <span className="text-text-link no-underline">{url}</span>;
     },
   },
   {

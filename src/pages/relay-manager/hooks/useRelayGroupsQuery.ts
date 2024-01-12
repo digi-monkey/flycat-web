@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { useRelayGroupManager } from './useRelayManagerContext';
 
-export function useRelayGroupQuery(pubkey: string) {
+export function useRelayGroupsQuery(pubkey: string) {
   const groupManager = useRelayGroupManager(pubkey);
 
   const getRelayGroups = useCallback(() => {

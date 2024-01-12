@@ -64,6 +64,11 @@ export class RelayGroupManager {
     this.store.save(this.map);
   }
 
+  deleteGroup(id: string) {
+    this.map.delete(id);
+    this.store.save(this.map);
+  }
+
   isRelayExistInGroup(id: string, val: Relay): boolean {
     // relay url is the primary key
     const data = this.map.get(id);
@@ -102,9 +107,5 @@ export class RelayGroupManager {
     const newData = data.filter(r => r.url !== relay.url);
     this.map.set(id, newData);
     this.store.save(this.map);
-  }
-
-  subscribe(callback: (val: string | null) => void) {
-    return this.store.subscribe(callback);
   }
 }

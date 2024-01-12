@@ -1,8 +1,10 @@
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left } from 'components/BaseLayout';
 import Link from 'next/link';
-import RelayGroup from './RelayGroup';
+import RelayGroup from './components/RelayGroup';
 import { RelayManagerProvider } from './hooks/useRelayManagerContext';
+import GetNIP65RelayButton from './components/GetNip65RelayButton';
+import FindAutoRelayButton from './components/FindAutoRelayButton';
 
 export interface RelayMenuProp {
   showRelayPool: boolean;
@@ -23,6 +25,10 @@ export default function RelayManager() {
               >
                 Explore 500+ relays
               </Link>
+            </div>
+            <div className="flex px-4 pb-3 items-center gap-3">
+              <GetNIP65RelayButton />
+              <FindAutoRelayButton />
             </div>
             <RelayGroup />
           </div>

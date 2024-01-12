@@ -14,6 +14,7 @@ import { joyIdConfig } from 'core/joyid/config';
 import Head from 'next/head';
 import theme from 'constants/theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'components/shared/ui/Toast/toaster';
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactNode) => ReactElement;
@@ -72,6 +73,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
           </Head>
           <Component {...pageProps} />
           <Analytics />
+          <Toaster />
         </ConfigProvider>
       </QueryClientProvider>
     </Provider>

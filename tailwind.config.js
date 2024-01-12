@@ -103,6 +103,18 @@ module.exports = {
           '04': '#DDEEBA',
           inverse: '#1E1E1E',
         },
+        functional: {
+          success: '#98C354',
+          warning: '#EBBC3E',
+          danger: '#C25B5B',
+          info: '#547FC3',
+        },
+        button: {
+          disabled: '#BCBCBC',
+          'primary-hover': '#6D8F3D',
+          'sencondary-hover': 'rgba(89, 128, 34, 0.12)',
+          'link-hover': '#44661B',
+        },
         border: {
           primary: '598022',
           '01': '#EDEDED',
