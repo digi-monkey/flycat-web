@@ -11,10 +11,29 @@ import { NostrEmbed } from './Embed/index';
 import classname from 'classnames';
 import styles from './Media/index.module.scss';
 
-export const renderContent = (elements: ParsedFragment[], isNsfw = false) => {
+export const renderContent = (
+  elements: ParsedFragment[],
+  isNsfw = false,
+  wordLimit = 0,
+) => {
+  let lenCount = 0;
   const chunks: Array<ReactNode> = [];
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
+
+    if (wordLimit > 0) {
+      if (lenCount + element.content.length > wordLimit) {
+        lenCount += element.content.length;
+        chunks.push(
+          <div className="text-frag">
+            {element.content.slice(0, wordLimit - lenCount)}...
+          </div>,
+        );
+        return chunks;
+      } else {
+        lenCount += element.content.length;
+      }
+    }
 
     if (element.type === 'media' && element.mimeType?.startsWith('image')) {
       const galleryImages: ParsedFragment[] = [element];

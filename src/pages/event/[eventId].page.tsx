@@ -107,7 +107,7 @@ export default function EventPage({
                   msgList={[rootEvent]}
                   worker={worker!}
                   showLastReplyToEvent={true}
-                  isExpanded={true}
+                  truncate={false}
                 />
 
                 <Comments rootEvent={rootEvent} />
