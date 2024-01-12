@@ -8,6 +8,7 @@ import { renderContent } from './content';
 import { doTextTransformer } from 'hooks/useTransformText';
 import { useRouter } from 'next/router';
 import { Paths } from 'constants/path';
+import { TEXT_NOTE_MAX_WORD_LIMIT } from 'constants/common';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
@@ -24,16 +25,18 @@ interface PostContentProp {
   ownerEvent: Event;
   worker?: CallWorker;
   showLastReplyToEvent?: boolean;
-  isExpanded?: boolean;
+  truncate?: boolean;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
-  isExpanded = false,
+  truncate = true,
 }) => {
   const router = useRouter();
+
+  const [expanded, setExpanded] = useState(!truncate);
 
   const lastReplyToEventId = useMemo(() => {
     const lastReply = msgEvent.tags
@@ -45,60 +48,51 @@ export const PostContent: React.FC<PostContentProp> = ({
     return lastReply?.id;
   }, [msgEvent]);
 
-  const [expanded, setExpanded] = useState(isExpanded);
-  const [content, setContent] = useState<any[]>([]);
-
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const isOverflow =
-    contentRef.current &&
-    contentRef.current.scrollHeight > contentRef.current.clientHeight;
-
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
-
-  useEffect(() => {
+  const content = useMemo(() => {
     const elements = doTextTransformer(msgEvent.id, msgEvent.content, []);
-    setContent(renderContent(elements, isNsfwEvent(msgEvent)));
-  }, [msgEvent]);
+    return renderContent(
+      elements,
+      isNsfwEvent(msgEvent),
+      expanded ? 0 : TEXT_NOTE_MAX_WORD_LIMIT,
+    );
+  }, [msgEvent, expanded]);
+
+  const isOverflow = useMemo(
+    () => msgEvent.content.length > TEXT_NOTE_MAX_WORD_LIMIT,
+    [msgEvent.content],
+  );
 
   const contentStyle = { cursor: 'pointer' };
+
   const onContentClick = e => {
     e.stopPropagation();
     router.push(Paths.event + '/' + msgEvent.id);
   };
-  const UI = (
+
+  const toggleExpanded = e => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
+  return (
     <>
       <div onClick={onContentClick} style={contentStyle}>
         {content}
+        {truncate && isOverflow && (
+          <div>
+            <Button
+              className={styles.viewMore}
+              type="link"
+              onClick={toggleExpanded}
+            >
+              {expanded ? 'View Less' : 'View More'}
+            </Button>
+          </div>
+        )}
       </div>
       {showLastReplyToEvent && lastReplyToEventId && (
         <SubPostItem eventId={lastReplyToEventId} worker={worker} />
       )}
     </>
-  );
-
-  const style = expanded
-    ? { maxHeight: '100%' }
-    : { maxHeight: '350px', overflow: 'hidden' };
-
-  return (
-    <div>
-      <div>
-        <div ref={contentRef} style={style}>
-          {UI}
-        </div>
-        {isOverflow && !expanded && (
-          <Button
-            className={styles.viewMore}
-            type="link"
-            onClick={toggleExpanded}
-          >
-            {' View More'}
-          </Button>
-        )}
-      </div>
-    </div>
   );
 };
