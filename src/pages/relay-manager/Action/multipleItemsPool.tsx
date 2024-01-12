@@ -1,5 +1,5 @@
 import { Relay } from 'core/relay/type';
-import { RelayGroup as RelayGroupClass } from 'core/relay/group';
+import { RelayGroupManager as RelayGroupClass } from 'core/relay/group';
 import styles from './index.module.scss';
 import { Button } from 'antd';
 import { ActionType, RelayActionModal } from '../Modal/action';

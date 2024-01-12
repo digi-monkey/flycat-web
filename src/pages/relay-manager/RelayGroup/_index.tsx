@@ -15,10 +15,10 @@ import {
 } from 'antd';
 import { Relay } from 'core/relay/type';
 import { Event } from 'core/nostr/Event';
-import RelayGroupTable from './table';
+import RelayTable from './table';
 import { newRelay } from 'core/relay/util';
 import { RelayPool } from 'core/relay/pool';
-import { RelayGroup as RelayGroupClass } from 'core/relay/group';
+import { RelayGroupManager as RelayGroupClass } from 'core/relay/group';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
@@ -60,7 +60,7 @@ export const RelayGroup: React.FC<RelayGroupProp> = ({ groups, setGroups }) => {
 
     const selectedItems = groups.map.get(selectedGroupId) || [];
     return (
-      <RelayGroupTable
+      <RelayTable
         groups={groups}
         setGroups={setGroups}
         groupId={selectedGroupId}

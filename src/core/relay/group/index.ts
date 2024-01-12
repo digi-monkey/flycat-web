@@ -17,7 +17,7 @@ const predefine: [string, Relay[]][] = preDefineRelayGroups.map(g => {
   ] as [string, Relay[]];
 });
 
-export class RelayGroup {
+export class RelayGroupManager {
   map: RelayGroupMap;
   author: string;
   store: RelayGroupStorage;
@@ -42,7 +42,7 @@ export class RelayGroup {
   }
 
   async loadFromStore() {
-    const loadMap = (await this.store.load()) || new Map();
+    const loadMap = this.store.load() || new Map();
     const mergeMap = new Map(
       Array.from(loadMap)
         .concat(Array.from(new Map(predefine)))
@@ -86,8 +86,7 @@ export class RelayGroup {
     }
 
     data.push(newItem);
-    this.map.set(id, data);
-    this.store.save(this.map);
+    this.setGroup(id, data);
   }
 
   delRelayInGroup(id: string, relay: Relay) {
@@ -103,5 +102,9 @@ export class RelayGroup {
     const newData = data.filter(r => r.url !== relay.url);
     this.map.set(id, newData);
     this.store.save(this.map);
+  }
+
+  subscribe(callback: (val: string | null) => void) {
+    return this.store.subscribe(callback);
   }
 }

@@ -3,7 +3,7 @@ import { ICascaderOption } from 'components/shared/Cascader/type';
 import { Paths } from 'constants/path';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { RelayGroupMap } from 'core/relay/group/type';
 import {
   RelaySwitchAlertMsg,
@@ -113,7 +113,7 @@ export function RelaySelector({
 
   useEffect(() => {
     const defaultGroupId = 'default';
-    const groups = new RelayGroup(myPublicKey);
+    const groups = new RelayGroupManager(myPublicKey);
     if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
       groups.setGroup(defaultGroupId, defaultGroup);
     }
@@ -125,7 +125,7 @@ export function RelaySelector({
     if (!myPublicKey || myPublicKey.length === 0) return;
     if (!worker) return;
 
-    const groups = new RelayGroup(myPublicKey);
+    const groups = new RelayGroupManager(myPublicKey);
     if (groups.getGroupById(NIP_65_RELAY_LIST)) return;
 
     const callRelay = createCallRelay(newConn);

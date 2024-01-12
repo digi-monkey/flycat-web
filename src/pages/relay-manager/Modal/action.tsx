@@ -2,10 +2,7 @@ import { Modal } from 'antd';
 import { Relay } from 'core/relay/type';
 import { Input, List, Checkbox } from 'antd';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useDefaultGroup } from '../hooks/useDefaultGroup';
-import { useRelayGroup } from '../hooks/useRelayGroup';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { updateGroupClassState } from '../hooks/useLoadRelayGroup';
 
 export interface Group {
@@ -26,8 +23,8 @@ export interface RelayActionModalProp {
   open: boolean;
   onCancel: any;
   type: ActionType;
-  relayGroups: RelayGroup | undefined;
-  setRelayGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
+  relayGroups: RelayGroupManager | undefined;
+  setRelayGroups: Dispatch<SetStateAction<RelayGroupManager | undefined>>;
 }
 
 export const RelayActionModal: React.FC<RelayActionModalProp> = ({

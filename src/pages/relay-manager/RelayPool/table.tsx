@@ -8,7 +8,7 @@ import { RelayDetailModal } from '../Modal/detail';
 import { MultipleItemsPoolAction } from '../Action/multipleItemsPool';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
-import { RelayGroup as RelayGroupClass } from 'core/relay/group';
+import { RelayGroupManager as RelayGroupClass } from 'core/relay/group';
 
 import styles from './table.module.scss';
 import { useMatchMobile } from 'hooks/useMediaQuery';

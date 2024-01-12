@@ -1,7 +1,7 @@
 import { Relay } from 'core/relay/type';
 import styles from './index.module.scss';
 import { Button } from 'antd';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { ActionType, RelayActionModal } from '../Modal/action';
 import { Dispatch, SetStateAction, useState } from 'react';
 import {
@@ -13,8 +13,8 @@ export interface MultipleItemsActionProp {
   relays: Relay[];
   open: boolean;
   groupId: string;
-  groups: RelayGroup | undefined;
-  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
+  groups: RelayGroupManager | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupManager | undefined>>;
 }
 
 export const MultipleItemsAction: React.FC<MultipleItemsActionProp> = ({

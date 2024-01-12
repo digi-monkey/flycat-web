@@ -7,7 +7,7 @@ import { MultipleItemsAction } from '../Action/multipleItems';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 import type { ColumnsType } from 'antd/es/table';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 
 export type RelayTableItem = Relay & { key: string };
@@ -15,8 +15,8 @@ export type RelayTableItem = Relay & { key: string };
 export interface RelayGroupTableProp {
   groupId: string;
   relays: Relay[];
-  groups: RelayGroup | undefined;
-  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
+  groups: RelayGroupManager | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupManager | undefined>>;
 }
 
 const RelayGroupTable: React.FC<RelayGroupTableProp> = ({

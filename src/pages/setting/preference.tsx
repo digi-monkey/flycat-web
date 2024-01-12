@@ -13,7 +13,7 @@ import {
   message,
 } from 'antd';
 import { dbEventTable, dexieDb } from 'core/db';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useEffect, useState } from 'react';
 import { exportDB } from 'dexie-export-import';
@@ -37,7 +37,7 @@ export default function Preference() {
       content:
         'This will delete all the relay groups you created and can not be undone, are you sure?',
       onOk() {
-        const groups = new RelayGroup(myPublicKey);
+        const groups = new RelayGroupManager(myPublicKey);
         groups.store.clean();
         Modal.destroyAll();
       },

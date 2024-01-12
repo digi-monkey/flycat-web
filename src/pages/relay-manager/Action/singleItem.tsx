@@ -3,15 +3,15 @@ import { ActionType, RelayActionModal } from '../Modal/action';
 import { Relay } from 'core/relay/type';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { RelayDetailModal } from '../Modal/detail';
-import { RelayGroup } from 'core/relay/group';
+import { RelayGroupManager } from 'core/relay/group';
 import { updateGroupClassState } from '../hooks/useLoadRelayGroup';
 import Icon from 'components/Icon';
 
 export interface SingleItemActionProp {
   groupId: string;
   relay: Relay;
-  groups: RelayGroup | undefined;
-  setGroups: Dispatch<SetStateAction<RelayGroup | undefined>>;
+  groups: RelayGroupManager | undefined;
+  setGroups: Dispatch<SetStateAction<RelayGroupManager | undefined>>;
 }
 
 export const SingleItemAction: React.FC<SingleItemActionProp> = ({

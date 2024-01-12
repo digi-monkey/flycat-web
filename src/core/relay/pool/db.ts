@@ -1,6 +1,5 @@
 import { hash } from 'core/crypto';
 import { Relay } from '../type';
-import { normalize } from 'path';
 import { normalizeWsUrl } from 'utils/common';
 
 export interface RelayPoolDB {
@@ -13,6 +12,10 @@ export interface RelayPoolDB {
 export interface StoreAdapter {
   get(key: string): string | null;
   set(key: string, val: string): any;
+  subscribe: (
+    key: string,
+    callback: (val: string | null) => void,
+  ) => () => void;
 }
 
 export class LocalStorageAdapter implements StoreAdapter {
@@ -22,6 +25,18 @@ export class LocalStorageAdapter implements StoreAdapter {
 
   set(key: string, val: string) {
     localStorage.setItem(key, val);
+  }
+
+  subscribe(key: string, callback: (val: string | null) => void) {
+    const listener = (e: StorageEvent) => {
+      if (e.key === key) {
+        callback(e.newValue);
+      }
+    };
+    window.addEventListener('storage', listener);
+    return () => {
+      window.removeEventListener('storage', listener);
+    };
   }
 }
 
@@ -110,6 +125,17 @@ export class RelayPoolDatabase implements RelayPoolDB {
       }
     }
     return result;
+  }
+
+  subscribe(url: string, callback: (relay: Relay | null) => void) {
+    const key = this.getKeyByUrl(normalizeWsUrl(url));
+    return this.storeAdapter.subscribe(key, val => {
+      if (val) {
+        callback(RelayPoolDatabase.deserializeRelay(val));
+      } else {
+        callback(null);
+      }
+    });
   }
 
   incrementSuccessCount(url: string) {
