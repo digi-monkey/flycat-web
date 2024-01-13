@@ -1,7 +1,7 @@
 import { Button, Input, Segmented, Tabs } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import Icon from 'components/Icon';
-import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { MsgFeed } from 'components/MsgFeed';
 import PageTitle from 'components/PageTitle';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import { Paths } from 'constants/path';
@@ -67,7 +67,6 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     );
 
   const [myContactEvent, setMyContactEvent] = useState<Event>();
-  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   const [alreadyQueryMyContact, setAlreadyQueryMyContact] =
     useState<boolean>(false);
   useSubContactList(myPublicKey, newConn, worker);
@@ -136,14 +135,15 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     [isLoggedIn, router, t],
   );
 
-  const onMsgFilterChanged = useCallback(() => {
+  const createFeedProp = useCallback(() => {
+    if (!alreadyQueryMyContact) return null;
     if (!lastSelectedFilter) {
-      return;
+      return null;
     }
 
     const selectedMsgFilter = filtersMap[lastSelectedFilter];
     if (!selectedMsgFilter) {
-      return;
+      return null;
     }
 
     const msgFilter = cloneDeep(selectedMsgFilter.filter);
@@ -168,7 +168,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     if (!msgFilter.authors) {
       if (selectedMsgFilter.mode === MsgFilterMode.follow) {
         if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
-          return;
+          return null;
         }
 
         const followings: PublicKey[] = myContactEvent
@@ -184,14 +184,14 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       }
     }
 
-    const msgSubProp: MsgSubProp = {
-      msgId: selectedMsgFilter.label,
+    return {
+      feedId: selectedMsgFilter.label,
       msgFilter,
       isValidEvent,
       placeholder,
     };
-    setMsgSubProp(msgSubProp);
   }, [
+    alreadyQueryMyContact,
     emptyFollowPlaceholder,
     isLoggedIn,
     myContactEvent,
@@ -201,10 +201,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     filtersMap,
   ]);
 
-  useEffect(() => {
-    if (!alreadyQueryMyContact) return;
-    onMsgFilterChanged();
-  }, [alreadyQueryMyContact, onMsgFilterChanged]);
+  const feedProp = useMemo(createFeedProp, [
+    alreadyQueryMyContact,
+    createFeedProp,
+  ]);
 
   return (
     <BaseLayout>
@@ -228,7 +228,15 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         <div className="text-gray-600 m-4 capitalize">
           {filtersMap[lastSelectedFilter]?.description}
         </div>
-        <MsgFeed msgSubProp={msgSubProp} worker={worker} />
+        {feedProp && (
+          <MsgFeed
+            feedId={feedProp.feedId}
+            msgFilter={feedProp.msgFilter}
+            isValidEvent={feedProp.isValidEvent}
+            worker={worker}
+            placeholder={feedProp.placeholder}
+          />
+        )}
       </Left>
       <Right>
         <div className={styles.rightPanel}>

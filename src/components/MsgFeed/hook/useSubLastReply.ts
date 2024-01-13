@@ -8,7 +8,7 @@ import {
 } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { EventWithSeen } from 'pages/type';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 export function useLastReplyEvent({
   msgList,
@@ -21,7 +21,7 @@ export function useLastReplyEvent({
     return msgList;
   }, [msgList]);
 
-  const subLastReply = async () => {
+  const subLastReply = useCallback(async () => {
     if (!worker) return;
     if (list.length === 0) return;
 
@@ -112,9 +112,9 @@ export function useLastReplyEvent({
         customId: 'last-replies-long-form',
       });
     }
-  };
+  }, [worker, list]);
 
   useEffect(() => {
     subLastReply();
-  }, [worker, list]);
+  }, [subLastReply]);
 }
