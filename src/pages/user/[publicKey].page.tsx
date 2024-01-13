@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { CommitCalendar } from 'components/CommitCalendar';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -52,7 +52,7 @@ import PageTitle from 'components/PageTitle';
 import { DbEvent } from 'core/db/schema';
 import { contactQuery, profileQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { MsgFeed } from 'components/MsgFeed';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import AnswerMachine from './answerMachine.page';
@@ -76,7 +76,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const [myContactEvent, setMyContactEvent] = useState<DbEvent>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [messageApi, contextHolder] = message.useMessage();
-  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
   const [activeTabKey, setActiveTabKey] = useState<string>('all');
 
   useEffect(() => {
@@ -121,8 +120,8 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     [myPublicKey],
   );
 
-  const onMsgFeedChanged = () => {
-    if (!isValidPublicKey(publicKey)) return 'invalid user public key';
+  const createFeedProp = useCallback(() => {
+    if (!isValidPublicKey(publicKey)) return null;
 
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
@@ -166,7 +165,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       };
     }
 
-    if (msgFilter == null) return 'unknown filter';
+    if (msgFilter == null) return null;
 
     msgFilter.authors = [publicKey];
 
@@ -177,16 +176,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       isValidEvent,
     );
 
-    const msgSubProp: MsgSubProp = {
+    return {
+      feedId: `userProfile:${publicKey}:${activeTabKey}`,
       msgFilter,
       isValidEvent,
     };
-    setMsgSubProp(msgSubProp);
-  };
-
-  useEffect(() => {
-    onMsgFeedChanged();
   }, [activeTabKey, publicKey]);
+
+  const feedProp = useMemo(createFeedProp, [createFeedProp]);
 
   useEffect(() => {
     if (!isValidPublicKey(publicKey)) return;
@@ -504,7 +501,14 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             onChange={setActiveTabKey}
           />
 
-          <MsgFeed msgSubProp={msgSubProp} worker={worker} />
+          {feedProp && (
+            <MsgFeed
+              feedId={feedProp.feedId}
+              msgFilter={feedProp.msgFilter}
+              isValidEvent={feedProp.isValidEvent}
+              worker={worker}
+            />
+          )}
         </div>
       </Left>
       <Right>

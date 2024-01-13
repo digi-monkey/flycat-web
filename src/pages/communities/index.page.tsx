@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { useLoadCommunities } from './hooks/useLoadCommunities';
 import { Event } from 'core/nostr/Event';
-import { ReactNode, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import { EventTags, Filter, Naddr, WellKnownEventKind } from 'core/nostr/type';
 import { Avatar, Input, List, Tabs } from 'antd';
@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
 import { isValidPublicKey } from 'utils/validator';
 import { contactQuery, dbQuery } from 'core/db';
-import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
+import { MsgFeed } from 'components/MsgFeed';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 const Explore = () => {
@@ -33,7 +33,6 @@ const Explore = () => {
   );
   const [searchName, setSearchName] = useState<string>();
   const [selectTabKey, setSelectTabKey] = useState<string>('All Tribes');
-  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
 
   useEffect(() => {
     if (!worker) return;
@@ -52,8 +51,8 @@ const Explore = () => {
     }
   }, [myPublicKey]);
 
-  const onMsgFeedChanged = () => {
-    if (selectTabKey == null) return console.debug('unknown tab key');
+  const createFeedProp = useCallback(() => {
+    if (selectTabKey == null) return null;
 
     let msgFilter: Filter | null = null;
     let isValidEvent: ((event: Event) => boolean) | undefined;
@@ -82,7 +81,6 @@ const Explore = () => {
             ),
         )
         .map(t => t[1] as Naddr);
-      console.log('following: ', addrs);
       if (!addrs || addrs.length === 0) {
         return;
       }
@@ -96,7 +94,7 @@ const Explore = () => {
       };
     }
 
-    if (msgFilter == null) return console.debug('unknown filter');
+    if (msgFilter == null) return null;
 
     console.log(
       'start sub msg.. !!!msgFilter: ',
@@ -105,16 +103,14 @@ const Explore = () => {
       isValidEvent,
     );
 
-    const msgSubProp: MsgSubProp = {
+    return {
+      feedId: `communities:${myContactEvent?.id}:${communities.size}:${selectTabKey}`,
       msgFilter,
       isValidEvent,
     };
-    setMsgSubProp(msgSubProp);
-  };
-
-  useEffect(() => {
-    onMsgFeedChanged();
   }, [myContactEvent, selectTabKey, communities.size]);
+
+  const feedProp = useMemo(createFeedProp, [createFeedProp]);
 
   useLiveQuery(async () => {
     const filter = Nip172.communitiesFilter();
@@ -261,7 +257,14 @@ const Explore = () => {
             />
           </div>
         </div>
-        <MsgFeed msgSubProp={msgSubProp} worker={worker} />
+        {feedProp && (
+          <MsgFeed
+            feedId={feedProp.feedId}
+            msgFilter={feedProp.msgFilter}
+            isValidEvent={feedProp.isValidEvent}
+            worker={worker}
+          />
+        )}
       </Left>
       <Right></Right>
     </BaseLayout>
