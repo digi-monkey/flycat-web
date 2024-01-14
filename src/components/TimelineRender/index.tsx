@@ -18,7 +18,7 @@ import PostItems from 'components/PostItems';
 import { useQueryCacheId } from './hook/useQueryCacheId';
 import { useShowNewMsgWhenDbNoData } from './hook/useShowNewMsgWhenDbNoData';
 
-export interface MsgFeedProp {
+export interface TimelineRenderProp {
   feedId: string;
   msgFilter?: Filter;
   isValidEvent?: (event: Event) => boolean;
@@ -26,7 +26,7 @@ export interface MsgFeedProp {
   worker: CallWorker | undefined;
 }
 
-export const MsgFeed: React.FC<MsgFeedProp> = ({
+export const TimelineRender: React.FC<TimelineRenderProp> = ({
   feedId,
   msgFilter,
   isValidEvent,
@@ -50,12 +50,14 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       isValidEvent,
     });
 
+  const latestTimestamp = useMemo(() => msgList[0]?.created_at, [msgList]);
+
   const { newComingMsg, setNewComingMsg } = useSubNewComingMsg({
     worker,
     msgFilter,
     isValidEvent,
     disabled: isQueryMsg,
-    latestTimestamp: msgList[0]?.created_at,
+    latestTimestamp,
   });
 
   const { loadMore, isLoadMore } = useLoadMoreMsg({
@@ -95,7 +97,7 @@ export const MsgFeed: React.FC<MsgFeedProp> = ({
       <PullToRefresh onRefresh={pullToRefresh}>
         <>
           {newComingMsg.length > 0 && (
-            <div className="w-full py-2 mt-4 border-b border-neutral-02 text-center">
+            <div className="w-full py-2 mt-4 border-0 border-solid border-b border-neutral-200 text-center">
               <Button
                 onClick={onClickNewMsg}
                 type="link"

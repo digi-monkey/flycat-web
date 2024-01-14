@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
 import { isValidPublicKey } from 'utils/validator';
 import { contactQuery, dbQuery } from 'core/db';
-import { MsgFeed } from 'components/MsgFeed';
+import { TimelineRender } from 'components/TimelineRender';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 const Explore = () => {
@@ -258,7 +258,7 @@ const Explore = () => {
           </div>
         </div>
         {feedProp && (
-          <MsgFeed
+          <TimelineRender
             feedId={feedProp.feedId}
             msgFilter={feedProp.msgFilter}
             isValidEvent={feedProp.isValidEvent}

@@ -8,7 +8,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery } from 'core/db';
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { DbEvent } from 'core/db/schema';
-import { validateFilter } from 'components/MsgFeed/util';
+import { validateFilter } from 'components/TimelineRender/util';
 import { useRouter } from 'next/router';
 
 import Icon from 'components/Icon';

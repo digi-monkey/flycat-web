@@ -52,7 +52,7 @@ import PageTitle from 'components/PageTitle';
 import { DbEvent } from 'core/db/schema';
 import { contactQuery, profileQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { MsgFeed } from 'components/MsgFeed';
+import { TimelineRender } from 'components/TimelineRender';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import AnswerMachine from './answerMachine.page';
@@ -502,7 +502,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           />
 
           {feedProp && (
-            <MsgFeed
+            <TimelineRender
               feedId={feedProp.feedId}
               msgFilter={feedProp.msgFilter}
               isValidEvent={feedProp.isValidEvent}

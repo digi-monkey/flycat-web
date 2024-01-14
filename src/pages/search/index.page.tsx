@@ -11,7 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, profileQuery } from 'core/db';
 import { Filter, PublicKey, WellKnownEventKind } from 'core/nostr/type';
 import { DbEvent } from 'core/db/schema';
-import { validateFilter } from 'components/MsgFeed/util';
+import { validateFilter } from 'components/TimelineRender/util';
 import { deserializeMetadata } from 'core/nostr/content';
 import { Paths } from 'constants/path';
 import { useRouter } from 'next/router';

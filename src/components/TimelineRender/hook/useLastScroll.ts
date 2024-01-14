@@ -1,8 +1,4 @@
-import { CallWorker } from 'core/worker/caller';
-import { Filter } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
 import { DbEvent } from 'core/db/schema';
-import { useQueryCacheId } from './useQueryCacheId';
 import { useState, useEffect } from 'react';
 import { useDebounce } from 'usehooks-ts';
 import { scrollHeightCache } from 'core/cache/query';

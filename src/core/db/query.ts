@@ -3,7 +3,7 @@ import { Event } from 'core/nostr/Event';
 import { normalizeWsUrl } from 'utils/common';
 import { Collection, IndexableType, Table } from 'dexie';
 import { EventId, EventTags, Filter, Naddr } from 'core/nostr/type';
-import { validateFilter } from 'components/MsgFeed/util';
+import { validateFilter } from 'components/TimelineRender/util';
 import { deserializeMetadata } from 'core/nostr/content';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { isValidPublicKey } from 'utils/validator';

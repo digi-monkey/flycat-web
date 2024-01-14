@@ -1,6 +1,6 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 import { validateFilter } from '../util';
 import { Event } from 'core/nostr/Event';
@@ -32,19 +32,13 @@ export function useSubNewComingMsg({
     if (!msgFilter || !validateFilter(msgFilter)) return;
     if (disabled) return;
 
-    const request = async (latest: number | undefined) => {
+    const request = async (latest: number) => {
       let since = msgFilter.since;
-      if (latest) {
-        if (since == null) {
-          since = latest;
-        } else {
-          if (latest > since) {
-            since = latest;
-          }
-        }
+      if (since == null) {
+        since = latest;
       } else {
-        if (since == null) {
-          since = 0;
+        if (latest > since) {
+          since = latest;
         }
       }
       const filter = { ...msgFilter, since };
@@ -133,7 +127,9 @@ export function useSubNewComingMsg({
     newComingMsg,
     latestTimestamp,
     isValidEvent,
-    isSubNewComingMsg,
+    setIsSubNewComingMsg,
+    mergeAndSortUniqueDbEvents,
+    setNewComingMsg,
   ]);
 
   useInterval(subNewComingMsg, SUB_NEW_MSG_INTERVAL);
