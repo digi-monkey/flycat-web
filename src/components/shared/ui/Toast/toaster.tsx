@@ -53,7 +53,7 @@ export function Toaster() {
         description,
         action,
         closeable,
-        type: level = 'info',
+        status: level = 'info',
         ...props
       }) {
         return (

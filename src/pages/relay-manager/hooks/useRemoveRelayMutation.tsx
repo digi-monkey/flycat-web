@@ -13,11 +13,11 @@ export default function useRemoveRelayMutation(groupId: string) {
 
   const removeRelayGroup = async (relays: Relay[]) => {
     const deleteRelays = relays ?? groupManager.getGroupById(groupId) ?? [];
-    for (const relay of deleteRelays) {
+    deleteRelays.forEach(relay => {
       groupManager.delRelayInGroup(groupId, relay);
-      refetchRelayGroups();
-      refetchRelays();
-    }
+    });
+    refetchRelayGroups();
+    refetchRelays();
   };
 
   const mutation = useMutation(removeRelayGroup);

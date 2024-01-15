@@ -48,7 +48,7 @@ export default function useGetNip65RelayListMutation() {
       refetchGroups();
       toast({
         title: `Find Nip-65 Relay list! Check your relay group named: ${NIP_65_RELAY_LIST}`,
-        type: 'success',
+        status: 'success',
         closeable: false,
       });
       return;
@@ -56,7 +56,7 @@ export default function useGetNip65RelayListMutation() {
 
     toast({
       title: `Can not find your Nip-65 Relay list across the network, please select different relays and try again`,
-      type: 'error',
+      status: 'error',
       closeable: false,
     });
   }, [groupManager, myPublicKey, newConn, worker, toast, refetchGroups]);

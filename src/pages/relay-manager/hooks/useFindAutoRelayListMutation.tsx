@@ -18,7 +18,7 @@ export default function useFindAutoRelayListMutation() {
 
     toast({
       title: 'start picking auto relays..',
-      type: 'loading',
+      status: 'loading',
       duration: 60000,
     });
     const relayPool = new RelayPool();
@@ -36,7 +36,7 @@ export default function useFindAutoRelayListMutation() {
       (restCount: number) => {
         toast({
           title: `${restCount} relays left to check..`,
-          type: 'loading',
+          status: 'loading',
         });
       },
     );
@@ -51,7 +51,7 @@ export default function useFindAutoRelayListMutation() {
     }
     toast({
       title: 'finish picking auto relays, Auto-Recommend-List created!',
-      type: 'success',
+      status: 'success',
     });
   };
 

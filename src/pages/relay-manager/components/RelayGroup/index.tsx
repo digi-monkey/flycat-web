@@ -22,8 +22,8 @@ export default function RelayGroup() {
 
   const onCreateNewGroup = (name: string) => {
     groupManager.setGroup(name, []);
-    refetch();
     createModalRef.current?.close();
+    refetch();
   };
 
   return (

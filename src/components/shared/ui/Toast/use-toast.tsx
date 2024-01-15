@@ -10,7 +10,7 @@ type ToasterToast = Omit<ToastProps, 'type'> & {
   description?: React.ReactNode;
   action?: ToastActionElement;
   closeable?: boolean;
-  type?: 'info' | 'success' | 'warning' | 'error' | 'loading';
+  status?: 'info' | 'success' | 'warning' | 'error' | 'loading';
 };
 
 const actionTypes = {
