@@ -1,18 +1,18 @@
 import { Button } from 'components/shared/ui/Button';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGroupMutation';
 import { useMemo, useRef, useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
-import { useRelayGroupManager } from '../../hooks/useRelayManagerContext';
 import CreateGroupModal, { CreateGroupModalRef } from './create-group';
 import GroupItem from './group';
 import RelayTable from './table';
 
 export default function RelayGroup() {
   const myPublicKey = useReadonlyMyPublicKey();
-  const groupManager = useRelayGroupManager(myPublicKey);
-  const { data: relayGroups = {}, refetch } = useRelayGroupsQuery(myPublicKey);
+  const { data: relayGroups = {} } = useRelayGroupsQuery(myPublicKey);
   const createModalRef = useRef<CreateGroupModalRef>(null);
+  const createMutation = useCreateNewGroupMutation();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const activeGroup = useMemo(
@@ -21,9 +21,8 @@ export default function RelayGroup() {
   );
 
   const onCreateNewGroup = (name: string) => {
-    groupManager.setGroup(name, []);
+    createMutation.mutate(name);
     createModalRef.current?.close();
-    refetch();
   };
 
   return (

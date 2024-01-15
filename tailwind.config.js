@@ -116,7 +116,7 @@ module.exports = {
           'link-hover': '#44661B',
         },
         border: {
-          primary: '598022',
+          primary: '#598022',
           '01': '#EDEDED',
           '02': '#D2D2D2',
           '03': '#787878',

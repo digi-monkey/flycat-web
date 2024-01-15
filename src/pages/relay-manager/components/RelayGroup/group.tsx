@@ -23,10 +23,6 @@ export default function GroupItem(props: GroupItemProps) {
   const { groupId, selectedGroupId, setSelectedGroupId } = props;
   const { data: relayGroups = {}, refetch } = useRelayGroupsQuery(myPublicKey);
 
-  const onEditGroup = (e: MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
   const onDeleteGroup = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -59,7 +55,6 @@ export default function GroupItem(props: GroupItemProps) {
               <FaEllipsisVertical className="w-[18px] h-[18px] text-text-secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={onEditGroup}>Edit</DropdownMenuItem>
               <DropdownMenuItem
                 className="text-functional-danger"
                 onClick={onDeleteGroup}

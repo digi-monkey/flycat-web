@@ -9,8 +9,10 @@ import {
   DialogHeader,
   DialogFooter,
 } from 'components/shared/ui/Dialog';
+import { Input } from 'components/shared/ui/Input';
 import { Relay } from 'core/relay/type';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGroupMutation';
 import { useRelayGroupsQuery } from 'pages/relay-manager/hooks/useRelayGroupsQuery';
 import {
   forwardRef,
@@ -43,7 +45,9 @@ const CopyToGroupModal: React.ForwardRefRenderFunction<
     duplicate = true,
   } = props;
   const myPublicKey = useReadonlyMyPublicKey();
-  const { data: relayGroups = {} } = useRelayGroupsQuery(myPublicKey);
+  const createMutation = useCreateNewGroupMutation();
+  const { data: relayGroups = {}, refetch: refetchGroups } =
+    useRelayGroupsQuery(myPublicKey);
   const [opened, setOpened] = useState(false);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
 
@@ -71,36 +75,59 @@ const CopyToGroupModal: React.ForwardRefRenderFunction<
             Select the groups that you want to {duplicate ? 'copy' : 'move'} to
           </DialogDescription>
         </DialogHeader>
-        {Object.keys(relayGroups)
-          .filter(groupId => groupId !== currentGroupId)
-          .map(groupId => {
-            return (
-              <div className="flex items-center gap-3" key={groupId}>
-                <Checkbox
-                  checked={selectedGroupIds.includes(groupId)}
-                  onCheckedChange={value => {
-                    if (value) {
-                      setSelectedGroupIds([...selectedGroupIds, groupId]);
-                    } else {
-                      setSelectedGroupIds(
-                        selectedGroupIds.filter(g => g !== groupId),
-                      );
-                    }
-                  }}
-                />
-                <span>{groupId}</span>
+        {Object.keys(relayGroups).map(groupId => {
+          return (
+            <div className="flex items-center gap-x-3 py-1" key={groupId}>
+              <Checkbox
+                id={groupId}
+                checked={
+                  groupId === currentGroupId ||
+                  selectedGroupIds.includes(groupId)
+                }
+                disabled={groupId === currentGroupId}
+                onCheckedChange={value => {
+                  if (value) {
+                    setSelectedGroupIds([...selectedGroupIds, groupId]);
+                  } else {
+                    setSelectedGroupIds(
+                      selectedGroupIds.filter(g => g !== groupId),
+                    );
+                  }
+                }}
+              />
+              <div className="flex-1 flex justify-between items-center">
+                <label htmlFor={groupId} className="text-text-primary label">
+                  {groupId}
+                </label>
+                <span className="text-text-secondary label">
+                  {relayGroups[groupId].length}
+                </span>
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
+        <Input
+          placeholder="+ Create new group"
+          className="mb-2"
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              const newGroupId = e.currentTarget.value;
+              if (newGroupId) {
+                createMutation.mutate(newGroupId);
+                setSelectedGroupIds([...selectedGroupIds, newGroupId]);
+                refetchGroups();
+              }
+              e.currentTarget.value = '';
+            }
+          }}
+        />
         <DialogFooter>
-          <Button variant="link" onClick={() => setOpened(false)}>
-            Cancel
-          </Button>
           <Button
             variant="default"
             onClick={() => onConfirm?.(selectedGroupIds, !!duplicate)}
+            disabled={selectedGroupIds.length === 0}
           >
-            Confirm
+            {duplicate ? 'Copy' : 'Move'}
           </Button>
         </DialogFooter>
       </DialogContent>

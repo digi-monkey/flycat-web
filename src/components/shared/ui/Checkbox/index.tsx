@@ -2,7 +2,8 @@ import * as RadixCheckbox from '@radix-ui/react-checkbox';
 import { FaCheck, FaMinus } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
 
-export interface CheckboxProps {
+export interface CheckboxProps
+  extends React.ComponentProps<typeof RadixCheckbox.Root> {
   checked?: boolean | 'indeterminate';
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
@@ -10,9 +11,10 @@ export interface CheckboxProps {
 }
 
 export default function MyCheckbox(props: CheckboxProps) {
-  const { checked, onCheckedChange, disabled, className } = props;
+  const { checked, onCheckedChange, disabled, className, ...restProps } = props;
   return (
     <RadixCheckbox.Root
+      {...restProps}
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={disabled}
@@ -21,7 +23,9 @@ export default function MyCheckbox(props: CheckboxProps) {
         {
           'selected bg-brand border-brand': checked,
           'bg-neutral-100': !checked,
-          'bg-neutral-200': disabled,
+          'bg-neutral-200': disabled && !checked,
+          'bg-brand/50 border-brand/50': disabled && checked,
+          'cursor-not-allowed': disabled,
         },
         className,
       )}
