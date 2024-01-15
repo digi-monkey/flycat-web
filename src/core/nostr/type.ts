@@ -37,6 +37,8 @@ export enum WellKnownEventKind {
   people_list = 30000,
   bookmark_list = 30001,
 
+  relay_set = 30002,
+
   long_form = 30023,
 
   community_metadata = 34550,

@@ -45,4 +45,11 @@ export class Nip51 {
     };
     return filter;
   }
+
+  static async createRelaySet(name: string, relays?: string[]) {
+    const tags: Tags = [[EventTags.D, name]];
+    relays?.forEach(r => tags.push(['relay', r]));
+    const rawEvent = new RawEvent('', WellKnownEventKind.relay_set, tags, '');
+    return rawEvent;
+  }
 }
