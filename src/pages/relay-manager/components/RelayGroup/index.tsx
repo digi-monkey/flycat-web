@@ -4,7 +4,7 @@ import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGro
 import { useMemo, useRef, useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
-import CreateGroupModal, { CreateGroupModalRef } from './create-group';
+import CreateGroupModal, { CreateGroupModalRef } from '../CreateGroupModal';
 import GroupItem from './group';
 import RelayTable from './table';
 

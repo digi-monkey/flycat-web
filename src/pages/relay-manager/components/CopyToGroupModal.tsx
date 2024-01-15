@@ -22,7 +22,7 @@ import {
 } from 'react';
 
 export type CopyToGroupModalProps = PropsWithChildren<{
-  currentGroupId: string;
+  currentGroupId?: string;
   relays: Relay[];
   onConfirm: (groupIds: string[], duplicate: boolean) => void;
   duplicate?: boolean;

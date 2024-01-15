@@ -1,15 +1,13 @@
 import { Relay, RelayTracker } from 'core/relay/type';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import {
-  useRelayGroupManager,
-  useRelayPoolDatabase,
-} from './useRelayManagerContext';
+import { useRelayGroupManager } from './useRelayManagerContext';
 import { Nip11 } from 'core/nip/11';
+import { RelayPoolDatabase } from 'core/relay/pool/db';
 
 export function useRelaysQuery(pubkey: string, groupId: string) {
   const groupManager = useRelayGroupManager(pubkey);
-  const relayPoolDatabse = useRelayPoolDatabase();
+  const relayPoolDatabse = useMemo(() => new RelayPoolDatabase(), []);
 
   const getRelays = useCallback(() => {
     const relays = groupManager.getGroupById(groupId);

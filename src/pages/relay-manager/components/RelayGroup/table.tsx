@@ -19,11 +19,11 @@ import { cn } from 'utils/classnames';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRelaysQuery } from '../../hooks/useRelaysQuery';
 import { Button } from 'components/shared/ui/Button';
-import CopyToGroupModal from './copy-to';
 import useRemoveRelayMutation from 'pages/relay-manager/hooks/useRemoveRelayMutation';
 import useCopyRelaysMutation from 'pages/relay-manager/hooks/useCopyRelaysMutation';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { useEffect, useState } from 'react';
+import CopyToGroupModal from '../CopyToGroupModal';
 
 interface RelayTableProps {
   groupId: string;

@@ -1,11 +1,11 @@
-import { RelayPoolDatabase } from 'core/relay/pool/db';
+import { RelayPool } from 'core/relay/pool';
 import { useMemo, createContext, useContext } from 'react';
 import { RelayGroupManager } from '../../../core/relay/group';
 import { useDefaultGroup } from './useDefaultGroup';
 
 type RelayManagerContextType = {
   managers: Map<string, RelayGroupManager>;
-  relayPool: RelayPoolDatabase;
+  relayPool: RelayPool;
 };
 
 const RelayManagerContext = createContext<RelayManagerContextType | null>(null);
@@ -16,9 +16,10 @@ export function RelayManagerProvider({
   children: React.ReactNode;
 }) {
   const managers = useMemo(() => new Map<string, RelayGroupManager>(), []);
-  const relayPool = useMemo(() => new RelayPoolDatabase(), []);
+  const relayPool = useMemo(() => new RelayPool(), []);
+  const value = useMemo(() => ({ managers, relayPool }), [managers, relayPool]);
   return (
-    <RelayManagerContext.Provider value={{ managers, relayPool }}>
+    <RelayManagerContext.Provider value={value}>
       {children}
     </RelayManagerContext.Provider>
   );
@@ -45,7 +46,7 @@ export function useRelayGroupManager(pubkey: string): RelayGroupManager {
   return manager;
 }
 
-export function useRelayPoolDatabase() {
+export function useRelayPool() {
   const context = useContext(RelayManagerContext);
   return context!.relayPool;
 }
