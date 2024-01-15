@@ -215,7 +215,9 @@ export default function RelayPool() {
                   });
                 }}
               >
-                <Button variant="link">Copy to</Button>
+                <Button variant="link" className="px-0">
+                  Copy to
+                </Button>
               </CopyToGroupModal>
             </div>
           </div>

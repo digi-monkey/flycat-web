@@ -56,7 +56,7 @@ const CreateGroupModal: React.ForwardRefRenderFunction<
         <Input
           placeholder="Relay Group Name"
           value={groupName}
-          onChange={e => setGroupName(e.target.value)}
+          onChange={e => setGroupName((e.target as any).value)}
         />
         <DialogFooter>
           <Button variant="link" onClick={() => setOpened(false)}>

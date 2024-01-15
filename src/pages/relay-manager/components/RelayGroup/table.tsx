@@ -116,7 +116,7 @@ export default function RelayTable(props: RelayTableProps) {
   }, [selectedRelays.length]);
 
   return (
-    <div className="h-[calc(100%-38px)] relative">
+    <div className="h-[calc(100%-38px)] relative flex flex-col justify-between">
       <div className="px-4">
         <Table className="border-collapse indent-0">
           <TableHeader className="border-border-01">
@@ -128,13 +128,12 @@ export default function RelayTable(props: RelayTableProps) {
                 })}
               >
                 {headerGroup.headers.map(header => {
-                  const context = header.getContext();
-                  const { columnDef } = header.column;
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(columnDef.header, context)}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                     </TableHead>
                   );
                 })}
@@ -179,14 +178,14 @@ export default function RelayTable(props: RelayTableProps) {
         </Table>
       </div>
       {table.getSelectedRowModel().rows.length > 0 && (
-        <div className="absolute bottom-0 h-12 w-full px-5 py-3 bg-surface-02 border-0 border-t border-solid border-border-01 box-border">
+        <div className="sticky bottom-0 h-12 w-full px-5 py-3 bg-surface-02 border-0 border-t border-solid border-border-01 box-border">
           <div className="w-full h-full flex justify-between items-center">
             <span>{table.getSelectedRowModel().rows.length} selected</span>
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <Button
                 variant="link"
                 className={cn(
-                  'text-functional-danger hover:text-functional-danger/80',
+                  'text-functional-danger hover:text-functional-danger/80 px-2',
                   {
                     'text-white bg-functional-danger hover:text-white':
                       removeConfirm,
@@ -225,7 +224,9 @@ export default function RelayTable(props: RelayTableProps) {
                   });
                 }}
               >
-                <Button variant="link">Copy to</Button>
+                <Button variant="link" className="px-2">
+                  Copy to
+                </Button>
               </CopyToGroupModal>
               <CopyToGroupModal
                 currentGroupId={groupId}
@@ -244,7 +245,9 @@ export default function RelayTable(props: RelayTableProps) {
                   });
                 }}
               >
-                <Button variant="link">Move to</Button>
+                <Button variant="link" className="px-2">
+                  Move to
+                </Button>
               </CopyToGroupModal>
             </div>
           </div>
