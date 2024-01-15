@@ -20,8 +20,7 @@ export type Fragment = string | ParsedFragment;
 export const FileExtensionRegex = /\.([\w]{1,7})$/i;
 export const MentionNostrEntityRegex =
   /(nostr:npub[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nprofile[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nevent[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:note[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:naddr[acdefghjklmnpqrstuvwxyz0123456789]+|nostr:nrelay[acdefghjklmnpqrstuvwxyz0123456789]+)/g;
-export const InvoiceRegex =
-  /(lnbc|lntb|lntbs)[A-Za-z0-9]+(\d+([munp])|\d+x\d+([munp]))?/i;
+export const InvoiceRegex = /(lnbc\w+)/i;
 export const lnUrlRegex = /,*?((lnurl)([0-9]{1,}[a-z0-9]+){1})/g;
 export const HashtagRegex = /(#[^\s!@#$%^&*()=+.\/,\[{\]};:'"?><]+)/g;
 
