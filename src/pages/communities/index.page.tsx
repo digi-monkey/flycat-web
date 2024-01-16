@@ -260,7 +260,7 @@ const Explore = () => {
         {feedProp && (
           <TimelineRender
             feedId={feedProp.feedId}
-            msgFilter={feedProp.msgFilter}
+            filter={feedProp.msgFilter}
             isValidEvent={feedProp.isValidEvent}
             worker={worker}
           />

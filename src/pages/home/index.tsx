@@ -84,16 +84,16 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       <Left>
         <PageTitle title="Home" />
         {!isMobile && <PubNoteTextarea />}
-        <div className={isMobile ? styles.mobileFilter : styles.msgFilter}>
-          <Tabs.Root
-            className="w-full"
-            value={lastSelectedFilter}
-            onValueChange={val => setLastSelectedFilter(val as MsgFilterKey)}
-          >
+        <Tabs.Root
+          className="w-full"
+          value={lastSelectedFilter}
+          onValueChange={val => setLastSelectedFilter(val as MsgFilterKey)}
+        >
+          <div className="px-4 sticky top-16 bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-40">
             <Tabs.List className="flex overflow-scroll border-0 border-b border-solid border-b-gray-200">
               {Object.values(filtersMap).map(val => (
                 <Tabs.Trigger
-                  className="py-4 px-2 text-gray-400 font-medium hover:bg-gray-200 focus:outline-none focus:text-green-700 whitespace-nowrap border-transparent bg-transparent border-0 focus:border-b-2 focus:border-green-500"
+                  className="cursor-pointer py-4 px-2 text-gray-600 font-medium focus:outline-none whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
                   key={val.key}
                   value={val.key}
                 >
@@ -101,6 +101,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
+          </div>
+          <div className="px-2">
             {Object.values(filtersMap).map(val => (
               <Tabs.Content key={val.key} value={val.key}>
                 <div className="mt-2 text-sm text-text-secondary border border-solid border-brand capitalize px-2 py-2 rounded-lg bg-primary-100">
@@ -110,8 +112,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
                 <Timeline worker={worker} msgFilter={filtersMap[val.key]} />
               </Tabs.Content>
             ))}
-          </Tabs.Root>
-        </div>
+          </div>
+        </Tabs.Root>
       </Left>
       <Right>
         <div className={styles.rightPanel}>

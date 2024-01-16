@@ -2,11 +2,19 @@ import { contactQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { parsePubKeyFromTags } from 'pages/helper';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { isValidPublicKey } from 'utils/validator';
 
 export function useMyFollowings() {
+  const [isAlreadyQueryContact, setIsAlreadyQueryContact] = useState(false);
   const myPublicKey = useReadonlyMyPublicKey();
+  const getContact = useCallback(async () => {
+    if (!isValidPublicKey(myPublicKey)) {
+      return null;
+    }
+    return await contactQuery.getContactByPubkey(myPublicKey);
+  }, [myPublicKey]);
+
   const myContactEvent = useLiveQuery(
     contactQuery.createContactByPubkeyQuerier(myPublicKey),
     [myPublicKey],

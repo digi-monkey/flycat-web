@@ -24,8 +24,9 @@ export const Timeline: React.FC<TimelineProp> = ({ msgFilter, worker }) => {
     return msgFilter.key;
   }, [msgFilter]);
 
-  const filter: Filter = useMemo(() => {
+  const filter: Filter | undefined = useMemo(() => {
     if (msgFilter.mode === MsgFilterMode.follow) {
+      if (myFollowings.length === 0) return undefined;
       return { ...msgFilter.filter, ...{ authors: myFollowings } };
     }
     return msgFilter.filter;
@@ -55,7 +56,7 @@ export const Timeline: React.FC<TimelineProp> = ({ msgFilter, worker }) => {
   return (
     <TimelineRender
       feedId={feedId}
-      msgFilter={filter}
+      filter={filter}
       isValidEvent={isValidEvent}
       worker={worker}
     />
