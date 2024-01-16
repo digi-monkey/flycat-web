@@ -30,14 +30,12 @@ export function useTimelineMsg({
   );
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
   const { queryMsg, cancelQueryMsg } = useQueryMsg();
-  const [isEnable, setIsEnable] = useState(true);
 
   const relayUrls = useMemo(
     () => worker?.relays.map(r => r.url) || [],
     [worker?.relays],
   );
   const initialPageParam: QueryMsgPro = useMemo(() => {
-    console.log('query: initialPageParam', filter, worker?.relays);
     return { filter, isValidEvent, worker };
   }, [filter, isValidEvent, worker]);
 
@@ -49,9 +47,10 @@ export function useTimelineMsg({
     [queryMsg],
   );
 
+  const queryKey = ['timeline', feedId, relayUrls, filter, isValidEvent];
+
   const {
     data,
-    error,
     fetchNextPage,
     fetchPreviousPage,
     hasNextPage,
@@ -62,14 +61,13 @@ export function useTimelineMsg({
     status,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ['timeline', feedId, relayUrls, filter, isValidEvent],
+    queryKey,
     queryFn: fetch,
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
     staleTime: Infinity,
-    //initialData: keepPreviousData,
     initialPageParam: initialPageParam,
     getNextPageParam: (lastPage, _pages) => {
       if (lastPage.length === 0) return undefined;
@@ -90,7 +88,6 @@ export function useTimelineMsg({
       return { isValidEvent, worker, filter: oldestUntilFilter };
     },
     getPreviousPageParam: (firstPage, _pages) => {
-      //console.log("query: getPreviousPageParam")
       if (firstPage.length === 0) return undefined;
       if (!filter || !validateFilter(filter)) return undefined;
 
@@ -110,21 +107,6 @@ export function useTimelineMsg({
     },
   });
 
-  useInterval(
-    () => {
-      if (
-        hasPreviousPage &&
-        !isFetching &&
-        !isFetchingPreviousPage &&
-        !isFetchingNextPage
-      ) {
-        console.log('query: useInterval');
-        fetchPreviousPage();
-      }
-    },
-    isEnable ? SUB_NEW_MSG_INTERVAL : null,
-  );
-
   const events = useMemo(() => {
     return data?.pages.flat(1) || [];
   }, [data]);
@@ -141,17 +123,17 @@ export function useTimelineMsg({
     setIsPullRefreshing(false);
   }, [refetch]);
 
-  const feed = useMemo(() => {
-    console.log('feed:', events.length, latestCursor);
-    if (events.length === 0) return [];
-
-    const pos = events.findIndex(e => e.created_at === latestCursor);
-    if (pos === -1) {
-      return events.filter(e => e.created_at < latestCursor);
+  const loadMore = useCallback(async () => {
+    if (hasNextPage) {
+      return await fetchNextPage();
     }
-    const viewFeed = events.slice(pos);
-    return viewFeed;
-  }, [events, latestCursor]);
+  }, [fetchNextPage]);
+
+  const cancelQueryDb = useCallback(() => {
+    if (typeof cancelQueryMsg === 'function') {
+      cancelQueryMsg();
+    }
+  }, [cancelQueryMsg]);
 
   const latestNewMsg = useMemo(() => {
     if (events.length === 0) return [];
@@ -162,6 +144,17 @@ export function useTimelineMsg({
     }
     const newMsg = events.slice(0, pos);
     return newMsg;
+  }, [events, latestCursor]);
+
+  const feed = useMemo(() => {
+    if (events.length === 0) return [];
+
+    const pos = events.findIndex(e => e.created_at === latestCursor);
+    if (pos === -1) {
+      return events.filter(e => e.created_at < latestCursor);
+    }
+    const viewFeed = events.slice(pos);
+    return viewFeed;
   }, [events, latestCursor]);
 
   const scrollCacheKey = useMemo(
@@ -175,6 +168,18 @@ export function useTimelineMsg({
     [feedId, relayUrls, isValidEvent, filter],
   );
   useLastScroll({ queryCacheId: scrollCacheKey, feed: events });
+  useInterval(() => {
+    console.log('sub previous..');
+    if (
+      hasPreviousPage &&
+      !isFetching &&
+      !isFetchingPreviousPage &&
+      !isFetchingNextPage
+    ) {
+      console.log('query: useInterval ', scrollCacheKey);
+      fetchPreviousPage();
+    }
+  }, SUB_NEW_MSG_INTERVAL);
 
   return {
     feed,
@@ -182,11 +187,13 @@ export function useTimelineMsg({
     latestNewMsg,
     latestCursor,
     showLatest,
-    loadMore: async () => fetchNextPage(),
+    loadMore,
     pullToRefresh,
     isLoadMore: isFetchingNextPage,
     isLoadingMainFeed:
       isFetching && !isFetchingPreviousPage && !isFetchingNextPage,
     isPullRefreshing,
+    cancelQueryDb,
+    queryKey,
   };
 }

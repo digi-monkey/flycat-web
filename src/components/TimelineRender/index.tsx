@@ -5,6 +5,9 @@ import { Event } from 'core/nostr/Event';
 import { useTranslation } from 'react-i18next';
 import { Loader } from 'components/Loader';
 import { useTimelineMsg } from './hook/useTimelineMsg';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import PostItems from 'components/PostItems';
 
@@ -24,6 +27,7 @@ export const TimelineRender: React.FC<TimelineRenderProp> = ({
   worker,
 }) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const {
     feed,
@@ -34,9 +38,16 @@ export const TimelineRender: React.FC<TimelineRenderProp> = ({
     showLatest,
     loadMore,
     isLoadingMainFeed,
-    status,
-    latestCursor,
+    queryKey,
+    cancelQueryDb,
   } = useTimelineMsg({ feedId, worker, filter, isValidEvent });
+
+  useEffect(() => {
+    return () => {
+      cancelQueryDb();
+      queryClient.cancelQueries({ queryKey });
+    };
+  }, []);
 
   return (
     <>
