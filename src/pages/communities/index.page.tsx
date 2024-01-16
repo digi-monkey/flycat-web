@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { useLoadCommunities } from './hooks/useLoadCommunities';
 import { Event } from 'core/nostr/Event';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
-import { EventTags, Filter, Naddr, WellKnownEventKind } from 'core/nostr/type';
-import { Avatar, Input, List, Tabs } from 'antd';
+import { EventTags, Naddr, WellKnownEventKind } from 'core/nostr/type';
+import { Avatar, Input, List } from 'antd';
 import { useLoadModeratorProfiles } from './hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
@@ -18,8 +18,9 @@ import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
 import { isValidPublicKey } from 'utils/validator';
 import { contactQuery, dbQuery } from 'core/db';
-import { TimelineRender } from 'components/TimelineRender';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { TimelineTabs } from 'components/TimelineTabs';
+import { defaultCommFilterOptions } from './filter-option';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -32,7 +33,6 @@ const Explore = () => {
     new Map(),
   );
   const [searchName, setSearchName] = useState<string>();
-  const [selectTabKey, setSelectTabKey] = useState<string>('All Tribes');
 
   useEffect(() => {
     if (!worker) return;
@@ -51,66 +51,33 @@ const Explore = () => {
     }
   }, [myPublicKey]);
 
-  const createFeedProp = useCallback(() => {
-    if (selectTabKey == null) return null;
-
-    let msgFilter: Filter | null = null;
-    let isValidEvent: ((event: Event) => boolean) | undefined;
-
-    if (selectTabKey === 'All Tribes') {
-      const addrs = Array.from(communities.keys());
-      if (addrs.length === 0) return;
-
-      msgFilter = {
-        kinds: [Nip172.approval_kind],
-        '#a': addrs,
-        limit: 50,
-      };
-      isValidEvent = (event: Event) => {
-        return event.kind === Nip172.approval_kind;
-      };
-    }
-
-    if (selectTabKey === 'Following') {
-      const addrs = myContactEvent?.tags
-        .filter(
-          t =>
-            t[0] === EventTags.A &&
-            (t[1] as string).startsWith(
-              `${WellKnownEventKind.community_metadata}:`,
-            ),
-        )
-        .map(t => t[1] as Naddr);
-      if (!addrs || addrs.length === 0) {
-        return;
+  const filterOptions = useMemo(() => {
+    return defaultCommFilterOptions.map(f => {
+      if (f.key === 'all-tribes') {
+        return f;
       }
-      msgFilter = {
-        kinds: [Nip172.approval_kind],
-        '#a': addrs,
-        limit: 50,
-      };
-      isValidEvent = (event: Event) => {
-        return event.kind === Nip172.approval_kind;
-      };
-    }
+      if (f.key === 'following-tribes') {
+        const addrs = myContactEvent?.tags
+          .filter(
+            t =>
+              t[0] === EventTags.A &&
+              (t[1] as string).startsWith(
+                `${WellKnownEventKind.community_metadata}:`,
+              ),
+          )
+          .map(t => t[1] as Naddr);
 
-    if (msgFilter == null) return null;
+        if (addrs && addrs.length > 0 && f.filter) {
+          f.filter['#a'] = addrs;
+        } else {
+          f.filter = undefined;
+        }
 
-    console.log(
-      'start sub msg.. !!!msgFilter: ',
-      msgFilter,
-      selectTabKey,
-      isValidEvent,
-    );
-
-    return {
-      feedId: `communities:${myContactEvent?.id}:${communities.size}:${selectTabKey}`,
-      msgFilter,
-      isValidEvent,
-    };
-  }, [myContactEvent, selectTabKey, communities.size]);
-
-  const feedProp = useMemo(createFeedProp, [createFeedProp]);
+        return f;
+      }
+      return f;
+    });
+  }, [defaultCommFilterOptions, myContactEvent]);
 
   useLiveQuery(async () => {
     const filter = Nip172.communitiesFilter();
@@ -131,64 +98,21 @@ const Explore = () => {
     setCommunities(map);
   }, [worker?.relayGroupId]);
 
-  useEffect(() => {
-    if (communities.size > 0 && worker) {
-      const addrs = Array.from(communities.keys());
-      const filter: Filter = {
-        kinds: [Nip172.approval_kind],
-        '#a': addrs,
-        limit: 50,
-      };
-      worker.subFilter({
-        filter,
-      });
-    }
-  }, [communities, worker]);
-
-  useEffect(() => {
-    if (
-      selectTabKey === 'Following' &&
-      isValidPublicKey(myPublicKey) &&
-      worker &&
-      myContactEvent
-    ) {
-      const addrs = myContactEvent.tags
-        .filter(
-          t =>
-            t[0] === EventTags.A &&
-            (t[1] as string).startsWith(
-              `${WellKnownEventKind.community_metadata}:`,
-            ),
-        )
-        .map(t => t[1] as Naddr);
-      const filter: Filter = {
-        kinds: [Nip172.approval_kind],
-        '#a': addrs,
-        limit: 50,
-      };
-      worker.subFilter({
-        filter,
-      });
-      console.log('sub following comm:', filter);
-    }
-  }, [myContactEvent, myPublicKey, worker, selectTabKey]);
-
   useLoadCommunities({ worker, newConn });
   useLoadModeratorProfiles({ worker, newConn, communities });
 
-  const tabsItems = ['All Tribes', 'Following'].map(name => {
-    return {
-      key: name,
-      label: name,
-    };
-  });
-
-  const commCardListData = Array.from(communities.keys())
-    .filter(k =>
-      searchName ? k.toLowerCase().includes(searchName.toLowerCase()) : true,
-    )
-    .map(k => communities.get(k))
-    .filter(v => v != null) as CommunityMetadata[];
+  const commCardListData = useMemo(
+    () =>
+      Array.from(communities.keys())
+        .filter(k =>
+          searchName
+            ? k.toLowerCase().includes(searchName.toLowerCase())
+            : true,
+        )
+        .map(k => communities.get(k))
+        .filter(v => v != null) as CommunityMetadata[],
+    [communities],
+  );
 
   return (
     <BaseLayout>
@@ -248,23 +172,9 @@ const Explore = () => {
                 </List.Item>
               )}
             />
-
-            <Tabs
-              items={tabsItems}
-              defaultValue={selectTabKey}
-              activeKey={selectTabKey}
-              onChange={val => setSelectTabKey(val)}
-            />
           </div>
         </div>
-        {feedProp && (
-          <TimelineRender
-            feedId={feedProp.feedId}
-            filter={feedProp.msgFilter}
-            isValidEvent={feedProp.isValidEvent}
-            worker={worker}
-          />
-        )}
+        <TimelineTabs filterOptions={filterOptions} worker={worker} />
       </Left>
       <Right></Right>
     </BaseLayout>

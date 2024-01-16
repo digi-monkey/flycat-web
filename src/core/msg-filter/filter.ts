@@ -26,7 +26,7 @@ export enum MsgFilterMode {
 export interface MsgFilter {
   key: MsgFilterKey | string;
   label: string;
-  filter: Filter;
+  filter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   mode: MsgFilterMode;
   description?: string;

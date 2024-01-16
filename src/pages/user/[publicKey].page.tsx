@@ -69,7 +69,9 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
   const filterOptions = useMemo(() => {
     return defaultProfilePageMsgFilters.map(f => {
-      f.filter.authors = [publicKey];
+      if (f.filter) {
+        f.filter.authors = [publicKey];
+      }
       return f;
     });
   }, [publicKey]);
