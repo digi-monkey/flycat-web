@@ -182,7 +182,7 @@ export function useTimelineMsg({
     latestNewMsg,
     latestCursor,
     showLatest,
-    loadMore: fetchNextPage,
+    loadMore: async () => fetchNextPage(),
     pullToRefresh,
     isLoadMore: isFetchingNextPage,
     isLoadingMainFeed:
