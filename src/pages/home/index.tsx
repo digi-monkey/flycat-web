@@ -29,8 +29,7 @@ import styles from './index.module.scss';
 import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
-import * as Tabs from '@radix-ui/react-tabs';
-import { Timeline } from 'components/Timeline';
+import { TimelineTabs } from 'components/TimelineTabs';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -84,36 +83,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       <Left>
         <PageTitle title="Home" />
         {!isMobile && <PubNoteTextarea />}
-        <Tabs.Root
-          className="w-full"
-          value={lastSelectedFilter}
-          onValueChange={val => setLastSelectedFilter(val as MsgFilterKey)}
-        >
-          <div className="px-4 sticky top-16 bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-40">
-            <Tabs.List className="flex overflow-scroll border-0 border-b border-solid border-b-gray-200">
-              {Object.values(filtersMap).map(val => (
-                <Tabs.Trigger
-                  className="cursor-pointer py-4 px-2 text-gray-600 font-medium focus:outline-none whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
-                  key={val.key}
-                  value={val.key}
-                >
-                  {val.label}
-                </Tabs.Trigger>
-              ))}
-            </Tabs.List>
-          </div>
-          <div className="px-2">
-            {Object.values(filtersMap).map(val => (
-              <Tabs.Content key={val.key} value={val.key}>
-                <div className="mt-2 text-sm text-text-secondary border border-solid border-brand capitalize px-2 py-2 rounded-lg bg-primary-100">
-                  {filtersMap[val.key]?.description}
-                </div>
-
-                <Timeline worker={worker} msgFilter={filtersMap[val.key]} />
-              </Tabs.Content>
-            ))}
-          </div>
-        </Tabs.Root>
+        <TimelineTabs
+          worker={worker}
+          filterOptions={Object.values(filtersMap)}
+          defaultActiveKey={lastSelectedFilter}
+          onActiveKeyChanged={val => setLastSelectedFilter(val as MsgFilterKey)}
+        />
       </Left>
       <Right>
         <div className={styles.rightPanel}>

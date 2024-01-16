@@ -1,30 +1,45 @@
 import * as Tabs from '@radix-ui/react-tabs';
 import { Timeline } from 'components/Timeline';
-import { MsgFilter } from 'core/msg-filter/filter';
+import { MsgFilter, MsgFilterKey } from 'core/msg-filter/filter';
 import { CallWorker } from 'core/worker/caller';
 import { useState } from 'react';
 
 export interface TimelineTabsProp {
   filterOptions: MsgFilter[];
   worker: CallWorker | undefined;
+  defaultActiveKey?: string;
+  onActiveKeyChanged?: (val: string) => any;
 }
 
-export function TimelineTabs({ filterOptions, worker }: TimelineTabsProp) {
+export function TimelineTabs({
+  filterOptions,
+  worker,
+  defaultActiveKey,
+  onActiveKeyChanged,
+}: TimelineTabsProp) {
   const [activeTabKey, setActiveTabKey] = useState<string>(
-    filterOptions[0].key,
+    defaultActiveKey || filterOptions[0].key,
   );
+
+  const onValueChange = (val: string) => {
+    setActiveTabKey(val);
+
+    if (onActiveKeyChanged) {
+      onActiveKeyChanged(val);
+    }
+  };
 
   return (
     <Tabs.Root
       className="w-full"
       value={activeTabKey}
-      onValueChange={val => setActiveTabKey(val)}
+      onValueChange={onValueChange}
     >
       <div className="flex justify-center items-center px-4 sticky top-16 bg-white sm:bg-transparent bg-opacity-80 backdrop-blur z-40">
         <Tabs.List className="w-full flex justify-between overflow-scroll border-0 border-b border-solid border-b-gray-200">
           {filterOptions.map(val => (
             <Tabs.Trigger
-              className="w-full cursor-pointer py-4 px-2 text-gray-600 font-medium whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
+              className="font-poppins w-full cursor-pointer py-4 px-2 text-gray-600 font-medium whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
               key={val.key}
               value={val.key}
             >
