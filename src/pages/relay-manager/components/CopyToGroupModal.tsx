@@ -11,9 +11,9 @@ import {
 } from 'components/shared/ui/Dialog';
 import { Input } from 'components/shared/ui/Input';
 import { Relay } from 'core/relay/type';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGroupMutation';
-import { useRelayGroupsQuery } from 'pages/relay-manager/hooks/useRelayGroupsQuery';
 import {
   forwardRef,
   PropsWithChildren,

@@ -1,33 +1,23 @@
+import { Relay } from '../type';
+import { BaseRelayGroupStorage, BaseStoreAdapter } from './base';
 import { RelayGroupMap } from './type';
 
-export interface RelayGroupStore {
-  author: string;
-  save: (groups: RelayGroupMap) => any;
-  load: () => Promise<RelayGroupMap | null> | (RelayGroupMap | null);
-}
-
-export interface StoreAdapter {
-  get(key: string): string | null;
-  set(key: string, val: string): any;
-  del(key: string): any;
-}
-
-export class LocalStorageAdapter implements StoreAdapter {
-  get(key: string) {
+class LocalStorageAdapter extends BaseStoreAdapter {
+  async get(key: string) {
     if (typeof window === 'undefined') {
       return null;
     }
     return localStorage.getItem(key);
   }
 
-  set(key: string, val: string) {
+  async set(key: string, value: string) {
     if (typeof window === 'undefined') {
       return;
     }
-    localStorage.setItem(key, val);
+    localStorage.setItem(key, value);
   }
 
-  del(key: string) {
+  async remove(key: string) {
     if (typeof window === 'undefined') {
       return;
     }
@@ -35,46 +25,33 @@ export class LocalStorageAdapter implements StoreAdapter {
   }
 }
 
-export class RelayGroupStorage implements RelayGroupStore {
-  prefix = '__relayGroup:db';
-  author: string;
+export class RelayGroupStorage extends BaseRelayGroupStorage {
+  private prefix = '__relayGroup:db';
 
-  private storeAdapter: StoreAdapter;
-
-  constructor(author: string, storeAdapter?: StoreAdapter) {
-    this.author = author;
-    this.storeAdapter = storeAdapter || new LocalStorageAdapter();
+  constructor(pubkey: string) {
+    super(pubkey, new LocalStorageAdapter());
   }
 
-  storeKey() {
-    return `${this.prefix}:${this.author}`;
+  public get storeKey() {
+    return `${this.prefix}:${this.pubkey}`;
   }
 
-  save(groups: RelayGroupMap) {
-    const data = JSON.stringify(Array.from(groups));
-    const key = this.storeKey();
-    this.storeAdapter.set(key, data);
-  }
-
-  load() {
-    const key = this.storeKey();
-    const strData = this.storeAdapter.get(key);
-    if (strData == null) {
-      return null;
+  public async load() {
+    const data = await this.storeAdapter.get(this.storeKey);
+    if (data == null) {
+      return new Map();
     }
-
-    const jsonData = JSON.parse(strData);
-    const data: RelayGroupMap = new Map(jsonData);
-    return data;
+    const unserialized = JSON.parse(data);
+    const map = new Map(unserialized as [string, Relay[]][]);
+    return map;
   }
 
-  clean() {
-    const key = this.storeKey();
-    const strData = this.storeAdapter.get(key);
-    if (strData == null) {
-      return;
-    }
+  public async save(map: RelayGroupMap) {
+    const data = JSON.stringify(Array.from(map));
+    await this.storeAdapter.set(this.storeKey, data);
+  }
 
-    this.storeAdapter.del(key);
+  public async clean() {
+    await this.storeAdapter.remove(this.storeKey);
   }
 }

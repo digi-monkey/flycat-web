@@ -2,10 +2,10 @@ import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { AUTO_RECOMMEND_LIST } from 'constants/relay';
 import { OneTimeWebSocketClient } from 'core/api/onetime';
 import { RelayPool } from 'core/relay/pool';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useMutation } from 'react-query';
-import { useRelayGroupsQuery } from './useRelayGroupsQuery';
-import { useRelayGroupManager } from './useRelayManagerContext';
 
 export default function useFindAutoRelayListMutation() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -41,7 +41,7 @@ export default function useFindAutoRelayListMutation() {
       },
     );
     if (pickRelays.length > 0) {
-      groupManager.setGroup(
+      await groupManager.setGroup(
         AUTO_RECOMMEND_LIST,
         pickRelays.map(r => {
           return { url: r, read: true, write: true };

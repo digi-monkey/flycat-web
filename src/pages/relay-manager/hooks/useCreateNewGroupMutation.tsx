@@ -1,7 +1,7 @@
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useMutation } from 'react-query';
-import { useRelayGroupsQuery } from './useRelayGroupsQuery';
-import { useRelayGroupManager } from './useRelayManagerContext';
 
 export default function useCreateNewGroupMutation() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -9,7 +9,7 @@ export default function useCreateNewGroupMutation() {
   const { refetch: refetchRelayGroups } = useRelayGroupsQuery(myPublicKey);
 
   const mutation = useMutation(async (name: string) => {
-    groupManager.setGroup(name, []);
+    await groupManager.setGroup(name, []);
     refetchRelayGroups();
   });
 

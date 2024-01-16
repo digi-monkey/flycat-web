@@ -7,8 +7,8 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
-import { useRelayGroupsQuery } from './useRelayGroupsQuery';
-import { useRelayGroupManager } from './useRelayManagerContext';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 
 export default function useGetNip65RelayListMutation() {
   const myPublicKey = useReadonlyMyPublicKey();

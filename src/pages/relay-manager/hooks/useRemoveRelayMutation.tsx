@@ -1,9 +1,9 @@
 import { Relay } from 'core/relay/type';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
+import { useRelaysQuery } from 'hooks/relay/useRelaysQuery';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useMutation } from 'react-query';
-import { useRelayGroupsQuery } from './useRelayGroupsQuery';
-import { useRelayGroupManager } from './useRelayManagerContext';
-import { useRelaysQuery } from './useRelaysQuery';
 
 export default function useRemoveRelayMutation(groupId: string) {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -12,10 +12,9 @@ export default function useRemoveRelayMutation(groupId: string) {
   const { refetch: refetchRelayGroups } = useRelayGroupsQuery(myPublicKey);
 
   const removeRelayGroup = async (relays: Relay[]) => {
-    const deleteRelays = relays ?? groupManager.getGroupById(groupId) ?? [];
-    deleteRelays.forEach(relay => {
-      groupManager.delRelayInGroup(groupId, relay);
-    });
+    const deleteRelays =
+      relays ?? (await groupManager.getGroupById(groupId)) ?? [];
+    await groupManager.removeRelayFromGroup(groupId, deleteRelays);
     refetchRelayGroups();
     refetchRelays();
   };

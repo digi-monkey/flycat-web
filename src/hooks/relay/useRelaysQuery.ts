@@ -9,8 +9,8 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
   const groupManager = useRelayGroupManager(pubkey);
   const relayPoolDatabse = useMemo(() => new RelayPoolDatabase(), []);
 
-  const getRelays = useCallback(() => {
-    const relays = groupManager.getGroupById(groupId);
+  const getRelays = useCallback(async () => {
+    const relays = await groupManager.getGroupById(groupId);
     if (!relays) {
       return [];
     }

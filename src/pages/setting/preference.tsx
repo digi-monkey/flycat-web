@@ -38,7 +38,7 @@ export default function Preference() {
         'This will delete all the relay groups you created and can not be undone, are you sure?',
       onOk() {
         const groups = new RelayGroupManager(myPublicKey);
-        groups.store.clean();
+        groups.clean();
         Modal.destroyAll();
       },
       onCancel() {

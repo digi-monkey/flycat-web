@@ -1,7 +1,7 @@
 import { Relay } from 'core/relay/type';
+import { useRelayPool } from 'hooks/relay/useRelayManagerContext';
 import { useRef } from 'react';
 import { useQuery } from 'react-query';
-import { useRelayPool } from './useRelayManagerContext';
 
 export default function useAllRelaysByPageQuery(page = 1, limit = 10) {
   const relayPool = useRelayPool();

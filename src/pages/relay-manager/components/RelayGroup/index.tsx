@@ -1,9 +1,9 @@
 import { Button } from 'components/shared/ui/Button';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGroupMutation';
 import { useMemo, useRef, useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
-import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
 import CreateGroupModal, { CreateGroupModalRef } from '../CreateGroupModal';
 import GroupItem from './group';
 import RelayTable from './table';

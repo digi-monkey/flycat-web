@@ -4,12 +4,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from 'components/shared/ui/DropdownMenu';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { MouseEvent } from 'react';
 import { FaRegFolder, FaEllipsisVertical } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
-import { useRelayGroupsQuery } from '../../hooks/useRelayGroupsQuery';
-import { useRelayGroupManager } from '../../hooks/useRelayManagerContext';
 
 export type GroupItemProps = {
   groupId: string;
@@ -23,10 +23,10 @@ export default function GroupItem(props: GroupItemProps) {
   const { groupId, selectedGroupId, setSelectedGroupId } = props;
   const { data: relayGroups = {}, refetch } = useRelayGroupsQuery(myPublicKey);
 
-  const onDeleteGroup = (e: MouseEvent<HTMLDivElement>) => {
+  const onDeleteGroup = async (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    groupManager.deleteGroup(groupId);
+    await groupManager.removeGroup(groupId);
     if (selectedGroupId === groupId) {
       setSelectedGroupId('default');
     }

@@ -3,21 +3,20 @@ import { ICascaderOption } from 'components/shared/Cascader/type';
 import { Paths } from 'constants/path';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
-import { RelayGroupManager } from 'core/relay/group';
-import { RelayGroupMap } from 'core/relay/group/type';
 import {
   RelaySwitchAlertMsg,
   SwitchRelays,
   WsConnectStatus,
 } from 'core/worker/type';
 import { createCallRelay } from 'core/worker/util';
+import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { FaChevronDown } from 'react-icons/fa6';
 import { normalizeWsUrl } from 'utils/common';
-import { useDefaultGroup } from '../../pages/relay-manager/hooks/useDefaultGroup';
 import { useSelectedRelay } from './hooks/useSelectedRelay';
 import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
@@ -41,8 +40,9 @@ export function RelaySelector({
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
-  const defaultGroup = useDefaultGroup();
-  const [relayGroupMap, setRelayGroupMap] = useState<RelayGroupMap>(new Map());
+  const { data: relayGroups, refetch: refetchRelayGroups } =
+    useRelayGroupsQuery(myPublicKey);
+  const relayGroupManager = useRelayGroupManager(myPublicKey);
   const [selectedRelay, setSelectedRelay] = useSelectedRelay();
 
   useEffect(() => {
@@ -66,13 +66,13 @@ export function RelaySelector({
       };
     }
     if (mode === RelayMode.Group && groupId) {
-      const group = relayGroupMap.get(groupId);
+      const group = relayGroups?.[groupId];
       return {
         id: groupId,
         relays: group ?? [],
       };
     }
-  }, [selectedRelay, relayGroupMap]);
+  }, [selectedRelay, relayGroups]);
 
   useEffect(() => {
     if (!switchRelays?.relays?.length || !worker) {
@@ -81,6 +81,7 @@ export function RelaySelector({
 
     if (worker.relayGroupId !== switchRelays.id) {
       worker.switchRelays(switchRelays);
+
       worker.pullRelayInfo();
     }
 
@@ -111,33 +112,32 @@ export function RelaySelector({
     });
   }, [worker, setSelectedRelay]);
 
-  useEffect(() => {
-    const defaultGroupId = 'default';
-    const groups = new RelayGroupManager(myPublicKey);
-    if (groups.getGroupById(defaultGroupId) == null && defaultGroup) {
-      groups.setGroup(defaultGroupId, defaultGroup);
-    }
-    setRelayGroupMap(groups.map);
-  }, [defaultGroup, myPublicKey]);
-
   // fetch nip-65 relay list group if it is not there
   useEffect(() => {
-    if (!myPublicKey || myPublicKey.length === 0) return;
-    if (!worker) return;
+    if (!myPublicKey || myPublicKey.length === 0 || !worker || !relayGroups)
+      return;
 
-    const groups = new RelayGroupManager(myPublicKey);
-    if (groups.getGroupById(NIP_65_RELAY_LIST)) return;
-
+    if (relayGroups[NIP_65_RELAY_LIST]) return;
     const callRelay = createCallRelay(newConn);
     worker
       .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
       .iterating({
-        cb: event => {
-          groups.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
-          setRelayGroupMap(groups.map);
+        cb: async event => {
+          await relayGroupManager.setGroup(
+            NIP_65_RELAY_LIST,
+            Nip65.toRelays(event),
+          );
+          refetchRelayGroups();
         },
       });
-  }, [worker, newConn, myPublicKey]);
+  }, [
+    worker,
+    newConn,
+    myPublicKey,
+    relayGroups,
+    refetchRelayGroups,
+    relayGroupManager,
+  ]);
 
   const onChange = useCallback(
     (_: string[], options: ICascaderOption[]) => {
@@ -171,7 +171,7 @@ export function RelaySelector({
     <Cascader
       value={value}
       onChange={onChange}
-      options={initModeOptions(relayGroupMap)}
+      options={initModeOptions(relayGroups ?? {})}
       groupLabel={group => toLabel(toRelayMode(group))}
       displayRender={() => {
         const [mode, groupId] = selectedRelay;

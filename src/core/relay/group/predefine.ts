@@ -1,4 +1,4 @@
-export const preDefineRelayGroups = [
+export const PREDEFINE_RELAY_GROUPS = [
   {
     id: 'japanese-general',
     urls: [

@@ -1,7 +1,6 @@
+import { RelayGroupManager } from 'core/relay/group';
 import { RelayPool } from 'core/relay/pool';
 import { useMemo, createContext, useContext } from 'react';
-import { RelayGroupManager } from '../../../core/relay/group';
-import { useDefaultGroup } from './useDefaultGroup';
 
 type RelayManagerContextType = {
   managers: Map<string, RelayGroupManager>;
@@ -27,22 +26,15 @@ export function RelayManagerProvider({
 
 export function useRelayGroupManager(pubkey: string): RelayGroupManager {
   const context = useContext(RelayManagerContext);
-  const defaultGroup = useDefaultGroup();
 
   const manager = useMemo(() => {
     let manager = context?.managers.get(pubkey);
     if (!manager) {
       manager = new RelayGroupManager(pubkey);
-
       context?.managers.set(pubkey, manager);
     }
-
-    const defaultGroupId = 'default';
-    if (manager.getGroupById(defaultGroupId) === null && defaultGroup) {
-      manager.setGroup(defaultGroupId, defaultGroup);
-    }
     return manager;
-  }, [pubkey, context?.managers, defaultGroup]);
+  }, [pubkey, context?.managers]);
   return manager;
 }
 
