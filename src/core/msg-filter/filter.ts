@@ -2,7 +2,7 @@ import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 
-const mixKinds = [
+export const mixKinds = [
   WellKnownEventKind.text_note,
   WellKnownEventKind.article_highlight,
   WellKnownEventKind.long_form,
