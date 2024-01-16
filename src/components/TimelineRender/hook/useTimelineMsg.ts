@@ -25,9 +25,6 @@ export function useTimelineMsg({
   filter,
   isValidEvent,
 }: TimelineMsgPro) {
-  const [latestCursor, setLatestCursor] = useState<number>(
-    Math.round(Date.now() / 1000),
-  );
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
   const { queryMsg, cancelQueryMsg } = useQueryMsg();
 
@@ -111,9 +108,26 @@ export function useTimelineMsg({
     return data?.pages.flat(1) || [];
   }, [data]);
 
+  const [lastTimestamp, setLastTimestamp] = useState<number>(0);
+  const firstPageTimestamp = useMemo(() => {
+    if (!data) return undefined;
+
+    const len = data.pages.length;
+    if (len > 0 && data.pages[len - 1].length > 0) {
+      return data.pages[len - 1][0].created_at;
+    }
+    return undefined;
+  }, [data]);
+
+  const lastViewTimestamp = useMemo(() => {
+    if (!firstPageTimestamp) return undefined;
+
+    return Math.max(firstPageTimestamp, lastTimestamp);
+  }, [firstPageTimestamp, lastTimestamp]);
+
   const showLatest = useCallback(() => {
     if (events.length > 0) {
-      setLatestCursor(events[0].created_at);
+      setLastTimestamp(events[0].created_at);
     }
   }, [events]);
 
@@ -137,25 +151,27 @@ export function useTimelineMsg({
 
   const latestNewMsg = useMemo(() => {
     if (events.length === 0) return [];
+    if (!lastViewTimestamp) return [];
 
-    const pos = events.findIndex(e => e.created_at === latestCursor);
+    const pos = events.findIndex(e => e.created_at === lastViewTimestamp);
     if (pos === -1) {
-      return events.filter(e => e.created_at > latestCursor);
+      return events.filter(e => e.created_at > lastViewTimestamp);
     }
     const newMsg = events.slice(0, pos);
     return newMsg;
-  }, [events, latestCursor]);
+  }, [events, lastViewTimestamp]);
 
   const feed = useMemo(() => {
     if (events.length === 0) return [];
+    if (!lastViewTimestamp) return [];
 
-    const pos = events.findIndex(e => e.created_at === latestCursor);
+    const pos = events.findIndex(e => e.created_at === lastViewTimestamp);
     if (pos === -1) {
-      return events.filter(e => e.created_at < latestCursor);
+      return events.filter(e => e.created_at < lastViewTimestamp);
     }
     const viewFeed = events.slice(pos);
     return viewFeed;
-  }, [events, latestCursor]);
+  }, [events, lastViewTimestamp]);
 
   const scrollCacheKey = useMemo(
     () =>
@@ -169,14 +185,12 @@ export function useTimelineMsg({
   );
   useLastScroll({ queryCacheId: scrollCacheKey, feed: events });
   useInterval(() => {
-    console.log('sub previous..');
     if (
       hasPreviousPage &&
       !isFetching &&
       !isFetchingPreviousPage &&
       !isFetchingNextPage
     ) {
-      console.log('query: useInterval ', scrollCacheKey);
       fetchPreviousPage();
     }
   }, SUB_NEW_MSG_INTERVAL);
@@ -185,7 +199,7 @@ export function useTimelineMsg({
     feed,
     status,
     latestNewMsg,
-    latestCursor,
+    latestCursor: lastTimestamp,
     showLatest,
     loadMore,
     pullToRefresh,
@@ -195,5 +209,6 @@ export function useTimelineMsg({
     isPullRefreshing,
     cancelQueryDb,
     queryKey,
+    firstPageTimestamp,
   };
 }
