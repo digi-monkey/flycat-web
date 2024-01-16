@@ -174,7 +174,7 @@ export function useTimelineMsg({
       }),
     [feedId, relayUrls, isValidEvent, filter],
   );
-  useLastScroll({ queryCacheId: scrollCacheKey, msgList: events });
+  useLastScroll({ queryCacheId: scrollCacheKey, feed: events });
 
   return {
     feed,

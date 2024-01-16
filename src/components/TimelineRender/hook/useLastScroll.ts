@@ -1,35 +1,17 @@
 import { DbEvent } from 'core/db/schema';
-import { useState, useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useDebounce } from 'usehooks-ts';
 import { scrollHeightCache } from 'core/cache/query';
 
 export interface LastScrollProp {
   queryCacheId: string;
-  msgList: DbEvent[];
+  feed: DbEvent[];
 }
 
-export function useLastScroll({ queryCacheId, msgList }: LastScrollProp) {
+export function useLastScroll({ queryCacheId, feed }: LastScrollProp) {
   const scrollHeight = useScrollHeight();
-  useRestoreScrollHeight(scrollHeight, queryCacheId, msgList.length > 0);
+  useRestoreScrollHeight(scrollHeight, queryCacheId, feed.length > 0);
 }
-
-export const useScrollHeight = (debounceDelay = 700) => {
-  const [scrollValue, setScrollValue] = useState(0);
-  const debounceScrollValue = useDebounce(scrollValue, debounceDelay);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollValue(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  return debounceScrollValue;
-};
 
 export function useRestoreScrollHeight(
   scrollHeight: number,
@@ -50,4 +32,21 @@ export function useRestoreScrollHeight(
       window.scrollTo({ top: pos, behavior: 'instant' as ScrollBehavior });
     }
   }, [queryCacheId, canRestore]);
+}
+
+export const useScrollHeight = (debounceDelay = 700) => {
+  const scrollValue = useSyncExternalStore(subscribe, getSnapshot, () => 0);
+  const debounceScrollValue = useDebounce(scrollValue, debounceDelay);
+  return debounceScrollValue;
+};
+
+function getSnapshot() {
+  return window.scrollY;
+}
+
+function subscribe(callback) {
+  window.addEventListener('scroll', callback);
+  return () => {
+    window.removeEventListener('scroll', callback);
+  };
 }
