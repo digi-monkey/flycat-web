@@ -163,7 +163,7 @@ export default function NaddrCommunity() {
           <div className={styles.calendarRecord}>
             <div className={styles.recordHeader}>My Record</div>
             <div className={styles.recordTime}>
-              <Icon type="icon-Data" />
+              <Icon className="w-4 h-4" type="icon-Data" />
               <p> Since Jul 20, 2023 (1 days)</p>
             </div>
             <div className={styles.recordDataWrapper}>
