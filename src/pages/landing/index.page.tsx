@@ -12,7 +12,7 @@ export const Landing: React.FC = () => {
     <div className={styles.root}>
       <div className={styles.header}>
         <Link href="/">
-          <img src="logo512.png" alt="" />
+          <img src="/logo/app/512.svg" alt="" />
         </Link>
       </div>
       <Row>

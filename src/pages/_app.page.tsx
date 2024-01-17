@@ -46,7 +46,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
           <meta name="twitter:description" content="a beautiful nostr client" />
           <meta
             name="twitter:image"
-            content="https://flycat.club/logo512.png"
+            content="https://flycat.club/logo/app/512.svg"
           />
           <meta name="twitter:creator" content="@flycatclub" />
 
@@ -56,7 +56,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
           <meta property="og:description" content="a beautiful nostr client" />
           <meta property="og:site_name" content="flycat" />
           <meta property="og:url" content="https://flycat.club" />
-          <meta property="og:image" content="https://flycat.club/logo512.png" />
+          <meta
+            property="og:image"
+            content="https://flycat.club/logo/app/512.svg"
+          />
         </Head>
         <Component {...pageProps} />
         <Analytics />
