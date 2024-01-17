@@ -65,7 +65,10 @@ export const WasmFileUpload: React.FC<WasmFileUploadProp> = ({
   };
   return (
     <Upload customRequest={customRequest as any} disabled={disabled === true}>
-      <Button icon={<Icon type="icon-plus" />}>
+      <Button
+        style={{ display: 'flex' }}
+        icon={<Icon className="w-6 h-6" type="icon-plus" />}
+      >
         {disabled
           ? 'please fill the above filter first'
           : btnText || 'upload .wasm file'}{' '}
