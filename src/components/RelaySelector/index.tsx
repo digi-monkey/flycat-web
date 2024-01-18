@@ -1,23 +1,20 @@
 import { Cascader } from 'components/shared/Cascader';
 import { ICascaderOption } from 'components/shared/Cascader/type';
 import { Paths } from 'constants/path';
+import { v4 as uuidv4 } from 'uuid';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
-import {
-  RelaySwitchAlertMsg,
-  SwitchRelays,
-  WsConnectStatus,
-} from 'core/worker/type';
+import { RelaySwitchAlertMsg, WsConnectStatus } from 'core/worker/type';
 import { createCallRelay } from 'core/worker/util';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
+import { useSelectedRelayGroup } from 'hooks/relay/useSelectedRelayGroup';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { FaChevronDown } from 'react-icons/fa6';
 import { normalizeWsUrl } from 'utils/common';
-import { useSelectedRelay } from './hooks/useSelectedRelay';
 import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
 
@@ -43,7 +40,7 @@ export function RelaySelector({
   const { data: relayGroups, refetch: refetchRelayGroups } =
     useRelayGroupsQuery(myPublicKey);
   const relayGroupManager = useRelayGroupManager(myPublicKey);
-  const [selectedRelay, setSelectedRelay] = useSelectedRelay();
+  const [selectedRelayGroup, setSelectedRelayGroup] = useSelectedRelayGroup();
 
   useEffect(() => {
     if (newConnCallback) {
@@ -57,39 +54,24 @@ export function RelaySelector({
     }
   }, [wsConnectStatus, wsStatusCallback]);
 
-  const switchRelays = useMemo<SwitchRelays | undefined>(() => {
-    const [mode, groupId] = selectedRelay;
-    if (mode === RelayMode.Rule) {
-      return {
-        id: mode,
-        relays: [],
-      };
-    }
-    if (mode === RelayMode.Group && groupId) {
-      const group = relayGroups?.[groupId];
-      return {
-        id: groupId,
-        relays: group ?? [],
-      };
-    }
-  }, [selectedRelay, relayGroups]);
-
   useEffect(() => {
-    if (!switchRelays?.relays?.length || !worker) {
+    if (!selectedRelayGroup?.relays?.length || !worker) {
       return;
     }
 
-    if (worker.relayGroupId !== switchRelays.id) {
-      worker.switchRelays(switchRelays);
-
+    if (
+      worker.relayGroupId !== selectedRelayGroup.id ||
+      worker.relays.length !== selectedRelayGroup.relays.length
+    ) {
+      worker.switchRelays(selectedRelayGroup);
       worker.pullRelayInfo();
     }
 
-    if (switchRelays?.relays) {
+    if (selectedRelayGroup?.relays) {
       const keys = Array.from(wsConnectStatus.keys());
       for (const key of keys) {
         if (
-          !switchRelays.relays
+          !selectedRelayGroup.relays
             .map(r => normalizeWsUrl(r.url))
             .includes(normalizeWsUrl(key))
         ) {
@@ -97,7 +79,7 @@ export function RelaySelector({
         }
       }
     }
-  }, [switchRelays, wsConnectStatus, worker]);
+  }, [selectedRelayGroup, wsConnectStatus, worker, relayGroups]);
 
   useEffect(() => {
     worker?.addRelaySwitchAlert((data: RelaySwitchAlertMsg) => {
@@ -108,9 +90,9 @@ export function RelaySelector({
         return;
       }
       const id = data.id;
-      setSelectedRelay([RelayMode.Group, id]);
+      setSelectedRelayGroup(id);
     });
-  }, [worker, setSelectedRelay]);
+  }, [worker, setSelectedRelayGroup]);
 
   // fetch nip-65 relay list group if it is not there
   useEffect(() => {
@@ -123,10 +105,12 @@ export function RelaySelector({
       .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
       .iterating({
         cb: async event => {
-          await relayGroupManager.setGroup(
-            NIP_65_RELAY_LIST,
-            Nip65.toRelays(event),
-          );
+          const groupId = uuidv4();
+          await relayGroupManager.setGroup(groupId, {
+            id: groupId,
+            title: NIP_65_RELAY_LIST,
+            relays: Nip65.toRelays(event),
+          });
           refetchRelayGroups();
         },
       });
@@ -149,23 +133,15 @@ export function RelaySelector({
         return;
       }
 
-      const mode =
-        ((options.length > 1
-          ? options[0].value
-          : options[0]?.group) as RelayMode) ?? RelayMode.Group;
       const groupId = options.length > 1 ? options[1].value : options[0].value;
-      setSelectedRelay([mode, groupId]);
+      setSelectedRelayGroup(groupId);
     },
-    [setSelectedRelay, router],
+    [setSelectedRelayGroup, router],
   );
 
   const value = useMemo(() => {
-    const [mode, groupId] = selectedRelay;
-    if (mode === RelayMode.Group && groupId) {
-      return [groupId];
-    }
-    return ['default'];
-  }, [selectedRelay]);
+    return selectedRelayGroup.id ? [selectedRelayGroup.id] : ['default'];
+  }, [selectedRelayGroup]);
 
   return (
     <Cascader
@@ -174,13 +150,13 @@ export function RelaySelector({
       options={initModeOptions(relayGroups ?? {})}
       groupLabel={group => toLabel(toRelayMode(group))}
       displayRender={() => {
-        const [mode, groupId] = selectedRelay;
+        const group = relayGroups?.[selectedRelayGroup.id];
         return (
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="px-[6px] py-[2px] bg-surface-01-accent rounded">
                 <span className="text-text-primary text-sm font-noto whitespace-nowrap">
-                  {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
+                  {toLabel(RelayMode.Group)}
                 </span>
               </div>
               <span
@@ -188,7 +164,7 @@ export function RelaySelector({
                 suppressHydrationWarning
               >
                 {toConnectStatus(
-                  groupId ?? 'default',
+                  group?.title ?? 'default',
                   wsConnectStatus,
                   worker?.relays?.length || 0,
                 )}

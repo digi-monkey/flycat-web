@@ -1,27 +1,21 @@
-import {
-  Button,
-  Divider,
-  Input,
-  List,
-  Modal,
-  Progress,
-  Select,
-  Slider,
-  Switch,
-  Tag,
-  Upload,
-  message,
-} from 'antd';
+import { Button, Divider, Input, List, Modal, Upload, message } from 'antd';
 import { dbEventTable, dexieDb } from 'core/db';
 import { RelayGroupManager } from 'core/relay/group';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useEffect, useState } from 'react';
 import { exportDB } from 'dexie-export-import';
+import { useCallWorker } from 'hooks/useWorker';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
 
 export default function Preference() {
   const myPublicKey = useReadonlyMyPublicKey();
   const [storage, setStorage] = useState<number>(0);
   const [messageApi, contextHolder] = message.useMessage();
+  const { worker } = useCallWorker();
+  const signEvent = useSelector(
+    (state: RootState) => state.loginReducer.signEvent,
+  );
 
   useEffect(() => {
     updateStorage();
@@ -37,7 +31,7 @@ export default function Preference() {
       content:
         'This will delete all the relay groups you created and can not be undone, are you sure?',
       onOk() {
-        const groups = new RelayGroupManager(myPublicKey);
+        const groups = new RelayGroupManager(myPublicKey, worker!, signEvent);
         groups.clean();
         Modal.destroyAll();
       },

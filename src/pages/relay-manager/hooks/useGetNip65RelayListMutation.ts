@@ -9,6 +9,7 @@ import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function useGetNip65RelayListMutation() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -44,7 +45,12 @@ export default function useGetNip65RelayListMutation() {
     dataStream.unsubscribe();
 
     if (event) {
-      groupManager.setGroup(NIP_65_RELAY_LIST, Nip65.toRelays(event));
+      const id = uuidv4();
+      groupManager.setGroup(id, {
+        id,
+        title: NIP_65_RELAY_LIST,
+        relays: Nip65.toRelays(event),
+      });
       refetchGroups();
       toast({
         title: `Find Nip-65 Relay list! Check your relay group named: ${NIP_65_RELAY_LIST}`,

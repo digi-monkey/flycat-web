@@ -1,4 +1,10 @@
 import { Relay } from '../type';
 
-export type RelayGroupId = string;
-export type RelayGroupMap = Map<RelayGroupId, Relay[]>;
+export interface RelayGroup {
+  id: string;
+  title: string;
+  description?: string;
+  relays: Relay[];
+}
+
+export type RelayGroupMap = Map<string, RelayGroup>;

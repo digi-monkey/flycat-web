@@ -100,7 +100,7 @@ const CopyToGroupModal: React.ForwardRefRenderFunction<
                   {groupId}
                 </label>
                 <span className="text-text-secondary label">
-                  {relayGroups[groupId].length}
+                  {relayGroups[groupId].relays.length}
                 </span>
               </div>
             </div>

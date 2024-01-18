@@ -1,4 +1,4 @@
-import { RelayGroupMap } from '../group/type';
+import { RelayGroup, RelayGroupMap } from '../group/type';
 import { Relay } from '../type';
 
 export abstract class BaseStoreAdapter {
@@ -10,8 +10,8 @@ export abstract class BaseStoreAdapter {
 export abstract class BaseRelayGroupManager {
   constructor(protected pubkey: string) {}
   abstract getAllGroupIds(): Promise<string[]>;
-  abstract getGroupById(id: string): Promise<Relay[] | undefined>;
-  abstract setGroup(id: string, relays: Relay[]): void;
+  abstract getGroupById(id: string): Promise<RelayGroup | undefined>;
+  abstract setGroup(id: string, group: RelayGroup): void;
   abstract removeGroup(id: string): void;
   abstract addRelayToGroup(id: string, relay: Relay[] | Relay): void;
   abstract removeRelayFromGroup(id: string, relay: Relay[] | Relay): void;
@@ -25,6 +25,6 @@ export abstract class BaseRelayGroupStorage {
   ) {}
   abstract get storeKey(): string;
   abstract load(): Promise<RelayGroupMap>;
-  abstract save(map: Map<string, Relay[]>): void;
+  abstract save(map: Map<string, RelayGroup>): void;
   abstract clean(): void;
 }

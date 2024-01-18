@@ -1,7 +1,9 @@
 import { Nip51 } from 'core/nip/51';
+import { WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
+import { SubFilterResultMsg } from 'core/worker/type';
 import { SignEvent } from 'store/loginReducer';
-import { RelayGroupMap } from '../group/type';
+import { RelayGroup, RelayGroupMap } from '../group/type';
 import { Relay } from '../type';
 import { BaseRelayGroupManager } from './base';
 import { RelayGroupStorage } from './store';
@@ -22,33 +24,62 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     this.signEvent = signEvent;
     this.storage = new RelayGroupStorage(pubkey);
     this.loader = this.storage.load();
-    this.subRelaySet();
+  }
+
+  private getRelayGroupFromEvent({ event }: SubFilterResultMsg) {
+    const { tags, kind } = event;
+    if (kind !== WellKnownEventKind.relay_set) {
+      return;
+    }
+    const relaySet = Nip51.parseRelaySet(tags);
+    const { id, title, description } = relaySet;
+    if (!id || !title) {
+      return;
+    }
+    const relayGroup = {
+      id,
+      title,
+      description,
+      relays: [] as Relay[],
+    };
+    relaySet.relays.forEach(url => {
+      const relay: Relay = { url, read: true, write: true };
+      relayGroup.relays.push(relay);
+    });
+    return relayGroup;
   }
 
   private async subRelaySet() {
+    if (!this.pubkey) {
+      return;
+    }
+
     const filter = Nip51.createRelaySetFilter(this.pubkey);
     const handler = this.worker.subFilter({ filter });
     const iterator = handler.getIterator();
 
-    for await (const event of iterator) {
-      console.log('subRelaySet', event);
+    for await (const msg of iterator) {
+      const group = this.getRelayGroupFromEvent(msg);
+      if (!group) {
+        continue;
+      }
+      const groupMap = await this.loader;
+      groupMap.set(group.id, group);
+      this.storage.save(groupMap);
     }
   }
 
-  private async pubRelaySet(id: string, relays: Relay[]) {
+  private async pubRelayGroup(group: RelayGroup) {
     if (!this.signEvent) {
       return;
     }
-    const rawEvent = await Nip51.createRelaySet(
-      id,
-      relays.map(r => r.url),
-    );
+    const rawEvent = await Nip51.createRelaySet(group);
     const event = await this.signEvent(rawEvent);
-    console.log('pubRelaySet', event);
     this.worker.pubEvent(event);
   }
 
   public async getAllGroupIds() {
+    this.subRelaySet();
     const groupMap = await this.loader;
     return Array.from(groupMap.keys());
   }
@@ -58,10 +89,10 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     return groupMap.get(id);
   }
 
-  public async setGroup(id: string, relays: Relay[]) {
+  public async setGroup(id: string, group: RelayGroup) {
     const groupMap = await this.loader;
-    groupMap.set(id, relays);
-    await this.pubRelaySet(id, relays);
+    groupMap.set(id, group);
+    await this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
@@ -74,22 +105,30 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   public async addRelayToGroup(id: string, relay: Relay[] | Relay) {
     const relays = Array.isArray(relay) ? relay : [relay];
     const groupMap = await this.loader;
-    const groupRelays = groupMap.get(id) || [];
-    const newRelays = relays.filter(r => !groupRelays.includes(r));
-    groupMap.set(id, groupRelays.concat(newRelays));
-    await this.pubRelaySet(id, newRelays);
+    const group = groupMap.get(id);
+    if (!group) {
+      return;
+    }
+    const newRelays = relays.filter(r => !group.relays.includes(r));
+    group.relays = group.relays.concat(newRelays);
+    groupMap.set(id, group);
+    await this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
   public async removeRelayFromGroup(id: string, relay: Relay[] | Relay) {
     const relays = Array.isArray(relay) ? relay : [relay];
     const groupMap = await this.loader;
-    const groupRelays = groupMap.get(id) || [];
-    const newRelays = groupRelays.filter(r => {
+    const group = groupMap.get(id);
+    if (!group) {
+      return;
+    }
+    const newRelays = group.relays.filter(r => {
       return !relays.some(r2 => r2.url === r.url);
     });
-    groupMap.set(id, newRelays);
-    await this.pubRelaySet(id, newRelays);
+    group.relays = newRelays;
+    groupMap.set(id, group);
+    await this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 

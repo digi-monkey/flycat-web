@@ -34,10 +34,10 @@ export default function RelayGroup() {
               My Groups
             </div>
             <div>
-              {Object.keys(relayGroups).map(groupId => (
+              {Object.values(relayGroups).map(group => (
                 <GroupItem
-                  key={groupId}
-                  groupId={groupId}
+                  key={group.id}
+                  group={group}
                   selectedGroupId={selectedGroupId}
                   setSelectedGroupId={setSelectedGroupId}
                 />
@@ -59,8 +59,10 @@ export default function RelayGroup() {
       </div>
       <div className="col-span-3 bg-surface-02">
         <div className="label-bold text-text-primary capitalize px-5 py-2">
-          {selectedGroupId}{' '}
-          {activeGroup?.length ? `(${activeGroup?.length ?? 0})` : ''}
+          {activeGroup?.title ?? ''}{' '}
+          {activeGroup?.relays.length
+            ? `(${activeGroup?.relays.length ?? 0})`
+            : ''}
         </div>
         <RelayTable key={selectedGroupId} groupId={selectedGroupId} />
       </div>

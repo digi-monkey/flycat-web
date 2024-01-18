@@ -10,12 +10,12 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
   const relayPoolDatabse = useMemo(() => new RelayPoolDatabase(), []);
 
   const getRelays = useCallback(async () => {
-    const relays = await groupManager.getGroupById(groupId);
-    if (!relays) {
+    const group = await groupManager.getGroupById(groupId);
+    if (!group) {
       return [];
     }
 
-    return relays.map(r => {
+    return group.relays.map(r => {
       const relay = relayPoolDatabse.load(r.url);
       return relay || r;
     });

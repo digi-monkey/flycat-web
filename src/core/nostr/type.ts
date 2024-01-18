@@ -60,6 +60,10 @@ export enum EventTags {
   Z = 'zap',
   R = 'r',
   K = 'k', // kinds
+
+  Relay = 'relay',
+  Title = 'title',
+  Description = 'description',
 }
 
 export type LudType = 'lud06' | 'lud16';

@@ -5,6 +5,7 @@ import { RelayPool } from 'core/relay/pool';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { v4 as uuidv4 } from 'uuid';
 import { useMutation } from 'react-query';
 
 export default function useFindAutoRelayListMutation() {
@@ -41,12 +42,14 @@ export default function useFindAutoRelayListMutation() {
       },
     );
     if (pickRelays.length > 0) {
-      await groupManager.setGroup(
-        AUTO_RECOMMEND_LIST,
-        pickRelays.map(r => {
+      const id = uuidv4();
+      await groupManager.setGroup(id, {
+        id,
+        title: AUTO_RECOMMEND_LIST,
+        relays: pickRelays.map(r => {
           return { url: r, read: true, write: true };
         }),
-      );
+      });
       refetchGroups();
     }
     toast({

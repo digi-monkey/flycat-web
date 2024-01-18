@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CallWorker } from 'core/worker/caller';
 import { WsConnectStatus } from 'core/worker/type';
 import { isEqualMaps } from 'utils/validator';
@@ -16,10 +16,9 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
   const [wsConnectStatus, setWsConnectStatus] = useState<WsConnectStatus>(
     new Map(),
   );
-  const worker = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+  const [worker, setWorker] = useState<CallWorker>();
+
+  useEffect(() => {
     const worker = new CallWorker((newWsConnectStatus: WsConnectStatus) => {
       setWsConnectStatus(prev => {
         if (isEqualMaps(prev, newWsConnectStatus)) {
@@ -29,8 +28,8 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
         return newWsConnectStatus;
       });
     }, workerAliasName || 'unnamedCallWorker');
+    setWorker(worker);
     worker.pullRelayInfo();
-    return worker;
   }, [workerAliasName]);
 
   useEffect(() => {

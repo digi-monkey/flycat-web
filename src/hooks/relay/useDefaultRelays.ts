@@ -4,14 +4,14 @@ import { useSelector } from 'react-redux';
 import { seedRelays } from 'core/relay/pool/seed';
 import { RootState } from 'store/configureStore';
 
-export function useDefaultGroup() {
+export function useDefaultRelays() {
   const myPublicKey = useReadonlyMyPublicKey();
   const isLoggedIn = useSelector(
     (state: RootState) => state.loginReducer.isLoggedIn,
   );
   const myCustomRelay = useSelector((state: RootState) => state.relayReducer);
 
-  const defaultGroup = useMemo(() => {
+  const defaultRelays = useMemo(() => {
     let relayUrls = seedRelays;
     if (isLoggedIn === true) {
       relayUrls = relayUrls
@@ -29,5 +29,5 @@ export function useDefaultGroup() {
     return relays;
   }, [isLoggedIn, myCustomRelay, myPublicKey]);
 
-  return defaultGroup;
+  return defaultRelays;
 }
