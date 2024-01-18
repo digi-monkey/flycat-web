@@ -52,4 +52,13 @@ export class Nip51 {
     const rawEvent = new RawEvent('', WellKnownEventKind.relay_set, tags, '');
     return rawEvent;
   }
+
+  static createRelaySetFilter(pubkey: string): Filter {
+    const filter: Filter = {
+      authors: [pubkey],
+      kinds: [WellKnownEventKind.relay_set],
+      limit: 100,
+    };
+    return filter;
+  }
 }

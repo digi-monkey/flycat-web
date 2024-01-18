@@ -183,7 +183,10 @@ export function RelaySelector({
                   {mode ? toLabel(toRelayMode(mode)) : toLabel(RelayMode.Group)}
                 </span>
               </div>
-              <span className="text-text-primary text-sm font-noto whitespace-nowrap">
+              <span
+                className="text-text-primary text-sm font-noto whitespace-nowrap"
+                suppressHydrationWarning
+              >
                 {toConnectStatus(
                   groupId ?? 'default',
                   wsConnectStatus,

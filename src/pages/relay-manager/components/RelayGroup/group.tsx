@@ -46,7 +46,7 @@ export default function GroupItem(props: GroupItemProps) {
     >
       <FaRegFolder className="h-4 w-4 text-text-secondary" />
       <div className="w-full flex justify-between items-center">
-        <span className="flex-1 line-clamp-1 label text-text-primary selected:font-semibold capitalize">
+        <span className="flex-1 line-clamp-1 label text-text-primary selected:font-semibold">
           {groupId} ({relayGroups[groupId]?.length})
         </span>
         <div className="flex items-center relative">
