@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useCallWorker } from 'hooks/useWorker';
 import { CommitCalendar } from 'components/CommitCalendar';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -12,27 +12,22 @@ import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { deserializeMetadata, shortifyPublicKey } from 'core/nostr/content';
 import {
   EventSetMetadataContent,
-  WellKnownEventKind,
   PublicKey,
   EventTags,
   EventContactListPTag,
   ContactInfo,
-  Filter,
 } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import {
   Avatar,
   Button,
-  Divider,
   Dropdown,
   Input,
   MenuProps,
-  Tabs,
   Tooltip,
   message,
 } from 'antd';
-import { copyToClipboard, stringHasImageUrl } from 'utils/common';
+import { copyToClipboard } from 'utils/common';
 import { Followings } from './followings';
 
 import styles from './index.module.scss';
@@ -52,11 +47,11 @@ import PageTitle from 'components/PageTitle';
 import { DbEvent } from 'core/db/schema';
 import { contactQuery, profileQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { MsgFeed, MsgSubProp } from 'components/MsgFeed';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
-import AnswerMachine from './answerMachine.page';
 import { Nip19, Nip19DataType } from 'core/nip/19';
+import { defaultProfilePageMsgFilters } from './filter-option';
+import { TimelineTabs } from 'components/TimelineTabs';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -72,12 +67,19 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   );
   const { worker, newConn } = useCallWorker();
 
+  const filterOptions = useMemo(() => {
+    return defaultProfilePageMsgFilters.map(f => {
+      if (f.filter) {
+        f.filter.authors = [publicKey];
+      }
+      return f;
+    });
+  }, [publicKey]);
+
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
   const [myContactEvent, setMyContactEvent] = useState<DbEvent>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
   const [messageApi, contextHolder] = message.useMessage();
-  const [msgSubProp, setMsgSubProp] = useState<MsgSubProp>({});
-  const [activeTabKey, setActiveTabKey] = useState<string>('all');
 
   useEffect(() => {
     if (!isValidPublicKey(publicKey)) return;
@@ -120,73 +122,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     contactQuery.createContactByPubkeyQuerier(myPublicKey, setMyContactEvent),
     [myPublicKey],
   );
-
-  const onMsgFeedChanged = () => {
-    if (!isValidPublicKey(publicKey)) return 'invalid user public key';
-
-    let msgFilter: Filter | null = null;
-    let isValidEvent: ((event: Event) => boolean) | undefined;
-
-    if (activeTabKey === 'all') {
-      const kinds = [
-        WellKnownEventKind.text_note,
-        WellKnownEventKind.article_highlight,
-        WellKnownEventKind.long_form,
-        WellKnownEventKind.reposts,
-      ];
-      msgFilter = {
-        limit: 50,
-        kinds,
-      };
-      isValidEvent = (event: Event) => {
-        return kinds.includes(event.kind);
-      };
-    }
-
-    if (activeTabKey === 'longForm') {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.long_form],
-      };
-      isValidEvent = (event: Event) => {
-        return event.kind === WellKnownEventKind.long_form;
-      };
-    }
-
-    if (activeTabKey === 'media') {
-      msgFilter = {
-        limit: 50,
-        kinds: [WellKnownEventKind.text_note],
-      };
-      isValidEvent = (event: Event) => {
-        return (
-          event.kind === WellKnownEventKind.text_note &&
-          stringHasImageUrl(event.content)
-        );
-      };
-    }
-
-    if (msgFilter == null) return 'unknown filter';
-
-    msgFilter.authors = [publicKey];
-
-    console.log(
-      'start sub msg.. !!!msgFilter: ',
-      msgFilter,
-      activeTabKey,
-      isValidEvent,
-    );
-
-    const msgSubProp: MsgSubProp = {
-      msgFilter,
-      isValidEvent,
-    };
-    setMsgSubProp(msgSubProp);
-  };
-
-  useEffect(() => {
-    onMsgFeedChanged();
-  }, [activeTabKey, publicKey]);
 
   useEffect(() => {
     if (!isValidPublicKey(publicKey)) return;
@@ -266,21 +201,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         };
   };
   const followOrUnfollow = buildFollowUnfollow(publicKey);
-
-  const tabItems = [
-    {
-      label: `All`,
-      key: 'all',
-    },
-    {
-      label: `Long-form`,
-      key: 'longForm',
-    },
-    {
-      label: `Media`,
-      key: 'media',
-    },
-  ];
 
   const items: MenuProps['items'] = [
     {
@@ -494,18 +414,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </div>
         )}
 
-        <div>
-          <Tabs
-            defaultActiveKey="all"
-            centered
-            items={tabItems}
-            size={'large'}
-            activeKey={activeTabKey}
-            onChange={setActiveTabKey}
-          />
-
-          <MsgFeed msgSubProp={msgSubProp} worker={worker} />
-        </div>
+        <TimelineTabs filterOptions={filterOptions} worker={worker} />
       </Left>
       <Right>
         <div>

@@ -2,7 +2,7 @@ import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { stringHasImageUrl } from 'utils/common';
 
-const mixKinds = [
+export const mixKinds = [
   WellKnownEventKind.text_note,
   WellKnownEventKind.article_highlight,
   WellKnownEventKind.long_form,
@@ -26,7 +26,7 @@ export enum MsgFilterMode {
 export interface MsgFilter {
   key: MsgFilterKey | string;
   label: string;
-  filter: Filter;
+  filter?: Filter;
   isValidEvent?: (event: Event) => boolean;
   mode: MsgFilterMode;
   description?: string;
