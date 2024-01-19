@@ -41,7 +41,7 @@ export function TimelineTabs({
         <Tabs.List className="w-full flex justify-between overflow-scroll border-0 border-b border-solid border-b-gray-200">
           {filterOptions.map(val => (
             <Tabs.Trigger
-              className="text-base font-medium font-poppins w-full cursor-pointer py-4 px-2 text-gray-600 whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
+              className="font-bold font-noto w-full cursor-pointer py-4 px-2 text-gray-600 whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
               key={val.key}
               value={val.key}
             >
