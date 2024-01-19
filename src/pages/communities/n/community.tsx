@@ -38,6 +38,7 @@ import {
 import { RawEvent } from 'core/nostr/RawEvent';
 import { useRouter } from 'next/router';
 import { useMatchMobile } from 'hooks/useMediaQuery';
+import PageTitle from 'components/PageTitle';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -470,14 +471,17 @@ export function Community({
 
   return (
     <>
+      <PageTitle
+        title={community.id}
+        icon={
+          <Icon
+            className="w-6 h-6"
+            onClick={() => router.back()}
+            type="icon-arrow-left"
+          />
+        }
+      />
       <div className={styles.communityPage}>
-        <div
-          className={styles.communityNav}
-          onClick={() => router.push('/communities')}
-        >
-          <Icon type="icon-arrow-left" />
-          {community.id}
-        </div>
         <div
           style={{ backgroundImage: `url(${community.image})` }}
           className={styles.banner}

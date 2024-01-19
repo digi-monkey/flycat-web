@@ -6,6 +6,7 @@ import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import styles from './index.module.scss';
 import PubNoteTextarea from 'components/PubNoteTextarea';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 function About({ commitId }) {
   const version = useVersion();
@@ -14,7 +15,7 @@ function About({ commitId }) {
     <BaseLayout>
       <Left>
         <div className={styles.about}>
-          <h2>Flycat</h2>
+          <img src="/logo/web/Flycat-logo-hr-light@2x.png" alt="logo" />
           <p>
             Flycat is a new way to exit toxic internet. It represents a
             healthier social model built on Nostr protocol. There is no follower
@@ -66,6 +67,13 @@ function About({ commitId }) {
           </p>
           <PubNoteTextarea initText="#flycat-feedback " />
 
+          <h2>Media Resource</h2>
+          <p>
+            Logo and brand:{' '}
+            <Link href="https://github.com/digi-monkey/flycat-web/tree/master/public/logo">
+              resource
+            </Link>
+          </p>
           <br />
           <br />
           <br />

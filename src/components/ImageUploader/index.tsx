@@ -84,7 +84,7 @@ export const ImageUploader = ({
         disabled={isUploading}
         className={styles.iconBtn}
       >
-        <Icon type="icon-image" />+{isUploading ? '↺' : ''}
+        <Icon className="w-4 h-4" type="icon-image" />+{isUploading ? '↺' : ''}
       </button>
       &nbsp;&nbsp;
       <input

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Input } from 'antd';
 import { Filter } from 'core/nostr/type';
-import { validateFilter } from 'components/MsgFeed/util';
+import { validateFilter } from 'components/TimelineRender/util';
 
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';

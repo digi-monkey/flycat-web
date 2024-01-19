@@ -86,7 +86,7 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
             worker={worker}
             ownerEvent={event}
             showLastReplyToEvent={false}
-            isExpanded={true}
+            truncate={false}
           />
         </div>
       </div>

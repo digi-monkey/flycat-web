@@ -79,7 +79,7 @@ export default function EventPage({
 
         <meta
           name="twitter:image:src"
-          content={notePreview?.image || 'https://flycat.club/logo512.png'}
+          content={notePreview?.image || 'https://flycat.club/logo/app/512.svg'}
         />
         <meta name="twitter:site" content="@flycatclub" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -107,7 +107,7 @@ export default function EventPage({
                   msgList={[rootEvent]}
                   worker={worker!}
                   showLastReplyToEvent={true}
-                  isExpanded={true}
+                  truncate={false}
                 />
 
                 <Comments rootEvent={rootEvent} />

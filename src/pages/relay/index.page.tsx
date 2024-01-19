@@ -245,8 +245,9 @@ export function RelayPage() {
                 </span>
               </div>
               <Button
+                style={{ display: 'flex' }}
                 type="link"
-                icon={<Icon type="icon-Gear" />}
+                icon={<Icon className="w-6 h-6" type="icon-Gear" />}
                 onClick={() => router.push('/relay-manager')}
               >
                 Manage relays

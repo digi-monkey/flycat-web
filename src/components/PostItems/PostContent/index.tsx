@@ -1,6 +1,6 @@
 import { EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from 'antd';
 import { CallWorker } from 'core/worker/caller';
 import { isNsfwEvent } from 'utils/validator';
@@ -8,6 +8,8 @@ import { renderContent } from './content';
 import { doTextTransformer } from 'hooks/useTransformText';
 import { useRouter } from 'next/router';
 import { Paths } from 'constants/path';
+import { TEXT_NOTE_MAX_WORD_LIMIT } from 'constants/common';
+import { DecodedNeventResult, Nip19, Nip19DataType } from 'core/nip/19';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
@@ -24,16 +26,18 @@ interface PostContentProp {
   ownerEvent: Event;
   worker?: CallWorker;
   showLastReplyToEvent?: boolean;
-  isExpanded?: boolean;
+  truncate?: boolean;
 }
 
 export const PostContent: React.FC<PostContentProp> = ({
   ownerEvent: msgEvent,
   worker,
   showLastReplyToEvent = true,
-  isExpanded = false,
+  truncate = true,
 }) => {
   const router = useRouter();
+
+  const [expanded, setExpanded] = useState(!truncate);
 
   const lastReplyToEventId = useMemo(() => {
     const lastReply = msgEvent.tags
@@ -45,60 +49,83 @@ export const PostContent: React.FC<PostContentProp> = ({
     return lastReply?.id;
   }, [msgEvent]);
 
-  const [expanded, setExpanded] = useState(isExpanded);
-  const [content, setContent] = useState<any[]>([]);
+  const elements = useMemo(
+    () => doTextTransformer(msgEvent.id, msgEvent.content, msgEvent.tags),
+    [msgEvent],
+  );
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const isSubPostDuplicateWithEmbedNote = useMemo(() => {
+    return elements.find(e => {
+      if (e.type === 'mention') {
+        const content = e.content;
+        if (content.startsWith('nostr:nevent1')) {
+          try {
+            const data = content.split(':')[1];
+            const res = Nip19.decodeShareable(data).data as DecodedNeventResult;
+            return res.id === lastReplyToEventId;
+          } catch (error) {}
+        }
 
-  const isOverflow =
-    contentRef.current &&
-    contentRef.current.scrollHeight > contentRef.current.clientHeight;
+        if (content.startsWith('nostr:note1')) {
+          try {
+            const data = content.split(':')[1];
+            const res = Nip19.decode(data);
+            if (res.type === Nip19DataType.EventId) {
+              return res.data === lastReplyToEventId;
+            }
+          } catch (error) {}
+        }
+      }
+      return false;
+    });
+  }, [lastReplyToEventId, elements]);
 
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
+  const content = useMemo(() => {
+    return renderContent(
+      elements,
+      isNsfwEvent(msgEvent),
+      expanded ? 0 : TEXT_NOTE_MAX_WORD_LIMIT,
+    );
+  }, [msgEvent, elements, expanded]);
 
-  useEffect(() => {
-    const elements = doTextTransformer(msgEvent.id, msgEvent.content, []);
-    setContent(renderContent(elements, isNsfwEvent(msgEvent)));
-  }, [msgEvent]);
+  const isOverflow = useMemo(
+    () => msgEvent.content.length > TEXT_NOTE_MAX_WORD_LIMIT,
+    [msgEvent.content],
+  );
 
   const contentStyle = { cursor: 'pointer' };
+
   const onContentClick = e => {
     e.stopPropagation();
     router.push(Paths.event + '/' + msgEvent.id);
   };
-  const UI = (
+
+  const toggleExpanded = e => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
+  return (
     <>
       <div onClick={onContentClick} style={contentStyle}>
         {content}
-      </div>
-      {showLastReplyToEvent && lastReplyToEventId && (
-        <SubPostItem eventId={lastReplyToEventId} worker={worker} />
-      )}
-    </>
-  );
-
-  const style = expanded
-    ? { maxHeight: '100%' }
-    : { maxHeight: '350px', overflow: 'hidden' };
-
-  return (
-    <div>
-      <div>
-        <div ref={contentRef} style={style}>
-          {UI}
-        </div>
-        {isOverflow && !expanded && (
-          <Button
-            className={styles.viewMore}
-            type="link"
-            onClick={toggleExpanded}
-          >
-            {' View More'}
-          </Button>
+        {truncate && isOverflow && (
+          <div>
+            <Button
+              className={styles.viewMore}
+              type="link"
+              onClick={toggleExpanded}
+            >
+              {expanded ? 'View Less' : 'View More'}
+            </Button>
+          </div>
         )}
       </div>
-    </div>
+      {showLastReplyToEvent &&
+        lastReplyToEventId &&
+        !isSubPostDuplicateWithEmbedNote && (
+          <SubPostItem eventId={lastReplyToEventId} worker={worker} />
+        )}
+    </>
   );
 };

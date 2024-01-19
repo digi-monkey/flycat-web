@@ -50,8 +50,8 @@ const Navbar = ({ user }: { user?: EventSetMetadataContent }) => {
       <div className="flex justify-center xl:justify-normal py-4 px-5">
         <Link href={Paths.home} className="inline-block">
           <img
-            className="w-10 h-10 object-contain align-middle"
-            src="/logo512.png"
+            className="w-24 h-24 object-contain align-middle"
+            src="/logo/web/Flycat-logo-hr-light@3x.png"
             alt="logo"
           />
         </Link>

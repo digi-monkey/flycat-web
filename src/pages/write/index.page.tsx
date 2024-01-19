@@ -68,7 +68,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
     <div className={styles.write}>
       <div className={styles.writeHeaderBar}>
         <Link href={Paths.home}>
-          <img src="/logo512.png" alt="LOGO" />
+          <img src="/logo/web/Flycat-logo-vt-dark.svg" alt="LOGO" />
         </Link>
         <div className={styles.btnGroup}>
           {!articleId && (

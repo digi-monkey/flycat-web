@@ -11,6 +11,7 @@ import { appWithTranslation } from 'next-i18next';
 import { ReactElement, ReactNode } from 'react';
 import { initConfig } from '@joyid/nostr';
 import { joyIdConfig } from 'core/joyid/config';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Head from 'next/head';
 import theme from 'constants/theme';
@@ -22,6 +23,8 @@ type NextPageWithLayout = NextPage & {
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
+
+const queryClient = new QueryClient();
 
 const App = ({ Component, pageProps }: AppPropsWithLayout) => {
   const { store } = wrapper.useWrappedStore(pageProps);
@@ -46,7 +49,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
           <meta name="twitter:description" content="a beautiful nostr client" />
           <meta
             name="twitter:image"
-            content="https://flycat.club/logo512.png"
+            content="https://flycat.club/logo/app/512.svg"
           />
           <meta name="twitter:creator" content="@flycatclub" />
 
@@ -56,9 +59,14 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
           <meta property="og:description" content="a beautiful nostr client" />
           <meta property="og:site_name" content="flycat" />
           <meta property="og:url" content="https://flycat.club" />
-          <meta property="og:image" content="https://flycat.club/logo512.png" />
+          <meta
+            property="og:image"
+            content="https://flycat.club/logo/app/512.svg"
+          />
         </Head>
-        <Component {...pageProps} />
+        <QueryClientProvider client={queryClient}>
+          <Component {...pageProps} />
+        </QueryClientProvider>
         <Analytics />
       </ConfigProvider>
     </Provider>
