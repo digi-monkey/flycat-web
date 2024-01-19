@@ -9,6 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { cloneDeep } from 'lodash-es';
 import { createQueryCacheId } from 'core/cache/query';
 import { useLastScroll } from './useLastScroll';
+import { useLastView } from './useLastView';
 
 const SUB_NEW_MSG_INTERVAL = 8000;
 
@@ -32,11 +33,12 @@ export function useTimelineMsg({
     () => worker?.relays.map(r => r.url) || [],
     [worker?.relays],
   );
+
   const initialPageParam: QueryMsgPro = useMemo(() => {
     return { filter, isValidEvent, worker };
   }, [filter, isValidEvent, worker]);
 
-  const fetch = useCallback(
+  const queryFn = useCallback(
     async ({ pageParam }) => {
       const { filter, isValidEvent, worker } = pageParam;
       return await queryMsg({ filter, isValidEvent, worker });
@@ -59,7 +61,7 @@ export function useTimelineMsg({
     refetch,
   } = useInfiniteQuery({
     queryKey,
-    queryFn: fetch,
+    queryFn,
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -108,28 +110,18 @@ export function useTimelineMsg({
     return data?.pages.flat(1) || [];
   }, [data]);
 
-  const [lastTimestamp, setLastTimestamp] = useState<number>(0);
-  const firstPageTimestamp = useMemo(() => {
-    if (!data) return undefined;
+  const queryCacheId = useMemo(
+    () =>
+      createQueryCacheId({
+        feedId,
+        relayUrls,
+        isValidEvent,
+        msgFilter: filter,
+      }),
+    [feedId, relayUrls, isValidEvent, filter],
+  );
 
-    const len = data.pages.length;
-    if (len > 0 && data.pages[len - 1].length > 0) {
-      return data.pages[len - 1][0].created_at;
-    }
-    return undefined;
-  }, [data]);
-
-  const lastViewTimestamp = useMemo(() => {
-    if (!firstPageTimestamp) return undefined;
-
-    return Math.max(firstPageTimestamp, lastTimestamp);
-  }, [firstPageTimestamp, lastTimestamp]);
-
-  const showLatest = useCallback(() => {
-    if (events.length > 0) {
-      setLastTimestamp(events[0].created_at);
-    }
-  }, [events]);
+  const { lastView, showLatest } = useLastView({ queryCacheId, data });
 
   const pullToRefresh = useCallback(async () => {
     setIsPullRefreshing(true);
@@ -151,39 +143,29 @@ export function useTimelineMsg({
 
   const latestNewMsg = useMemo(() => {
     if (events.length === 0) return [];
-    if (!lastViewTimestamp) return [];
+    if (!lastView) return [];
 
-    const pos = events.findIndex(e => e.created_at === lastViewTimestamp);
+    const pos = events.findIndex(e => e.created_at === lastView);
     if (pos === -1) {
-      return events.filter(e => e.created_at > lastViewTimestamp);
+      return events.filter(e => e.created_at > lastView);
     }
     const newMsg = events.slice(0, pos);
     return newMsg;
-  }, [events, lastViewTimestamp]);
+  }, [events, lastView]);
 
   const feed = useMemo(() => {
     if (events.length === 0) return [];
-    if (!lastViewTimestamp) return [];
+    if (!lastView) return [];
 
-    const pos = events.findIndex(e => e.created_at === lastViewTimestamp);
+    const pos = events.findIndex(e => e.created_at === lastView);
     if (pos === -1) {
-      return events.filter(e => e.created_at < lastViewTimestamp);
+      return events.filter(e => e.created_at < lastView);
     }
     const viewFeed = events.slice(pos);
     return viewFeed;
-  }, [events, lastViewTimestamp]);
+  }, [events, lastView]);
 
-  const scrollCacheKey = useMemo(
-    () =>
-      createQueryCacheId({
-        feedId,
-        relayUrls,
-        isValidEvent,
-        msgFilter: filter,
-      }),
-    [feedId, relayUrls, isValidEvent, filter],
-  );
-  useLastScroll({ queryCacheId: scrollCacheKey, feed: events });
+  useLastScroll({ queryCacheId, feed: events });
   useInterval(() => {
     if (
       hasPreviousPage &&
@@ -199,7 +181,6 @@ export function useTimelineMsg({
     feed,
     status,
     latestNewMsg,
-    latestCursor: lastTimestamp,
     showLatest,
     loadMore,
     pullToRefresh,
@@ -209,6 +190,5 @@ export function useTimelineMsg({
     isPullRefreshing,
     cancelQueryDb,
     queryKey,
-    firstPageTimestamp,
   };
 }
