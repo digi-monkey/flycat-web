@@ -78,6 +78,23 @@ export class Nip188 {
     return rawEvent;
   }
 
+  static parseNoscriptNaddr(event: Event) {
+    const d = findTagFirstValue<string>(event.tags, 'd');
+    return `${event.kind}:${event.pubkey}:${d}`;
+  }
+
+  static parseNoscriptTitle(event: Event) {
+    return findTagFirstValue<string>(event.tags, 'd');
+  }
+
+  static parseNoscriptDescription(event: Event) {
+    return findTagFirstValue<string>(event.tags, 'description');
+  }
+
+  static parseNoscriptPicture(event: Event) {
+    return findTagFirstValue<string>(event.tags, 'picture');
+  }
+
   static parseNoscript(event: Event) {
     const content = event.content;
     const code = this.base64ToArrayBuffer(content);
@@ -93,6 +110,7 @@ export class Nip188 {
     const since = findTagValues(tags, 'since');
     const until = findTagValues(tags, 'until');
     const limit = findTagValues(tags, 'limit');
+    // note: below is correct, use #e/#d.., not e/d/a/t, because this tag is supposed to be assign value to filter
     const e = findTagValues(tags, '#e');
     const d = findTagValues(tags, '#d');
     const a = findTagValues(tags, '#a');
@@ -176,6 +194,14 @@ export class Nip188 {
     }
     return bytes.buffer;
   }
+}
+
+function findTagFirstValue<T>(tags: Tags, firstLabel: string) {
+  const tag = tags.find(t => t[0] === firstLabel);
+  if (tag && tag.length > 1) {
+    return tag[1] as T;
+  }
+  return undefined;
 }
 
 function findTag(tags: Tags, firstLabel: string) {

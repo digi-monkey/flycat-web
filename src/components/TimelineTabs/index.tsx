@@ -1,7 +1,9 @@
 import * as Tabs from '@radix-ui/react-tabs';
+import Icon from 'components/Icon';
 import { Timeline } from 'components/Timeline';
-import { MsgFilter, MsgFilterKey } from 'core/msg-filter/filter';
+import { MsgFilter } from 'core/msg-filter/filter';
 import { CallWorker } from 'core/worker/caller';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 export interface TimelineTabsProp {
@@ -10,6 +12,7 @@ export interface TimelineTabsProp {
   defaultActiveKey?: string;
   onActiveKeyChanged?: (val: string) => any;
   showDescription?: boolean;
+  editOptUrl?: string;
 }
 
 export function TimelineTabs({
@@ -18,7 +21,10 @@ export function TimelineTabs({
   defaultActiveKey,
   onActiveKeyChanged,
   showDescription = true,
+  editOptUrl,
 }: TimelineTabsProp) {
+  const router = useRouter();
+
   const [activeTabKey, setActiveTabKey] = useState<string>(
     defaultActiveKey || filterOptions[0].key,
   );
@@ -49,6 +55,13 @@ export function TimelineTabs({
             </Tabs.Trigger>
           ))}
         </Tabs.List>
+        {editOptUrl && (
+          <Icon
+            onClick={() => router.push(editOptUrl)}
+            type="icon-Gear"
+            className="w-[24px] h-[24px] cursor-pointer m-auto"
+          />
+        )}
       </div>
       <div className="px-2">
         {filterOptions.map(val => (

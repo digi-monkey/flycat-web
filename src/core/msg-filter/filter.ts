@@ -9,14 +9,6 @@ export const mixKinds = [
   WellKnownEventKind.reposts,
 ];
 
-export enum MsgFilterKey {
-  follow = 'Follow',
-  followArticle = 'Follow-Article',
-  globalHighLight = 'HighLights',
-  globalAll = 'Global-All',
-  media = 'Media',
-}
-
 export enum MsgFilterMode {
   global = 'Global',
   follow = 'Follow',
@@ -24,7 +16,7 @@ export enum MsgFilterMode {
 }
 
 export interface MsgFilter {
-  key: MsgFilterKey | string;
+  key: string;
   label: string;
   filter?: Filter;
   isValidEvent?: (event: Event) => boolean;
@@ -36,7 +28,7 @@ export interface MsgFilter {
 
 export const defaultMsgFilters: MsgFilter[] = [
   {
-    key: MsgFilterKey.follow,
+    key: 'Follow',
     label: 'Follow',
     filter: {
       limit: 50,
@@ -49,6 +41,20 @@ export const defaultMsgFilters: MsgFilter[] = [
     description: "all your followings's mixed posts",
   },
   {
+    key: 'Global-All',
+    label: 'Global',
+    filter: {
+      limit: 50,
+      kinds: mixKinds,
+    },
+    isValidEvent: (event: Event) => {
+      return mixKinds.includes(event.kind);
+    },
+    mode: MsgFilterMode.global,
+    description: "all the realtime global's mixed posts",
+  },
+  /*
+  {
     key: MsgFilterKey.followArticle,
     label: 'Follow-Article',
     filter: {
@@ -60,19 +66,6 @@ export const defaultMsgFilters: MsgFilter[] = [
     },
     mode: MsgFilterMode.follow,
     description: "all your followings's long-form posts",
-  },
-  {
-    key: MsgFilterKey.globalAll,
-    label: 'Global',
-    filter: {
-      limit: 50,
-      kinds: mixKinds,
-    },
-    isValidEvent: (event: Event) => {
-      return mixKinds.includes(event.kind);
-    },
-    mode: MsgFilterMode.global,
-    description: "all the realtime global's mixed posts",
   },
   {
     key: MsgFilterKey.globalHighLight,
@@ -103,12 +96,5 @@ export const defaultMsgFilters: MsgFilter[] = [
     mode: MsgFilterMode.global,
     description: 'global posts including at least one picture',
   },
+  */
 ];
-
-export const defaultMsgFiltersMap = defaultMsgFilters.reduce(
-  (map, filter) => ({
-    ...map,
-    [filter.key]: filter,
-  }),
-  {} as Record<MsgFilterKey, MsgFilter>,
-);
