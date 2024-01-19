@@ -14,8 +14,8 @@ export function eventToFeed(events: Event[], authorPk?: string) {
     id: `${pk}`,
     link: `https://flycat.club/blog/${pk}`,
     language: 'en', // optional, used only in RSS 2.0, possible values: http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
-    // image: "http://example.com/image.png",
-    // favicon: "http://example.com/favicon.ico",
+    image: 'http://example.com/image.png',
+    favicon: 'http://flycat.club/favicon.ico',
     copyright: `All rights reserved ${pk}`,
     updated: new Date(2013, 6, 14), // optional, default = today
     generator: 'flycat', // optional, default = 'Feed for Node.js'

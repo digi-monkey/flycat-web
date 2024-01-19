@@ -36,7 +36,7 @@ export const walletConnector = new WalletConnectConnector({
       name: 'Flycat',
       description: 'Nostr web client',
       url: 'https://flycat.club',
-      icons: ['https://flycat.club/logo512.png'],
+      icons: ['https://flycat.club/logo/app/512.svg'],
     },
   },
 });

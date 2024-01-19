@@ -41,15 +41,37 @@ class FlyCatDocument extends Document {
 
           {/* icons */}
           <link rel="shortcut icon" href="/favicon.ico" />
-          <link rel="icon" type="image/png" sizes="32x32" href="/logo192.png" />
-          <link rel="icon" type="image/png" sizes="16x16" href="/logo192.png" />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/logo/app/32.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/logo/app/16.png"
+          />
 
           {/* apple icons */}
-          <link rel="apple-touch-icon" href="/logo512.png" />
-          <link rel="apple-touch-icon" sizes="152x152" href="/logo192.png" />
-          <link rel="apple-touch-icon" sizes="167x167" href="/logo192.png" />
-          <link rel="apple-touch-icon" sizes="180x180" href="/logo192.png" />
-          <link rel="mask-icon" href="/logo512.png" />
+          <link rel="apple-touch-icon" href="/logo/app/512.svg" />
+          <link
+            rel="apple-touch-icon"
+            sizes="128x128"
+            href="/logo/app/128.png"
+          />
+          <link
+            rel="apple-touch-icon"
+            sizes="256x256"
+            href="/logo/app/256.png"
+          />
+          <link
+            rel="apple-touch-icon"
+            sizes="512x512"
+            href="/logo/app/512.png"
+          />
+          <link rel="mask-icon" href="/logo/app/256.png" />
         </Head>
         <body>
           <Main />
