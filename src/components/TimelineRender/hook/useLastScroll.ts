@@ -34,7 +34,7 @@ export function useRestoreScrollHeight(
   }, [queryCacheId, canRestore]);
 }
 
-export const useScrollHeight = (debounceDelay = 700) => {
+export const useScrollHeight = (debounceDelay = 500) => {
   const scrollValue = useSyncExternalStore(subscribe, getSnapshot, () => 0);
   const debounceScrollValue = useDebounce(scrollValue, debounceDelay);
   return debounceScrollValue;
