@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useQueryMsg } from 'components/TimelineRender/hook/useQueryMsg';
 import { Nip188 } from 'core/nip/188';
 import { Event } from 'core/nostr/Event';
+import { cloneDeep } from 'lodash';
 
 export interface NoscriptItem {
   event: Event;
@@ -26,9 +27,18 @@ export function useFilterNoscript({
   );
   const { queryMsg } = useQueryMsg();
   const queryKey = ['filter-market', filter, relayUrls];
-  const queryFn = () => {
-    worker?.subFilter({ filter });
-    return queryMsg({ filter, worker });
+  const queryFn = async () => {
+    const data = await queryMsg({ filter, worker });
+
+    // prevent db data will not update forever
+    if (data.length > 0) {
+      const lastTimestamp = data[0].created_at;
+      const newFilter = cloneDeep(filter);
+      newFilter.since = lastTimestamp;
+      worker?.subFilter({ filter: newFilter });
+    }
+
+    return data;
   };
   const { data } = useQuery({
     queryKey,
