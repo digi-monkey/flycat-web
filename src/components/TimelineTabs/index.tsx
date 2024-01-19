@@ -20,7 +20,7 @@ export function TimelineTabs({
   worker,
   defaultActiveKey,
   onActiveKeyChanged,
-  showDescription = true,
+  showDescription = false,
   editOptUrl,
 }: TimelineTabsProp) {
   const router = useRouter();

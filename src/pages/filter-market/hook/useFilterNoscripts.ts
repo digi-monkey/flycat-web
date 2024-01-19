@@ -26,7 +26,10 @@ export function useFilterNoscript({
   );
   const { queryMsg } = useQueryMsg();
   const queryKey = ['filter-market', filter, relayUrls];
-  const queryFn = () => queryMsg({ filter, worker });
+  const queryFn = () => {
+    worker?.subFilter({ filter });
+    return queryMsg({ filter, worker });
+  };
   const { data } = useQuery({
     queryKey,
     queryFn,
