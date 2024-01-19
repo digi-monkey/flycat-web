@@ -1,14 +1,20 @@
 export const updates = [
   {
     content:
-      '[1.19] v0.2.9: highlight msg/multiple language filters/metamask sign-in bug-fixes',
+      '[1.19] v0.2.10: update new logo/rebuild timeline with react-query/fix view-more',
     isNew: true,
+    url: 'https://github.com/digi-monkey/flycat-web/releases/tag/v0.2.10',
+  },
+  {
+    content:
+      '[1.11] v0.2.9: highlight msg/multiple language filters/metamask sign-in bug-fixes',
+    isNew: false,
     url: 'https://github.com/digi-monkey/flycat-web/releases/tag/v0.2.9',
   },
   {
     content:
       '[12.28] v0.2.8: simplify filter options/refactor UI with TailwindCSS/bug fixes',
-    isNew: true,
+    isNew: false,
     url: 'https://github.com/digi-monkey/flycat-web/releases/tag/v0.2.8',
   },
   {
