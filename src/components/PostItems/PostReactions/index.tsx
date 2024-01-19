@@ -18,6 +18,7 @@ import { RootState } from 'store/configureStore';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useRouter } from 'next/router';
 import { dexieDb } from 'core/db';
+import { useReactionCount } from './hook';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
@@ -136,17 +137,28 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     setIsBookMarking(false);
   };
 
+  const { reactCount } = useReactionCount({
+    worker,
+    eventId: ownerEvent.id,
+  });
+
+  const displayCount = (count?: number) => (
+    <>{count && count > 0 ? <span>{count}</span> : ''}</>
+  );
+
   return (
     <ul className={styles.reactions}>
       {contextHolder}
       <li>
         <Tooltip placement="top" title={'repost'}>
           <Icon onClick={repost} type="icon-repost" className={styles.upload} />
+          {displayCount(reactCount?.repost)}
         </Tooltip>
       </li>
       <li>
         <Tooltip placement="top" title={'zap'}>
           <Icon onClick={zap} type="icon-bolt" className={styles.upload} />
+          {displayCount(reactCount?.zap)}
         </Tooltip>
       </li>
       <li>
@@ -156,6 +168,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
             type="icon-comment"
             className={styles.upload}
           />
+          {displayCount(reactCount?.comment)}
         </Tooltip>
       </li>
       <li>
@@ -166,6 +179,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
             type="icon-bookmark"
             className={styles.upload}
           />
+          {displayCount(reactCount?.bookmark)}
         </Tooltip>
       </li>
     </ul>
