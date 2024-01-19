@@ -16,12 +16,10 @@ import { useMemo } from 'react';
 import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
-import { useQueryNoScript } from './hooks/useQueryNoscript';
 import {
   MsgFilterMode,
-  defaultMsgFiltersMap,
-  MsgFilterKey,
   MsgFilter,
+  defaultMsgFilters,
 } from '../../core/msg-filter/filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
@@ -30,6 +28,7 @@ import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
 import { TimelineTabs } from 'components/TimelineTabs';
+import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,37 +45,32 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
 
   const defaultSelectedFilter = isLoggedIn
-    ? MsgFilterKey.follow
-    : MsgFilterKey.globalAll;
+    ? defaultMsgFilters.find(f => f.mode === MsgFilterMode.follow)!.key
+    : defaultMsgFilters.find(f => f.mode === MsgFilterMode.global)!.key;
 
-  const [lastSelectedFilter, setLastSelectedFilter] =
-    useLocalStorage<MsgFilterKey>(
-      SELECTED_FILTER_STORAGE_KEY,
-      defaultSelectedFilter,
-    );
+  const [lastSelectedFilter, setLastSelectedFilter] = useLocalStorage<string>(
+    SELECTED_FILTER_STORAGE_KEY,
+    defaultSelectedFilter,
+  );
 
   useSubContactList(myPublicKey, newConn, worker);
 
-  const noscriptFiltersMap = useQueryNoScript({ worker, newConn });
+  const filterOptSetting = useFilterOptionSetting();
+  const noscriptFilters = filterOptSetting
+    .getOpts()
+    .map(opt => filterOptSetting.toMsgFilter(opt));
 
-  const filtersMap = useMemo(() => {
-    const filter: Record<MsgFilterKey, MsgFilter> = {
-      ...defaultMsgFiltersMap,
-      ...noscriptFiltersMap,
-    };
+  const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
-      return Object.values(filter)
-        .filter(v => v.mode !== MsgFilterMode.follow)
-        .reduce(
-          (map, filter) => ({
-            ...map,
-            [filter.key]: filter,
-          }),
-          {} as Record<MsgFilterKey, MsgFilter>,
-        );
+      return defaultMsgFilters.filter(v => v.mode !== MsgFilterMode.follow);
     }
-    return filter;
-  }, [defaultMsgFiltersMap, noscriptFiltersMap, isLoggedIn, myPublicKey]);
+
+    const opts: MsgFilter[] = [
+      ...defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow),
+      ...noscriptFilters,
+    ];
+    return opts;
+  }, [defaultMsgFilters, noscriptFilters, isLoggedIn, myPublicKey]);
 
   return (
     <BaseLayout>
@@ -85,9 +79,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         {!isMobile && <PubNoteTextarea />}
         <TimelineTabs
           worker={worker}
-          filterOptions={Object.values(filtersMap)}
+          filterOptions={filterOpts}
           defaultActiveKey={lastSelectedFilter}
-          onActiveKeyChanged={val => setLastSelectedFilter(val as MsgFilterKey)}
+          onActiveKeyChanged={val => setLastSelectedFilter(val)}
+          editOptUrl="/filter-market"
         />
       </Left>
       <Right>
