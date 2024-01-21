@@ -75,32 +75,32 @@ const CopyToGroupModal: React.ForwardRefRenderFunction<
             Select the groups that you want to {duplicate ? 'copy' : 'move'} to
           </DialogDescription>
         </DialogHeader>
-        {Object.keys(relayGroups).map(groupId => {
+        {Object.values(relayGroups).map(group => {
           return (
-            <div className="flex items-center gap-x-3 py-1" key={groupId}>
+            <div className="flex items-center gap-x-3 py-1" key={group.id}>
               <Checkbox
-                id={groupId}
+                id={group.id}
                 checked={
-                  groupId === currentGroupId ||
-                  selectedGroupIds.includes(groupId)
+                  group.id === currentGroupId ||
+                  selectedGroupIds.includes(group.id)
                 }
-                disabled={groupId === currentGroupId}
+                disabled={group.id === currentGroupId}
                 onCheckedChange={value => {
                   if (value) {
-                    setSelectedGroupIds([...selectedGroupIds, groupId]);
+                    setSelectedGroupIds([...selectedGroupIds, group.id]);
                   } else {
                     setSelectedGroupIds(
-                      selectedGroupIds.filter(g => g !== groupId),
+                      selectedGroupIds.filter(g => g !== group.id),
                     );
                   }
                 }}
               />
               <div className="flex-1 flex justify-between items-center">
-                <label htmlFor={groupId} className="text-text-primary label">
-                  {groupId}
+                <label htmlFor={group.id} className="text-text-primary label">
+                  {group.title}
                 </label>
                 <span className="text-text-secondary label">
-                  {relayGroups[groupId].relays.length}
+                  {group.relays.length}
                 </span>
               </div>
             </div>

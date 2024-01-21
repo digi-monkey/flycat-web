@@ -24,6 +24,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     this.signEvent = signEvent;
     this.storage = new RelayGroupStorage(pubkey);
     this.loader = this.storage.load();
+    this.subRelaySet();
   }
 
   private getRelayGroupFromEvent({ event }: SubFilterResultMsg) {
@@ -92,7 +93,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   public async setGroup(id: string, group: RelayGroup) {
     const groupMap = await this.loader;
     groupMap.set(id, group);
-    await this.pubRelayGroup(group);
+    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
@@ -112,7 +113,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     const newRelays = relays.filter(r => !group.relays.includes(r));
     group.relays = group.relays.concat(newRelays);
     groupMap.set(id, group);
-    await this.pubRelayGroup(group);
+    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
@@ -128,7 +129,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     });
     group.relays = newRelays;
     groupMap.set(id, group);
-    await this.pubRelayGroup(group);
+    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 

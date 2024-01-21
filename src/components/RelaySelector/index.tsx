@@ -4,7 +4,7 @@ import { Paths } from 'constants/path';
 import { v4 as uuidv4 } from 'uuid';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip65 } from 'core/nip/65';
-import { RelaySwitchAlertMsg, WsConnectStatus } from 'core/worker/type';
+import { RelaySwitchAlertMsg } from 'core/worker/type';
 import { createCallRelay } from 'core/worker/util';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
@@ -19,8 +19,6 @@ import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
 
 export interface RelaySelectorProps {
-  wsStatusCallback?: (WsConnectStatus: WsConnectStatus) => any;
-  newConnCallback?: (conns: string[]) => any;
   className?: string;
 }
 
@@ -30,10 +28,7 @@ export interface Option {
   children?: Option[];
 }
 
-export function RelaySelector({
-  wsStatusCallback,
-  newConnCallback,
-}: RelaySelectorProps) {
+export function RelaySelector({ className }: RelaySelectorProps) {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -43,26 +38,11 @@ export function RelaySelector({
   const [selectedRelayGroup, setSelectedRelayGroup] = useSelectedRelayGroup();
 
   useEffect(() => {
-    if (newConnCallback) {
-      newConnCallback(newConn);
-    }
-  }, [newConn, newConnCallback]);
-
-  useEffect(() => {
-    if (wsStatusCallback) {
-      wsStatusCallback(wsConnectStatus);
-    }
-  }, [wsConnectStatus, wsStatusCallback]);
-
-  useEffect(() => {
     if (!selectedRelayGroup?.relays?.length || !worker) {
       return;
     }
 
-    if (
-      worker.relayGroupId !== selectedRelayGroup.id ||
-      worker.relays.length !== selectedRelayGroup.relays.length
-    ) {
+    if (worker.relayGroupId !== selectedRelayGroup.id) {
       worker.switchRelays(selectedRelayGroup);
       worker.pullRelayInfo();
     }
@@ -166,7 +146,7 @@ export function RelaySelector({
                 {toConnectStatus(
                   group?.title ?? 'default',
                   wsConnectStatus,
-                  worker?.relays?.length || 0,
+                  selectedRelayGroup.relays?.length || 0,
                 )}
               </span>
             </div>
