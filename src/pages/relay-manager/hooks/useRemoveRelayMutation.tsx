@@ -3,7 +3,7 @@ import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useRelaysQuery } from 'hooks/relay/useRelaysQuery';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 
 export default function useRemoveRelayMutation(groupId: string) {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -19,6 +19,8 @@ export default function useRemoveRelayMutation(groupId: string) {
     refetchRelays();
   };
 
-  const mutation = useMutation(removeRelayGroup);
+  const mutation = useMutation({
+    mutationFn: removeRelayGroup,
+  });
   return mutation;
 }

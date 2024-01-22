@@ -2,7 +2,7 @@ import { Relay } from 'core/relay/type';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 
 export default function useCopyToGroupsMutation(currentGroupId?: string) {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -27,6 +27,8 @@ export default function useCopyToGroupsMutation(currentGroupId?: string) {
     refetchGroups();
   };
 
-  const mutation = useMutation(copyTo);
+  const mutation = useMutation({
+    mutationFn: copyTo,
+  });
   return mutation;
 }

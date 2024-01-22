@@ -1,8 +1,7 @@
-import { useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRelayGroupsQuery } from './useRelayGroupsQuery';
 import { useCallback } from 'react';
-import { SwitchRelays } from 'core/worker/type';
 
 const SELECTED_RELAY_GROUP_ID_KEY =
   'relay-selector:selected-group-id:{{pubKey}}';
@@ -27,10 +26,12 @@ const getLegacyLocalValue = (key: string) => {
 export function useSelectedRelayGroup() {
   const myPublicKey = useReadonlyMyPublicKey();
   const { data: relayGroups } = useRelayGroupsQuery(myPublicKey);
-  const { data: selectedGroupId = 'default', refetch } = useQuery(
-    ['selected-relay-group'],
-    () => getLegacyLocalValue(SELECTED_RELAY_GROUP_ID_KEY),
-  );
+  const { data: selectedGroupId = 'default', refetch } = useQuery({
+    queryKey: ['selected-relay-group', myPublicKey],
+    queryFn: () => {
+      return getLegacyLocalValue(SELECTED_RELAY_GROUP_ID_KEY);
+    },
+  });
 
   const group = relayGroups?.[selectedGroupId];
   const selectedRelayGroup = {
@@ -38,9 +39,14 @@ export function useSelectedRelayGroup() {
     relays: group?.relays ?? [],
   };
 
-  const mutation = useMutation(async (groupId: string) => {
-    localStorage.setItem(SELECTED_RELAY_GROUP_ID_KEY, JSON.stringify(groupId));
-    refetch();
+  const mutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      localStorage.setItem(
+        SELECTED_RELAY_GROUP_ID_KEY,
+        JSON.stringify(groupId),
+      );
+      refetch();
+    },
   });
   const setSelectedRelayGroup = useCallback(
     (groupId: string) => {

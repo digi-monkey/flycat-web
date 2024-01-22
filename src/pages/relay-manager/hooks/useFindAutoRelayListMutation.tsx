@@ -6,7 +6,7 @@ import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { v4 as uuidv4 } from 'uuid';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 
 export default function useFindAutoRelayListMutation() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -59,6 +59,8 @@ export default function useFindAutoRelayListMutation() {
     });
   };
 
-  const mutation = useMutation(findRelays);
+  const mutation = useMutation({
+    mutationFn: findRelays,
+  });
   return mutation;
 }

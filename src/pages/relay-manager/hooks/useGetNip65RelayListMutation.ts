@@ -6,7 +6,7 @@ import { createCallRelay } from 'core/worker/util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
 import { useCallback } from 'react';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,6 +68,8 @@ export default function useGetNip65RelayListMutation() {
     });
   }, [groupManager, myPublicKey, newConn, worker, toast, refetchGroups]);
 
-  const mutation = useMutation(getNip65Group);
+  const mutation = useMutation({
+    mutationFn: getNip65Group,
+  });
   return mutation;
 }

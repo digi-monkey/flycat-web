@@ -32,7 +32,7 @@ export function RelaySelector({ className }: RelaySelectorProps) {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
-  const { data: relayGroups, refetch: refetchRelayGroups } =
+  const { data: relayGroups = {}, refetch: refetchRelayGroups } =
     useRelayGroupsQuery(myPublicKey);
   const relayGroupManager = useRelayGroupManager(myPublicKey);
   const [selectedRelayGroup, setSelectedRelayGroup] = useSelectedRelayGroup();
@@ -79,7 +79,9 @@ export function RelaySelector({ className }: RelaySelectorProps) {
     if (!myPublicKey || myPublicKey.length === 0 || !worker || !relayGroups)
       return;
 
-    if (relayGroups[NIP_65_RELAY_LIST]) return;
+    if (relayGroups[NIP_65_RELAY_LIST]) {
+      return;
+    }
     const callRelay = createCallRelay(newConn);
     worker
       .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })

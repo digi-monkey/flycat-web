@@ -1,6 +1,6 @@
 import { RelayGroup } from 'core/relay/group/type';
 import { useCallback } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useDefaultRelays } from './useDefaultRelays';
 import { useRelayGroupManager } from './useRelayManagerContext';
 
@@ -37,6 +37,9 @@ export function useRelayGroupsQuery(pubkey: string) {
       );
   }, [groupManager, defaultGroup]);
 
-  const queryResult = useQuery(['relayGroups', pubkey], getRelayGroups);
+  const queryResult = useQuery({
+    queryKey: ['relayGroups', pubkey],
+    queryFn: getRelayGroups,
+  });
   return queryResult;
 }

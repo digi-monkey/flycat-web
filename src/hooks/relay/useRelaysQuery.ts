@@ -1,6 +1,6 @@
 import { Relay, RelayTracker } from 'core/relay/type';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRelayGroupManager } from './useRelayManagerContext';
 import { Nip11 } from 'core/nip/11';
 import { RelayPoolDatabase } from 'core/relay/pool/db';
@@ -17,35 +17,40 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
       return [];
     }
 
-    return group.relays.map(r => {
+    let relays = group.relays.map(r => {
       const relay = relayPoolDatabse.load(r.url);
       return relay || r;
     });
-  }, [groupManager, groupId, relayPoolDatabse]);
 
-  const queryResult = useQuery(['relays', pubkey, groupId], getRelays, {
-    onSuccess: relays => {
-      const outdatedRelays = relays
-        .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
-        .map(r => r!.url);
+    const outdatedRelays = relays
+      .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
+      .map(r => r!.url);
 
-      let newRelays: Relay[] = relays;
-      if (outdatedRelays.length > 0) {
-        Nip11.getRelays(outdatedRelays).then(details => {
-          newRelays = relays.map(r => {
-            if (details.map(d => d.url).includes(r.url)) {
-              return details.filter(d => d.url === r.url)[0]!;
-            } else {
-              return r;
-            }
-          });
+    let newRelays: Relay[] = relays;
+    if (outdatedRelays.length > 0) {
+      const details = await Nip11.getRelays(outdatedRelays);
+      newRelays = relays.map(r => {
+        if (details.map(d => d.url).includes(r.url)) {
+          return details.filter(d => d.url === r.url)[0]!;
+        } else {
+          return r;
+        }
+      });
 
-          if (newRelays.length > 0) {
-            relayPoolDatabse.saveAll(newRelays);
-          }
+      if (newRelays.length > 0) {
+        relayPoolDatabse.saveAll(newRelays);
+        relays = group.relays.map(r => {
+          const relay = relayPoolDatabse.load(r.url);
+          return relay || r;
         });
       }
-    },
+    }
+    return relays;
+  }, [groupManager, groupId, relayPoolDatabse]);
+
+  const queryResult = useQuery({
+    queryKey: ['relays', pubkey, groupId],
+    queryFn: getRelays,
   });
 
   useEffect(() => {
