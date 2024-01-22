@@ -142,7 +142,8 @@
     "uuid": "9.0.0",
     "vaul": "0.8.0",
     "wasm": "file:./wasm/pkg",
-    "web-vitals": "2.1.2"
+    "web-vitals": "2.1.2",
+    "zod": "3.22.4"
   },
   "browserslist": {
     "production": [

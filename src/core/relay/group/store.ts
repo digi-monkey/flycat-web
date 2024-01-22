@@ -1,6 +1,7 @@
-import { Relay } from '../type';
 import { BaseRelayGroupStorage, BaseStoreAdapter } from './base';
+import { legacyRelayGroupMapSchema, relayGroupMapSchema } from './schema';
 import { RelayGroupMap } from './type';
+import { v4 as uuidv4 } from 'uuid';
 
 class LocalStorageAdapter extends BaseStoreAdapter {
   async get(key: string) {
@@ -50,7 +51,31 @@ export class RelayGroupStorage extends BaseRelayGroupStorage {
       return new Map();
     }
     const unserialized = JSON.parse(data);
-    const map = new Map(unserialized as [string, Relay[]][]);
+
+    // parse legacy relay group data
+    const legacy = legacyRelayGroupMapSchema.safeParse(unserialized);
+    if (legacy.success) {
+      const map = new Map(
+        legacy.data.map(([title, relays]) => {
+          const id = uuidv4();
+          return [
+            id,
+            {
+              id,
+              title,
+              relays,
+              createdAt: 0,
+            },
+          ];
+        }),
+      );
+      return map;
+    }
+    const result = relayGroupMapSchema.safeParse(unserialized);
+    if (!result.success) {
+      return new Map();
+    }
+    const map = new Map(result.data);
     return map;
   }
 

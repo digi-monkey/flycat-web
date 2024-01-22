@@ -68,7 +68,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       const groupMap = await this.loader;
       if (groupMap.has(group.id)) {
         const oldGroup = groupMap.get(group.id);
-        if (oldGroup?.createdAt && oldGroup.createdAt >= group.timestamp) {
+        if (oldGroup?.createdAt && oldGroup.createdAt >= group.createdAt) {
           continue;
         }
       }
@@ -78,7 +78,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   }
 
   private async pubRelayGroup(group: RelayGroup) {
-    if (!this.signEvent) {
+    if (!this.signEvent || !this.worker) {
       return;
     }
     const rawEvent = await Nip51.createRelaySet(group);
