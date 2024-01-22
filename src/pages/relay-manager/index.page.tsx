@@ -14,7 +14,7 @@ export default function RelayManager() {
   return (
     <BaseLayout>
       <Left>
-        <div className="flex flex-col h-full min-h-[calc(100vh-64px)]">
+        <div className="flex flex-col h-[calc(100vh-64px)]">
           <div className="flex justify-between px-5 py-4">
             <span className="subheader1-bold">Relays</span>
             <Link

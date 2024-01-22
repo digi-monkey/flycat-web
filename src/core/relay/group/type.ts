@@ -5,6 +5,7 @@ export interface RelayGroup {
   title: string;
   description?: string;
   relays: Relay[];
+  createdAt: number;
 }
 
 export type RelayGroupMap = Map<string, RelayGroup>;

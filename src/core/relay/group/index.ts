@@ -42,6 +42,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       title,
       description,
       relays: [] as Relay[],
+      createdAt: event.created_at,
     };
     relaySet.relays.forEach(url => {
       const relay: Relay = { url, read: true, write: true };
@@ -65,6 +66,12 @@ export class RelayGroupManager extends BaseRelayGroupManager {
         continue;
       }
       const groupMap = await this.loader;
+      if (groupMap.has(group.id)) {
+        const oldGroup = groupMap.get(group.id);
+        if (oldGroup?.createdAt && oldGroup.createdAt >= group.timestamp) {
+          continue;
+        }
+      }
       groupMap.set(group.id, group);
       this.storage.save(groupMap);
     }

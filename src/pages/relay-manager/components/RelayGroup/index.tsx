@@ -27,7 +27,7 @@ export default function RelayGroup() {
 
   return (
     <div className="flex-grow grid grid-cols-4 border-0 border-t border-border-01 border-solid">
-      <div className="h-full col-span-1 bg-surface-01">
+      <div className="col-span-1 bg-surface-01">
         <div className="h-full flex flex-col justify-between">
           <div className="flex-1 overflow-scroll">
             <div className="label text-text-secondary px-5 py-2 flex items-center">

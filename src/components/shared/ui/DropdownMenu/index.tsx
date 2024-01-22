@@ -61,7 +61,7 @@ const DropdownMenuItem = forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'flex items-center py-1 px-2 h-8 gap-2 hover:outline-none hover:bg-conditional-hover01 cursor-pointer',
+      'flex items-center label py-1 px-3 h-8 gap-2 hover:outline-none hover:bg-conditional-hover01 cursor-pointer',
       className,
     )}
     {...props}

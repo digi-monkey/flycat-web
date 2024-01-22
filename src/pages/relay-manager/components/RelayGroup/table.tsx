@@ -7,7 +7,7 @@ import {
   TableRow,
 } from 'components/shared/ui/Table';
 import { Relay } from 'core/relay/type';
-import { FaCircle } from 'react-icons/fa6';
+import { FaCircle, FaEllipsis } from 'react-icons/fa6';
 import {
   useReactTable,
   getCoreRowModel,
@@ -21,9 +21,15 @@ import { Button } from 'components/shared/ui/Button';
 import useRemoveRelayMutation from 'pages/relay-manager/hooks/useRemoveRelayMutation';
 import useCopyRelaysMutation from 'pages/relay-manager/hooks/useCopyRelaysMutation';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
-import { useEffect, useState } from 'react';
-import CopyToGroupModal from '../CopyToGroupModal';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import CopyToGroupModal, { CopyToGroupModalRef } from '../CopyToGroupModal';
 import { useRelaysQuery } from 'hooks/relay/useRelaysQuery';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from 'components/shared/ui/DropdownMenu';
 
 interface RelayTableProps {
   groupId: string;
@@ -98,10 +104,102 @@ export default function RelayTable(props: RelayTableProps) {
   const [removeConfirm, setRemoveConfirm] = useState(false);
   const removeMutation = useRemoveRelayMutation(groupId);
   const copyMutation = useCopyRelaysMutation(groupId);
+  const copyModalRef = useRef<CopyToGroupModalRef>(null);
+  const moveModalRef = useRef<CopyToGroupModalRef>(null);
+
+  const handleRemoveRelay = useCallback(
+    async (relays: Relay[]) => {
+      await removeMutation.mutateAsync(relays);
+      toast({
+        status: 'success',
+        title: `Successfully removed ${relays.length} relays`,
+      });
+    },
+    [removeMutation, toast],
+  );
+
+  const handleCopyRelays = useCallback(
+    async (groupIds: string[], relays: Relay[]) => {
+      await copyMutation.mutateAsync({
+        groupIds,
+        relays,
+      });
+      toast({
+        status: 'success',
+        title: `Successfully copied ${relays.length} relays to groups`,
+      });
+    },
+    [toast, copyMutation],
+  );
+
+  const handleMoveRelays = useCallback(
+    async (groupIds: string[], relays: Relay[]) => {
+      await removeMutation.mutateAsync(relays);
+      await copyMutation.mutateAsync({
+        groupIds,
+        relays,
+      });
+      toast({
+        status: 'success',
+        title: `Successfully moved ${relays.length} relays to groups`,
+      });
+    },
+    [copyMutation, removeMutation, toast],
+  );
+
+  const actionsColumn: ColumnDef<Relay> = useMemo(
+    () => ({
+      id: 'actions',
+      cell: ({ row, table }) => {
+        const relay = row.original;
+        return (
+          <div className="h-full flex items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <FaEllipsis className="w-4 h-4 text-text-secondary" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => {
+                    table.resetRowSelection();
+                    row.toggleSelected();
+                    setTimeout(() => {
+                      copyModalRef.current?.open();
+                    });
+                  }}
+                >
+                  Copy to
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    table.resetRowSelection();
+                    row.toggleSelected();
+                    setTimeout(() => {
+                      moveModalRef.current?.open();
+                    });
+                  }}
+                >
+                  Move to
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    handleRemoveRelay([relay]);
+                  }}
+                >
+                  Remove from group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    }),
+    [handleRemoveRelay],
+  );
 
   const table = useReactTable({
     data: relays,
-    columns,
+    columns: [...columns, actionsColumn],
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -199,29 +297,19 @@ export default function RelayTable(props: RelayTableProps) {
                     }, 3000);
                     return;
                   }
-                  await removeMutation.mutateAsync(selectedRelays);
+                  await handleRemoveRelay(selectedRelays);
                   table.resetRowSelection();
-                  toast({
-                    status: 'success',
-                    title: `Successfully removed ${selectedRelays.length} relays`,
-                  });
                 }}
               >
                 {removeConfirm ? 'Confirm?' : 'Remove'}
               </Button>
               <CopyToGroupModal
+                ref={copyModalRef}
                 currentGroupId={groupId}
                 relays={selectedRelays}
                 onConfirm={async (groupIds: string[]) => {
-                  await copyMutation.mutateAsync({
-                    groupIds,
-                    relays: selectedRelays,
-                  });
+                  await handleCopyRelays(groupIds, selectedRelays);
                   table.resetRowSelection();
-                  toast({
-                    status: 'success',
-                    title: `Successfully copied ${selectedRelays.length} relays to groups`,
-                  });
                 }}
               >
                 <Button variant="link" className="px-2">
@@ -229,20 +317,13 @@ export default function RelayTable(props: RelayTableProps) {
                 </Button>
               </CopyToGroupModal>
               <CopyToGroupModal
+                ref={moveModalRef}
                 currentGroupId={groupId}
                 relays={selectedRelays}
                 duplicate={false}
                 onConfirm={async (groupIds: string[]) => {
-                  await removeMutation.mutateAsync(selectedRelays);
-                  await copyMutation.mutateAsync({
-                    groupIds,
-                    relays: selectedRelays,
-                  });
+                  await handleMoveRelays(groupIds, selectedRelays);
                   table.resetRowSelection();
-                  toast({
-                    status: 'success',
-                    title: `Successfully moved ${selectedRelays.length} relays to groups`,
-                  });
                 }}
               >
                 <Button variant="link" className="px-2">
