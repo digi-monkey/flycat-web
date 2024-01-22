@@ -90,6 +90,7 @@ export function RelaySelector({ className }: RelaySelectorProps) {
             id: groupId,
             title: NIP_65_RELAY_LIST,
             relays: Nip65.toRelays(event),
+            createdAt: 0,
           });
           refetchRelayGroups();
         },

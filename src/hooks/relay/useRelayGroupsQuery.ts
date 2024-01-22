@@ -17,6 +17,7 @@ export function useRelayGroupsQuery(pubkey: string) {
         id: defaultGroupId,
         title: 'Default',
         relays: defaultGroup,
+        createdAt: 0,
       });
     }
 

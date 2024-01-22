@@ -1,5 +1,11 @@
-import z from 'zod';
-import { relayGroupSchema } from './schema';
+import { Relay } from '../type';
 
-export type RelayGroup = z.infer<typeof relayGroupSchema>;
+export interface RelayGroup {
+  id: string;
+  title: string;
+  description?: string;
+  relays: Relay[];
+  createdAt: number;
+}
+
 export type RelayGroupMap = Map<string, RelayGroup>;

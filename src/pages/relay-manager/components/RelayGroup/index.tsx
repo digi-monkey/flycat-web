@@ -1,8 +1,11 @@
 import { Button } from 'components/shared/ui/Button';
+import { Input } from 'components/shared/ui/Input';
+import { newRelay } from 'core/relay/util';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
+import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import useCreateNewGroupMutation from 'pages/relay-manager/hooks/useCreateNewGroupMutation';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import CreateGroupModal, { CreateGroupModalRef } from '../CreateGroupModal';
 import GroupItem from './group';
@@ -10,20 +13,34 @@ import RelayTable from './table';
 
 export default function RelayGroup() {
   const myPublicKey = useReadonlyMyPublicKey();
-  const { data: relayGroups = {} } = useRelayGroupsQuery(myPublicKey);
+  const { data: relayGroups = {}, refetch: refetchGroups } =
+    useRelayGroupsQuery(myPublicKey);
   const createModalRef = useRef<CreateGroupModalRef>(null);
   const createMutation = useCreateNewGroupMutation();
-
+  const [newRelayWss, setNewRelayWss] = useState<string>('');
+  const relayGroupManager = useRelayGroupManager(myPublicKey);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('default');
   const activeGroup = useMemo(
     () => relayGroups?.[selectedGroupId],
     [relayGroups, selectedGroupId],
   );
 
-  const onCreateNewGroup = (name: string) => {
+  const handleCreateNewGroup = (name: string) => {
     createMutation.mutate(name);
     createModalRef.current?.close();
   };
+
+  const handleAddNewRelay = useCallback(
+    (wss: string) => {
+      if (!wss || !wss.startsWith('wss://')) {
+        return;
+      }
+      relayGroupManager.addRelayToGroup(selectedGroupId, newRelay(wss));
+      setNewRelayWss('');
+      refetchGroups();
+    },
+    [relayGroupManager, selectedGroupId, refetchGroups],
+  );
 
   return (
     <div className="flex-grow grid grid-cols-4 border-0 border-t border-border-01 border-solid">
@@ -45,7 +62,10 @@ export default function RelayGroup() {
             </div>
           </div>
           <div className="border-0 border-t border-border-01 border-solid h-12 box-border">
-            <CreateGroupModal ref={createModalRef} onConfirm={onCreateNewGroup}>
+            <CreateGroupModal
+              ref={createModalRef}
+              onConfirm={handleCreateNewGroup}
+            >
               <Button
                 variant="link"
                 className="flex items-center gap-2 h-full hover:no-underline cursor-pointer"
@@ -58,11 +78,30 @@ export default function RelayGroup() {
         </div>
       </div>
       <div className="col-span-3 bg-surface-02">
-        <div className="label-bold text-text-primary capitalize px-5 py-2">
-          {activeGroup?.title ?? ''}{' '}
-          {activeGroup?.relays.length
-            ? `(${activeGroup?.relays.length ?? 0})`
-            : ''}
+        <div className="w-full flex justify-between py-3 px-4 items-center box-border">
+          <div className="label-bold text-text-primary capitalize">
+            {activeGroup?.title ?? ''}{' '}
+            {activeGroup?.relays.length
+              ? `(${activeGroup?.relays.length ?? 0})`
+              : ''}
+          </div>
+          <div className="relative">
+            <Input
+              className="pr-[50px] width-[200px]"
+              placeholder="wss://"
+              value={newRelayWss}
+              onChange={(e: React.FormEvent<HTMLButtonElement>) =>
+                setNewRelayWss(e.currentTarget.value)
+              }
+            />
+            <Button
+              variant="link"
+              className="absolute right-0 top-0 py-1 px-3"
+              onClick={() => handleAddNewRelay(newRelayWss)}
+            >
+              Add
+            </Button>
+          </div>
         </div>
         <RelayTable key={selectedGroupId} groupId={selectedGroupId} />
       </div>

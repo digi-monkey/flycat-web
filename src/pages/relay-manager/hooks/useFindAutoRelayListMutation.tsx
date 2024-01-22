@@ -49,6 +49,7 @@ export default function useFindAutoRelayListMutation() {
         relays: pickRelays.map(r => {
           return { url: r, read: true, write: true };
         }),
+        createdAt: 0,
       });
       refetchGroups();
     }

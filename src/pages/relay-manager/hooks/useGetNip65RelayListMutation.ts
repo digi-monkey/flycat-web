@@ -50,6 +50,7 @@ export default function useGetNip65RelayListMutation() {
         id,
         title: NIP_65_RELAY_LIST,
         relays: Nip65.toRelays(event),
+        createdAt: 0,
       });
       refetchGroups();
       toast({

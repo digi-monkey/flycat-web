@@ -16,7 +16,7 @@ export default function RelayExplorePage() {
             <div
               className="flex items-center gap-1 cursor-pointer"
               onClick={() => {
-                router.back();
+                router.push('/relay-manager');
               }}
             >
               <FaArrowLeft className="h-4 w-4" />

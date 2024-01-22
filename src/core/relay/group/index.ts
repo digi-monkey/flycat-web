@@ -117,7 +117,9 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     if (!group) {
       return;
     }
-    const newRelays = relays.filter(r => !group.relays.includes(r));
+    const newRelays = relays.filter(r => {
+      return !group.relays.some(r2 => r2.url === r.url);
+    });
     group.relays = group.relays.concat(newRelays);
     groupMap.set(id, group);
     this.pubRelayGroup(group);
