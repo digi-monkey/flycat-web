@@ -1,7 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import { DbEvent } from './schema';
-import { Event } from 'core/nostr/Event';
-import { WellKnownEventKind } from 'core/nostr/type';
+import { Event, EventClass } from 'core/nostr/Event';
+import { EventId, WellKnownEventKind } from 'core/nostr/type';
 import { Nip01 } from 'core/nip/01';
 import { getEventDTagId } from 'core/nostr/util';
 
@@ -31,6 +31,15 @@ export class DexieDb extends Dexie {
       return usageInMB;
     }
     return null;
+  }
+
+  async totalCount() {
+    const data = await Promise.all([
+      this.event.count(),
+      this.profileEvent.count(),
+      this.contactEvent.count(),
+    ]);
+    return data.reduce((sum, num) => sum + num, 0);
   }
 
   async estimateSize() {
@@ -126,6 +135,25 @@ export class DexieDb extends Dexie {
       await table.bulkDelete(duplicatedIds);
     }
     return keys.length;
+  }
+
+  // signature invalid data
+  async fixTableMaliciousData(table: Table<DbEvent>) {
+    const events = await table.toArray();
+    const maliciousEventIds: EventId[] = [];
+    let index = 0;
+    for (const event of events) {
+      index++;
+      console.debug(`${index}/${events.length}`);
+      const e = new EventClass(event);
+      const isValid = await e.verifySignature();
+      if (!isValid) {
+        maliciousEventIds.push(event.id);
+      }
+    }
+
+    await table.bulkDelete(maliciousEventIds);
+    return maliciousEventIds.length;
   }
 
   private async saveParameterizedReplaceableEvent(

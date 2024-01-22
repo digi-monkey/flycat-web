@@ -7,22 +7,27 @@ import { exportDB } from 'dexie-export-import';
 import { useCallWorker } from 'hooks/useWorker';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
+import { SmallLoader } from 'components/Loader';
 
 export default function Preference() {
   const myPublicKey = useReadonlyMyPublicKey();
-  const [storage, setStorage] = useState<number>(0);
+  const [totalRows, setTotalRows] = useState<number>(0);
   const [messageApi, contextHolder] = message.useMessage();
   const { worker } = useCallWorker();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
+  const [isLoadingDb, setIsLoadingDb] = useState(false);
 
   useEffect(() => {
     updateStorage();
   }, []);
 
-  const updateStorage = () => {
-    dexieDb.estimateSize().then(setStorage);
+  const updateStorage = async () => {
+    setIsLoadingDb(true);
+    const rowCount = await dexieDb.totalCount();
+    setTotalRows(rowCount);
+    setIsLoadingDb(false);
   };
 
   const resetRelayGroups = () => {
@@ -58,7 +63,7 @@ export default function Preference() {
     });
   };
 
-  const fixLocalDb = async () => {
+  const fixDuplicateData = async () => {
     messageApi.open({
       type: 'loading',
       content: 'Fixing in progress..',
@@ -70,6 +75,21 @@ export default function Preference() {
     messageApi.open({
       type: 'success',
       content: `${length} duplicated outdated events are removed`,
+    });
+  };
+
+  const fixMaliciousData = async () => {
+    messageApi.open({
+      type: 'loading',
+      content: 'Fixing in progress..',
+      duration: 0,
+    });
+    const length = await dexieDb.fixTableMaliciousData(dbEventTable);
+    updateStorage();
+    messageApi.destroy();
+    messageApi.open({
+      type: 'success',
+      content: `${length} malicious events are found and removed`,
     });
   };
 
@@ -161,17 +181,33 @@ export default function Preference() {
           </Button>,
         ]}
       >
-        Local Database(<span>{storage} mb</span>)
+        Local Database(
+        {isLoadingDb ? (
+          <SmallLoader isLoading={isLoadingDb} />
+        ) : (
+          <span>{totalRows} items</span>
+        )}
+        )
       </List.Item>
 
       <List.Item
         actions={[
-          <Button key={'data-fix'} onClick={fixLocalDb}>
-            Check
+          <Button key={'data-duplicate-fix'} onClick={fixDuplicateData}>
+            Check & Fix
           </Button>,
         ]}
       >
-        Fix Local Database
+        Fix Duplicated Data
+      </List.Item>
+
+      <List.Item
+        actions={[
+          <Button key={'data-malicious-fix'} onClick={fixMaliciousData}>
+            Check & Fix
+          </Button>,
+        ]}
+      >
+        Fix Malicious Data
       </List.Item>
 
       <List.Item
