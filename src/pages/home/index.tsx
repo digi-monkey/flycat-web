@@ -64,7 +64,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     }
 
     if (noscriptMsgFilters) {
-      console.log('noscriptMsgFilters: ', noscriptMsgFilters);
+      console.debug('noscriptMsgFilters: ', noscriptMsgFilters);
       const opts: MsgFilter[] = [
         ...defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow),
         ...noscriptMsgFilters,
