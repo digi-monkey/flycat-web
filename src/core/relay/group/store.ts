@@ -64,7 +64,7 @@ export class RelayGroupStorage extends BaseRelayGroupStorage {
               id,
               title,
               relays,
-              createdAt: 0,
+              timestamp: 0,
             },
           ];
         }),

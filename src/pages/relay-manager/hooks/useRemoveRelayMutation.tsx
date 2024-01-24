@@ -15,8 +15,8 @@ export default function useRemoveRelayMutation(groupId: string) {
     const deleteRelays =
       relays ?? (await groupManager.getGroupById(groupId)) ?? [];
     await groupManager.removeRelayFromGroup(groupId, deleteRelays);
-    refetchRelayGroups();
-    refetchRelays();
+    await refetchRelayGroups();
+    await refetchRelays();
   };
 
   const mutation = useMutation({

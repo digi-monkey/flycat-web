@@ -24,7 +24,7 @@ export default function useCopyToGroupsMutation(currentGroupId?: string) {
         await groupManager.addRelayToGroup(groupId, relays);
       }),
     );
-    refetchGroups();
+    await refetchGroups();
   };
 
   const mutation = useMutation({

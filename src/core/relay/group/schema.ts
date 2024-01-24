@@ -11,7 +11,8 @@ export const relayGroupSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   relays: z.array(relaySchema),
-  createdAt: z.number(),
+  timestamp: z.number(),
+  kind: z.number().optional(),
 });
 
 export const legacyRelayGroupMapSchema = z.array(

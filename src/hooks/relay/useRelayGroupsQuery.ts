@@ -17,7 +17,7 @@ export function useRelayGroupsQuery(pubkey: string) {
         id: defaultGroupId,
         title: 'Default',
         relays: defaultGroup,
-        createdAt: 0,
+        timestamp: 0,
       });
     }
 
@@ -40,6 +40,7 @@ export function useRelayGroupsQuery(pubkey: string) {
   const queryResult = useQuery({
     queryKey: ['relayGroups', pubkey],
     queryFn: getRelayGroups,
+    refetchOnWindowFocus: true,
   });
   return queryResult;
 }

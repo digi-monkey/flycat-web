@@ -1,7 +1,8 @@
 import { RelayGroup } from 'core/relay/group/type';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { FaRegFolder } from 'react-icons/fa6';
+import useUploadRelayGroupMutation from 'pages/relay-manager/hooks/useUploadRelayGroupMutation';
+import { FaArrowsRotate, FaRegFolder } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
 
 export type GroupItemProps = {
@@ -14,6 +15,7 @@ export default function GroupItem(props: GroupItemProps) {
   const myPublicKey = useReadonlyMyPublicKey();
   const { group, selectedGroupId, setSelectedGroupId } = props;
   const { data: relayGroups = {} } = useRelayGroupsQuery(myPublicKey);
+  const mutation = useUploadRelayGroupMutation();
 
   return (
     <div
@@ -31,6 +33,23 @@ export default function GroupItem(props: GroupItemProps) {
         <span className="flex-1 line-clamp-1 label text-text-primary selected:font-semibold">
           {group.title} ({relayGroups[group.id]?.relays?.length ?? 0})
         </span>
+        {group.id !== 'default' && group.changed && (
+          <div className="h-full cursor-pointer pl-4 flex items-center justify-center z-10">
+            <FaArrowsRotate
+              className={cn('w-4 h-4 text-gray-400', {
+                'text-gray-100': group.id === selectedGroupId,
+                'animate animate-spin': mutation.isPending,
+              })}
+              onClick={async (e: React.MouseEvent<SVGElement>) => {
+                e.stopPropagation();
+                if (mutation.isPending) {
+                  return;
+                }
+                await mutation.mutateAsync(group);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function useCreateNewGroupMutation() {
         id,
         title: name,
         relays: [],
-        createdAt: 0,
+        timestamp: 0,
       });
       refetchRelayGroups();
     },

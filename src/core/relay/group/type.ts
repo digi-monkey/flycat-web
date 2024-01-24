@@ -1,3 +1,4 @@
+import { WellKnownEventKind } from 'core/nostr/type';
 import { Relay } from '../type';
 
 export interface RelayGroup {
@@ -5,7 +6,9 @@ export interface RelayGroup {
   title: string;
   description?: string;
   relays: Relay[];
-  createdAt: number;
+  timestamp: number;
+  kind?: WellKnownEventKind;
+  changed?: boolean;
 }
 
 export type RelayGroupMap = Map<string, RelayGroup>;

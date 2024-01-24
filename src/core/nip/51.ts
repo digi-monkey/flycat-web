@@ -10,9 +10,9 @@ interface RelaySetPayload {
 }
 
 export class Nip51 {
-  static publicNoteBookmarkIdentifier = 'favorite';
+  public static publicNoteBookmarkIdentifier = 'favorite';
 
-  static async createBookmarkList(tags: Tags, content: string) {
+  public static async createBookmarkList(tags: Tags, content: string) {
     const rawEvent = new RawEvent(
       '',
       WellKnownEventKind.bookmark_list,
@@ -22,7 +22,7 @@ export class Nip51 {
     return rawEvent;
   }
 
-  static async createPublicNoteBookmarkList(eventIds: string[]) {
+  public static async createPublicNoteBookmarkList(eventIds: string[]) {
     // todo: distinct the long-form event id from eventIds to use "A" tag
     const identifier = this.publicNoteBookmarkIdentifier;
     const tags: Tags = eventIds.map(id => [EventTags.E, id]);
@@ -31,7 +31,7 @@ export class Nip51 {
     return await this.createBookmarkList(tags, content);
   }
 
-  static createPublicBookmarkListFilter(pubkey: string): Filter {
+  public static createPublicBookmarkListFilter(pubkey: string): Filter {
     const identifier = this.publicNoteBookmarkIdentifier;
     const filter: Filter = {
       authors: [pubkey],
@@ -42,7 +42,7 @@ export class Nip51 {
     return filter;
   }
 
-  static parseRelaySet(tags: Tags) {
+  public static parseRelaySet(tags: Tags) {
     const relaySet = {
       id: '',
       title: '',
@@ -68,7 +68,7 @@ export class Nip51 {
     return relaySet;
   }
 
-  static async createRelaySet({
+  public static createRelaySetEvent({
     id,
     title,
     description,
@@ -89,12 +89,18 @@ export class Nip51 {
     return rawEvent;
   }
 
-  static createRelaySetFilter(pubkey: string): Filter {
+  public static createRelaySetFilter(
+    pubkey: string,
+    identifier?: string,
+  ): Filter {
     const filter: Filter = {
       authors: [pubkey],
       kinds: [WellKnownEventKind.relay_set],
       limit: 100,
     };
+    if (identifier) {
+      filter['#d'] = [identifier];
+    }
     return filter;
   }
 }

@@ -1,4 +1,5 @@
 import { Nip51 } from 'core/nip/51';
+import { Nip65 } from 'core/nip/65';
 import { WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { SubFilterResultMsg } from 'core/worker/type';
@@ -42,7 +43,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       title,
       description,
       relays: [] as Relay[],
-      createdAt: event.created_at,
+      timestamp: event.created_at,
     };
     relaySet.relays.forEach(url => {
       const relay: Relay = { url, read: true, write: true };
@@ -68,7 +69,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       const groupMap = await this.loader;
       if (groupMap.has(group.id)) {
         const oldGroup = groupMap.get(group.id);
-        if (oldGroup?.createdAt && oldGroup.createdAt >= group.createdAt) {
+        if (oldGroup?.timestamp && oldGroup.timestamp >= group.timestamp) {
           continue;
         }
       }
@@ -81,9 +82,30 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     if (!this.signEvent || !this.worker) {
       return;
     }
-    const rawEvent = await Nip51.createRelaySet(group);
+
+    const rawEvent =
+      group.kind === WellKnownEventKind.relay_list
+        ? Nip65.createRelayListEvent(group.relays)
+        : Nip51.createRelaySetEvent(group);
     const event = await this.signEvent(rawEvent);
     this.worker.pubEvent(event);
+    return event;
+  }
+
+  public async syncRelayGroup(id: string) {
+    const groupMap = await this.loader;
+    const group = groupMap.get(id);
+    if (!group) {
+      return;
+    }
+    const event = await this.pubRelayGroup(group);
+    if (!event) {
+      return;
+    }
+    group.timestamp = event.created_at;
+    group.changed = false;
+    groupMap.set(id, group);
+    this.storage.save(groupMap);
   }
 
   public async getAllGroupIds() {
@@ -100,7 +122,6 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   public async setGroup(id: string, group: RelayGroup) {
     const groupMap = await this.loader;
     groupMap.set(id, group);
-    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
@@ -121,8 +142,9 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       return !group.relays.some(r2 => r2.url === r.url);
     });
     group.relays = group.relays.concat(newRelays);
+    group.timestamp = Date.now();
+    group.changed = true;
     groupMap.set(id, group);
-    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
@@ -137,8 +159,10 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       return !relays.some(r2 => r2.url === r.url);
     });
     group.relays = newRelays;
+    group.timestamp = Date.now();
+    group.changed = true;
+    console.log(group);
     groupMap.set(id, group);
-    this.pubRelayGroup(group);
     this.storage.save(groupMap);
   }
 
