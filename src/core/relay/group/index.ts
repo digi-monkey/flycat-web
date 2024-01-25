@@ -105,7 +105,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
       return;
     }
     group.timestamp = event.created_at;
-    group.changed = false;
+    delete group.changed;
     groupMap.set(id, group);
     this.storage.save(groupMap);
   }
