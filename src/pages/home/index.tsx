@@ -29,6 +29,7 @@ import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
 import { TimelineTabs } from 'components/TimelineTabs';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
+import { useNoscriptMsgFilter } from './hooks/useNoscriptMsgFilter';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -55,22 +56,24 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   useSubContactList(myPublicKey, newConn, worker);
 
-  const filterOptSetting = useFilterOptionSetting();
-  const noscriptFilters = filterOptSetting
-    .getOpts()
-    .map(opt => filterOptSetting.toMsgFilter(opt));
+  const noscriptMsgFilters = useNoscriptMsgFilter();
 
   const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
       return defaultMsgFilters.filter(v => v.mode !== MsgFilterMode.follow);
     }
 
-    const opts: MsgFilter[] = [
-      ...defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow),
-      ...noscriptFilters,
-    ];
-    return opts;
-  }, [defaultMsgFilters, noscriptFilters, isLoggedIn, myPublicKey]);
+    if (noscriptMsgFilters) {
+      console.debug('noscriptMsgFilters: ', noscriptMsgFilters);
+      const opts: MsgFilter[] = [
+        ...defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow),
+        ...noscriptMsgFilters,
+      ];
+      return opts;
+    }
+
+    return defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow);
+  }, [defaultMsgFilters, noscriptMsgFilters, isLoggedIn, myPublicKey]);
 
   return (
     <BaseLayout>

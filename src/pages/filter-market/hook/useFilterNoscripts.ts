@@ -1,21 +1,23 @@
 import { CallWorker } from 'core/worker/caller';
 import { useQuery } from '@tanstack/react-query';
-import { Filter } from 'core/nostr/type';
+import { EventId, Filter } from 'core/nostr/type';
 import { useMemo } from 'react';
 import { useQueryMsg } from 'components/TimelineRender/hook/useQueryMsg';
 import { Nip188 } from 'core/nip/188';
-import { Event } from 'core/nostr/Event';
 import { cloneDeep } from 'lodash';
 
-export interface NoscriptItem {
-  event: Event;
+export interface FilterOption {
+  eventId: EventId;
   filter: Filter;
   title?: string;
   description?: string;
   picture?: string;
+  pubkey: string;
+  naddr: string;
+  disabled: boolean;
 }
 
-export function useFilterNoscript({
+export function useNoscriptFilterOptions({
   worker,
 }: {
   worker: CallWorker | undefined;
@@ -50,7 +52,7 @@ export function useFilterNoscript({
     staleTime: Infinity,
   });
 
-  const filterNoscripts = useMemo(() => {
+  const filterOpts = useMemo(() => {
     if (!data) {
       return [];
     }
@@ -63,15 +65,18 @@ export function useFilterNoscript({
       const description = e.tags.find(t => t[0] === 'description')
         ? (e.tags.find(t => t[0] === 'description') as any)[1]
         : 'no description';
-      const item: NoscriptItem = {
+      const item: FilterOption = {
         filter,
         title,
         description,
-        event: e,
+        eventId: e.id,
+        naddr: Nip188.parseNoscriptNaddr(e),
+        disabled: false,
+        pubkey: e.pubkey,
       };
       return item;
     });
   }, [data]);
 
-  return filterNoscripts;
+  return filterOpts;
 }
