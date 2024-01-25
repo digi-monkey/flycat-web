@@ -2,6 +2,9 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRelayGroupsQuery } from './useRelayGroupsQuery';
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store/configureStore';
+import { isValidPublicKey } from 'utils/validator';
 
 const SELECTED_RELAY_GROUP_ID_KEY =
   'relay-selector:selected-group-id:{{pubKey}}';
@@ -24,7 +27,12 @@ const getLegacyLocalValue = (key: string) => {
 };
 
 export function useSelectedRelayGroup() {
-  const myPublicKey = useReadonlyMyPublicKey();
+  const localPubkey = useReadonlyMyPublicKey();
+  const pubkey = useSelector(
+    (state: RootState) => state.loginReducer.publicKey,
+  );
+  const myPublicKey = isValidPublicKey(localPubkey) ? localPubkey : pubkey!;
+
   const { data: relayGroups } = useRelayGroupsQuery(myPublicKey);
   const { data: selectedGroupId = 'default', refetch } = useQuery({
     queryKey: ['selected-relay-group', myPublicKey],
