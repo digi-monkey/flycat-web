@@ -42,6 +42,7 @@ export function useRelayGroupManager(pubkey: string): RelayGroupManager {
     }
     return manager;
   }, [pubkey, context?.managers, worker, signEvent]);
+
   return manager;
 }
 
