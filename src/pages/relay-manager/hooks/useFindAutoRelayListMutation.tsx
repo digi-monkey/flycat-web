@@ -42,7 +42,7 @@ export default function useFindAutoRelayListMutation() {
       },
     );
     if (pickRelays.length > 0) {
-      const id = uuidv4();
+      const id = AUTO_RECOMMEND_LIST;
       await groupManager.setGroup(id, {
         id,
         title: AUTO_RECOMMEND_LIST,
@@ -51,11 +51,15 @@ export default function useFindAutoRelayListMutation() {
         }),
         timestamp: 0,
       });
-      refetchGroups();
+      await refetchGroups();
+      toast({
+        title: 'finish picking auto relays, Auto-Recommend-List created!',
+        status: 'success',
+      });
     }
     toast({
-      title: 'finish picking auto relays, Auto-Recommend-List created!',
-      status: 'success',
+      title: 'no relays found, please try again later',
+      status: 'warning',
     });
   };
 
