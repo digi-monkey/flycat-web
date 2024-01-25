@@ -4,7 +4,6 @@ import { Nip51 } from 'core/nip/51';
 import { Nip65 } from 'core/nip/65';
 import { WellKnownEventKind } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { SubFilterResultMsg } from 'core/worker/type';
 import { SignEvent } from 'store/loginReducer';
 import { RelayGroup, RelayGroupMap } from '../group/type';
 import { Relay } from '../type';
@@ -27,13 +26,21 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     this.signEvent = signEvent;
     this.storage = new RelayGroupStorage(pubkey);
     this.loader = this.storage.load();
-    this.subRelaySet();
+    this.subNip51RelaySet();
   }
 
-  private getRelayGroupFromEvent({ event }: SubFilterResultMsg) {
+  private getRelayGroupFromEvent(event: Event) {
     const { tags, kind } = event;
-    if (kind !== WellKnownEventKind.relay_set) {
-      return;
+    if (kind === WellKnownEventKind.relay_list) {
+      const relays = Nip65.toRelays(event);
+      const group: RelayGroup = {
+        id: NIP_65_RELAY_LIST,
+        title: NIP_65_RELAY_LIST,
+        relays,
+        timestamp: event.created_at,
+        kind,
+      };
+      return group;
     }
     const relaySet = Nip51.parseRelaySet(tags);
     const { id, title, description } = relaySet;
@@ -54,30 +61,20 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     return relayGroup;
   }
 
-  private async subRelaySet() {
-    if (!this.pubkey) {
+  private async setRelayGroupFromEvent(event: Event) {
+    const group = this.getRelayGroupFromEvent(event);
+    if (!group) {
       return;
     }
-
-    const filter = Nip51.createRelaySetFilter(this.pubkey);
-    const handler = this.worker.subFilter({ filter });
-    const iterator = handler.getIterator();
-
-    for await (const msg of iterator) {
-      const group = this.getRelayGroupFromEvent(msg);
-      if (!group) {
-        continue;
+    const groupMap = await this.loader;
+    if (groupMap.has(group.id)) {
+      const oldGroup = groupMap.get(group.id);
+      if (oldGroup?.timestamp && oldGroup.timestamp >= group.timestamp) {
+        return;
       }
-      const groupMap = await this.loader;
-      if (groupMap.has(group.id)) {
-        const oldGroup = groupMap.get(group.id);
-        if (oldGroup?.timestamp && oldGroup.timestamp >= group.timestamp) {
-          continue;
-        }
-      }
-      groupMap.set(group.id, group);
-      this.storage.save(groupMap);
     }
+    groupMap.set(group.id, group);
+    this.storage.save(groupMap);
   }
 
   private async pubRelayGroup(group: RelayGroup) {
@@ -92,6 +89,32 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     const event = await this.signEvent(rawEvent);
     this.worker.pubEvent(event);
     return event;
+  }
+
+  public async subNip51RelaySet() {
+    if (!this.pubkey) {
+      return;
+    }
+
+    const filter = Nip51.createRelaySetFilter([this.pubkey]);
+    const handler = this.worker.subFilter({ filter });
+    const iterator = handler.getIterator();
+    for await (const msg of iterator) {
+      await this.setRelayGroupFromEvent(msg.event);
+    }
+  }
+
+  public async subNip65RelayList() {
+    if (!this.pubkey) {
+      return;
+    }
+
+    const filter = Nip65.createFilter([this.pubkey], 1);
+    const handler = this.worker.subFilter({ filter });
+    const iterator = handler.getIterator();
+    for await (const msg of iterator) {
+      await this.setRelayGroupFromEvent(msg.event);
+    }
   }
 
   public async syncRelayGroup(id: string) {
@@ -111,7 +134,8 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   }
 
   public async getAllGroupIds() {
-    this.subRelaySet();
+    this.subNip51RelaySet();
+    this.subNip65RelayList();
     const groupMap = await this.loader;
     return Array.from(groupMap.keys());
   }

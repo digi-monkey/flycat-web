@@ -44,7 +44,7 @@ export default function RelayGroup() {
   );
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       <div className="md:hidden">
         <Tabs value={selectedGroupId} onValueChange={setSelectedGroupId}>
           <TabsList>
@@ -56,7 +56,7 @@ export default function RelayGroup() {
           </TabsList>
         </Tabs>
       </div>
-      <div className="flex-grow grid grid-cols-3 md:grid-cols-4 border-0 border-t border-border-01 border-solid">
+      <div className="flex-1 flex-grow grid grid-cols-3 md:grid-cols-4 border-0 border-t border-border-01 border-solid">
         <div className="hidden md:block md:col-span-1 bg-surface-01">
           <div className="h-full flex flex-col justify-between">
             <div className="flex-1 overflow-scroll">

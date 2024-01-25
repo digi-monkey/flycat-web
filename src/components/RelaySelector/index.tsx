@@ -75,32 +75,17 @@ export function RelaySelector() {
     });
   }, [worker, setSelectedRelayGroup]);
 
-  // fetch nip-65 relay list group if it is not there
   useEffect(() => {
-    if (!isValidPublicKey(myPublicKey) || !worker || !relayGroups) {
+    if (!isValidPublicKey(myPublicKey) || !worker) {
       return;
     }
-
-    if (relayGroups[NIP_65_RELAY_LIST]) {
-      return;
-    }
-    const callRelay = createCallRelay(newConn);
-    worker
-      .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
-      .iterating({
-        cb: async event => {
-          await relayGroupManager.setNip65RelayListByEvent(event);
-          refetchRelayGroups();
-        },
-      });
-  }, [
-    worker,
-    newConn,
-    myPublicKey,
-    relayGroups,
-    refetchRelayGroups,
-    relayGroupManager,
-  ]);
+    Promise.all([
+      relayGroupManager.subNip65RelayList(),
+      relayGroupManager.subNip51RelaySet(),
+    ]).then(() => {
+      refetchRelayGroups();
+    });
+  }, [worker, myPublicKey, refetchRelayGroups, relayGroupManager, relayGroups]);
 
   const onChange = useCallback(
     (_: string[], options: ICascaderOption[]) => {

@@ -1,4 +1,10 @@
-import { EventTags, Filter, Tags, WellKnownEventKind } from 'core/nostr/type';
+import {
+  EventTags,
+  Filter,
+  PublicKey,
+  Tags,
+  WellKnownEventKind,
+} from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { Relay } from 'core/relay/type';
 
@@ -90,11 +96,11 @@ export class Nip51 {
   }
 
   public static createRelaySetFilter(
-    pubkey: string,
+    pubkeys: PublicKey[],
     identifier?: string,
   ): Filter {
     const filter: Filter = {
-      authors: [pubkey],
+      authors: pubkeys,
       kinds: [WellKnownEventKind.relay_set],
       limit: 100,
     };

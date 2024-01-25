@@ -40,15 +40,9 @@ export class Nip65 {
     return relays;
   }
 
-  public static createFilter({
-    pks,
-    limit = 50,
-  }: {
-    pks: PublicKey[];
-    limit?: number;
-  }) {
+  public static createFilter(pubkeys: PublicKey[], limit?: number) {
     const filter: Filter = {
-      authors: pks,
+      authors: pubkeys,
       kinds: [this.kind],
       limit,
     };

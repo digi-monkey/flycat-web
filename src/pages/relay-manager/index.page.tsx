@@ -24,7 +24,7 @@ export default function RelayManager() {
               Explore 500+ relays
             </Link>
           </div>
-          <div className="flex px-4 pb-3 items-center gap-3 w-full overflow-x-scroll">
+          <div className="flex px-4 py-3 items-center gap-3 w-full overflow-x-scroll box-border">
             <div className="md:hidden">
               <CreateNewGroupButton />
             </div>
