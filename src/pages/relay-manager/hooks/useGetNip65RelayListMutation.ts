@@ -1,7 +1,6 @@
 import { Event } from 'core/nostr/Event';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
-import { Nip65 } from 'core/nip/65';
 import { createCallRelay } from 'core/worker/util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useCallWorker } from 'hooks/useWorker';
@@ -44,7 +43,7 @@ export default function useGetNip65RelayListMutation() {
     dataStream.unsubscribe();
 
     if (event) {
-      await groupManager.setNip65RelayList(Nip65.toRelays(event));
+      await groupManager.setNip65RelayListByEvent(event);
       refetchGroups();
       toast({
         title: `Find Nip-65 Relay list! Check your relay group named: ${NIP_65_RELAY_LIST}`,

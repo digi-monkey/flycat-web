@@ -1,3 +1,4 @@
+import { Event } from 'core/nostr/Event';
 import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip51 } from 'core/nip/51';
 import { Nip65 } from 'core/nip/65';
@@ -96,6 +97,7 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   public async syncRelayGroup(id: string) {
     const groupMap = await this.loader;
     const group = groupMap.get(id);
+    console.log(id, group);
     if (!group) {
       return;
     }
@@ -132,14 +134,19 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     this.storage.save(groupMap);
   }
 
-  public async setNip65RelayList(relays: Relay[]) {
+  public async setNip65RelayListByEvent(event: Event) {
     const id = NIP_65_RELAY_LIST;
+    const relays = Nip65.toRelays(event);
     const groupMap = await this.loader;
+    const oldGroup = groupMap.get(id);
+    if (oldGroup?.timestamp && oldGroup.timestamp >= event.created_at) {
+      return;
+    }
     const newGroup: RelayGroup = {
       id,
       title: id,
       relays,
-      timestamp: Date.now(),
+      timestamp: event.created_at,
       kind: WellKnownEventKind.relay_list,
     };
     groupMap.set(id, newGroup);
@@ -177,7 +184,6 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     group.relays = newRelays;
     group.timestamp = Date.now();
     group.changed = true;
-    console.log(group);
     groupMap.set(id, group);
     this.storage.save(groupMap);
   }

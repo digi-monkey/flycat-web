@@ -87,7 +87,7 @@ export function RelaySelector() {
       .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
       .iterating({
         cb: async event => {
-          await relayGroupManager.setNip65RelayList(Nip65.toRelays(event));
+          await relayGroupManager.setNip65RelayListByEvent(event);
           refetchRelayGroups();
         },
       });
