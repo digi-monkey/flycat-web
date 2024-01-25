@@ -2,7 +2,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { BaseLayout, Left } from 'components/BaseLayout';
 import Link from 'next/link';
 import RelayGroup from './components/RelayGroup';
-import GetNIP65RelayButton from './components/GetNip65RelayButton';
 import FindAutoRelayButton from './components/FindAutoRelayButton';
 import CreateNewGroupButton from './components/CreateNewGroupButton';
 
@@ -29,7 +28,6 @@ export default function RelayManager() {
             <div className="md:hidden">
               <CreateNewGroupButton />
             </div>
-            <GetNIP65RelayButton />
             <FindAutoRelayButton />
           </div>
           <RelayGroup />
