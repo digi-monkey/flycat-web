@@ -1,72 +1,82 @@
+import { BaseRelayGroupStorage, BaseStoreAdapter } from './base';
+import { legacyRelayGroupMapSchema, relayGroupMapSchema } from './schema';
 import { RelayGroupMap } from './type';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface RelayGroupStore {
-  author: string;
-  save: (groups: RelayGroupMap) => any;
-  load: () => Promise<RelayGroupMap | null> | (RelayGroupMap | null);
-}
-
-export interface StoreAdapter {
-  get(key: string): string | null;
-  set(key: string, val: string): any;
-  del(key: string): any;
-}
-
-export class LocalStorageAdapter implements StoreAdapter {
-  get(key: string) {
+class LocalStorageAdapter extends BaseStoreAdapter {
+  async get(key: string) {
+    if (typeof window === 'undefined') {
+      return null;
+    }
     return localStorage.getItem(key);
   }
 
-  set(key: string, val: string) {
-    localStorage.setItem(key, val);
+  async set(key: string, value: string) {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    localStorage.setItem(key, value);
   }
 
-  del(key: string) {
+  async remove(key: string) {
+    if (typeof window === 'undefined') {
+      return;
+    }
     localStorage.removeItem(key);
   }
 }
 
-export class RelayGroupStorage implements RelayGroupStore {
-  prefix = '__relayGroup:db';
-  author: string;
+export class RelayGroupStorage extends BaseRelayGroupStorage {
+  private prefix = '__relayGroup:db';
 
-  private storeAdapter: StoreAdapter;
-
-  constructor(author: string, storeAdapter?: StoreAdapter) {
-    this.author = author;
-    this.storeAdapter = storeAdapter || new LocalStorageAdapter();
+  constructor(pubkey: string) {
+    super(pubkey, new LocalStorageAdapter());
   }
 
-  storeKey() {
-    return `${this.prefix}:${this.author}`;
+  public get storeKey() {
+    return `${this.prefix}:${this.pubkey}`;
   }
 
-  save(groups: RelayGroupMap) {
-    console.log(groups, JSON.stringify(groups));
-    const data = JSON.stringify(Array.from(groups));
-    const key = this.storeKey();
-    this.storeAdapter.set(key, data);
-  }
-
-  load() {
-    const key = this.storeKey();
-    const strData = this.storeAdapter.get(key);
-    if (strData == null) {
-      return null;
+  public async load() {
+    const data = await this.storeAdapter.get(this.storeKey);
+    if (data == null) {
+      return new Map();
     }
+    const unserialized = JSON.parse(data);
 
-    const jsonData = JSON.parse(strData);
-    const data: RelayGroupMap = new Map(jsonData);
-    return data;
+    // parse legacy relay group data
+    const legacy = legacyRelayGroupMapSchema.safeParse(unserialized);
+    if (legacy.success) {
+      const map = new Map(
+        legacy.data.map(([title, relays]) => {
+          const id = uuidv4();
+          return [
+            id,
+            {
+              id,
+              title,
+              relays,
+              timestamp: 0,
+            },
+          ];
+        }),
+      );
+      return map;
+    }
+    const result = relayGroupMapSchema.safeParse(unserialized);
+    if (!result.success) {
+      return new Map();
+    }
+    const map = new Map(result.data);
+    return map;
   }
 
-  clean() {
-    const key = this.storeKey();
-    const strData = this.storeAdapter.get(key);
-    if (strData == null) {
-      return;
-    }
+  public async save(map: RelayGroupMap) {
+    const data = JSON.stringify(Array.from(map));
+    await this.storeAdapter.set(this.storeKey, data);
+  }
 
-    this.storeAdapter.del(key);
+  public async clean() {
+    await this.storeAdapter.remove(this.storeKey);
   }
 }

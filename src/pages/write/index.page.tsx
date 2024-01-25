@@ -127,7 +127,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
             <div className={styles.prePublish}>
               <div>
                 Select Relays
-                <RelaySelector className={styles.publishRelay} />
+                <RelaySelector />
               </div>
 
               <div>

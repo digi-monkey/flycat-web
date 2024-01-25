@@ -32,13 +32,17 @@
     "@noble/hashes": "1.1.5",
     "@noble/secp256k1": "1.7.0",
     "@radix-ui/react-avatar": "1.0.4",
+    "@radix-ui/react-checkbox": "1.0.4",
     "@radix-ui/react-dialog": "1.0.5",
     "@radix-ui/react-dropdown-menu": "2.0.6",
     "@radix-ui/react-hover-card": "1.0.7",
     "@radix-ui/react-popover": "1.0.7",
+    "@radix-ui/react-slot": "1.0.2",
     "@radix-ui/react-tabs": "1.0.4",
+    "@radix-ui/react-toast": "1.1.5",
     "@reduxjs/toolkit": "1.7.1",
     "@tanstack/react-query": "5.17.12",
+    "@tanstack/react-table": "8.11.3",
     "@testing-library/jest-dom": "5.16.1",
     "@testing-library/react": "12.1.2",
     "@types/crypto-js": "4.1.1",
@@ -64,6 +68,7 @@
     "browser-image-compression": "2.0.2",
     "buffer": "6.0.3",
     "chalk": "4.1.2",
+    "class-variance-authority": "0.7.0",
     "classnames": "2.3.2",
     "cross-env": "7.0.3",
     "crypto-js": "4.1.1",
@@ -136,7 +141,8 @@
     "uuid": "9.0.0",
     "vaul": "0.8.0",
     "wasm": "file:./wasm/pkg",
-    "web-vitals": "2.1.2"
+    "web-vitals": "2.1.2",
+    "zod": "3.22.4"
   },
   "browserslist": {
     "production": [

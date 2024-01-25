@@ -1,6 +1,5 @@
 import { hash } from 'core/crypto';
 import { Relay } from '../type';
-import { normalize } from 'path';
 import { normalizeWsUrl } from 'utils/common';
 
 export interface RelayPoolDB {

@@ -1,6 +1,6 @@
 import { useUserInfo } from './hooks';
 import { RelaySelector } from 'components/RelaySelector';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Navbar from './navbar';
 import { UserDrawer } from './drawer';
 import { Tabbar } from './tabbar';
@@ -33,20 +33,24 @@ export const Right: React.FC<RightProps> = ({ children }) => (
 
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   const { myProfile } = useUserInfo();
-  const leftNodes: React.ReactNode[] = [];
-  const rightNodes: React.ReactNode[] = [];
 
-  React.Children.forEach(children, (child: React.ReactNode) => {
-    if (!React.isValidElement(child)) return;
-    if (child.type === Left) leftNodes.push(child);
-    if (child.type === Right) rightNodes.push(child);
-  });
+  const [leftNodes, rightNodes] = useMemo(() => {
+    const leftNodes: React.ReactNode[] = [];
+    const rightNodes: React.ReactNode[] = [];
+
+    React.Children.forEach(children, (child: React.ReactNode) => {
+      if (!React.isValidElement(child)) return;
+      if (child.type === Left) leftNodes.push(child);
+      if (child.type === Right) rightNodes.push(child);
+    });
+    return [leftNodes, rightNodes];
+  }, [children]);
 
   return (
     <div className="flex justify-center min-h-screen">
       <div className="container body grid grid-cols-8 lg:grid-cols-12">
         <aside className="hidden sm:block sm:col-span-1 xl:col-span-3">
-          <div className="sticky top-0 pr-5 h-screen border-0 border-r border-solid border-neutral-200">
+          <div className="sticky top-0 pr-5 h-screen overflow-scroll border-0 border-r border-solid border-neutral-200">
             <Navbar user={myProfile} />
           </div>
         </aside>

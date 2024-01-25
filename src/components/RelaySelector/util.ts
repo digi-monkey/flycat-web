@@ -1,24 +1,20 @@
-import { RelayGroupMap } from 'core/relay/group/type';
 import { RelayFooterMenus, RelayMode } from './type';
 import { WsConnectStatus } from 'core/worker/type';
 import { ICascaderOption } from 'components/shared/Cascader/type';
+import { RelayGroup } from 'core/relay/group/type';
 
-export function getSelectGroupId(groups: RelayGroupMap) {
-  return Array.from(groups.keys()).filter(key => groups.get(key) != null);
-}
-
-export function getRelayGroupOptions(groups: RelayGroupMap) {
-  const ids = getSelectGroupId(groups);
-  return ids.map(id => {
+export function getRelayGroupOptions(groups: Record<string, RelayGroup>) {
+  return Object.keys(groups).map(id => {
+    const { title, relays } = groups[id]!;
     return {
       value: id,
-      label: `${id}(${groups.get(id)!.length})`,
+      label: `${title}(${relays?.length ?? 0})`,
       group: RelayMode.Group,
     };
   });
 }
 
-export function initModeOptions(groups: RelayGroupMap) {
+export function initModeOptions(groups: Record<string, RelayGroup>) {
   const options: ICascaderOption[][] = [
     getRelayGroupOptions(groups),
     [

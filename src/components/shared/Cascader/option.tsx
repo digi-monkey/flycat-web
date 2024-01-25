@@ -1,6 +1,5 @@
 import { ICascaderOption } from './type';
-import { FiCheck } from 'react-icons/fi';
-import { FiChevronRight } from 'react-icons/fi';
+import { FaCheck, FaChevronRight } from 'react-icons/fa';
 import * as HoverCard from '@radix-ui/react-hover-card';
 import { cn } from 'utils/classnames';
 
@@ -38,7 +37,7 @@ export function CascaderOption(props: CascaderOptionProps) {
           onClick={handleClick}
         >
           <div className="flex items-center gap-1">
-            <FiCheck
+            <FaCheck
               className={cn('text-text-primary w-4 h-4 opacity-0', {
                 'opacity-100': isActive,
               })}
@@ -52,7 +51,7 @@ export function CascaderOption(props: CascaderOptionProps) {
             </span>
           </div>
           {!isLeaf && (
-            <FiChevronRight className="text-text-secondary w-4 h-4" />
+            <FaChevronRight className="text-text-secondary w-4 h-4" />
           )}
         </div>
       </HoverCard.Trigger>

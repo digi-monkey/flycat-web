@@ -39,7 +39,7 @@ export function useSelectedRelay() {
   );
   const selectedGroupIdKey = SELECTED_RELAY_GROUP_ID_KEY.replace(
     '{{pubKey}}',
-    myPublicKey ?? 'unknown',
+    myPublicKey ?? 'default',
   );
 
   const [selectedMode = getLegacyLocalValue(selectedModeKey), setSelectedMode] =
