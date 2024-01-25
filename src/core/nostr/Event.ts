@@ -17,18 +17,8 @@ export interface Event {
   sig: Signature;
 }
 
-export class EventClass {
-  event: Event;
+// todo maybe build a event class later
 
-  constructor(event: Event) {
-    this.event = event;
-  }
-
-  async verifySignature(): Promise<boolean> {
-    return await schnorrVerify(
-      this.event.id,
-      this.event.pubkey,
-      this.event.sig,
-    );
-  }
+export async function verifyEventSignature(event: Event): Promise<boolean> {
+  return await schnorrVerify(event.id, event.pubkey, event.sig);
 }

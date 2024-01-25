@@ -1,6 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { DbEvent } from './schema';
-import { Event, EventClass } from 'core/nostr/Event';
+import { Event, verifyEventSignature } from 'core/nostr/Event';
 import { EventId, WellKnownEventKind } from 'core/nostr/type';
 import { Nip01 } from 'core/nip/01';
 import { getEventDTagId } from 'core/nostr/util';
@@ -145,8 +145,7 @@ export class DexieDb extends Dexie {
     for (const event of events) {
       index++;
       console.debug(`${index}/${events.length}`);
-      const e = new EventClass(event);
-      const isValid = await e.verifySignature();
+      const isValid = await verifyEventSignature(event);
       if (!isValid) {
         maliciousEventIds.push(event.id);
       }

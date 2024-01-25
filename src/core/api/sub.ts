@@ -10,7 +10,7 @@ import {
   RelayResponse,
   RelayResponseType,
 } from 'core/nostr/type';
-import { Event, EventClass } from 'core/nostr/Event';
+import { Event, verifyEventSignature } from 'core/nostr/Event';
 import { dexieDb } from 'core/db';
 
 export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
@@ -80,8 +80,7 @@ export function createSubscriptionEventStream(
           } else {
             clearTimeout(timeout!); // Clear the previous timeout
           }
-          const e = new EventClass(event);
-          e.verifySignature().then(validate => {
+          verifyEventSignature(event).then(validate => {
             if (validate) {
               // store on db
               if (typeof window !== 'undefined') {
