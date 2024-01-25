@@ -4,6 +4,7 @@ import Link from 'next/link';
 import RelayGroup from './components/RelayGroup';
 import GetNIP65RelayButton from './components/GetNip65RelayButton';
 import FindAutoRelayButton from './components/FindAutoRelayButton';
+import CreateNewGroupButton from './components/CreateNewGroupButton';
 
 export interface RelayMenuProp {
   showRelayPool: boolean;
@@ -24,7 +25,10 @@ export default function RelayManager() {
               Explore 500+ relays
             </Link>
           </div>
-          <div className="flex px-4 pb-3 items-center gap-3">
+          <div className="flex px-4 pb-3 items-center gap-3 w-full overflow-x-scroll">
+            <div className="md:hidden">
+              <CreateNewGroupButton />
+            </div>
             <GetNIP65RelayButton />
             <FindAutoRelayButton />
           </div>

@@ -97,7 +97,6 @@ export class RelayGroupManager extends BaseRelayGroupManager {
   public async syncRelayGroup(id: string) {
     const groupMap = await this.loader;
     const group = groupMap.get(id);
-    console.log(id, group);
     if (!group) {
       return;
     }
