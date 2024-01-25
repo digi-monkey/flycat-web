@@ -17,6 +17,7 @@ import { FaChevronDown } from 'react-icons/fa6';
 import { normalizeWsUrl } from 'utils/common';
 import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
+import { isValidPublicKey } from 'utils/validator';
 
 export interface RelaySelectorProps {
   className?: string;
@@ -76,8 +77,9 @@ export function RelaySelector() {
 
   // fetch nip-65 relay list group if it is not there
   useEffect(() => {
-    if (!myPublicKey || myPublicKey.length === 0 || !worker || !relayGroups)
+    if (!isValidPublicKey(myPublicKey) || !worker || !relayGroups) {
       return;
+    }
 
     if (relayGroups[NIP_65_RELAY_LIST]) {
       return;
