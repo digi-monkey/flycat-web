@@ -28,7 +28,6 @@ class LocalStorageAdapter extends BaseStoreAdapter {
 
 export class RelayGroupStorage extends BaseRelayGroupStorage {
   private prefix = '__relayGroup:db';
-  private listeners = new Set<(map: RelayGroupMap) => void>();
 
   constructor(pubkey: string) {
     super(pubkey, new LocalStorageAdapter());
@@ -36,13 +35,6 @@ export class RelayGroupStorage extends BaseRelayGroupStorage {
 
   public get storeKey() {
     return `${this.prefix}:${this.pubkey}`;
-  }
-
-  public subscribe(listener: (map: RelayGroupMap) => void) {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
   }
 
   public async load() {
@@ -80,9 +72,6 @@ export class RelayGroupStorage extends BaseRelayGroupStorage {
   }
 
   public async save(map: RelayGroupMap) {
-    this.listeners.forEach(listener => {
-      listener(map);
-    });
     const data = JSON.stringify(Array.from(map));
     await this.storeAdapter.set(this.storeKey, data);
   }

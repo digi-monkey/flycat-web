@@ -9,8 +9,6 @@ import { useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
-import { v4 as uuidv4 } from 'uuid';
-import { WellKnownEventKind } from 'core/nostr/type';
 
 export default function useGetNip65RelayListMutation() {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -46,13 +44,7 @@ export default function useGetNip65RelayListMutation() {
     dataStream.unsubscribe();
 
     if (event) {
-      groupManager.setGroup(NIP_65_RELAY_LIST, {
-        id: NIP_65_RELAY_LIST,
-        title: NIP_65_RELAY_LIST,
-        relays: Nip65.toRelays(event),
-        timestamp: 0,
-        kind: WellKnownEventKind.relay_list,
-      });
+      await groupManager.setNip65RelayList(Nip65.toRelays(event));
       refetchGroups();
       toast({
         title: `Find Nip-65 Relay list! Check your relay group named: ${NIP_65_RELAY_LIST}`,

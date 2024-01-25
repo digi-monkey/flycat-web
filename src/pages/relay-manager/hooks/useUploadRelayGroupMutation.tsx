@@ -11,11 +11,19 @@ export default function useUploadRelayGroupMutation() {
   const mutations = useMutation({
     mutationFn: async (group: RelayGroup) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      await groupManager.syncRelayGroup(group.id);
-      toast({
-        title: 'Relay group uploaded',
-        status: 'success',
-      });
+      try {
+        await groupManager.syncRelayGroup(group.id);
+        toast({
+          title: 'Relay group uploaded',
+          status: 'success',
+        });
+      } catch (e) {
+        console.log(e);
+        toast({
+          title: `Relay group upload failed: ${(e as Error).message}`,
+          status: 'error',
+        });
+      }
     },
   });
 

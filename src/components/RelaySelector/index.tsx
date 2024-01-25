@@ -28,7 +28,7 @@ export interface Option {
   children?: Option[];
 }
 
-export function RelaySelector({ className }: RelaySelectorProps) {
+export function RelaySelector() {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -87,13 +87,7 @@ export function RelaySelector({ className }: RelaySelectorProps) {
       .subNip65RelayList({ pks: [myPublicKey], callRelay, limit: 1 })
       .iterating({
         cb: async event => {
-          const groupId = uuidv4();
-          await relayGroupManager.setGroup(groupId, {
-            id: groupId,
-            title: NIP_65_RELAY_LIST,
-            relays: Nip65.toRelays(event),
-            timestamp: 0,
-          });
+          await relayGroupManager.setNip65RelayList(Nip65.toRelays(event));
           refetchRelayGroups();
         },
       });

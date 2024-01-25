@@ -1,3 +1,4 @@
+import { NIP_65_RELAY_LIST } from 'constants/relay';
 import { Nip51 } from 'core/nip/51';
 import { Nip65 } from 'core/nip/65';
 import { WellKnownEventKind } from 'core/nostr/type';
@@ -129,6 +130,21 @@ export class RelayGroupManager extends BaseRelayGroupManager {
     const groupMap = await this.loader;
     groupMap.delete(id);
     this.storage.save(groupMap);
+  }
+
+  public async setNip65RelayList(relays: Relay[]) {
+    const id = NIP_65_RELAY_LIST;
+    const groupMap = await this.loader;
+    const newGroup: RelayGroup = {
+      id,
+      title: id,
+      relays,
+      timestamp: Date.now(),
+      kind: WellKnownEventKind.relay_list,
+    };
+    groupMap.set(id, newGroup);
+    this.storage.save(groupMap);
+    return;
   }
 
   public async addRelayToGroup(id: string, relay: Relay[] | Relay) {
