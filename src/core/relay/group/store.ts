@@ -1,6 +1,6 @@
 import { BaseRelayGroupStorage, BaseStoreAdapter } from './base';
 import { legacyRelayGroupMapSchema, relayGroupMapSchema } from './schema';
-import { RelayGroupMap } from './type';
+import { RelayGroup, RelayGroupMap } from './type';
 import { v4 as uuidv4 } from 'uuid';
 
 class LocalStorageAdapter extends BaseStoreAdapter {
@@ -49,16 +49,20 @@ export class RelayGroupStorage extends BaseRelayGroupStorage {
     if (legacy.success) {
       const map = new Map(
         legacy.data.map(([title, relays]) => {
-          const id = uuidv4();
-          return [
+          const isDefaultGroup = title.toLowerCase() === 'default';
+          // avoid duplicated default group
+          const id = isDefaultGroup ? 'default' : uuidv4();
+          const group: RelayGroup = {
             id,
-            {
-              id,
-              title,
-              relays,
-              timestamp: 0,
-            },
-          ];
+            title,
+            relays,
+            timestamp: 0,
+          };
+          if (!isDefaultGroup) {
+            // mark legacy relay group as changed if it's not default group
+            group.changed = true;
+          }
+          return [id, group];
         }),
       );
       return map;
