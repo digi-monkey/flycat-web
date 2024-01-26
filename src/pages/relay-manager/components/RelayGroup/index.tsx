@@ -1,6 +1,7 @@
 import { Button } from 'components/shared/ui/Button';
 import { Input } from 'components/shared/ui/Input';
 import { Tabs, TabsList, TabsTrigger } from 'components/shared/ui/Tabs';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { newRelay } from 'core/relay/util';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
@@ -12,7 +13,10 @@ import CreateGroupModal, { CreateGroupModalRef } from '../CreateGroupModal';
 import GroupItem from './group';
 import RelayTable from './table';
 
+const relayUrlRegex = /^(wss?:\/\/).*$/;
+
 export default function RelayGroup() {
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
   const { data: relayGroups = {}, refetch: refetchGroups } =
     useRelayGroupsQuery(myPublicKey);
@@ -33,14 +37,19 @@ export default function RelayGroup() {
 
   const handleAddNewRelay = useCallback(
     (wss: string) => {
-      if (!wss || !wss.startsWith('wss://')) {
+      if (!wss || !relayUrlRegex.test(wss)) {
+        toast({
+          title: 'Invalid Relay URL',
+          status: 'error',
+        });
+        setNewRelayWss('');
         return;
       }
       relayGroupManager.addRelayToGroup(selectedGroupId, newRelay(wss));
       setNewRelayWss('');
       refetchGroups();
     },
-    [relayGroupManager, selectedGroupId, refetchGroups],
+    [relayGroupManager, selectedGroupId, refetchGroups, toast],
   );
 
   return (
