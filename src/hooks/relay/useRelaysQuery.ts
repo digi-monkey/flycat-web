@@ -51,6 +51,7 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
   const queryResult = useQuery({
     queryKey: ['relays', pubkey, groupId],
     queryFn: getRelays,
+    initialData: relayGroups?.[groupId]?.relays || [],
   });
 
   useEffect(() => {
