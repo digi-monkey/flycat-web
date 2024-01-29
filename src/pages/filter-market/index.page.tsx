@@ -7,12 +7,29 @@ import { useRouter } from 'next/router';
 import { useNoscriptFilterOptions } from './hook/useFilterNoscripts';
 import * as Avatar from '@radix-ui/react-avatar';
 import { useFilterOptionSetting } from './hook/useFilterOptionSetting';
+import { Button } from 'components/shared/ui/Button';
+import dynamic from 'next/dynamic';
+import { useCallback, useMemo } from 'react';
+import { PublicKey } from 'core/nostr/type';
+import { useProfiles } from 'hooks/useProfiles';
 
 export function FilterMarket() {
   const router = useRouter();
   const { worker } = useCallWorker();
   const filterOpts = useNoscriptFilterOptions({ worker });
   const filterOtpSetting = useFilterOptionSetting();
+
+  const filterUsers = useMemo(() => {
+    return filterOpts.map(f => f.pubkey);
+  }, [filterOpts]);
+
+  const { data: profiles = [] } = useProfiles(filterUsers);
+  const getProfile = useCallback(
+    (pk: PublicKey) => {
+      return profiles.find(profile => profile.pubkey === pk);
+    },
+    [profiles],
+  );
 
   return (
     <BaseLayout>
@@ -29,16 +46,21 @@ export function FilterMarket() {
           }
         />
 
-        <div className="flex flex-wrap flex-start gap-0.5 space-y-1 px-6">
+        <div className="flex flex-wrap sm:flex-row flex-col flex-start gap-0.5 space-y-1 px-6">
           {filterOpts.map(filterOpt => {
             const disabled = filterOtpSetting.isAdded(filterOpt);
+            const userName =
+              getProfile(filterOpt.pubkey)?.name ||
+              filterOpt.pubkey.slice(0, 7);
             return (
               <div
-                className="flex flex-col justify-between rounded-lg border border-gray-300 border-solid w-[240px] px-4 py-2 bg-neutral-100"
+                className="flex flex-col justify-between rounded-lg border border-gray-300 border-solid lg:w-[240px] sm:w-auto px-4 py-2 bg-neutral-100"
                 key={filterOpt.eventId}
               >
                 <div className="flex justify-center flex-col text-center">
-                  <div className="font-poppins text-lg">{filterOpt.title}</div>
+                  <div className="font-poppins font-semibold text-base leading-6">
+                    {filterOpt.title}
+                  </div>
                 </div>
 
                 <div className="font-noto w-full text-gray-400">
@@ -48,53 +70,48 @@ export function FilterMarket() {
                   <div className="flex justify-center items-center gap-0.5">
                     <Avatar.Root className="flex justify-center items-center w-8 h-8 bg-gray-200 rounded-full overflow-hidden m-auto">
                       <Avatar.Image
-                        src={filterOpt?.picture}
+                        src={getProfile(filterOpt.pubkey)?.picture}
                         alt={filterOpt.title}
                         className="w-full h-full"
                         sizes=""
                       />
                       <Avatar.Fallback className="text-lg font-medium uppercase text-gray-400">
-                        {filterOpt.pubkey.slice(0, 2)}
+                        {userName.slice(0, 2)}
                       </Avatar.Fallback>
                     </Avatar.Root>
-                    <div className="text-sm text-gray-400">
-                      {filterOpt.pubkey.slice(0, 7)}
-                    </div>
+                    <div className="text-sm text-gray-400">{userName}</div>
                   </div>
-                  <button
+
+                  <Button
                     disabled={disabled}
-                    className="text-brand flex justify-center items-center bg-transparent border border-solid rounded border-brand cursor-pointer"
                     onClick={() => filterOtpSetting.addOpt(filterOpt)}
                   >
-                    <Icon className="w-6 h-6" type="icon-plus" />
-                    {filterOtpSetting.isAdded(filterOpt)
-                      ? 'Already added'
-                      : 'add'}
-                  </button>
+                    add
+                  </Button>
                 </div>
               </div>
             );
           })}
         </div>
 
-        <div className="text-lg font-poppins mt-4 mb-2 px-6">
+        <div className="font-semibold text-base leading-6 font-poppins mt-8 mb-2 px-6">
           My filter-options
         </div>
-        <div className="flex flex-wrap flex-start gap-0.5 space-y-1 px-6">
+        <div className="flex flex-wrap flex-start gap-1 space-y-1 px-6">
           {filterOtpSetting.getOpts().map(opt => (
             <div
-              className="flex justify-between flex-row rounded-lg border border-gray-300 border-solid w-[240px] px-4 py-2"
+              className="w-full flex justify-between items-center gap-1 flex-row rounded-lg border border-gray-300 border-solid px-4 py-2"
               key={opt.title}
             >
               <div>
                 {opt.title}@{opt.pubkey.slice(0, 7)}
               </div>
-              <button
-                className="rounded border-gray-300 border border-solid cursor-pointer"
+              <Button
+                variant={'secondary'}
                 onClick={() => filterOtpSetting.deleteOpt(opt)}
               >
                 delete
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -103,7 +120,9 @@ export function FilterMarket() {
   );
 }
 
-export default FilterMarket;
+export default dynamic(() => Promise.resolve(FilterMarket), {
+  ssr: false,
+});
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
