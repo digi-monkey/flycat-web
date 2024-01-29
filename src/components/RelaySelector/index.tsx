@@ -18,6 +18,7 @@ import { normalizeWsUrl } from 'utils/common';
 import { RelayFooterMenus, RelayMode, toLabel, toRelayMode } from './type';
 import { initModeOptions, toConnectStatus } from './util';
 import { isValidPublicKey } from 'utils/validator';
+import dynamic from 'next/dynamic';
 
 export interface RelaySelectorProps {
   className?: string;
@@ -29,7 +30,7 @@ export interface Option {
   children?: Option[];
 }
 
-export function RelaySelector() {
+function RelaySelector() {
   const { worker, newConn, wsConnectStatus } = useCallWorker();
   const router = useRouter();
   const myPublicKey = useReadonlyMyPublicKey();
@@ -141,3 +142,7 @@ export function RelaySelector() {
     />
   );
 }
+
+export default dynamic(() => Promise.resolve(RelaySelector), {
+  ssr: false,
+});

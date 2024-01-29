@@ -1,6 +1,6 @@
 import { useUserInfo } from './hooks';
-import { RelaySelector } from 'components/RelaySelector';
-import React, { useCallback, useMemo, useState } from 'react';
+import RelaySelector from 'components/RelaySelector';
+import React, { useMemo } from 'react';
 import Navbar from './navbar';
 import { UserDrawer } from './drawer';
 import { Tabbar } from './tabbar';
