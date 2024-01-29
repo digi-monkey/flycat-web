@@ -44,7 +44,7 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
     }
 
     return newRelays;
-  }, [outdatedRelays]);
+  }, [outdatedRelays, relayPoolDatabase]);
 
   const updateOutdatedRelayResult = useQuery({
     queryKey: ['outdatedRelay', pubkey, outdatedRelays],
