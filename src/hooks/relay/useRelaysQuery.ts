@@ -1,4 +1,4 @@
-import { Relay, RelayTracker } from 'core/relay/type';
+import { RelayTracker } from 'core/relay/type';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRelayGroupManager } from './useRelayManagerContext';
@@ -8,7 +8,7 @@ import { useRelayGroupsQuery } from './useRelayGroupsQuery';
 
 export function useRelaysQuery(pubkey: string, groupId: string) {
   const groupManager = useRelayGroupManager(pubkey);
-  const relayPoolDatabse = useMemo(() => new RelayPoolDatabase(), []);
+  const relayPoolDatabase = useMemo(() => new RelayPoolDatabase(), []);
   const { data: relayGroups } = useRelayGroupsQuery(pubkey);
 
   const getRelays = useCallback(async () => {
@@ -17,40 +17,38 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
       return [];
     }
 
-    let relays = group.relays.map(r => {
-      const relay = relayPoolDatabse.load(r.url);
+    return group.relays.map(r => {
+      const relay = relayPoolDatabase.load(r.url);
       return relay || r;
     });
-
-    const outdatedRelays = relays
-      .filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
-      .map(r => r!.url);
-
-    let newRelays: Relay[] = relays;
-    if (outdatedRelays.length > 0) {
-      const details = await Nip11.getRelays(outdatedRelays);
-      newRelays = relays.map(r => {
-        if (details.map(d => d.url).includes(r.url)) {
-          return details.filter(d => d.url === r.url)[0]!;
-        } else {
-          return r;
-        }
-      });
-
-      if (newRelays.length > 0) {
-        relayPoolDatabse.saveAll(newRelays);
-        relays = group.relays.map(r => {
-          const relay = relayPoolDatabse.load(r.url);
-          return relay || r;
-        });
-      }
-    }
-    return relays;
-  }, [groupManager, groupId, relayPoolDatabse]);
+  }, [groupManager, groupId, relayPoolDatabase]);
 
   const queryResult = useQuery({
     queryKey: ['relays', pubkey, groupId],
     queryFn: getRelays,
+  });
+
+  const outdatedRelays = useMemo(() => {
+    return queryResult.data
+      ?.filter(r => RelayTracker.isOutdated(r.lastAttemptNip11Timestamp))
+      .map(r => r!.url);
+  }, [queryResult.data]);
+
+  const getOutdatedRelays = useCallback(async () => {
+    if (!outdatedRelays || outdatedRelays.length === 0) return [];
+
+    const newRelays = await Nip11.getRelays(outdatedRelays);
+
+    if (newRelays.length > 0) {
+      relayPoolDatabase.saveAll(newRelays);
+    }
+
+    return newRelays;
+  }, [outdatedRelays]);
+
+  const updateOutdatedRelayResult = useQuery({
+    queryKey: ['outdatedRelay', pubkey, outdatedRelays],
+    queryFn: getOutdatedRelays,
   });
 
   useEffect(() => {
@@ -64,5 +62,20 @@ export function useRelaysQuery(pubkey: string, groupId: string) {
     }
   }, [relayGroups, groupId, queryResult]);
 
-  return queryResult;
+  const data = useMemo(() => {
+    const relays = queryResult.data;
+    const updateRelays = updateOutdatedRelayResult.data;
+    if (updateRelays && updateRelays.length > 0) {
+      const duplicate = updateRelays.map(r => r.url);
+      return [
+        ...updateRelays,
+        ...(relays?.filter(r => !duplicate.includes(r.url)) || []),
+      ];
+    }
+
+    return relays;
+  }, [queryResult.data, updateOutdatedRelayResult.data]);
+
+  const refetch = queryResult.refetch;
+  return { data, refetch };
 }
