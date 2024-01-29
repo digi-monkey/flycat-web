@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { useNoscriptFilterOptions } from './hook/useFilterNoscripts';
 import * as Avatar from '@radix-ui/react-avatar';
 import { useFilterOptionSetting } from './hook/useFilterOptionSetting';
+import { Button } from 'components/shared/ui/Button';
 
 export function FilterMarket() {
   const router = useRouter();
@@ -61,16 +62,13 @@ export function FilterMarket() {
                       {filterOpt.pubkey.slice(0, 7)}
                     </div>
                   </div>
-                  <button
+
+                  <Button
                     disabled={disabled}
-                    className="text-brand flex justify-center items-center bg-transparent border border-solid rounded border-brand cursor-pointer"
                     onClick={() => filterOtpSetting.addOpt(filterOpt)}
                   >
-                    <Icon className="w-6 h-6" type="icon-plus" />
-                    {filterOtpSetting.isAdded(filterOpt)
-                      ? 'Already added'
-                      : 'add'}
-                  </button>
+                    add
+                  </Button>
                 </div>
               </div>
             );
@@ -89,12 +87,12 @@ export function FilterMarket() {
               <div>
                 {opt.title}@{opt.pubkey.slice(0, 7)}
               </div>
-              <button
-                className="rounded border-gray-300 border border-solid cursor-pointer"
+              <Button
+                variant={'secondary'}
                 onClick={() => filterOtpSetting.deleteOpt(opt)}
               >
                 delete
-              </button>
+              </Button>
             </div>
           ))}
         </div>
