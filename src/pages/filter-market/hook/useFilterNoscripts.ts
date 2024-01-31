@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { EventId, Filter } from 'core/nostr/type';
 import { useMemo } from 'react';
 import { useQueryMsg } from 'components/TimelineRender/hook/useQueryMsg';
-import { Nip188 } from 'core/nip/188';
+import { FilterOptMode, Nip188 } from 'core/nip/188';
 import { cloneDeep } from 'lodash';
 
 export interface FilterOption {
   eventId: EventId;
   filter: Filter;
+  mode: FilterOptMode;
   title?: string;
   description?: string;
   picture?: string;
@@ -58,15 +59,13 @@ export function useNoscriptFilterOptions({
     }
 
     return data.map(e => {
-      const filter = Nip188.parseNoscriptMsgFilterTag(e);
-      const title = e.tags.find(t => t[0] === 'd')
-        ? (e.tags.find(t => t[0] === 'd') as any)[1]
-        : 'unknown-id';
-      const description = e.tags.find(t => t[0] === 'description')
-        ? (e.tags.find(t => t[0] === 'description') as any)[1]
-        : 'no description';
+      const filterOptPayload = Nip188.parseFilterOptPayload(e);
+      const noscriptPayload = Nip188.parseNoscriptPayload(e);
+      const title = noscriptPayload.title!;
+      const description = noscriptPayload.description || 'no description';
       const item: FilterOption = {
-        filter,
+        filter: filterOptPayload.filter,
+        mode: filterOptPayload.mode,
         title,
         description,
         eventId: e.id,

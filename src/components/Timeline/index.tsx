@@ -1,16 +1,17 @@
 import { TimelineRender } from 'components/TimelineRender';
-import { MsgFilter, MsgFilterMode } from 'core/msg-filter/filter';
+import { MsgFilter } from 'core/msg-filter/filter';
 import { CallWorker } from 'core/worker/caller';
 import { useMemo } from 'react';
 import {
   initSync,
   is_valid_event,
   pre_validate,
-} from 'pages/noscript/filter-binding';
-import { createRuntime } from 'pages/noscript/filter-binding/runtime';
+} from 'core/noscript/filter-binding';
+import { createRuntime } from 'core/noscript/filter-binding/runtime';
 import { Event } from 'core/nostr/Event';
 import { Filter } from 'core/nostr/type';
 import { useMyFollowings } from './hooks/useMyFollowings';
+import { FilterOptMode } from 'core/nip/188';
 
 export interface TimelineProp {
   msgFilter: MsgFilter;
@@ -27,7 +28,7 @@ export const Timeline: React.FC<TimelineProp> = ({ msgFilter, worker }) => {
   const filter: Filter | undefined = useMemo(() => {
     if (!msgFilter.filter) return undefined;
 
-    if (msgFilter.mode === MsgFilterMode.follow) {
+    if (msgFilter.mode === FilterOptMode.follow) {
       if (myFollowings.length === 0) return undefined;
       return { ...msgFilter.filter, ...{ authors: myFollowings } };
     }

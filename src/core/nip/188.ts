@@ -1,16 +1,40 @@
 // this nip is not proposed yet
-// it is foucs on nostr scripts(wasm bytecode)
+// it is focus on nostr filter scripts(wasm bytecode)
 import { Event } from 'core/nostr/Event';
 import { RawEvent } from 'core/nostr/RawEvent';
 import { EventTags, Filter, Tags } from 'core/nostr/type';
 
+export interface NoscriptPayload {
+  title?: string;
+  description?: string;
+  picture?: string;
+  version?: string;
+  source_code?: string; // source code url
+  published_at?: number; // timestamp, seconds
+}
+
+export enum FilterOptMode {
+  global = 0,
+  follow = 1,
+  trustNetwork = 2, // follow's follow without spam
+  signInUser = 3,
+  visitingUser = 4,
+  custom = 5,
+}
+
+export interface FilterOptPayload {
+  filter: Filter;
+  mode: FilterOptMode;
+}
+
 export class Nip188 {
   static kind = 32042; // nostr script kind
   static noscriptTagLabel = 'noscript';
-  static customMsgFilterLabelValue = 'wasm:msg:filter';
+  static customFilterOptLabelValue = 'wasm:msg:filter';
 
-  static createNoscriptMsgFilterTag(filter: Filter, description?: string) {
+  static createFilterOptTags(filterOptPayload: FilterOptPayload) {
     const tags: Tags = [];
+    const filter = filterOptPayload.filter;
     if (filter.ids) {
       tags.push(['ids', ...filter.ids]);
     }
@@ -44,23 +68,39 @@ export class Nip188 {
     if (filter['#t']) {
       tags.push(['#t', ...filter['#t']]);
     }
-
-    if (description) {
-      tags.push(['description', description]);
-    }
-
-    tags.push([this.noscriptTagLabel, this.customMsgFilterLabelValue]);
+    tags.push(['mode', filterOptPayload.mode]);
+    tags.push([this.noscriptTagLabel, this.customFilterOptLabelValue]);
 
     return tags;
   }
 
-  static isValidCustomMsgFilterNoscript() {
+  static createNoscriptTags(payload: NoscriptPayload) {
+    const tags: Tags = [];
+    if (payload.title) {
+      tags.push(['title', payload.title]);
+    }
+    if (payload.description) {
+      tags.push(['description', payload.description]);
+    }
+    if (payload.picture) {
+      tags.push(['picture', payload.picture]);
+    }
+    if (payload.source_code) {
+      tags.push(['source_code', payload.source_code]);
+    }
+    if (payload.version) {
+      tags.push(['version', payload.version]);
+    }
+    if (payload.published_at) {
+      tags.push(['published_at', payload.published_at]);
+    }
+    return tags;
+  }
+
+  static isValidFilterOptNoscript() {
     return (event: Event) =>
-      !!event.tags.find(
-        t =>
-          t[0] === this.noscriptTagLabel &&
-          t[1] === this.customMsgFilterLabelValue,
-      );
+      findTagFirstValue<string>(event.tags, this.noscriptTagLabel) ===
+      this.customFilterOptLabelValue;
   }
 
   static createNoscript(
@@ -70,7 +110,6 @@ export class Nip188 {
   ) {
     const codeBase64 = this.arrayBufferToBase64(wasmCode);
     const tags = [[EventTags.D, identifire]];
-    console.log('check:', extraTags, extraTags && extraTags.length > 0);
     if (extraTags && extraTags.length > 0) {
       tags.push(...extraTags);
     }
@@ -83,27 +122,37 @@ export class Nip188 {
     return `${event.kind}:${event.pubkey}:${d}`;
   }
 
-  static parseNoscriptTitle(event: Event) {
-    return findTagFirstValue<string>(event.tags, 'd');
+  static parseNoscriptPayload(event: Event) {
+    const title =
+      findTagFirstValue<string>(event.tags, 'title') ||
+      findTagFirstValue<string>(event.tags, 'd')!;
+    const description = findTagFirstValue<string>(event.tags, 'description');
+    const picture = findTagFirstValue<string>(event.tags, 'picture');
+    const version = findTagFirstValue<string>(event.tags, 'version');
+    const source_code = findTagFirstValue<string>(event.tags, 'source_code');
+    const published_at = findTagFirstValue<number>(event.tags, 'published_at');
+
+    const payload: NoscriptPayload = {
+      title,
+      description,
+      picture,
+      version,
+      source_code,
+      published_at,
+    };
+    return payload;
   }
 
-  static parseNoscriptDescription(event: Event) {
-    return findTagFirstValue<string>(event.tags, 'description');
-  }
-
-  static parseNoscriptPicture(event: Event) {
-    return findTagFirstValue<string>(event.tags, 'picture');
-  }
-
-  static parseNoscript(event: Event) {
+  static parseNoscriptCode(event: Event) {
     const content = event.content;
     const code = this.base64ToArrayBuffer(content);
     return code;
   }
 
-  static parseNoscriptMsgFilterTag(event: Event) {
+  static parseFilterOptPayload(event: Event) {
     const tags: Tags = event.tags;
     const filter: Filter = {};
+
     const ids = findTagValues(tags, 'ids');
     const authors = findTagValues(tags, 'authors');
     const kinds = findTagValues(tags, 'kinds');
@@ -146,7 +195,24 @@ export class Nip188 {
     if (t) {
       filter['#t'] = t;
     }
-    return filter;
+
+    const parseMode = (event: Event) => {
+      let modeTag = findTagFirstValue<number>(event.tags, 'mode');
+      if (!modeTag) return undefined;
+
+      modeTag = typeof modeTag === 'number' ? modeTag : +modeTag;
+      if (modeTag == null) {
+        return undefined;
+      }
+
+      return toFilterOptMode(modeTag);
+    };
+
+    const payload: FilterOptPayload = {
+      filter,
+      mode: parseMode(event) || FilterOptMode.custom,
+    };
+    return payload;
   }
 
   static createQueryNoscriptFilter(pubkeys: string[], limit = 50) {
@@ -214,4 +280,18 @@ function findTagValues(tags: Tags, firstLabel: string) {
     return values.slice(1);
   }
   return null;
+}
+
+function toFilterOptMode(num: number): FilterOptMode | undefined {
+  const enumKeys = Object.keys(FilterOptMode).filter(
+    key => !isNaN(Number(FilterOptMode[key])),
+  );
+
+  for (const key of enumKeys) {
+    if (FilterOptMode[key] === num) {
+      return FilterOptMode[key];
+    }
+  }
+
+  return undefined;
 }

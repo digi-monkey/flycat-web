@@ -16,11 +16,7 @@ import { useMemo } from 'react';
 import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
-import {
-  MsgFilterMode,
-  MsgFilter,
-  defaultMsgFilters,
-} from '../../core/msg-filter/filter';
+import { MsgFilter, defaultMsgFilters } from '../../core/msg-filter/filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
 import styles from './index.module.scss';
@@ -30,6 +26,7 @@ import { SELECTED_FILTER_STORAGE_KEY } from './constants';
 import { TimelineTabs } from 'components/TimelineTabs';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
 import { useNoscriptMsgFilter } from './hooks/useNoscriptMsgFilter';
+import { FilterOptMode } from 'core/nip/188';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,8 +43,8 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
 
   const defaultSelectedFilter = isLoggedIn
-    ? defaultMsgFilters.find(f => f.mode === MsgFilterMode.follow)!.key
-    : defaultMsgFilters.find(f => f.mode === MsgFilterMode.global)!.key;
+    ? defaultMsgFilters.find(f => f.mode === FilterOptMode.follow)!.key
+    : defaultMsgFilters.find(f => f.mode === FilterOptMode.global)!.key;
 
   const [lastSelectedFilter, setLastSelectedFilter] = useLocalStorage<string>(
     SELECTED_FILTER_STORAGE_KEY,
@@ -60,19 +57,19 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
-      return defaultMsgFilters.filter(v => v.mode !== MsgFilterMode.follow);
+      return defaultMsgFilters.filter(v => v.mode !== FilterOptMode.follow);
     }
 
     if (noscriptMsgFilters) {
       console.debug('noscriptMsgFilters: ', noscriptMsgFilters);
       const opts: MsgFilter[] = [
-        ...defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow),
+        ...defaultMsgFilters.filter(f => f.mode === FilterOptMode.follow),
         ...noscriptMsgFilters,
       ];
       return opts;
     }
 
-    return defaultMsgFilters.filter(f => f.mode === MsgFilterMode.follow);
+    return defaultMsgFilters.filter(f => f.mode === FilterOptMode.follow);
   }, [defaultMsgFilters, noscriptMsgFilters, isLoggedIn, myPublicKey]);
 
   return (
