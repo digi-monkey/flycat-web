@@ -66,6 +66,9 @@ export function FilterMarket() {
                 <div className="font-noto w-full text-gray-400">
                   {filterOpt.description}
                 </div>
+                <div className="font-noto w-full text-gray-400">
+                  version: {filterOpt.version}
+                </div>
                 <div className="w-full flex justify-between mt-1">
                   <div className="flex justify-center items-center gap-0.5">
                     <Avatar.Root className="flex justify-center items-center w-8 h-8 bg-gray-200 rounded-full overflow-hidden m-auto">

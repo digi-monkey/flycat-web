@@ -1,5 +1,6 @@
-import { MsgFilter, MsgFilterMode } from 'core/msg-filter/filter';
+import { MsgFilter } from 'core/msg-filter/filter';
 import { Nip172 } from 'core/nip/172';
+import { FilterOptMode } from 'core/nip/188';
 import { Event } from 'core/nostr/Event';
 
 export const defaultCommFilterOptions: MsgFilter[] = [
@@ -13,7 +14,7 @@ export const defaultCommFilterOptions: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === Nip172.approval_kind;
     },
-    mode: MsgFilterMode.custom,
+    mode: FilterOptMode.custom,
     description: "All Tribes's mixed posts",
   },
   {
@@ -26,7 +27,7 @@ export const defaultCommFilterOptions: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === Nip172.approval_kind;
     },
-    mode: MsgFilterMode.custom,
+    mode: FilterOptMode.custom,
     description: "all your following tribe's mixed posts",
   },
 ];

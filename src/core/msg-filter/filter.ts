@@ -1,6 +1,6 @@
 import { Filter, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
-import { stringHasImageUrl } from 'utils/common';
+import { FilterOptMode } from 'core/nip/188';
 
 export const mixKinds = [
   WellKnownEventKind.text_note,
@@ -9,18 +9,12 @@ export const mixKinds = [
   WellKnownEventKind.reposts,
 ];
 
-export enum MsgFilterMode {
-  global = 'Global',
-  follow = 'Follow',
-  custom = 'Custom',
-}
-
 export interface MsgFilter {
   key: string;
   label: string;
   filter?: Filter;
   isValidEvent?: (event: Event) => boolean;
-  mode: MsgFilterMode;
+  mode: FilterOptMode;
   description?: string;
   wasm?: ArrayBuffer | undefined;
   selfEvent?: Event;
@@ -37,7 +31,7 @@ export const defaultMsgFilters: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return mixKinds.includes(event.kind);
     },
-    mode: MsgFilterMode.follow,
+    mode: FilterOptMode.follow,
     description: "all your followings's mixed posts",
   },
   {
@@ -50,51 +44,7 @@ export const defaultMsgFilters: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return mixKinds.includes(event.kind);
     },
-    mode: MsgFilterMode.global,
+    mode: FilterOptMode.global,
     description: "all the realtime global's mixed posts",
   },
-  /*
-  {
-    key: MsgFilterKey.followArticle,
-    label: 'Follow-Article',
-    filter: {
-      limit: 50,
-      kinds: [WellKnownEventKind.long_form],
-    },
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.long_form;
-    },
-    mode: MsgFilterMode.follow,
-    description: "all your followings's long-form posts",
-  },
-  {
-    key: MsgFilterKey.globalHighLight,
-    label: 'HighLights',
-    filter: {
-      limit: 50,
-      kinds: [WellKnownEventKind.article_highlight],
-    },
-    isValidEvent: (event: Event) => {
-      return event.kind === WellKnownEventKind.article_highlight;
-    },
-    mode: MsgFilterMode.global,
-    description: 'global post for highlights(kind:9802)',
-  },
-  {
-    key: MsgFilterKey.media,
-    label: 'Media',
-    filter: {
-      limit: 50,
-      kinds: [WellKnownEventKind.text_note],
-    },
-    isValidEvent: (event: Event) => {
-      return (
-        event.kind === WellKnownEventKind.text_note &&
-        stringHasImageUrl(event.content)
-      );
-    },
-    mode: MsgFilterMode.global,
-    description: 'global posts including at least one picture',
-  },
-  */
 ];

@@ -1,5 +1,5 @@
-import { MsgFilter, MsgFilterMode, mixKinds } from 'core/msg-filter/filter';
-import { isChineseLang } from 'core/msg-filter/util';
+import { MsgFilter, mixKinds } from 'core/msg-filter/filter';
+import { FilterOptMode } from 'core/nip/188';
 import { Event } from 'core/nostr/Event';
 import { WellKnownEventKind } from 'core/nostr/type';
 import { stringHasImageUrl } from 'utils/common';
@@ -15,7 +15,7 @@ export const defaultProfilePageMsgFilters: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return mixKinds.includes(event.kind);
     },
-    mode: MsgFilterMode.custom,
+    mode: FilterOptMode.visitingUser,
     description: "all user's mixed posts",
   },
   {
@@ -28,7 +28,7 @@ export const defaultProfilePageMsgFilters: MsgFilter[] = [
     isValidEvent: (event: Event) => {
       return event.kind === WellKnownEventKind.long_form;
     },
-    mode: MsgFilterMode.custom,
+    mode: FilterOptMode.visitingUser,
     description: "all user's long-form posts",
   },
   {
@@ -44,7 +44,7 @@ export const defaultProfilePageMsgFilters: MsgFilter[] = [
         stringHasImageUrl(event.content)
       );
     },
-    mode: MsgFilterMode.custom,
+    mode: FilterOptMode.visitingUser,
     description: "all user's note with at least one picture",
   },
 ];

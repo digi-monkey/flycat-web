@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { MsgFilter, MsgFilterMode } from 'core/msg-filter/filter';
+import { MsgFilter } from 'core/msg-filter/filter';
 import { FilterOption } from './useFilterNoscripts';
 
 export interface FilterOptionSetting {
@@ -55,8 +55,8 @@ export function useFilterOptionSetting() {
       label: `${filterOpt.title}@${filterOpt.pubkey.slice(0, 3)}`,
       description: filterOpt.description,
       filter: filterOpt.filter,
-      mode: MsgFilterMode.custom,
-      wasm: Nip188.parseNoscript(event),
+      mode: filterOpt.mode,
+      wasm: Nip188.parseNoscriptCode(event),
       selfEvent: event,
     };
     return res;
