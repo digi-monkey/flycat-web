@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useMemo } from 'react';
 import { PublicKey } from 'core/nostr/type';
 import { useProfiles } from 'hooks/useProfiles';
+import Link from 'next/link';
 
 export function FilterMarket() {
   const router = useRouter();
@@ -58,18 +59,29 @@ export function FilterMarket() {
                 key={filterOpt.eventId}
               >
                 <div className="flex justify-center flex-col text-center">
-                  <div className="font-poppins font-semibold text-base leading-6">
+                  <div className="font-poppins font-semibold text-base leading-6 capitalize">
                     {filterOpt.title}
                   </div>
                 </div>
 
-                <div className="font-noto w-full text-gray-400">
-                  {filterOpt.description}
+                <div className="font-noto w-full text-gray-400 mt-3">
+                  {filterOpt.description}&nbsp; v
+                  <span className="text-sm px-1 py-0.5 bg-gray-300 rounded-md text-neutral-100">
+                    {filterOpt.version}
+                  </span>
+                  &nbsp;
+                  {filterOpt.source_code && (
+                    <Link
+                      href={filterOpt.source_code}
+                      target="_blank"
+                      className="text-sm px-1 py-0.5 bg-blue-300 rounded-md text-neutral-100"
+                    >
+                      source-code
+                    </Link>
+                  )}
                 </div>
-                <div className="font-noto w-full text-gray-400">
-                  version: {filterOpt.version}
-                </div>
-                <div className="w-full flex justify-between mt-1">
+
+                <div className="w-full flex justify-between mt-5">
                   <div className="flex justify-center items-center gap-0.5">
                     <Avatar.Root className="flex justify-center items-center w-8 h-8 bg-gray-200 rounded-full overflow-hidden m-auto">
                       <Avatar.Image
