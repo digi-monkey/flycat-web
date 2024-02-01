@@ -67,15 +67,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   );
   const { worker, newConn } = useCallWorker();
 
-  const filterOptions = useMemo(() => {
-    return defaultProfilePageMsgFilters.map(f => {
-      if (f.filter) {
-        f.filter.authors = [publicKey];
-      }
-      return f;
-    });
-  }, [publicKey]);
-
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
   const [myContactEvent, setMyContactEvent] = useState<DbEvent>();
   const [userContactList, setUserContactList] = useState<ContactInfo>();
@@ -414,7 +405,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </div>
         )}
 
-        <TimelineTabs filterOptions={filterOptions} worker={worker} />
+        <TimelineTabs
+          filterOptions={defaultProfilePageMsgFilters}
+          worker={worker}
+          visitingUser={publicKey}
+        />
       </Left>
       <Right>
         <div>

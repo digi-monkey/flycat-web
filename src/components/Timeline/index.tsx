@@ -9,17 +9,25 @@ import {
 } from 'core/noscript/filter-binding';
 import { createRuntime } from 'core/noscript/filter-binding/runtime';
 import { Event } from 'core/nostr/Event';
-import { Filter } from 'core/nostr/type';
+import { Filter, PublicKey } from 'core/nostr/type';
 import { useMyFollowings } from './hooks/useMyFollowings';
 import { FilterOptMode } from 'core/nip/188';
+import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
+import { isValidPublicKey } from 'utils/validator';
 
 export interface TimelineProp {
   msgFilter: MsgFilter;
   worker: CallWorker | undefined;
+  visitingUser?: PublicKey;
 }
 
-export const Timeline: React.FC<TimelineProp> = ({ msgFilter, worker }) => {
+export const Timeline: React.FC<TimelineProp> = ({
+  msgFilter,
+  worker,
+  visitingUser,
+}) => {
   const myFollowings = useMyFollowings();
+  const myPublicKey = useReadonlyMyPublicKey();
 
   const feedId = useMemo(() => {
     return msgFilter.key;
@@ -32,8 +40,20 @@ export const Timeline: React.FC<TimelineProp> = ({ msgFilter, worker }) => {
       if (myFollowings.length === 0) return undefined;
       return { ...msgFilter.filter, ...{ authors: myFollowings } };
     }
+    if (msgFilter.mode === FilterOptMode.signInUser) {
+      if (!isValidPublicKey(myPublicKey)) return undefined;
+      return { ...msgFilter.filter, ...{ authors: [myPublicKey] } };
+    }
+    if (msgFilter.mode === FilterOptMode.visitingUser) {
+      if (!isValidPublicKey(visitingUser)) return undefined;
+      return { ...msgFilter.filter, ...{ authors: [visitingUser!] } };
+    }
+    if (msgFilter.mode === FilterOptMode.trustNetwork) {
+      // todo
+    }
+
     return msgFilter.filter;
-  }, [msgFilter, myFollowings]);
+  }, [msgFilter, myFollowings, myPublicKey, visitingUser]);
 
   const isValidEvent = useMemo(() => {
     let isValidEvent: ((event: Event) => boolean) | undefined =
