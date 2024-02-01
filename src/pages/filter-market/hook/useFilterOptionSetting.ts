@@ -49,10 +49,10 @@ export function useFilterOptionSetting() {
     );
   };
 
-  const toMsgFilter = (filterOpt: FilterOption, event: Event) => {
+  const toTimelineFilter = (filterOpt: FilterOption, event: Event) => {
     const res: TimelineFilterOption = {
       key: filterOpt.naddr,
-      label: `${filterOpt.title}@${filterOpt.pubkey.slice(0, 3)}`,
+      label: filterOpt.title!,
       description: filterOpt.description,
       filter: filterOpt.filter,
       mode: filterOpt.mode,
@@ -62,5 +62,5 @@ export function useFilterOptionSetting() {
     return res;
   };
 
-  return { addOpt, deleteOpt, getOpts, isAdded, toMsgFilter };
+  return { addOpt, deleteOpt, getOpts, isAdded, toTimelineFilter };
 }

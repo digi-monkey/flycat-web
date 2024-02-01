@@ -5,7 +5,7 @@ import { TimelineFilterOption } from 'core/timeline-filter';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
 import { useCallback } from 'react';
 
-export function useNoscriptMsgFilter() {
+export function useNoscriptTimelineFilter() {
   const filterOptSetting = useFilterOptionSetting();
   const filterOpts = filterOptSetting.getOpts();
 
@@ -19,7 +19,7 @@ export function useNoscriptMsgFilter() {
       .map(opt => {
         const e = events.find(e => e.id === opt.eventId);
         if (e) {
-          return filterOptSetting.toMsgFilter(opt, e);
+          return filterOptSetting.toTimelineFilter(opt, e);
         }
         return null;
       })
