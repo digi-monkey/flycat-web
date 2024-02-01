@@ -16,7 +16,10 @@ import { useMemo } from 'react';
 import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
-import { MsgFilter, defaultMsgFilters } from '../../core/msg-filter/filter';
+import {
+  TimelineFilterOption,
+  defaultHomeTimelineFilters,
+} from '../../core/timeline-filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
 import styles from './index.module.scss';
@@ -43,8 +46,9 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
 
   const defaultSelectedFilter = isLoggedIn
-    ? defaultMsgFilters.find(f => f.mode === FilterOptMode.follow)!.key
-    : defaultMsgFilters.find(f => f.mode === FilterOptMode.global)!.key;
+    ? defaultHomeTimelineFilters.find(f => f.mode === FilterOptMode.follow)!.key
+    : defaultHomeTimelineFilters.find(f => f.mode === FilterOptMode.global)!
+        .key;
 
   const [lastSelectedFilter, setLastSelectedFilter] = useLocalStorage<string>(
     SELECTED_FILTER_STORAGE_KEY,
@@ -57,20 +61,26 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
-      return defaultMsgFilters.filter(v => v.mode !== FilterOptMode.follow);
+      return defaultHomeTimelineFilters.filter(
+        v => v.mode !== FilterOptMode.follow,
+      );
     }
 
     if (noscriptMsgFilters) {
       console.debug('noscriptMsgFilters: ', noscriptMsgFilters);
-      const opts: MsgFilter[] = [
-        ...defaultMsgFilters.filter(f => f.mode === FilterOptMode.follow),
+      const opts: TimelineFilterOption[] = [
+        ...defaultHomeTimelineFilters.filter(
+          f => f.mode === FilterOptMode.follow,
+        ),
         ...noscriptMsgFilters,
       ];
       return opts;
     }
 
-    return defaultMsgFilters.filter(f => f.mode === FilterOptMode.follow);
-  }, [defaultMsgFilters, noscriptMsgFilters, isLoggedIn, myPublicKey]);
+    return defaultHomeTimelineFilters.filter(
+      f => f.mode === FilterOptMode.follow,
+    );
+  }, [defaultHomeTimelineFilters, noscriptMsgFilters, isLoggedIn, myPublicKey]);
 
   return (
     <BaseLayout>

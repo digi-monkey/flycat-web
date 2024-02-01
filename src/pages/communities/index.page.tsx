@@ -20,7 +20,7 @@ import { isValidPublicKey } from 'utils/validator';
 import { contactQuery, dbQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { TimelineTabs } from 'components/TimelineTabs';
-import { defaultCommFilterOptions } from './filter-option';
+import { defaultCommTimelineFilters } from 'core/timeline-filter';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -52,7 +52,7 @@ const Explore = () => {
   }, [myPublicKey]);
 
   const filterOptions = useMemo(() => {
-    return defaultCommFilterOptions.map(f => {
+    return defaultCommTimelineFilters.map(f => {
       if (f.key === 'all-tribes') {
         return f;
       }
@@ -77,7 +77,7 @@ const Explore = () => {
       }
       return f;
     });
-  }, [defaultCommFilterOptions, myContactEvent]);
+  }, [defaultCommTimelineFilters, myContactEvent]);
 
   useLiveQuery(async () => {
     const filter = Nip172.communitiesFilter();
