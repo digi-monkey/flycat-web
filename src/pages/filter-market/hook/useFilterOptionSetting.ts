@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
-import { MsgFilter } from 'core/msg-filter/filter';
+import { TimelineFilterOption } from 'core/timeline-filter';
 import { FilterOption } from './useFilterNoscripts';
 
 export interface FilterOptionSetting {
@@ -50,7 +50,7 @@ export function useFilterOptionSetting() {
   };
 
   const toMsgFilter = (filterOpt: FilterOption, event: Event) => {
-    const res: MsgFilter = {
+    const res: TimelineFilterOption = {
       key: filterOpt.naddr,
       label: `${filterOpt.title}@${filterOpt.pubkey.slice(0, 3)}`,
       description: filterOpt.description,

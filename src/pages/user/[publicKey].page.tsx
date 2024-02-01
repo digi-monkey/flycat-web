@@ -50,8 +50,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import { Nip19, Nip19DataType } from 'core/nip/19';
-import { defaultProfilePageMsgFilters } from './filter-option';
 import { TimelineTabs } from 'components/TimelineTabs';
+import { defaultProfileTimelineFilters } from 'core/timeline-filter';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -406,7 +406,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
         )}
 
         <TimelineTabs
-          filterOptions={defaultProfilePageMsgFilters}
+          filterOptions={defaultProfileTimelineFilters}
           worker={worker}
           visitingUser={publicKey}
         />

@@ -1,5 +1,5 @@
 import { TimelineRender } from 'components/TimelineRender';
-import { MsgFilter } from 'core/msg-filter/filter';
+import { TimelineFilterOption } from 'core/timeline-filter';
 import { CallWorker } from 'core/worker/caller';
 import { useMemo } from 'react';
 import {
@@ -16,7 +16,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { isValidPublicKey } from 'utils/validator';
 
 export interface TimelineProp {
-  msgFilter: MsgFilter;
+  msgFilter: TimelineFilterOption;
   worker: CallWorker | undefined;
   visitingUser?: PublicKey;
 }

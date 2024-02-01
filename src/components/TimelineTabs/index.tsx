@@ -1,14 +1,14 @@
 import * as Tabs from '@radix-ui/react-tabs';
 import Icon from 'components/Icon';
 import { Timeline } from 'components/Timeline';
-import { MsgFilter } from 'core/msg-filter/filter';
+import { TimelineFilterOption } from 'core/timeline-filter';
 import { PublicKey } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 export interface TimelineTabsProp {
-  filterOptions: MsgFilter[];
+  filterOptions: TimelineFilterOption[];
   worker: CallWorker | undefined;
   defaultActiveKey?: string;
   onActiveKeyChanged?: (val: string) => any;

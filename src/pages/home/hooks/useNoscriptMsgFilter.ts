@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { dbEventTable, dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
-import { MsgFilter } from 'core/msg-filter/filter';
+import { TimelineFilterOption } from 'core/timeline-filter';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
 import { useCallback } from 'react';
 
@@ -23,7 +23,7 @@ export function useNoscriptMsgFilter() {
         }
         return null;
       })
-      .filter(m => m != null) as MsgFilter[];
+      .filter(m => m != null) as TimelineFilterOption[];
     return msgFilters;
   }, [filterOpts]);
 
