@@ -1,7 +1,7 @@
 import { CallWorker } from 'core/worker/caller';
 import { useQuery } from '@tanstack/react-query';
 import { EventId, Filter } from 'core/nostr/type';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQueryMsg } from 'components/TimelineRender/hook/useQueryMsg';
 import { FilterOptPayload, Nip188, NoscriptPayload } from 'core/nip/188';
 import { cloneDeep } from 'lodash';
@@ -25,7 +25,7 @@ export function useNoscriptFilterOptions({
   );
   const { queryMsg } = useQueryMsg();
   const queryKey = ['filter-market', filter, relayUrls];
-  const queryFn = async () => {
+  const queryFn = useCallback(async () => {
     const data = await queryMsg({ filter, worker });
 
     // prevent db data will not update forever
@@ -37,15 +37,12 @@ export function useNoscriptFilterOptions({
     }
 
     return data;
-  };
+  }, [queryMsg, worker]);
+
   const { data } = useQuery({
     queryKey,
     queryFn,
     retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
   });
 
   const filterOpts = useMemo(() => {
