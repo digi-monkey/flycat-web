@@ -27,8 +27,7 @@ import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
 import { TimelineTabs } from 'components/TimelineTabs';
-import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
-import { useNoscriptMsgFilter } from './hooks/useNoscriptMsgFilter';
+import { useNoscriptTimelineFilter } from './hooks/useNoscriptTimelineFilter';
 import { FilterOptMode } from 'core/nip/188';
 
 export interface HomePageProps {
@@ -57,7 +56,7 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
 
   useSubContactList(myPublicKey, newConn, worker);
 
-  const noscriptMsgFilters = useNoscriptMsgFilter();
+  const noscriptTimelineFilters = useNoscriptTimelineFilter();
 
   const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
@@ -66,13 +65,13 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
       );
     }
 
-    if (noscriptMsgFilters) {
-      console.debug('noscriptMsgFilters: ', noscriptMsgFilters);
+    if (noscriptTimelineFilters) {
+      console.debug('noscriptTimelineFilters: ', noscriptTimelineFilters);
       const opts: TimelineFilterOption[] = [
         ...defaultHomeTimelineFilters.filter(
           f => f.mode === FilterOptMode.follow,
         ),
-        ...noscriptMsgFilters,
+        ...noscriptTimelineFilters,
       ];
       return opts;
     }
@@ -80,7 +79,12 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
     return defaultHomeTimelineFilters.filter(
       f => f.mode === FilterOptMode.follow,
     );
-  }, [defaultHomeTimelineFilters, noscriptMsgFilters, isLoggedIn, myPublicKey]);
+  }, [
+    defaultHomeTimelineFilters,
+    noscriptTimelineFilters,
+    isLoggedIn,
+    myPublicKey,
+  ]);
 
   return (
     <BaseLayout>
