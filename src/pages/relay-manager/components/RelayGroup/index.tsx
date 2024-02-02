@@ -56,9 +56,13 @@ export default function RelayGroup() {
     <div className="h-full flex flex-col">
       <div className="md:hidden">
         <Tabs value={selectedGroupId} onValueChange={setSelectedGroupId}>
-          <TabsList>
+          <TabsList className="w-full flex justify-between overflow-scroll border-0 border-b border-solid border-b-gray-200">
             {Object.values(relayGroups).map(group => (
-              <TabsTrigger key={group.id} value={group.id}>
+              <TabsTrigger
+                className="font-bold font-noto text-sm w-full cursor-pointer py-4 px-2 text-gray-600 whitespace-nowrap border-transparent bg-transparent border-0 data-[state=active]:text-green-700 data-[state=active]:border-b-2 data-[state=active]:border-green-500"
+                key={group.id}
+                value={group.id}
+              >
                 {group.title}
               </TabsTrigger>
             ))}

@@ -214,7 +214,7 @@ export default function RelayTable(props: RelayTableProps) {
   }, [selectedRelays.length]);
 
   return (
-    <div className="h-[calc(100%-38px)] relative flex flex-col justify-between">
+    <div className="relative flex flex-col justify-between">
       <div className="px-4">
         <Table className="border-collapse indent-0">
           <TableHeader className="border-border-01">
