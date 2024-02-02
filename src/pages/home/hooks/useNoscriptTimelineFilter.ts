@@ -3,7 +3,9 @@ import { dbEventTable, dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { Nip01 } from 'core/nip/01';
 import { TimelineFilterOption } from 'core/timeline-filter';
+import { FilterOption } from 'pages/filter-market/hook/useFilterNoscripts';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
+import { resolve } from 'path';
 import { useCallback } from 'react';
 
 export function useNoscriptTimelineFilter() {
@@ -11,16 +13,23 @@ export function useNoscriptTimelineFilter() {
   const filterOpts = filterOptSetting.getOpts();
 
   const queryFn = useCallback(async () => {
-    const naddrs = filterOpts.map(f => f.naddr);
-    const events: DbEvent[] = [];
-    for (const addr of naddrs) {
-      const e = await dbQuery.getEventByAddr(addr, []);
-      if (e) events.push(e);
-    }
+    const promises = filterOpts.map(f => {
+      return new Promise(async resolve => {
+        const eventId = f.eventId;
+        const addr = f.naddr;
+        let event: DbEvent | undefined | null = await dbEventTable.get(eventId);
+        if (!event) {
+          event = await dbQuery.getEventByAddr(addr, []);
+        }
+        return resolve([event, f]);
+      }) as Promise<[DbEvent | undefined | null, FilterOption]>;
+    });
 
-    const msgFilters = filterOpts
-      .map(opt => {
-        const e = events.find(e => Nip01.getAddr(e) === opt.naddr);
+    const res = await Promise.all(promises);
+
+    const msgFilters = res
+      .map(item => {
+        const [e, opt] = item;
         if (e) {
           return filterOptSetting.toTimelineFilter(opt, e);
         }
