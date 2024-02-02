@@ -8,6 +8,7 @@ import { deserializeMetadata } from 'core/nostr/content';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { isValidPublicKey } from 'utils/validator';
 import { isNip05DomainName } from 'core/nip/05';
+import { Nip01 } from 'core/nip/01';
 
 export class Query {
   private readonly table: Table<DbEvent>;
@@ -192,6 +193,28 @@ export class Query {
     const sortedCollection = this.table.orderBy('created_at').reverse();
     const events = await doQuery(sortedCollection);
     return events;
+  }
+
+  async getEventByAddr(addr: string, relayUrls: string[]) {
+    const { pubkey, kind, id } = Nip01.parseAddr(addr);
+    const filterRelays = (event: DbEvent) => {
+      const seenRelays = event.seen.map(r => normalizeWsUrl(r));
+      if (
+        relayUrls.length > 0 &&
+        !relayUrls.some(relay => seenRelays.includes(normalizeWsUrl(relay)))
+      ) {
+        return false;
+      }
+      return true;
+    };
+    const events = await this.table
+      .filter(e => e.kind === kind)
+      .filter(e => e.pubkey === pubkey)
+      .filter(e => e.tags.some(t => t[0] === EventTags.D && t[1] === id))
+      .filter(filterRelays)
+      .sortBy('created_at');
+    if (events.length > 0) return events[0];
+    return null;
   }
 }
 
