@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { dbEventTable, dbQuery } from 'core/db';
 import { DbEvent } from 'core/db/schema';
+import { Nip01 } from 'core/nip/01';
 import { TimelineFilterOption } from 'core/timeline-filter';
 import { useFilterOptionSetting } from 'pages/filter-market/hook/useFilterOptionSetting';
 import { useCallback } from 'react';
@@ -10,14 +11,16 @@ export function useNoscriptTimelineFilter() {
   const filterOpts = filterOptSetting.getOpts();
 
   const queryFn = useCallback(async () => {
-    const eventIds = filterOpts.map(f => f.eventId);
-    const events = (await dbEventTable.bulkGet(eventIds)).filter(
-      e => e != null,
-    ) as DbEvent[];
+    const naddrs = filterOpts.map(f => f.naddr);
+    const events: DbEvent[] = [];
+    for (const addr of naddrs) {
+      const e = await dbQuery.getEventByAddr(addr, []);
+      if (e) events.push(e);
+    }
 
     const msgFilters = filterOpts
       .map(opt => {
-        const e = events.find(e => e.id === opt.eventId);
+        const e = events.find(e => Nip01.getAddr(e) === opt.naddr);
         if (e) {
           return filterOptSetting.toTimelineFilter(opt, e);
         }
