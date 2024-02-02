@@ -1,3 +1,4 @@
+import { schnorrVerify } from 'core/crypto';
 import {
   EventId,
   PublicKey,
@@ -14,4 +15,10 @@ export interface Event {
   tags: Tags;
   content: string;
   sig: Signature;
+}
+
+// todo maybe build a event class later
+
+export async function verifyEventSignature(event: Event): Promise<boolean> {
+  return await schnorrVerify(event.id, event.pubkey, event.sig);
 }

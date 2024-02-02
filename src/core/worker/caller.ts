@@ -394,21 +394,6 @@ export class CallWorker {
     return this.subFilter({ filter, customId, callRelay });
   }
 
-  subNip65RelayList({
-    pks,
-    customId,
-    callRelay,
-    limit,
-  }: {
-    pks: PublicKey[];
-    customId?: string;
-    callRelay?: { type: CallRelayType; data: string[] };
-    limit?: number;
-  }) {
-    const filter = Nip65.createFilter({ pks, limit });
-    return this.subFilter({ filter, customId, callRelay });
-  }
-
   pubEvent(event: Event, callRelay?: { type: CallRelayType; data: string[] }) {
     const data: PubEventMsg = {
       portId: this.portId,

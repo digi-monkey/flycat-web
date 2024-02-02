@@ -16,13 +16,10 @@ import { useMemo } from 'react';
 import { connect } from 'react-redux';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { isValidPublicKey } from 'utils/validator';
-import { useQueryNoScript } from './hooks/useQueryNoscript';
 import {
-  MsgFilterMode,
-  defaultMsgFiltersMap,
-  MsgFilterKey,
-  MsgFilter,
-} from '../../core/msg-filter/filter';
+  TimelineFilterOption,
+  defaultHomeTimelineFilters,
+} from '../../core/timeline-filter';
 import { trendingTags } from './hashtags';
 import { useSubContactList } from './hooks/useSubContactList';
 import styles from './index.module.scss';
@@ -30,6 +27,8 @@ import { updates } from './updates';
 import { useLocalStorage } from 'usehooks-ts';
 import { SELECTED_FILTER_STORAGE_KEY } from './constants';
 import { TimelineTabs } from 'components/TimelineTabs';
+import { useNoscriptTimelineFilter } from './hooks/useNoscriptTimelineFilter';
+import { FilterOptMode } from 'core/nip/188';
 
 export interface HomePageProps {
   isLoggedIn: boolean;
@@ -46,37 +45,46 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
   const isMobile = useMatchMobile();
 
   const defaultSelectedFilter = isLoggedIn
-    ? MsgFilterKey.follow
-    : MsgFilterKey.globalAll;
+    ? defaultHomeTimelineFilters.find(f => f.mode === FilterOptMode.follow)!.key
+    : defaultHomeTimelineFilters.find(f => f.mode === FilterOptMode.global)!
+        .key;
 
-  const [lastSelectedFilter, setLastSelectedFilter] =
-    useLocalStorage<MsgFilterKey>(
-      SELECTED_FILTER_STORAGE_KEY,
-      defaultSelectedFilter,
-    );
+  const [lastSelectedFilter, setLastSelectedFilter] = useLocalStorage<string>(
+    SELECTED_FILTER_STORAGE_KEY,
+    defaultSelectedFilter,
+  );
 
   useSubContactList(myPublicKey, newConn, worker);
 
-  const noscriptFiltersMap = useQueryNoScript({ worker, newConn });
+  const noscriptTimelineFilters = useNoscriptTimelineFilter();
 
-  const filtersMap = useMemo(() => {
-    const filter: Record<MsgFilterKey, MsgFilter> = {
-      ...defaultMsgFiltersMap,
-      ...noscriptFiltersMap,
-    };
+  const filterOpts = useMemo(() => {
     if (!isLoggedIn || !isValidPublicKey(myPublicKey)) {
-      return Object.values(filter)
-        .filter(v => v.mode !== MsgFilterMode.follow)
-        .reduce(
-          (map, filter) => ({
-            ...map,
-            [filter.key]: filter,
-          }),
-          {} as Record<MsgFilterKey, MsgFilter>,
-        );
+      return defaultHomeTimelineFilters.filter(
+        v => v.mode !== FilterOptMode.follow,
+      );
     }
-    return filter;
-  }, [defaultMsgFiltersMap, noscriptFiltersMap, isLoggedIn, myPublicKey]);
+
+    if (noscriptTimelineFilters) {
+      console.debug('noscriptTimelineFilters: ', noscriptTimelineFilters);
+      const opts: TimelineFilterOption[] = [
+        ...defaultHomeTimelineFilters.filter(
+          f => f.mode === FilterOptMode.follow,
+        ),
+        ...noscriptTimelineFilters,
+      ];
+      return opts;
+    }
+
+    return defaultHomeTimelineFilters.filter(
+      f => f.mode === FilterOptMode.follow,
+    );
+  }, [
+    defaultHomeTimelineFilters,
+    noscriptTimelineFilters,
+    isLoggedIn,
+    myPublicKey,
+  ]);
 
   return (
     <BaseLayout>
@@ -85,9 +93,10 @@ const HomePage = ({ isLoggedIn }: HomePageProps) => {
         {!isMobile && <PubNoteTextarea />}
         <TimelineTabs
           worker={worker}
-          filterOptions={Object.values(filtersMap)}
+          filterOptions={filterOpts}
           defaultActiveKey={lastSelectedFilter}
-          onActiveKeyChanged={val => setLastSelectedFilter(val as MsgFilterKey)}
+          onActiveKeyChanged={val => setLastSelectedFilter(val)}
+          editOptUrl="/filter-market"
         />
       </Left>
       <Right>

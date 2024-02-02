@@ -1,8 +1,13 @@
 export const updates = [
   {
+    content: '[2.02] v0.2.11: Relay set on NIP-51/timeline filter markets',
+    isNew: true,
+    url: 'https://github.com/digi-monkey/flycat-web/releases/tag/v0.2.11',
+  },
+  {
     content:
       '[1.19] v0.2.10: update new logo/rebuild timeline with react-query/fix view-more',
-    isNew: true,
+    isNew: false,
     url: 'https://github.com/digi-monkey/flycat-web/releases/tag/v0.2.10',
   },
   {

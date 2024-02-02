@@ -10,7 +10,7 @@ import {
   RelayResponse,
   RelayResponseType,
 } from 'core/nostr/type';
-import { Event } from 'core/nostr/Event';
+import { Event, verifyEventSignature } from 'core/nostr/Event';
 import { dexieDb } from 'core/db';
 
 export interface SubscriptionEventStream extends AsyncIterableIterator<Event> {
@@ -80,12 +80,18 @@ export function createSubscriptionEventStream(
           } else {
             clearTimeout(timeout!); // Clear the previous timeout
           }
-          // store on db
-          if (typeof window !== 'undefined') {
-            dexieDb.store(event, webSocket.url);
-          }
+          verifyEventSignature(event).then(validate => {
+            if (validate) {
+              // store on db
+              if (typeof window !== 'undefined') {
+                dexieDb.store(event, webSocket.url);
+              }
 
-          observer(false, event);
+              return observer!(false, event);
+            } else {
+              console.debug('evil event!, signature unmatched!', event);
+            }
+          });
         }
         break;
       }

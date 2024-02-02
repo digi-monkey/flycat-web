@@ -37,6 +37,8 @@ export enum WellKnownEventKind {
   people_list = 30000,
   bookmark_list = 30001,
 
+  relay_set = 30002,
+
   long_form = 30023,
 
   community_metadata = 34550,
@@ -58,6 +60,10 @@ export enum EventTags {
   Z = 'zap',
   R = 'r',
   K = 'k', // kinds
+
+  Relay = 'relay',
+  Title = 'title',
+  Description = 'description',
 }
 
 export type LudType = 'lud06' | 'lud16';

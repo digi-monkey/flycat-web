@@ -50,8 +50,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { isValidPublicKey } from 'utils/validator';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import { Nip19, Nip19DataType } from 'core/nip/19';
-import { defaultProfilePageMsgFilters } from './filter-option';
 import { TimelineTabs } from 'components/TimelineTabs';
+import { defaultProfileTimelineFilters } from 'core/timeline-filter';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -66,15 +66,6 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     (router.query as UserParams).publicKey,
   );
   const { worker, newConn } = useCallWorker();
-
-  const filterOptions = useMemo(() => {
-    return defaultProfilePageMsgFilters.map(f => {
-      if (f.filter) {
-        f.filter.authors = [publicKey];
-      }
-      return f;
-    });
-  }, [publicKey]);
 
   const [userProfile, setUserProfile] = useState<EventSetMetadataContent>();
   const [myContactEvent, setMyContactEvent] = useState<DbEvent>();
@@ -414,7 +405,11 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
           </div>
         )}
 
-        <TimelineTabs filterOptions={filterOptions} worker={worker} />
+        <TimelineTabs
+          filterOptions={defaultProfileTimelineFilters}
+          worker={worker}
+          visitingUser={publicKey}
+        />
       </Left>
       <Right>
         <div>

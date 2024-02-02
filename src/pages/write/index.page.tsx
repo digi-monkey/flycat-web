@@ -17,7 +17,7 @@ import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
 import { getDraftId } from 'utils/common';
-import { RelaySelector } from 'components/RelaySelector';
+import RelaySelector from 'components/RelaySelector';
 
 import Link from 'next/link';
 import styles from './index.module.scss';
@@ -127,7 +127,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
             <div className={styles.prePublish}>
               <div>
                 Select Relays
-                <RelaySelector className={styles.publishRelay} />
+                <RelaySelector />
               </div>
 
               <div>

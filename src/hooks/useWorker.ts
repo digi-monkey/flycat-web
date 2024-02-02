@@ -30,7 +30,7 @@ export function useCallWorker({ workerAliasName }: UseCallWorkerProps = {}) {
     }, workerAliasName || 'unnamedCallWorker');
     setWorker(worker);
     worker.pullRelayInfo();
-  }, []);
+  }, [workerAliasName]);
 
   useEffect(() => {
     if (isEqualMaps(lastWsConnectStatus, wsConnectStatus)) {
