@@ -21,7 +21,6 @@ export function useNoscriptTimelineFilter() {
     const msgFilters = filterOpts
       .map(opt => {
         const e = events.find(e => Nip01.getAddr(e) === opt.naddr);
-        console.log(opt.naddr, e);
         if (e) {
           return filterOptSetting.toTimelineFilter(opt, e);
         }
