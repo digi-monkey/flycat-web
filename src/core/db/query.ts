@@ -207,13 +207,16 @@ export class Query {
       }
       return true;
     };
-    const events = await this.table
-      .filter(e => e.kind === kind)
-      .filter(e => e.pubkey === pubkey)
-      .filter(e => e.tags.some(t => t[0] === EventTags.D && t[1] === id))
-      .filter(filterRelays)
+
+    const data = await this.table
+      .where('[pubkey+kind]')
+      .equals([pubkey, kind])
       .sortBy('created_at');
-    if (events.length > 0) return events[0];
+    const event = data
+      .filter(e => e.tags.some(t => t[0] === EventTags.D && t[1] === id))
+      .filter(filterRelays)[0];
+
+    if (event) return event;
     return null;
   }
 }
