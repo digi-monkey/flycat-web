@@ -14,15 +14,16 @@ import {
   TableCell,
 } from 'components/shared/ui/Table';
 import { Relay } from 'core/relay/type';
-import useAllRelaysQuery, {
-  useGetAllRelaysCountQuery,
-} from 'pages/relay-manager/hooks/useGetAllRelaysQuery';
 import { FaCircle } from 'react-icons/fa6';
 import { cn } from 'utils/classnames';
 import { Pagination } from 'components/shared/Pagination';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from 'components/shared/ui/Button';
 import { toast } from 'components/shared/ui/Toast/use-toast';
+import useAllRelaysQuery, {
+  useGetAllRelaysCountQuery,
+} from 'pages/relay-manager/hooks/useGetAllRelaysQuery';
+import useFindRelaysByKeywordQuery from 'pages/relay-manager/hooks/useFindRelayByKeywordQuery';
 import CopyToGroupModal from '../CopyToGroupModal';
 import useCopyRelaysMutation from 'pages/relay-manager/hooks/useCopyRelaysMutation';
 
@@ -110,14 +111,39 @@ export const columns: ColumnDef<Relay>[] = [
   },
 ];
 
-export default function RelayPool() {
+export interface RelayPoolProp {
+  keyword?: string;
+}
+
+export default function RelayPool({ keyword }: RelayPoolProp) {
   const [pageIndex, setPageIndex] = useState(1);
-  const { data: relays = [] } = useAllRelaysQuery(pageIndex, 20);
-  const { data: totalCount = 0 } = useGetAllRelaysCountQuery();
+
+  const limit = 20;
+  const isSearching = useMemo(() => keyword && keyword.length > 0, [keyword]);
+
+  const { data: searchResult } = useFindRelaysByKeywordQuery(
+    keyword,
+    pageIndex,
+    limit,
+  );
+  const { data: relays = [] } = useAllRelaysQuery(pageIndex, limit);
+  const { data: getAllTotalCount = 0 } = useGetAllRelaysCountQuery();
+
+  const pageCount = useMemo(() => {
+    const totalCount = isSearching
+      ? (searchResult?.[1] as number)
+      : getAllTotalCount;
+    return Math.ceil(totalCount / 20);
+  }, [isSearching, searchResult, getAllTotalCount]);
+
+  const tableData = useMemo(() => {
+    return isSearching ? (searchResult?.[0] as Relay[]) || [] : relays;
+  }, [isSearching, searchResult, relays]);
+
   const copyMutation = useCopyRelaysMutation();
 
   const table = useReactTable({
-    data: relays,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -190,7 +216,7 @@ export default function RelayPool() {
         <div className="flex mt-8 mb-20 justify-center">
           <Pagination
             pageIndex={pageIndex}
-            pageCount={Math.ceil(totalCount / 20)}
+            pageCount={pageCount}
             onPageChange={(page: number) => setPageIndex(page)}
           />
         </div>
