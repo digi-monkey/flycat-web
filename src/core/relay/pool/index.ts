@@ -72,6 +72,38 @@ export class RelayPool {
     return this.relays;
   }
 
+  async findRelays(keyword: string, alwaysFetch = false) {
+    const k = keyword.toLowerCase();
+    const find = (r: Relay) =>
+      r.url.toLowerCase().includes(k) || r.about?.toLowerCase().includes(k);
+
+    let relays = this.db.loadAll().filter(find);
+
+    if (alwaysFetch) {
+      const urls = relays.map(r => r.url);
+      const newRelays = (await this.fetchOnlineRelays()).filter(find);
+      for (const r of newRelays) {
+        if (!urls.includes(r.url)) {
+          this.db.save(r);
+          relays.push(r);
+        }
+      }
+
+      return filterDuplicateRelays(relays);
+    }
+
+    if (relays.length === 0) {
+      relays = (await this.fetchOnlineRelays()).filter(find);
+      for (const r of relays) {
+        this.db.save(r);
+      }
+    }
+
+    return filterDuplicateRelays(relays).sort(
+      (a, b) => RelayTracker.success_rate(a) - RelayTracker.success_rate(b),
+    );
+  }
+
   static async benchmark(
     urls: string[],
     progressCb?: (rest: number) => any,
