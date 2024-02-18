@@ -13,6 +13,7 @@ import { useCallback, useMemo } from 'react';
 import { PublicKey } from 'core/nostr/type';
 import { useProfiles } from 'hooks/useProfiles';
 import Link from 'next/link';
+import DynamicScriptComponent from './script';
 
 export function FilterMarket() {
   const router = useRouter();
@@ -130,6 +131,7 @@ export function FilterMarket() {
             </div>
           ))}
         </div>
+        <DynamicScriptComponent />
       </Left>
     </BaseLayout>
   );

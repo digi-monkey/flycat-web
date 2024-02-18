@@ -3,7 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { EventId, Filter } from 'core/nostr/type';
 import { useCallback, useMemo } from 'react';
 import { useQueryMsg } from 'components/TimelineRender/hook/useQueryMsg';
-import { FilterOptPayload, Nip188, NoscriptPayload } from 'core/nip/188';
+import {
+  FilterOptPayload,
+  Nip188,
+  NoscriptContent,
+  NoscriptPayload,
+} from 'core/nip/188';
 import { cloneDeep } from 'lodash';
 
 export interface FilterOption extends NoscriptPayload, FilterOptPayload {
@@ -51,6 +56,14 @@ export function useNoscriptFilterOptions({
     }
 
     return data.map(e => {
+      const noscriptContent: NoscriptContent = JSON.parse(e.content);
+
+      const n = new NoscriptContent(
+        noscriptContent.wasm,
+        noscriptContent.binding,
+      );
+      console.log('noscriptContent: ', n.parseBindingString());
+
       const filterOptPayload = Nip188.parseFilterOptPayload(e);
       const noscriptPayload = Nip188.parseNoscriptPayload(e);
 

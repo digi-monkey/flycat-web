@@ -11,6 +11,34 @@ export interface NoscriptPayload {
   version?: string;
   source_code?: string; // source code url
   published_at?: number; // timestamp, seconds
+  runtime_version?: string;
+}
+
+export interface NoscriptContent {
+  wasm: string;
+  binding: string;
+}
+
+export class NoscriptContent implements NoscriptContent {
+  wasm: string;
+  binding: string;
+
+  constructor(wasm: string, binding: string) {
+    this.wasm = wasm;
+    this.binding = binding;
+  }
+
+  parseBindingString() {
+    const content = this.binding;
+    const code = atob(content);
+    return code;
+  }
+
+  parseWasmString() {
+    const content = this.wasm;
+    const code = base64ToArrayBuffer(content);
+    return code;
+  }
 }
 
 export enum FilterOptMode {
@@ -28,7 +56,7 @@ export interface FilterOptPayload {
 }
 
 export class Nip188 {
-  static kind = 32042; // nostr script kind
+  static kind = 32043; // nostr script kind
   static noscriptTagLabel = 'noscript';
   static customFilterOptLabelValue = 'wasm:msg:filter';
 
@@ -260,6 +288,16 @@ export class Nip188 {
     }
     return bytes.buffer;
   }
+}
+
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; ++i) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
 }
 
 function findTagFirstValue<T>(tags: Tags, firstLabel: string) {
