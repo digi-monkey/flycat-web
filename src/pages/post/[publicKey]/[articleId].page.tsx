@@ -16,7 +16,6 @@ import Link from 'next/link';
 import { Paths } from 'constants/path';
 import { payLnUrlInWebLn } from 'core/lighting/lighting';
 import Icon from 'components/Icon';
-import { Button, Input } from 'antd';
 import Comments from 'components/Comments';
 import PageTitle from 'components/PageTitle';
 import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
@@ -26,6 +25,7 @@ import { isValidPublicKey } from 'utils/validator';
 import { dbQuery, profileQuery } from 'core/db';
 import { deserializeMetadata } from 'core/nostr/content';
 import { Event } from 'core/nostr/Event';
+import { Button } from 'components/shared/ui/Button';
 
 type UserParams = {
   publicKey: string;

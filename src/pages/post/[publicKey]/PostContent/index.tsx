@@ -5,8 +5,9 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import Link from 'next/link';
 import styles from './index.module.scss';
 import ReactMarkdown from 'react-markdown';
-import { Avatar, Button } from 'antd';
 import { isValidPublicKey } from 'utils/validator';
+import { Button } from 'components/shared/ui/Button';
+import Avatar from 'components/shared/ui/Avatar';
 
 const PostContent = ({ article, publicKey, userProfile, articleId, t }) => {
   const myPublicKey = useReadonlyMyPublicKey();
@@ -31,7 +32,7 @@ const PostContent = ({ article, publicKey, userProfile, articleId, t }) => {
                 <Link href={Paths.user + publicKey}>
                   <Avatar
                     src={userProfile?.picture}
-                    style={{ width: '100%', height: '100%' }}
+                    fallback={userProfile.name.slice(0, 2)}
                   />
                 </Link>
               </div>

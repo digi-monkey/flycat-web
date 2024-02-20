@@ -17,7 +17,8 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { createCallRelay } from 'core/worker/util';
 import styles from './index.module.scss';
 import Icon from '../../../components/Icon';
-import { Input, Avatar, Tooltip } from 'antd';
+import { Input, Tooltip } from 'antd';
+import Avatar from 'components/shared/ui/Avatar';
 
 type UserParams = {
   addr: Naddr;
@@ -148,15 +149,13 @@ export default function NaddrCommunity() {
           </div>
           <div className={styles.rightPanelHeader}>Moderators</div>
           <div className={styles.avatarContainer}>
-            <Avatar.Group maxCount={5}>
-              {community?.moderators.map(pk => (
-                <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
-                  <a href={'/user/' + pk}>
-                    <Avatar src={userMap.get(pk)?.picture} />
-                  </a>
-                </Tooltip>
-              ))}
-            </Avatar.Group>
+            {community?.moderators.slice(0, 3).map(pk => (
+              <Tooltip key={pk} title={userMap.get(pk)?.name} placement="top">
+                <a href={'/user/' + pk}>
+                  <Avatar src={userMap.get(pk)?.picture} />
+                </a>
+              </Tooltip>
+            ))}
           </div>
           <div className={styles.rightPanelHeader}>Rules</div>
           <div>{formattedText}</div>

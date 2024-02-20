@@ -18,15 +18,7 @@ import {
   ContactInfo,
 } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
-import {
-  Avatar,
-  Button,
-  Dropdown,
-  Input,
-  MenuProps,
-  Tooltip,
-  message,
-} from 'antd';
+import { Avatar, Dropdown, Input, MenuProps, Tooltip, message } from 'antd';
 import { copyToClipboard } from 'utils/common';
 import { Followings } from './followings';
 
@@ -53,6 +45,7 @@ import { Nip19, Nip19DataType } from 'core/nip/19';
 import { TimelineTabs } from 'components/TimelineTabs';
 import { defaultProfileTimelineFilters } from 'core/timeline-filter';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import { Button } from 'components/shared/ui/Button';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -245,7 +238,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
       </div>
     ) : (
       <div className={styles.btnGroup}>
-        <Button type="primary" onClick={followOrUnfollow.action}>
+        <Button onClick={followOrUnfollow.action}>
           {followOrUnfollow.label}
         </Button>
         <Tooltip title={`Article RSS URL`}>
@@ -324,7 +317,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
             }}
           />
         </Tooltip>
-        <Button type="primary" onClick={followOrUnfollow.action}>
+        <Button onClick={followOrUnfollow.action}>
           {followOrUnfollow.label}
         </Button>
       </div>

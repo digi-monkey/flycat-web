@@ -7,7 +7,7 @@ import { Event } from 'core/nostr/Event';
 import { useEffect, useMemo, useState } from 'react';
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import { EventTags, Naddr, WellKnownEventKind } from 'core/nostr/type';
-import { Avatar, Input, List } from 'antd';
+import { Input, List } from 'antd';
 import { useLoadModeratorProfiles } from './hooks/useLoadProfile';
 
 import PageTitle from 'components/PageTitle';
@@ -21,6 +21,7 @@ import { contactQuery, dbQuery } from 'core/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { TimelineTabs } from 'components/TimelineTabs';
 import { defaultCommTimelineFilters } from 'core/timeline-filter';
+import Avatar from 'components/shared/ui/Avatar';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -164,7 +165,7 @@ const Explore = () => {
                       )
                     }
                   >
-                    <Avatar size={'small'} src={item.image} />
+                    <Avatar src={item.image} fallback={item.id.slice(0, 2)} />
                     <div className={styles.name}>
                       {item?.id?.length > 0 ? item?.id : 'unnamed'}
                     </div>

@@ -5,7 +5,6 @@ import { EventWithSeen } from 'pages/type';
 import { CallWorker } from 'core/worker/caller';
 import { PostContent } from '../PostContent';
 import { Paths } from 'constants/path';
-import { Button } from 'antd';
 import { deserializeMetadata, shortifyEventId } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
@@ -15,6 +14,7 @@ import { PostUI } from '../PostItem/ui';
 import styles from '../index.module.scss';
 import Link from 'next/link';
 import Icon from 'components/Icon';
+import { Button } from 'components/shared/ui/Button';
 
 export interface PostRepostProp {
   event: Event;
@@ -133,7 +133,7 @@ const PostRepost: React.FC<PostRepostProp> = ({
               ? shortifyEventId(repostTargetEventIdFromETag)
               : 'unkonw'}
           </Link>
-          <Button onClick={tryReload} type="link">
+          <Button onClick={tryReload} variant="link">
             try reload
           </Button>
         </div>

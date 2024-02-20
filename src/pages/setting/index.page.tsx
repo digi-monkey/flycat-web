@@ -15,7 +15,7 @@ import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { loginMapStateToProps } from 'pages/helper';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Avatar, Button, Form, Input, Tabs } from 'antd';
+import { Form, Input, Tabs } from 'antd';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useRouter } from 'next/router';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
@@ -24,6 +24,8 @@ import dynamic from 'next/dynamic';
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
 import Key from './key';
+import { Button } from 'components/shared/ui/Button';
+import Avatar from 'components/shared/ui/Avatar';
 
 const Preference = dynamic(() => import('./preference'), {
   ssr: false,
@@ -157,12 +159,9 @@ export const EditProfilePage = ({ commitId }) => {
           >
             <Form.Item>
               <div>
-                <Avatar
-                  style={{ width: '64px', height: '64px' }}
-                  src={avatar}
-                />
+                <Avatar src={avatar} />
                 {avatar && (
-                  <Button type="link" onClick={() => setAvatar(undefined)}>
+                  <Button variant="link" onClick={() => setAvatar(undefined)}>
                     Remove
                   </Button>
                 )}
@@ -190,7 +189,7 @@ export const EditProfilePage = ({ commitId }) => {
               <div>
                 <img src={banner} className={styles.banner} />
                 {banner && (
-                  <Button type="link" onClick={() => setBanner(undefined)}>
+                  <Button variant="link" onClick={() => setBanner(undefined)}>
                     Remove
                   </Button>
                 )}
@@ -228,9 +227,7 @@ export const EditProfilePage = ({ commitId }) => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
+              <Button type="submit">Submit</Button>
             </Form.Item>
           </Form>
         </div>

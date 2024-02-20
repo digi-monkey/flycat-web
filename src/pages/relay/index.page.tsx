@@ -1,6 +1,5 @@
 import {
   Avatar,
-  Button,
   Card,
   Carousel,
   Divider,
@@ -36,6 +35,7 @@ import Link from 'next/link';
 import { Nip172 } from 'core/nip/172';
 import { kindToReadable } from 'core/nostr/util';
 import Icon from 'components/Icon';
+import { Button } from 'components/shared/ui/Button';
 
 export function RelayPage() {
   const router = useRouter();
@@ -246,11 +246,10 @@ export function RelayPage() {
               </div>
               <Button
                 style={{ display: 'flex' }}
-                type="link"
-                icon={<Icon className="w-6 h-6" type="icon-Gear" />}
+                variant="link"
                 onClick={() => router.push('/relay-manager')}
               >
-                Manage relays
+                <Icon className="w-6 h-6" type="icon-Gear" /> Manage relays
               </Button>
             </div>
           </div>

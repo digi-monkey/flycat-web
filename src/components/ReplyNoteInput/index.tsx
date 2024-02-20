@@ -1,6 +1,6 @@
-import { Avatar, Button, Input, Popover, Tooltip } from 'antd';
+import { Popover } from 'antd';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { EventSetMetadataContent, UserMap } from 'core/nostr/type';
+import { EventSetMetadataContent } from 'core/nostr/type';
 import { connect, useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import {
@@ -18,14 +18,15 @@ import { handleFileSelect } from 'components/PubNoteTextarea/util';
 import { useRouter } from 'next/router';
 import { noticePubEventResult } from 'components/PubEventNotice';
 
-import classNames from 'classnames';
-import styles from './index.module.scss';
 import Icon from 'components/Icon';
 import Picker from '@emoji-mart/react';
 import { Nip23 } from 'core/nip/23';
-import { dbQuery, dexieDb } from 'core/db';
-import { seedRelays } from 'core/relay/pool/seed';
+import { dexieDb } from 'core/db';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import { Button } from 'components/shared/ui/Button';
+import AvatarProfile from 'components/shared/ui/Avatar';
+import { isValidPublicKey } from 'utils/validator';
+import { Input } from 'components/shared/ui/Input';
 
 export interface ReplyEventInputProp {
   replyTo: EventWithSeen;
@@ -56,7 +57,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
     useState<EventSetMetadataContent>();
 
   const loadUserProfile = async () => {
-    if (myPublicKey) return;
+    if (!isValidPublicKey(myPublicKey)) return;
 
     // todo: set relay urls with correct one
     const profileEvent = await dexieDb.profileEvent.get(myPublicKey);
@@ -119,36 +120,44 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   const SubmitButton = ({ disabled }: { disabled: boolean }) => {
     const { t } = useTranslation();
     return (
-      <Button disabled={disabled} type="primary" onClick={submitComment}>
+      <Button disabled={disabled} onClick={submitComment}>
         Reply
       </Button>
     );
   };
 
   return (
-    <div className={styles.replyBox}>
-      <div className={styles.replyInput}>
+    <div className="w-full">
+      <div className="flex justify-stardt justify-center align-middle gap-6">
         <div>
-          <Avatar
-            size={'large'}
+          <AvatarProfile
             src={loadedUserProfile?.picture}
             alt="picture"
+            fallback={loadUserProfile.name.slice(0, 2)}
           />
         </div>
         <Input
-          type="text"
+          inputMode="text"
           value={inputText}
-          className={styles.input}
-          onChange={e => setInputText(e.target.value)}
+          onChange={e => setInputText(e.currentTarget.value)}
           placeholder="write your comment"
           onFocus={() => setIsInputFocus(true)}
+          size={'large'}
         />
       </div>
       {attachImgs.length > 0 && (
-        <div className={styles.imgs}>
+        <div className="pt-16 pl-0 mt-0">
           {attachImgs.map((url, key) => (
-            <div className={styles.imgItem} key={key}>
-              <img src={url} key={key} alt="img" />
+            <div
+              className="inline-block mr-4 mb-4 align-bottom leading-0 relative"
+              key={key}
+            >
+              <img
+                className="text-xs w-10 h-10 border border-neutral-300 p-1 rounded-md"
+                src={url}
+                key={key}
+                alt="img"
+              />
               <Icon
                 type="icon-cross"
                 onClick={() =>
@@ -160,22 +169,21 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
         </div>
       )}
       <div
-        className={classNames(styles.btn, {
-          [styles.focus]: isInputFocus,
-        })}
+        className={`transition-height duration-300 ease-in-out overflow-hidden ml-16 ${
+          isInputFocus ? 'h-12' : 'h-0'
+        }`}
       >
-        <div className={styles.container}>
-          <div className={styles.icons}>
-            <Tooltip placement="top" title={t('pubNoteTextarea.icons.image')}>
-              <Icon
-                type="icon-image"
-                onClick={() =>
-                  fileInputRef.current && fileInputRef.current.click()
-                }
-                className={styles.upload}
-              />
-            </Tooltip>
+        <div className="mt-2 flex justify-between items-center h-full">
+          <div>
+            <Icon
+              type="icon-image"
+              onClick={() =>
+                fileInputRef.current && fileInputRef.current.click()
+              }
+              className="cursor-pointer w-[24px] h-[24px] mr-[20px] fill-primary-600 align-middle"
+            />
             <input
+              hidden
               type="file"
               ref={fileInputRef}
               onChange={event =>
@@ -199,9 +207,10 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
                 />
               }
             >
-              <Tooltip placement="top" title={t('pubNoteTextarea.icons.emoji')}>
-                <Icon type="icon-emoji" className={styles.emoji} />
-              </Tooltip>
+              <Icon
+                type="icon-emoji"
+                className="w-[24px] h-[24px] mr-[20px] fill-primary-600 align-middle"
+              />
             </Popover>
           </div>
           <SubmitButton

@@ -1,10 +1,10 @@
-import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { NprofileResult } from 'core/nip/21';
 
 import styles from './index.module.scss';
+import Avatar from 'components/shared/ui/Avatar';
 
 export const Nprofile: React.FC<{ nprofile: NprofileResult }> = ({
   nprofile,
@@ -24,7 +24,12 @@ export const Nprofile: React.FC<{ nprofile: NprofileResult }> = ({
         </a>
         <div className={styles.refProfile}>
           <div className={styles.user}>
-            <Avatar src={nprofile.profile.picture} alt="picture" /> @
+            <Avatar
+              src={nprofile.profile.picture}
+              alt="picture"
+              fallback={nprofile.profile.name}
+            />{' '}
+            @
             {nprofile.profile.name ||
               shortifyPublicKey(nprofile.decodedMetadata.pubkey)}
           </div>

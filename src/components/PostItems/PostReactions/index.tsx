@@ -1,4 +1,4 @@
-import { Tooltip, message } from 'antd';
+import { Tooltip } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { fetchPublicBookmarkListEvent } from './util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -42,17 +42,20 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
-  const [messageApi, contextHolder] = message.useMessage();
   const [isBookmarking, setIsBookMarking] = useState(false);
 
   const repost = async () => {
     if (signEvent == null) return;
     if (seen == null || seen[0] == null)
-      return messageApi.error('repost required seen relay, not found!');
+      return toast({
+        title: 'repost required seen relay, not found!',
+        status: 'error',
+      });
     if (ownerEvent.kind !== WellKnownEventKind.text_note)
-      return messageApi.error(
-        'non kind-1 repost feature are not available now, WIP',
-      );
+      return toast({
+        title: 'non kind-1 repost feature are not available now, WIP',
+        status: 'error',
+      });
 
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
@@ -105,9 +108,10 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     if (data.pr) {
       sendPaymentInWebLn(data.pr);
     } else {
-      messageApi.error(
-        `something seems wrong with the zap endpoint response data`,
-      );
+      toast({
+        title: `something seems wrong with the zap endpoint response data`,
+        status: 'error',
+      });
       console.debug(`invalid zapEndpoint response data`, data);
     }
   };
@@ -119,7 +123,8 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const bookmark = async () => {
     if (signEvent == null) return;
     if (!worker == null) return;
-    if (isBookmarking) return messageApi.error('already execute bookmarking..');
+    if (isBookmarking)
+      return toast({ title: 'already execute bookmarking..', status: 'error' });
 
     setIsBookMarking(true);
 
@@ -140,7 +145,6 @@ const PostReactions: React.FC<PostReactionsProp> = ({
 
   return (
     <ul className={styles.reactions}>
-      {contextHolder}
       <li>
         <Tooltip placement="top" title={'repost'}>
           <Icon onClick={repost} type="icon-repost" className={styles.upload} />

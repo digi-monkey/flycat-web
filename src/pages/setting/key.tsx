@@ -1,16 +1,14 @@
-import { useVersion } from 'hooks/useVersion';
 import { useTranslation } from 'react-i18next';
-import { Button, Divider, Input, List } from 'antd';
+import { Divider, Input, List } from 'antd';
 import { connect } from 'react-redux';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 
-import styles from './index.module.scss';
 import { CopyText } from 'components/CopyText/CopyText';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { LoginMode } from 'store/loginReducer';
 import { getPrivateKeyFromMetamaskSignIn } from 'core/evm/metamask';
 import { getPrivateKeyFromWalletConnectSignIn } from 'core/evm/walletConnect';
-import Link from 'next/link';
+import { Button } from 'components/shared/ui/Button';
 
 function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
   const { t } = useTranslation();
@@ -161,7 +159,7 @@ function Key({ mode, isLoggedIn, privateKey, evmUsername }) {
       <Divider></Divider>
       <Button
         onClick={() => window.open('https://usenostr.org/', 'blank')}
-        type="link"
+        variant="link"
       >
         What is nostr key?
       </Button>

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { decode } from 'core/lighting/bolt11';
 import { getParams, LNURLPayParams } from 'js-lnurl';
 import { useTranslation } from 'next-i18next';
-import { Button } from 'antd';
 import Icon from 'components/Icon';
+import { Button } from 'components/shared/ui/Button';
 
 export function LightingInvoice({ url }: { url: string }) {
   const { t } = useTranslation();

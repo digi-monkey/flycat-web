@@ -1,14 +1,5 @@
 import { EventSetMetadataContent, PublicKey } from 'core/nostr/type';
-import {
-  Alert,
-  Avatar,
-  Button,
-  Dropdown,
-  List,
-  MenuProps,
-  Modal,
-  message,
-} from 'antd';
+import { Avatar, Dropdown, List, MenuProps, Modal, message } from 'antd';
 import { Paths } from 'constants/path';
 import { copyToClipboard } from 'utils/common';
 import { useRouter } from 'next/router';
@@ -20,6 +11,7 @@ import { CallWorker } from 'core/worker/caller';
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
 import Link from 'next/link';
+import { Button } from 'components/shared/ui/Button';
 
 export interface FollowingsProp {
   buildFollowUnfollow: (publicKey: string) => {
@@ -147,7 +139,7 @@ export const Followings: React.FC<FollowingsProp> = ({
         );
       })}
       <div className={styles.viewBtnContainer}>
-        <Button style={{ padding: 0 }} type="link" onClick={viewMore}>
+        <Button style={{ padding: 0 }} variant="link" onClick={viewMore}>
           View all {pks.length}
         </Button>
       </div>

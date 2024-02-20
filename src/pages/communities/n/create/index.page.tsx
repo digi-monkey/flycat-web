@@ -1,4 +1,4 @@
-import { Avatar, Button, Form, Input, Select } from 'antd';
+import { Form, Input, Select } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { ImageUploader } from 'components/ImageUploader';
 import { useEffect, useState } from 'react';
@@ -25,6 +25,8 @@ import { createCallRelay } from 'core/worker/util';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { useRouter } from 'next/router';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import { Button } from 'components/shared/ui/Button';
+import Avatar from 'components/shared/ui/Avatar';
 
 const { TextArea } = Input;
 
@@ -163,7 +165,7 @@ export default function CreateCommunity() {
               <div>
                 <img src={banner} className={styles.banner} />
                 {banner && (
-                  <Button type="link" onClick={() => setBanner(undefined)}>
+                  <Button variant="link" onClick={() => setBanner(undefined)}>
                     Remove
                   </Button>
                 )}
@@ -209,9 +211,7 @@ export default function CreateCommunity() {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
+              <Button type="submit">Submit</Button>
             </Form.Item>
           </Form>
         </div>

@@ -1,4 +1,4 @@
-import { Button, Divider, Input, List, Modal, Upload, message } from 'antd';
+import { Divider, Input, List, Modal, Upload, message } from 'antd';
 import { dbEventTable, dexieDb } from 'core/db';
 import { RelayGroupManager } from 'core/relay/group';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -8,6 +8,7 @@ import { useCallWorker } from 'hooks/useWorker';
 import { useSelector } from 'react-redux';
 import { RootState } from 'store/configureStore';
 import { SmallLoader } from 'components/Loader';
+import { Button } from 'components/shared/ui/Button';
 
 export default function Preference() {
   const myPublicKey = useReadonlyMyPublicKey();

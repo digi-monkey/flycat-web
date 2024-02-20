@@ -1,10 +1,10 @@
-import { Avatar } from 'antd';
 import { Paths } from 'constants/path';
 import { i18n } from 'next-i18next';
 import { shortifyPublicKey } from 'core/nostr/content';
 import { NpubResult } from 'core/nip/21';
 
 import styles from './index.module.scss';
+import Avatar from 'components/shared/ui/Avatar';
 
 export const Npub: React.FC<{ npub: NpubResult }> = ({ npub }) => {
   if (npub.profile) {
@@ -21,8 +21,12 @@ export const Npub: React.FC<{ npub: NpubResult }> = ({ npub }) => {
 
         <div className={styles.refProfile}>
           <div className={styles.user}>
-            <Avatar src={npub.profile.picture} alt="picture" /> @
-            {npub.profile.name || shortifyPublicKey(npub.pubkey)}
+            <Avatar
+              src={npub.profile.picture}
+              alt="picture"
+              fallback={npub.profile.name}
+            />{' '}
+            @{npub.profile.name || shortifyPublicKey(npub.pubkey)}
           </div>
           <div>{npub.profile.about}</div>
         </div>
