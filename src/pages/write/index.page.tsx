@@ -12,17 +12,25 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { publish, setLocalSave } from './util';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
-import { Button, Input, Modal } from 'antd';
 import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
 import { getDraftId } from 'utils/common';
-import RelaySelector from 'components/RelaySelector';
-
-import Link from 'next/link';
-import styles from './index.module.scss';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+
+import RelaySelector from 'components/RelaySelector';
+import Link from 'next/link';
+import { Button } from 'components/shared/ui/Button';
+import { Input } from 'components/shared/ui/Input';
+import dynamic from 'next/dynamic';
+import {
+  Dialog,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+} from 'components/shared/ui/Dialog';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
@@ -100,14 +108,23 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
   };
 
   return (
-    <div className={styles.write}>
-      <div className={styles.writeHeaderBar}>
-        <Link href={Paths.home}>
-          <img src="/logo/web/Flycat-logo-vt-dark.svg" alt="LOGO" />
+    <div className="w-full p-0 m-0">
+      <div className="sticky top-0 left-0 h-16 z-10 px-4 flex items-center justify-between bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-600">
+        <Link
+          href={Paths.home}
+          className="w-full md:w-fit h-auto items-center justify-center flex"
+        >
+          <img
+            className="object-contain w-[80px] h-[80px]"
+            src="/logo/web/Flycat-logo-vt-dark.svg"
+            alt="LOGO"
+          />
         </Link>
-        <div className={styles.btnGroup}>
+        <div className="flex fixed md:static justify-between align-middle gap-4 md:w-auto py-5 h-auto left-2 right-2 bottom-2">
           {!articleId && (
             <Button
+              variant={'secondary'}
+              className="bg-neutral-100"
               disabled={title === '' && content === ''}
               onClick={() => {
                 setLocalSave({
@@ -138,105 +155,123 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
             {t('blogWrite.btn.publish')}
           </Button>
 
-          <Modal
-            title="Publish settings"
-            open={openPublishModal}
-            onOk={onPublish}
-            onCancel={() => setOpenPublishModal(false)}
-            okText={t('blogWrite.btn.publish')}
-            cancelText={t('blogWrite.btn.cancel')}
-          >
-            <div className={styles.prePublish}>
-              <div>
-                Select Relays
-                <RelaySelector />
-              </div>
+          <Dialog open={openPublishModal} onOpenChange={setOpenPublishModal}>
+            <DialogPortal>
+              <DialogOverlay />
+              <DialogContent className="">
+                <DialogTitle>Publish Setting</DialogTitle>
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-2">
+                    Select Relays
+                    <RelaySelector />
+                  </div>
 
-              <div>
-                {t('blogWrite.form.coverImage')}
-                <div className={styles.image}>
-                  {image.length > 0 ? (
-                    <div className={styles.pic}>
-                      <img src={image} alt="banner" />
-                      <button
-                        onClick={() => setImage('')}
-                        className={styles.overlayButton}
-                      >
-                        Remove Image
-                      </button>
+                  <div className="flex flex-col gap-2">
+                    {t('blogWrite.form.coverImage')}
+                    <div className="w-full h-[228px] flex flex-shrink-0 justify-center items-center rounded bg-neutral-200">
+                      {image.length > 0 ? (
+                        <div className="w-full h-full object-contain">
+                          <img
+                            src={image}
+                            alt="banner"
+                            className="w-full h-full object-contain"
+                          />
+                          <button
+                            onClick={() => setImage('')}
+                            className="absolute top-[40%] left-[50%] max-w-full transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white bg-opacity-70 border-none cursor-pointer text-red-500"
+                          >
+                            Remove Image
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <ImageUploader onImgUrls={url => setImage(url[0])} />
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <ImageUploader onImgUrls={url => setImage(url[0])} />
-                  )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {t('blogWrite.form.summary')}
+                    <Input
+                      value={summary}
+                      onChange={event => setSummary(event.currentTarget.value)}
+                      placeholder={`${t('blogWrite.form.summary')}`}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {t('blogWrite.form.slug')}
+                    <Input
+                      value={slug}
+                      onChange={event => setSlug(event.currentTarget.value)}
+                      placeholder={`${t('blogWrite.form.slugPlaceholder')}`}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {t('blogWrite.form.dir')}
+                    <Input
+                      value={dirs}
+                      onChange={event => setDirs(event.currentTarget.value)}
+                      placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {t('blogWrite.form.tag')}
+                    <div>
+                      <HashTags
+                        predefineTags={predefineHashTags}
+                        callback={tags => setHashTags(tags.map(t => t.id))}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                {t('blogWrite.form.summary')}
-                <Input
-                  value={summary}
-                  onChange={event => setSummary(event.target.value)}
-                  placeholder={`${t('blogWrite.form.summary')}`}
-                />
-              </div>
-
-              <div>
-                {t('blogWrite.form.slug')}
-                <Input
-                  size="small"
-                  value={slug}
-                  onChange={event => setSlug(event.target.value)}
-                  placeholder={`${t('blogWrite.form.slugPlaceholder')}`}
-                />
-              </div>
-
-              <div>
-                {t('blogWrite.form.dir')}
-                <Input
-                  size="small"
-                  value={dirs}
-                  onChange={event => setDirs(event.target.value)}
-                  placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
-                />
-              </div>
-
-              <div>
-                {t('blogWrite.form.tag')}
-                <div className={styles.tags}>
-                  <HashTags
-                    predefineTags={predefineHashTags}
-                    callback={tags => setHashTags(tags.map(t => t.id))}
-                  />
+                <div className="w-full flex justify-end gap-2">
+                  <Button
+                    variant={'secondary'}
+                    onClick={() => setOpenPublishModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={onPublish}>Publish</Button>
                 </div>
-              </div>
-            </div>
-          </Modal>
+              </DialogContent>
+            </DialogPortal>
+          </Dialog>
         </div>
       </div>
 
-      <div className={styles.main}>
-        <div className={styles.title}>
+      <div className="md:w-[670px] px-2 w-auto mx-auto my-5 md:my-10 h-[calc(100vh-160px)] md:h-[calc(100vh-110px)] rounded-lg bg-gray-100">
+        <div className="flex-1 bg-gray-100 h-10 md:h-16">
           <Input
             placeholder={`${t('blogWrite.main.titlePlaceholder')}`}
             value={title}
-            onChange={event => setTitle(event.target.value)}
-            bordered={false}
+            onChange={event => setTitle(event.currentTarget.value)}
+            className="px-0 border-0 bg-transparent text-xl font-bold py-1 md:text-2xl md:py-2"
           />
         </div>
         <MdEditor
           value={content}
           onText={setContent}
-          className={styles.editor}
+          className="min-h-[700px] overflow-hidden md:w-full md:h-[var(--height)]"
         />
       </div>
     </div>
   );
 }
 
-export default connect(loginMapStateToProps)(Write);
-
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
     ...(await serverSideTranslations(locale, ['common'])),
   },
 });
+
+export default dynamic(
+  () => Promise.resolve(connect(loginMapStateToProps)(Write)),
+  {
+    ssr: false,
+  },
+);
