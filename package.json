@@ -1,6 +1,6 @@
 {
   "name": "flycat",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "private": true,
   "scripts": {
     "wasm:profile": "cd wasm && rustc --crate-type cdylib --target wasm32-unknown-unknown -C lto -C opt-level=z -o profile.wasm examples/profile.rs",
