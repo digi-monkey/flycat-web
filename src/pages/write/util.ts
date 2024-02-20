@@ -89,8 +89,6 @@ export const publish = async (
   dir,
   signEvent,
   worker: CallWorker,
-  router,
-  setPublishedToast,
 ) => {
   const dirTags: DirTags = ([Nip23ArticleMetaTags.dir] as any).concat(
     dir.split('/').filter(d => d.length > 0),
@@ -111,17 +109,8 @@ export const publish = async (
   try {
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    setPublishedToast(true);
     delLocalSave(articleParams.did);
-
-    noticePubEventResult(worker.relays.length, handler, (eventId: string) => {
-      const pathname = articleParams.slug
-        ? `${Paths.post + event.pubkey}/${encodeURIComponent(
-            articleParams.slug,
-          )}`
-        : `${Paths.event}/${eventId}/`;
-      router.push({ pathname });
-    });
+    return handler;
   } catch (error: any) {
     alert('publish failed, ' + error.message);
   }

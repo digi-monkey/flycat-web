@@ -30,6 +30,7 @@ import Link from 'next/link';
 
 import styles from './index.module.scss';
 import { useRouter } from 'next/router';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 export interface ItemProps {
   msg: Event;
@@ -40,6 +41,7 @@ export interface ItemProps {
 
 export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   const router = useRouter();
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -473,7 +475,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             );
             const event = await signEvent(rawEvent);
             const handle = worker.pubEvent(event);
-            noticePubEventResult(worker.relays.length, handle);
+            noticePubEventResult(toast, worker.relays.length, handle);
           };
           const header = (
             <div className={styles.approvalHeader}>

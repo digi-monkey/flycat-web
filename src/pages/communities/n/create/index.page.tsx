@@ -24,6 +24,7 @@ import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { createCallRelay } from 'core/worker/util';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { useRouter } from 'next/router';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 const { TextArea } = Input;
 
@@ -38,6 +39,7 @@ interface FormData {
 
 export default function CreateCommunity() {
   const router = useRouter();
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
   const { worker, newConn } = useCallWorker();
   const signEvent = useSelector(
@@ -122,7 +124,7 @@ export default function CreateCommunity() {
     const event = await signEvent(raw);
 
     const handler = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handler);
+    noticePubEventResult(toast, worker.relays.length, handler);
     router.push(
       '/communities/n/' +
         encodeURIComponent(

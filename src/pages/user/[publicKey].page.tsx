@@ -52,6 +52,7 @@ import { usePubkeyFromRouterQuery } from 'hooks/usePubkeyFromRouterQuery';
 import { Nip19, Nip19DataType } from 'core/nip/19';
 import { TimelineTabs } from 'components/TimelineTabs';
 import { defaultProfileTimelineFilters } from 'core/timeline-filter';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 type UserParams = {
   publicKey: PublicKey;
@@ -60,6 +61,7 @@ type UserParams = {
 export const ProfilePage = ({ isLoggedIn, signEvent }) => {
   const router = useRouter();
   const isMobile = useMatchMobile();
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
 
   const publicKey = usePubkeyFromRouterQuery(
@@ -153,7 +155,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(worker.relays.length, handler, () =>
+    return noticePubEventResult(toast, worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -171,7 +173,7 @@ export const ProfilePage = ({ isLoggedIn, signEvent }) => {
     });
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(worker.relays.length, handler, () =>
+    return noticePubEventResult(toast, worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };

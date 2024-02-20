@@ -12,7 +12,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { publish, setLocalSave } from './util';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
-import { Alert, Button, Input, Modal } from 'antd';
+import { Button, Input, Modal } from 'antd';
 import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
@@ -21,9 +21,12 @@ import RelaySelector from 'components/RelaySelector';
 
 import Link from 'next/link';
 import styles from './index.module.scss';
+import { noticePubEventResult } from 'components/PubEventNotice';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
   const articleId =
     router?.query?.articleId &&
@@ -37,21 +40,18 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const [slug, setSlug] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [image, setImage] = useState<string>('');
-  const [toast, setToast] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [article, setArticle] = useState<Article>();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [content, setContent] = useState<string>('');
   const [hashTags, setHashTags] = useState<string[]>([]);
-  const [saveToast, setSaveToast] = useState(false);
   const [isRestore, setIsRestore] = useState(false);
-  const [publishedToast, setPublishedToast] = useState(false);
   const [predefineHashTags, setPredefineHashTags] = useState<TagObj[]>([]);
 
   const [openPublishModal, setOpenPublishModal] = useState(false);
 
   useWorker(setUserMap, setArticle, setIsRestore);
-  useRestoreArticle(setArticle, setToast, isRestore);
+  useRestoreArticle(setArticle, toast, t('blogWrite.tipsy.restore'), isRestore);
   useArticle(
     article,
     setTitle,
@@ -63,6 +63,41 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
     setHashTags,
     setPredefineHashTags,
   );
+
+  const onPublish = async () => {
+    const handler = await publish(
+      {
+        did: articleId || did,
+        title,
+        slug,
+        image,
+        summary,
+        content,
+        hashTags,
+      },
+      dirs,
+      signEvent,
+      worker!,
+    );
+    if (handler) {
+      noticePubEventResult(
+        toast,
+        worker!.relays.length,
+        handler,
+        (eventId: string) => {
+          const pathname = slug
+            ? `${Paths.post + myPublicKey}/${encodeURIComponent(slug)}`
+            : `${Paths.event}/${eventId}/`;
+          router.push({ pathname });
+        },
+      );
+      setOpenPublishModal(false);
+      toast({
+        title: t('blogWrite.tipsy.success.publish') as string,
+        status: 'success',
+      });
+    }
+  };
 
   return (
     <div className={styles.write}>
@@ -86,7 +121,11 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                   did: did || getDraftId(),
                   updated_at: Math.floor(Date.now() / 1000),
                 });
-                setSaveToast(true);
+
+                toast({
+                  title: t('blogWrite.tipsy.success.save') as string,
+                  status: 'success',
+                });
               }}
             >
               {t('blogWrite.btn.save')}
@@ -102,24 +141,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           <Modal
             title="Publish settings"
             open={openPublishModal}
-            onOk={() =>
-              publish(
-                {
-                  did: articleId || did,
-                  title,
-                  slug,
-                  image,
-                  summary,
-                  content,
-                  hashTags,
-                },
-                dirs,
-                signEvent,
-                worker!,
-                router,
-                setPublishedToast,
-              )
-            }
+            onOk={onPublish}
             onCancel={() => setOpenPublishModal(false)}
             okText={t('blogWrite.btn.publish')}
             cancelText={t('blogWrite.btn.cancel')}
@@ -191,30 +213,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           </Modal>
         </div>
       </div>
-      {toast && (
-        <Alert
-          banner={true}
-          message={t('blogWrite.tipsy.restore')}
-          type="success"
-          closable
-        />
-      )}
-      {saveToast && (
-        <Alert
-          banner={true}
-          type="success"
-          message={t('blogWrite.tipsy.success.save')}
-          closable
-        />
-      )}
-      {publishedToast && (
-        <Alert
-          banner={true}
-          type="success"
-          message={t('blogWrite.tipsy.success.publish')}
-          closable
-        />
-      )}
+
       <div className={styles.main}>
         <div className={styles.title}>
           <Input
