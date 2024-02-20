@@ -4,12 +4,13 @@ import { connect } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useCallWorker } from 'hooks/useWorker';
 import { useTranslation } from 'next-i18next';
-import { useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { Button, Mentions, Popover, Select, Tooltip } from 'antd';
 import { handleFileSelect, handleSubmitText } from './util';
 import { IMentions, useLoadCommunities, useSetMentions } from './hooks';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 import Link from 'next/link';
 import Icon from 'components/Icon';
@@ -19,6 +20,7 @@ import classNames from 'classnames';
 import { Naddr } from 'core/nostr/type';
 import { maxStrings } from 'utils/common';
 import dynamic from 'next/dynamic';
+import { noticePubEventResult } from 'components/PubEventNotice';
 
 const Picker = dynamic(() => import('@emoji-mart/react'), {
   ssr: false,
@@ -54,6 +56,7 @@ const PubNoteTextarea: React.FC<Props> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { worker, newConn } = useCallWorker();
   const [text, setText] = useState('');
   const [attachImgs, setAttachImgs] = useState<string[]>([]);
@@ -78,29 +81,38 @@ const PubNoteTextarea: React.FC<Props> = ({
     }
   }, []);
 
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    if (!worker) return;
+
+    const handler = await handleSubmitText(
+      event,
+      text,
+      attachImgs,
+      setText,
+      setAttachImgs,
+      selectMention,
+      signEvent,
+      myPublicKey,
+      worker,
+      pubSuccessCallback,
+      selectedCommunity,
+    );
+    if (handler)
+      noticePubEventResult(
+        toast,
+        worker.relays.length,
+        handler,
+        pubSuccessCallback,
+      );
+  };
+
   return (
     <div
       className={classNames(styles.pubNoteTextarea, {
         [styles.focus]: mentionsFocus,
       })}
     >
-      <form
-        onSubmit={event =>
-          handleSubmitText(
-            event,
-            text,
-            attachImgs,
-            setText,
-            setAttachImgs,
-            selectMention,
-            signEvent,
-            myPublicKey,
-            worker,
-            pubSuccessCallback,
-            selectedCommunity,
-          )
-        }
-      >
+      <form onSubmit={onSubmit}>
         <Mentions
           rows={3}
           placeholder={t('pubNoteBox.hintText') || ''}

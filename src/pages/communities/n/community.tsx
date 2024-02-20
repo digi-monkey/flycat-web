@@ -39,6 +39,7 @@ import { RawEvent } from 'core/nostr/RawEvent';
 import { useRouter } from 'next/router';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import PageTitle from 'components/PageTitle';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -79,6 +80,7 @@ export function Community({
 
   const router = useRouter();
   const isMobile = useMatchMobile();
+  const { toast } = useToast();
 
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -119,7 +121,7 @@ export function Community({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(worker.relays.length, handler, () =>
+    return noticePubEventResult(toast, worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -130,7 +132,7 @@ export function Community({
     const rawEvent = createUnFollowContactEvent(myContactEvent, target);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    return noticePubEventResult(worker.relays.length, handler, () =>
+    return noticePubEventResult(toast, worker.relays.length, handler, () =>
       getContactEvent({ worker, pk: myPublicKey }),
     );
   };
@@ -429,7 +431,7 @@ export function Community({
     );
     const event = await signEvent(rawEvent);
     const handle = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handle, () =>
+    noticePubEventResult(toast, worker.relays.length, handle, () =>
       getApprovalShortNoteId(),
     );
   };

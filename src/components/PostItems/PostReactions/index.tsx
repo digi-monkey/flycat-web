@@ -21,6 +21,7 @@ import { dexieDb } from 'core/db';
 
 import Icon from 'components/Icon';
 import styles from './index.module.scss';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -36,6 +37,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const { t } = useTranslation();
 
   const router = useRouter();
+  const { toast } = useToast();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
@@ -55,7 +57,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handler);
+    noticePubEventResult(toast, worker.relays.length, handler);
   };
 
   const zap = async () => {
@@ -132,7 +134,7 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     const event = await signEvent(rawEvent);
 
     const handler = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handler);
+    noticePubEventResult(toast, worker.relays.length, handler);
     setIsBookMarking(false);
   };
 

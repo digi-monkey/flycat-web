@@ -5,7 +5,6 @@ import { RelayPool } from 'core/relay/pool';
 import { useRelayGroupsQuery } from 'hooks/relay/useRelayGroupsQuery';
 import { useRelayGroupManager } from 'hooks/relay/useRelayManagerContext';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { v4 as uuidv4 } from 'uuid';
 import { useMutation } from '@tanstack/react-query';
 
 export default function useFindAutoRelayListMutation() {

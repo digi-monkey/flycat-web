@@ -89,14 +89,22 @@ export function useArticle(
   ]);
 }
 
-export function useRestoreArticle(setArticle, setToast, isRestore) {
+export function useRestoreArticle(
+  setArticle,
+  toast,
+  message: string,
+  isRestore,
+) {
   const { did } = useRouter().query;
 
   useEffect(() => {
     const _article = getLocalSave(did);
     if (_article && isRestore) {
       setArticle(_article);
-      setToast(true);
+      toast({
+        title: message,
+        status: 'success',
+      });
     }
   }, [isRestore, did]);
 }
