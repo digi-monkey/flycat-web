@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import { Paths } from 'constants/path';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { EventWithSeen } from 'pages/type';
@@ -16,7 +15,7 @@ interface PostUserProps {
   event: EventWithSeen;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
 }
 

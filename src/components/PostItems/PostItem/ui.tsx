@@ -2,7 +2,6 @@ import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
 import { toUnSeenEvent } from 'core/nostr/util';
 import { PostCommunityHeader } from '../PostCommunityHeader';
-import { message } from 'antd';
 import { DbEvent } from 'core/db/schema';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { cn } from 'utils/classnames';
@@ -43,7 +42,7 @@ export interface PostUIProp {
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
   extraHeader?: React.ReactNode;
 }
@@ -59,8 +58,9 @@ export const PostUI: React.FC<PostUIProp> = ({
 }) => {
   const { toast } = useToast();
   const menu = useMemo(() => {
-    const onBroadcastEvent = async (event: Event, msg: typeof message) => {
-      if (!worker) return msg.error('worker not found.');
+    const onBroadcastEvent = async (event: Event) => {
+      if (!worker)
+        return toast({ title: 'worker not found.', status: 'error' });
       const pubHandler = worker.pubEvent(event);
       noticePubEventResult(toast, worker.relays.length, pubHandler);
     };

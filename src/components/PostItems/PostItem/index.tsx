@@ -2,7 +2,6 @@ import { Nip23 } from 'core/nip/23';
 import { Nip9802 } from 'core/nip/9802';
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
-import { message } from 'antd';
 import { DbEvent } from 'core/db/schema';
 import { EventSetMetadataContent } from 'core/nostr/type';
 import { Nip18 } from 'core/nip/18';
@@ -75,7 +74,7 @@ interface PostItemProps {
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
   extraHeader?: React.ReactNode;
   truncate?: boolean;
