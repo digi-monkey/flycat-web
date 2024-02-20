@@ -11,6 +11,7 @@ import { noticePubEventResult } from 'components/PubEventNotice';
 import styles from '../index.module.scss';
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 const PostUser = dynamic(
   async () => {
@@ -56,11 +57,12 @@ export const PostUI: React.FC<PostUIProp> = ({
   extraHeader,
   showFromCommunity,
 }) => {
+  const { toast } = useToast();
   const menu = useMemo(() => {
     const onBroadcastEvent = async (event: Event, msg: typeof message) => {
       if (!worker) return msg.error('worker not found.');
       const pubHandler = worker.pubEvent(event);
-      noticePubEventResult(worker.relays.length, pubHandler);
+      noticePubEventResult(toast, worker.relays.length, pubHandler);
     };
     const menu = [
       {

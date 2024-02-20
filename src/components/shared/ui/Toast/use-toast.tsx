@@ -6,8 +6,9 @@ const TOAST_REMOVE_DELAY = 1000000;
 
 type ToasterToast = Omit<ToastProps, 'type'> & {
   id: string;
-  title: React.ReactNode;
+  title?: React.ReactNode;
   description?: React.ReactNode;
+  customContent?: React.ReactNode;
   action?: ToastActionElement;
   closeable?: boolean;
   status?: 'info' | 'success' | 'warning' | 'error' | 'loading';

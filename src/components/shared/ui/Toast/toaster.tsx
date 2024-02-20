@@ -51,6 +51,7 @@ export function Toaster() {
         id,
         title,
         description,
+        customContent,
         action,
         closeable,
         status: level = 'info',
@@ -64,17 +65,23 @@ export function Toaster() {
               'pr-4': !closeable,
             })}
           >
-            <div className="grid gap-1">
-              <div className="flex gap-3">
-                <div className="pt-1.5">{renderIcon(level)}</div>
-                <ToastTitle className="flex-1 flex items-center">
-                  {title}
-                </ToastTitle>
+            {customContent ? (
+              customContent
+            ) : (
+              <div className="grid gap-1">
+                <div className="flex gap-3">
+                  <div className="pt-1.5">{renderIcon(level)}</div>
+                  {title && (
+                    <ToastTitle className="flex-1 flex items-center">
+                      {title}
+                    </ToastTitle>
+                  )}
+                </div>
+                {description && (
+                  <ToastDescription>{description}</ToastDescription>
+                )}
               </div>
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
+            )}
             {action}
             {closeable && <ToastClose />}
           </Toast>

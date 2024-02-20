@@ -25,6 +25,7 @@ import Picker from '@emoji-mart/react';
 import { Nip23 } from 'core/nip/23';
 import { dbQuery, dexieDb } from 'core/db';
 import { seedRelays } from 'core/relay/pool/seed';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 export interface ReplyEventInputProp {
   replyTo: EventWithSeen;
@@ -39,6 +40,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
   isLoggedIn,
 }) => {
   const router = useRouter();
+  const { toast } = useToast();
   const { t } = useTranslation();
   const myPublicKey = useReadonlyMyPublicKey();
   const signEvent = useSelector(
@@ -88,7 +90,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
       const rawEvent = Nip23.commentToArticleEvent(inputText, replyTo);
       const event = await signEvent(rawEvent);
       const handler = worker.pubEvent(event);
-      noticePubEventResult(worker.relays.length, handler, successCb);
+      noticePubEventResult(toast, worker.relays.length, handler, successCb);
       setInputText('');
       return;
     }
@@ -110,7 +112,7 @@ export const ReplyEventInput: React.FC<ReplyEventInputProp> = ({
 
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handler, successCb);
+    noticePubEventResult(toast, worker.relays.length, handler, successCb);
     setInputText('');
   };
 
