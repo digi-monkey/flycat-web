@@ -1,10 +1,8 @@
-import { Paths } from 'constants/path';
 import { LOCAL_SAVE_KEY } from 'constants/common';
 import { Nip23, DirTags, Nip23ArticleMetaTags } from 'core/nip/23';
 import { Event } from 'core/nostr/Event';
 import { WellKnownEventKind, EventSetMetadataContent } from 'core/nostr/type';
 import { CallWorker } from 'core/worker/caller';
-import { noticePubEventResult } from 'components/PubEventNotice';
 
 export const handleEvent = (publicKey, setUserMap, setArticle) => {
   return function handleEvent(event: Event, relayUrl?: string) {

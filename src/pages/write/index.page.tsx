@@ -12,17 +12,20 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { publish, setLocalSave } from './util';
 import { useArticle, useRestoreArticle, useWorker } from './hooks';
-import { Button, Input, Modal } from 'antd';
+import { Modal } from 'antd';
 import { Article } from 'core/nip/23';
 import { UserMap } from 'core/nostr/type';
 import { MdEditor } from 'components/Editor';
 import { getDraftId } from 'utils/common';
-import RelaySelector from 'components/RelaySelector';
-
-import Link from 'next/link';
-import styles from './index.module.scss';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+
+import RelaySelector from 'components/RelaySelector';
+import Link from 'next/link';
+import styles from './index.module.scss';
+import { Button } from 'components/shared/ui/Button';
+import { Input } from 'components/shared/ui/Input';
+import dynamic from 'next/dynamic';
 
 export function Write({ signEvent }: { signEvent?: SignEvent }) {
   const router = useRouter();
@@ -108,6 +111,8 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
         <div className={styles.btnGroup}>
           {!articleId && (
             <Button
+              variant={'secondary'}
+              className="bg-neutral-100"
               disabled={title === '' && content === ''}
               onClick={() => {
                 setLocalSave({
@@ -175,7 +180,7 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
                 {t('blogWrite.form.summary')}
                 <Input
                   value={summary}
-                  onChange={event => setSummary(event.target.value)}
+                  onChange={event => setSummary(event.currentTarget.value)}
                   placeholder={`${t('blogWrite.form.summary')}`}
                 />
               </div>
@@ -183,9 +188,8 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
               <div>
                 {t('blogWrite.form.slug')}
                 <Input
-                  size="small"
                   value={slug}
-                  onChange={event => setSlug(event.target.value)}
+                  onChange={event => setSlug(event.currentTarget.value)}
                   placeholder={`${t('blogWrite.form.slugPlaceholder')}`}
                 />
               </div>
@@ -193,9 +197,8 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
               <div>
                 {t('blogWrite.form.dir')}
                 <Input
-                  size="small"
                   value={dirs}
-                  onChange={event => setDirs(event.target.value)}
+                  onChange={event => setDirs(event.currentTarget.value)}
                   placeholder={`${t('blogWrite.form.dirPlaceholder')}`}
                 />
               </div>
@@ -219,8 +222,8 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
           <Input
             placeholder={`${t('blogWrite.main.titlePlaceholder')}`}
             value={title}
-            onChange={event => setTitle(event.target.value)}
-            bordered={false}
+            onChange={event => setTitle(event.currentTarget.value)}
+            className="border-0 bg-transparent"
           />
         </div>
         <MdEditor
@@ -233,10 +236,15 @@ export function Write({ signEvent }: { signEvent?: SignEvent }) {
   );
 }
 
-export default connect(loginMapStateToProps)(Write);
-
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
     ...(await serverSideTranslations(locale, ['common'])),
   },
 });
+
+export default dynamic(
+  () => Promise.resolve(connect(loginMapStateToProps)(Write)),
+  {
+    ssr: false,
+  },
+);
