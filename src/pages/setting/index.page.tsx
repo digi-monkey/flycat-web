@@ -18,6 +18,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { Avatar, Button, Form, Input, Tabs } from 'antd';
 import { noticePubEventResult } from 'components/PubEventNotice';
 import { useRouter } from 'next/router';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 import dynamic from 'next/dynamic';
 import PageTitle from 'components/PageTitle';
@@ -43,6 +44,7 @@ interface FormData {
 export const EditProfilePage = ({ commitId }) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const { toast } = useToast();
   const tabKey = (router.query.tabKey as string | undefined) || 'account';
   const handleTabChange = key => {
     router.push(`?tabKey=${key}`); // Update the query parameter in the URL when the tab changes
@@ -138,7 +140,7 @@ export const EditProfilePage = ({ commitId }) => {
     const rawEvent = await Nostr.newProfileRawEvent(data);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
-    noticePubEventResult(worker.relays.length, handler);
+    noticePubEventResult(toast, worker.relays.length, handler);
   };
 
   const items = [

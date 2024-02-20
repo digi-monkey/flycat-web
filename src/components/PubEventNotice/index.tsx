@@ -1,25 +1,18 @@
-import { Collapse, Modal, Progress, message } from 'antd';
 import { PubEventResultStream } from 'core/worker/sub';
 import { PubEventResultMsg } from 'core/worker/type';
-
-import styles from './index.module.scss';
-import Link from 'next/link';
-import Icon from 'components/Icon';
-
-const { Panel } = Collapse;
+import { toast as Toast } from 'components/shared/ui/Toast/use-toast';
+import { PublishNotice } from 'components/shared/PublishNotice';
 
 export async function noticePubEventResult(
+  toast: typeof Toast,
   relayCount: number,
   pubStream: PubEventResultStream,
   successCb?: (eventId: string, successRelays: string[]) => any,
 ) {
-  const instance = Modal.info({
+  toast({
     title: `Publish event to ${0}/${relayCount} relays`,
-    icon: null,
-    content: (
-      <Progress percent={calculatePercentage(0, relayCount)} showInfo={false} />
-    ),
-    okButtonProps: { style: { display: 'none' } },
+    status: 'loading',
+    duration: 60000,
   });
 
   const exec = async () => {
@@ -30,16 +23,9 @@ export async function noticePubEventResult(
 
       // update ui
       index++;
-      instance.update({
+      toast({
         title: `Publish event to ${index}/${relayCount} relays`,
-        icon: null,
-        content: (
-          <Progress
-            percent={calculatePercentage(index, relayCount)}
-            showInfo={false}
-          />
-        ),
-        okButtonProps: { style: { display: 'none' } },
+        status: 'loading',
       });
     }
     pubStream.unsubscribe();
@@ -55,68 +41,16 @@ export async function noticePubEventResult(
 
   const pubResult = await exec();
 
-  instance.destroy();
-  const key = 'pub-result';
-  message.info({
-    key,
-    icon: <span></span>,
-    content: (
-      <div className={styles.messageContainer}>
-        <div className={styles.title}>
-          <h3>
-            Publish <Link href={'/event/' + pubStream.eventId}>note</Link> to{' '}
-            {relayCount} relays
-          </h3>
-          <button
-            onClick={() => message.destroy(key)}
-            className={styles.closeButton}
-          >
-            <Icon type="icon-cross" width={24} height={24} />
-          </button>
-        </div>
+  const success = pubResult.filter(res => res.isSuccess).map(r => r.relayUrl);
+  const fail = pubResult
+    .filter(res => !res.isSuccess)
+    .map(res => {
+      return { relay: res.relayUrl, reason: res.reason || 'unknown reason' };
+    });
+  const content = <PublishNotice success={success} fail={fail} />;
 
-        <div className={styles.eventId}></div>
-        <Collapse>
-          <Panel header="Expand relay detail" key="1">
-            <div>
-              {pubResult
-                .filter(res => res.isSuccess)
-                .map(res => {
-                  return (
-                    <li key={res.relayUrl} className={styles.item}>
-                      <span className={styles.success}>
-                        <span>{res.relayUrl}</span>
-                        <span>{'☑️'}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              <hr />
-              {pubResult
-                .filter(res => !res.isSuccess)
-                .map(res => {
-                  return (
-                    <li key={res.relayUrl} className={styles.item}>
-                      <span className={styles.failed}>
-                        <span>{res.relayUrl}</span>
-                        <span>{res.reason}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-            </div>
-          </Panel>
-        </Collapse>
-      </div>
-    ),
+  toast({
+    customContent: content,
+    status: 'success',
   });
-}
-
-function calculatePercentage(finishedCount: number, totalCount: number) {
-  if (totalCount === 0) {
-    throw new Error('Cannot calculate percentage with total count of 0.');
-  }
-  let percentage = (finishedCount / totalCount) * 100;
-  percentage = +percentage.toFixed(0);
-  return percentage;
 }

@@ -4,9 +4,12 @@ import { useRouter } from 'next/router';
 import { FaSearch } from 'react-icons/fa';
 import { FaArrowLeft } from 'react-icons/fa6';
 import RelayPool from './components/RelayPool';
+import { useState } from 'react';
+import { Input } from 'components/shared/ui/Input';
 
 export default function RelayExplorePage() {
   const router = useRouter();
+  const [keyword, setKeyword] = useState<string>();
 
   return (
     <BaseLayout>
@@ -24,13 +27,15 @@ export default function RelayExplorePage() {
             </div>
             <div className="w-[200px] bg-surface-02 border border-border-01 border-solid flex items-center gap-1 px-3 py-2 rounded-full">
               <FaSearch className="h-4 w-4 text-text-secondary" />
-              <input
+              <Input
                 className="flex-1 border-none outline-none body text-md"
                 placeholder="Search Relay..."
+                value={keyword}
+                onChange={e => setKeyword(e.currentTarget.value)}
               />
             </div>
           </div>
-          <RelayPool />
+          <RelayPool keyword={keyword} />
         </div>
       </Left>
     </BaseLayout>

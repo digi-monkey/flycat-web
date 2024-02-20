@@ -3,7 +3,6 @@ import { CallWorker } from 'core/worker/caller';
 import { ImageProvider, compressImage } from 'core/api/img';
 import { EventTags, Naddr, Tags, WellKnownEventKind } from 'core/nostr/type';
 import { RawEvent } from 'core/nostr/RawEvent';
-import { noticePubEventResult } from 'components/PubEventNotice';
 import { DecodedNprofileResult, Nip19 } from 'core/nip/19';
 
 export const makeInvoice = async setText => {
@@ -145,10 +144,11 @@ export const handleSubmitText = async (
   );
   const event = await signEvent(rawEvent);
   const handler = worker.pubEvent(event);
-  noticePubEventResult(worker.relays.length, handler, pubSuccessCallback);
 
   setText('');
   setAttachImgs([]);
+
+  return handler;
 };
 
 export function extractHashTags(text: string): string[] {
