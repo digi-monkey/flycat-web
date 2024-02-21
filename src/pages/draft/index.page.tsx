@@ -32,7 +32,7 @@ const Draft: React.FC = () => {
                     ')'}
                 </div>
                 <div className=" text-neutral-700 text-sm">
-                  article.content.slice(0, 100)
+                  {article.content.slice(0, 100)}
                 </div>
               </div>
               <div className="flex align-middle justify-end">
