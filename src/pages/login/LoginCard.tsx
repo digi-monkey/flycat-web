@@ -10,13 +10,12 @@ import { login, LoginMode, LoginRequest } from 'store/loginReducer';
 import { isNip05DomainName } from 'core/nip/05';
 import { Nip19DataType, Nip19DataPrefix, Nip19 } from 'core/nip/19';
 import { isDotBitName } from 'core/dotbit';
-import { Divider, Input } from 'antd';
-
 import styles from './index.module.scss';
 import PageTitle from 'components/PageTitle';
 import { Paths } from 'constants/path';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { Button } from 'components/shared/ui/Button';
+import { Input } from 'components/shared/ui/Input';
 
 export interface LoginFormProps {
   isLoggedIn;
@@ -211,17 +210,29 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
     <div>
       <PageTitle title={isLoggedIn ? 'Sign Out' : 'Sign In'} />
       <div className={styles.signPanel}>
-        <Button className={styles.button} onClick={signWithNip07Wallet}>
+        <Button
+          className={styles.button}
+          variant={'secondary'}
+          onClick={signWithNip07Wallet}
+        >
           <img className={styles.icon} src="./icon/Alby-logo-figure-400.svg" />
           {t('loginForm.signWithNip07')}
         </Button>
 
-        <Button className={styles.button} onClick={signWithJoyId}>
+        <Button
+          className={styles.button}
+          variant={'secondary'}
+          onClick={signWithJoyId}
+        >
           <img className={styles.icon} src="./icon/joyid-passkey.png" />
           {process.env.NODE_ENV === 'production' ? '(Mainnet)' : '(Testnet)'}
         </Button>
 
-        <Button className={styles.button} onClick={signWithEthWallet}>
+        <Button
+          className={styles.button}
+          variant={'secondary'}
+          onClick={signWithEthWallet}
+        >
           <img className={styles.icon} src="./icon/metamask-fox.svg" />
           {t('loginForm.signWithMetamask')}
         </Button>
@@ -234,7 +245,11 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
           />
         )}
 
-        <Button className={styles.button} onClick={signWithWalletConnect}>
+        <Button
+          className={styles.button}
+          variant={'secondary'}
+          onClick={signWithWalletConnect}
+        >
           <img className={styles.icon} src="./icon/wallet-connect-logo.svg" />
           {t('loginForm.signWithWalletConnect')}
         </Button>
@@ -247,31 +262,30 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
           />
         )}
 
-        <Divider orientation="left">{t('loginForm.readonlyMode')}</Divider>
+        <h4>{t('loginForm.readonlyMode')}</h4>
 
         <div className={styles.inputWithSubmitButton}>
           <Input
-            type="text"
+            className="border-0 bg-transparent"
             placeholder={'publicKey/nip05DomainName/.bit'}
             name="dotbitDomainName"
-            bordered={false}
             value={readonlyInputValue}
-            onChange={event => setReadonlyInputValue(event.target.value)}
+            onChange={event => setReadonlyInputValue(event.currentTarget.value)}
           />
           <Button variant="link" onClick={signWithReadonly}>
             {t('loginForm.signIn')}
           </Button>
         </div>
 
-        <Divider orientation="left">
-          <a
-            className={styles.discourageLinkBtn}
-            href="#"
+        <div>
+          <Button
+            className="px-0 m-2 text-neutral-700"
+            variant={'link'}
             onClick={() => setShowPrivateKeyInput(prev => !prev)}
           >
             {t('loginForm.signInWithPrivKeyTitle')} {'(dangerous)'} {'-->'}
-          </a>
-        </Divider>
+          </Button>
+        </div>
 
         <div></div>
 
@@ -282,13 +296,13 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
             )}
             <div className={styles.inputWithSubmitButton}>
               <Input
-                type="text"
                 placeholder={t('loginForm.privKey') || ''}
                 name="privateKey"
-                bordered={false}
-                className={`${styles.input}`}
+                className={`${styles.input} border-0 bg-transparent`}
                 value={privKeyInputValue}
-                onChange={event => setPrivKeyInputValue(event.target.value)}
+                onChange={event =>
+                  setPrivKeyInputValue(event.currentTarget.value)
+                }
               />
               <Button onClick={signWithPrivateKey} variant="link">
                 {t('loginForm.signIn')}
@@ -296,7 +310,11 @@ const LoginCard = ({ isLoggedIn, doLogin }: LoginFormProps) => {
             </div>
 
             <div>
-              <Button variant="link" onClick={genNewKeyPair}>
+              <Button
+                className="m-0 p-0"
+                variant="link"
+                onClick={genNewKeyPair}
+              >
                 {t('loginForm.genNewKey')}
               </Button>
             </div>
