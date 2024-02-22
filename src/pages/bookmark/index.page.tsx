@@ -1,9 +1,8 @@
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
-import { Empty, Select } from 'antd';
 import { useCallWorker } from 'hooks/useWorker';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EventMap, UserMap } from 'core/nostr/type';
 import { useBookmarkListFeed } from './hooks/useBookmarkListFeed';
 import { FilterOptions } from './filterOptions';
@@ -11,16 +10,24 @@ import PostItems from 'components/PostItems';
 import { useLastReplyEvent } from './hooks/useLastReplyEvent';
 import PageTitle from 'components/PageTitle';
 import styles from './index.module.scss';
+import Segmented from 'components/shared/ui/Segmented';
 
 const Bookmark = () => {
   const { t } = useTranslation();
 
+  const options = useMemo(() => {
+    return FilterOptions.map(opt => {
+      return {
+        value: opt.value,
+        label: opt.name,
+      };
+    });
+  }, [FilterOptions]);
+
   const { worker, newConn } = useCallWorker();
   const [userMap, setUserMap] = useState<UserMap>(new Map());
   const [eventMap, setEventMap] = useState<EventMap>(new Map());
-  const [selectedValue, setSelectedValue] = useState<string>(
-    FilterOptions[0].value,
-  );
+  const [selectedValue, setSelectedValue] = useState<string>(options[0].value);
 
   const handleSelectChange = (value: string) => {
     setSelectedValue(value);
@@ -50,7 +57,7 @@ const Bookmark = () => {
     return selectFeed.length > 0 ? (
       <PostItems msgList={selectFeed} worker={worker!} />
     ) : (
-      <Empty />
+      <div>No data</div>
     );
   };
 
@@ -60,9 +67,8 @@ const Bookmark = () => {
         <div>
           <PageTitle title="Bookmark" />
           <div className={styles.selectBox}>
-            <Select
-              defaultValue={FilterOptions[0].value}
-              options={FilterOptions}
+            <Segmented
+              options={options}
               value={selectedValue}
               onChange={handleSelectChange}
               className={styles.select}
