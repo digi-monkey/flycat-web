@@ -1,6 +1,7 @@
 import React from 'react';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 import { cn } from 'utils/classnames';
+import { capitalizeString } from 'utils/str';
 
 export interface SegmentedProp {
   value: string;
@@ -47,7 +48,3 @@ const Segmented: React.FC<SegmentedProp> = ({
 };
 
 export default Segmented;
-
-function capitalizeString(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}

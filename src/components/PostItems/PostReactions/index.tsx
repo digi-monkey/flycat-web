@@ -1,4 +1,3 @@
-import { Tooltip } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { fetchPublicBookmarkListEvent } from './util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -20,8 +19,8 @@ import { useRouter } from 'next/router';
 import { dexieDb } from 'core/db';
 
 import Icon from 'components/Icon';
-import styles from './index.module.scss';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import Tooltip from 'components/shared/ui/Tooltip';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -144,37 +143,45 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   };
 
   return (
-    <ul className={styles.reactions}>
-      <li>
-        <Tooltip placement="top" title={'repost'}>
-          <Icon onClick={repost} type="icon-repost" className={styles.upload} />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'zap'}>
-          <Icon onClick={zap} type="icon-bolt" className={styles.upload} />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'comment'}>
+    <div className="flex justify-between items-center py-0 px-0 my-3 w-full">
+      <Tooltip placement="top" title={'repost'}>
+        <div>
+          <Icon
+            onClick={repost}
+            type="icon-repost"
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
+          />
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'zap'}>
+        <div>
+          <Icon
+            onClick={zap}
+            type="icon-bolt"
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
+          />
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'comment'}>
+        <div>
           <Icon
             onClick={comment}
             type="icon-comment"
-            className={styles.upload}
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
           />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'bookmark'}>
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'bookmark'}>
+        <div>
           <Icon
             style={{ cursor: isBookmarking ? 'not-allowed' : 'pointer' }}
             onClick={bookmark}
             type="icon-bookmark"
-            className={styles.upload}
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
           />
-        </Tooltip>
-      </li>
-    </ul>
+        </div>
+      </Tooltip>
+    </div>
   );
 };
 
