@@ -1,4 +1,3 @@
-import { Button } from 'antd';
 import { dbQuery, dexieDb } from 'core/db';
 import { Nip23 } from 'core/nip/23';
 import { shortifyEventId } from 'core/nostr/content';
@@ -16,6 +15,7 @@ import styles from './sub.module.scss';
 import PostArticle from '../PostArticle';
 import Link from 'next/link';
 import PostUser from '../PostUser';
+import { Button } from 'components/shared/ui/Button';
 
 export interface SubPostUIProp {
   eventId: string;
@@ -100,7 +100,7 @@ export const SubPostUI: React.FC<SubPostUIProp> = ({ eventId, worker }) => {
       <Link href={`${Paths.event + '/' + eventId}`}>
         event@{shortifyEventId(eventId)}
       </Link>
-      <Button onClick={tryReloadLastReplyEvent} type="link">
+      <Button onClick={tryReloadLastReplyEvent} variant="link">
         try reload
       </Button>
     </>

@@ -13,7 +13,7 @@ import { deserializeMetadata, shortifyNPub } from 'core/nostr/content';
 import { EventSetMetadataContent, WellKnownEventKind } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { useSubLastReplyEvent } from 'hooks/useSubLastReplyEvent';
-import { Avatar, Badge, Button, Empty, List, Tabs, message } from 'antd';
+import { Badge, Empty, List, Tabs } from 'antd';
 import { timeSince } from 'utils/time';
 import { notifyKinds } from './kinds';
 import { Nip172 } from 'core/nip/172';
@@ -31,6 +31,8 @@ import Link from 'next/link';
 import styles from './index.module.scss';
 import { useRouter } from 'next/router';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import Avatar from 'components/shared/ui/Avatar';
+import { Button } from 'components/shared/ui/Button';
 
 export interface ItemProps {
   msg: Event;
@@ -324,7 +326,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
   };
 
   const markAll = (
-    <Button type="link" onClick={onMarkAll}>
+    <Button variant="link" onClick={onMarkAll}>
       Mark all as read
     </Button>
   );
@@ -464,9 +466,14 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
             msg.tags.filter(t => Nip172.isCommunityATag(t))[0][1],
           );
           const isAlreadyApproved = approveByMe.includes(msg.id);
-          const createApproval = async (postEvent: Event, message) => {
-            if (!worker) return message.error('worker not found');
-            if (!signEvent) return message.errpr('signEvent method not found');
+          const createApproval = async (postEvent: Event) => {
+            if (!worker)
+              return toast({ title: 'worker not found', status: 'error' });
+            if (!signEvent)
+              return toast({
+                title: 'signEvent method not found',
+                status: 'error',
+              });
 
             const rawEvent = Nip172.createApprovePostRawEvent(
               postEvent,
@@ -502,8 +509,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
               </div>
               <div>
                 <Button
-                  type="primary"
-                  onClick={() => createApproval(msg, message)}
+                  onClick={() => createApproval(msg)}
                   disabled={isAlreadyApproved}
                 >
                   {isAlreadyApproved ? 'Approved' : 'Approve'}
@@ -527,8 +533,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
                         : [
                             {
                               label: 'approve this event',
-                              onClick: (event, message) =>
-                                createApproval(event, message),
+                              onClick: event => createApproval(event),
                             },
                           ]
                     }
@@ -582,7 +587,7 @@ export function Notification({ isLoggedIn }: { isLoggedIn: boolean }) {
         {isLoggedIn ? (
           <div className={styles.notification}>
             <Tabs items={items} />
-            <Button type="link">
+            <Button variant="link">
               Since {timeSince(fetchSince)} ago, last 15 items
             </Button>
           </div>

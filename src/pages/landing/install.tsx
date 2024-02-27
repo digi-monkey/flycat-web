@@ -1,10 +1,10 @@
-import { Button, message } from 'antd';
+import { Button } from 'components/shared/ui/Button';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 import { useState, useEffect } from 'react';
 
 const InstallButton: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [messageApi, contextHolder] = message.useMessage();
-
+  const { toast } = useToast();
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
@@ -25,9 +25,11 @@ const InstallButton: React.FC = () => {
 
   const handleInstallClick = async () => {
     if (!('serviceWorker' in navigator && 'PushManager' in window)) {
-      return messageApi.warning(
-        'Device Not supported. Please manually Tap the share button in your browser and select "Add to Home Screen" on iOS or "Install" on Android.',
-      );
+      return toast({
+        title:
+          'Device Not supported. Please manually Tap the share button in your browser and select "Add to Home Screen" on iOS or "Install" on Android.',
+        status: 'error',
+      });
     }
 
     if (deferredPrompt) {
@@ -36,25 +38,26 @@ const InstallButton: React.FC = () => {
         const choiceResult = await deferredPrompt.userChoice;
 
         if (choiceResult.outcome === 'accepted') {
-          messageApi.success('PWA installation accepted');
+          toast({ title: 'PWA installation accepted', status: 'success' });
         } else {
-          messageApi.error('PWA installation dismissed');
+          toast({ title: 'PWA installation dismissed', status: 'error' });
         }
         setDeferredPrompt(null);
       } catch (error: any) {
-        messageApi.error(error.message);
+        toast({ title: error.message, status: 'error' });
       }
     } else {
-      return messageApi.error(
-        'deferredPrompt is null. Please use Safari/Chrome and try again.',
-      );
+      return toast({
+        title:
+          'deferredPrompt is null. Please use Safari/Chrome and try again.',
+        status: 'error',
+      });
     }
   };
 
   return (
     <>
-      {contextHolder}
-      <Button size="large" type="primary" onClick={handleInstallClick}>
+      <Button size="lg" onClick={handleInstallClick}>
         Install PWA App
       </Button>
     </>

@@ -1,6 +1,6 @@
 import { CommunityMetadata, Nip172 } from 'core/nip/172';
 import styles from '../index.module.scss';
-import { Button, Empty, Modal, message, Tabs, Avatar, Tooltip } from 'antd';
+import { Empty, Modal, Tabs, Tooltip } from 'antd';
 import {
   EventId,
   EventMap,
@@ -40,6 +40,8 @@ import { useRouter } from 'next/router';
 import { useMatchMobile } from 'hooks/useMediaQuery';
 import PageTitle from 'components/PageTitle';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import { Button } from 'components/shared/ui/Button';
+import Avatar from 'components/shared/ui/Avatar';
 
 interface CommunityProps {
   community: CommunityMetadata;
@@ -105,8 +107,8 @@ export function Community({
     }),
   };
   const follow = async () => {
-    if (!signEvent) return message.error('no sign method');
-    if (!worker) return message.error('no worker!');
+    if (!signEvent) return toast({ title: 'no sign method', status: 'error' });
+    if (!worker) return toast({ title: 'no worker', status: 'error' });
 
     let rawEvent: RawEvent | null = null;
     if (myContactEvent) {
@@ -126,9 +128,10 @@ export function Community({
     );
   };
   const unfollow = async () => {
-    if (!signEvent) return message.error('no sign method');
-    if (!worker) return message.error('no worker!');
-    if (!myContactEvent) return message.error('contact event not found!');
+    if (!signEvent) return toast({ title: 'no sign method', status: 'error' });
+    if (!worker) return toast({ title: 'no worker', status: 'error' });
+    if (!myContactEvent)
+      return toast({ title: 'contact event not found!', status: 'error' });
     const rawEvent = createUnFollowContactEvent(myContactEvent, target);
     const event = await signEvent(rawEvent);
     const handler = worker.pubEvent(event);
@@ -145,7 +148,7 @@ export function Community({
     const actionOnClick =
       myContactEvent && isFollowed(myContactEvent, target) ? unfollow : follow;
     const actionButton = (
-      <Button type="primary" onClick={actionOnClick} disabled={!signEvent}>
+      <Button onClick={actionOnClick} disabled={!signEvent}>
         {actionText}
       </Button>
     );
@@ -420,9 +423,10 @@ export function Community({
     msg => !msgList.map(m => m.id).includes(msg.id),
   );
 
-  const createApproval = async (postEvent: Event, message) => {
-    if (!worker) return message.error('worker not found');
-    if (!signEvent) return message.errpr('signEvent method not found');
+  const createApproval = async (postEvent: Event) => {
+    if (!worker) return toast({ title: 'worker not found', status: 'error' });
+    if (!signEvent)
+      return toast({ title: 'signEvent method not found', status: 'error' });
 
     const rawEvent = Nip172.createApprovePostRawEvent(
       postEvent,
@@ -503,19 +507,17 @@ export function Community({
                       <Avatar src={userMap.get(community.creator)?.picture} />
                     </Tooltip>
 
-                    <Avatar.Group maxCount={3}>
-                      {community.moderators.map(pk => (
-                        <Tooltip
-                          key={pk}
-                          title={userMap.get(pk)?.name}
-                          placement="top"
-                        >
-                          <a href={'/user/' + pk}>
-                            <Avatar src={userMap.get(pk)?.picture} />
-                          </a>
-                        </Tooltip>
-                      ))}
-                    </Avatar.Group>
+                    {community.moderators.slice(0, 3).map(pk => (
+                      <Tooltip
+                        key={pk}
+                        title={userMap.get(pk)?.name}
+                        placement="top"
+                      >
+                        <a href={'/user/' + pk}>
+                          <Avatar src={userMap.get(pk)?.picture} />
+                        </a>
+                      </Tooltip>
+                    ))}
                   </div>
                 </div>
                 <div>{myActionButton}</div>
@@ -560,7 +562,7 @@ export function Community({
                           Long-Form
                         </div>
                       </div>
-                      <Button type="link" onClick={() => showPublishModal()}>
+                      <Button variant="link" onClick={() => showPublishModal()}>
                         + Create Post
                       </Button>
                     </div>
@@ -594,8 +596,7 @@ export function Community({
                           ? [
                               {
                                 label: 'approve this event',
-                                onClick: (event, message) =>
-                                  createApproval(event, message),
+                                onClick: event => createApproval(event),
                               },
                             ]
                           : []

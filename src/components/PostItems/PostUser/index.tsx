@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import { Paths } from 'constants/path';
 import { useTimeSince } from 'hooks/useTimeSince';
 import { EventWithSeen } from 'pages/type';
@@ -7,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { isNip05DomainName } from 'core/nip/05';
 import { PostUserMenu } from './menu';
 import { EventSetMetadataContent } from 'core/nostr/type';
-import * as Avatar from '@radix-ui/react-avatar';
 import Link from 'next/link';
+import AvatarProfile from 'components/shared/ui/Avatar';
 
 interface PostUserProps {
   publicKey: string;
@@ -16,7 +15,7 @@ interface PostUserProps {
   event: EventWithSeen;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
 }
 
@@ -45,16 +44,11 @@ const PostUser: React.FC<PostUserProps> = ({
     <div className="flex justify-between">
       <div className="flex gap-3">
         <Link href={userUrl} className="no-underline">
-          <Avatar.Root className="flex justify-center items-center w-11 h-11 bg-gray-200 rounded-full overflow-hidden">
-            <Avatar.Image
-              src={profile?.picture}
-              alt={name}
-              className="w-full h-full"
-            />
-            <Avatar.Fallback className="text-lg font-medium uppercase text-gray-400">
-              {name.slice(0, 2)}
-            </Avatar.Fallback>
-          </Avatar.Root>
+          <AvatarProfile
+            src={profile?.picture}
+            alt={name}
+            fallback={name.slice(0, 2)}
+          />
         </Link>
         <div className="flex flex-col gap-0.5">
           <Link

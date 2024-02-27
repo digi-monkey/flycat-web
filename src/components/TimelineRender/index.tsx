@@ -1,4 +1,3 @@
-import { Button } from 'antd';
 import { CallWorker } from 'core/worker/caller';
 import { Filter } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
@@ -10,6 +9,7 @@ import { useEffect } from 'react';
 
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import PostItems from 'components/PostItems';
+import { Button } from 'components/shared/ui/Button';
 
 export interface TimelineRenderProp {
   feedId: string;
@@ -58,7 +58,7 @@ export const TimelineRender: React.FC<TimelineRenderProp> = ({
             <div className="w-full py-2 mt-4 border-0 border-solid border-b border-neutral-200 text-center">
               <Button
                 onClick={showLatest}
-                type="link"
+                variant="link"
                 className="text-primary-06"
               >
                 Show {latestNewMsg.length} new posts
@@ -75,7 +75,7 @@ export const TimelineRender: React.FC<TimelineRenderProp> = ({
               />
               <Loader isLoading={isLoadMore} />
               {!isLoadMore && (
-                <Button type="link" block onClick={loadMore}>
+                <Button variant="link" className="block" onClick={loadMore}>
                   {t('home.loadMoreBtn')}
                 </Button>
               )}

@@ -7,7 +7,7 @@ import { useTranslation } from 'next-i18next';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { LoginMode, SignEvent } from 'store/loginReducer';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
-import { Button, Mentions, Popover, Select, Tooltip } from 'antd';
+import { Mentions, Popover, Select, Tooltip } from 'antd';
 import { handleFileSelect, handleSubmitText } from './util';
 import { IMentions, useLoadCommunities, useSetMentions } from './hooks';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
@@ -21,6 +21,7 @@ import { Naddr } from 'core/nostr/type';
 import { maxStrings } from 'utils/common';
 import dynamic from 'next/dynamic';
 import { noticePubEventResult } from 'components/PubEventNotice';
+import { Button } from 'components/shared/ui/Button';
 
 const Picker = dynamic(() => import('@emoji-mart/react'), {
   ssr: false,
@@ -38,7 +39,7 @@ interface Props {
 export const SubmitButton = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation();
   return (
-    <Button disabled={disabled} type="primary" htmlType="submit">
+    <Button disabled={disabled} type="submit">
       {t('pubNoteTextarea.btn.post')}
     </Button>
   );

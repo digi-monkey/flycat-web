@@ -1,6 +1,5 @@
 import { Event } from 'core/nostr/Event';
 import { PostCommunityHeader } from '../PostCommunityHeader';
-import { message } from 'antd';
 import { DbEvent } from 'core/db/schema';
 import { EventSetMetadataContent } from 'core/nostr/type';
 
@@ -26,7 +25,7 @@ export interface EmbedPostUIProp {
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
   extraHeader?: React.ReactNode;
 }

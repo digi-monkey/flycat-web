@@ -13,7 +13,7 @@ import {
   UserMap,
   WellKnownEventKind,
 } from 'core/nostr/type';
-import { Button, Divider, Input, List, Tabs } from 'antd';
+import { Divider, Input, List } from 'antd';
 import { deserializeMetadata } from 'core/nostr/content';
 import { useLoadModeratorProfiles } from '../hooks/useLoadProfile';
 
@@ -23,6 +23,7 @@ import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
 import { useRouter } from 'next/router';
 import { getContactEvent } from 'core/worker/util';
 import Icon from 'components/Icon';
+import { Button } from 'components/shared/ui/Button';
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -112,8 +113,7 @@ const Explore = () => {
           />
 
           <Button
-            type="primary"
-            size="large"
+            size="lg"
             onClick={() => router.push('/communities/n/create')}
           >
             create community

@@ -1,4 +1,3 @@
-import { Tooltip, message } from 'antd';
 import { useTranslation } from 'next-i18next';
 import { fetchPublicBookmarkListEvent } from './util';
 import { useReadonlyMyPublicKey } from 'hooks/useMyPublicKey';
@@ -20,8 +19,8 @@ import { useRouter } from 'next/router';
 import { dexieDb } from 'core/db';
 
 import Icon from 'components/Icon';
-import styles from './index.module.scss';
 import { useToast } from 'components/shared/ui/Toast/use-toast';
+import Tooltip from 'components/shared/ui/Tooltip';
 
 interface PostReactionsProp {
   ownerEvent: Event;
@@ -42,17 +41,20 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const signEvent = useSelector(
     (state: RootState) => state.loginReducer.signEvent,
   );
-  const [messageApi, contextHolder] = message.useMessage();
   const [isBookmarking, setIsBookMarking] = useState(false);
 
   const repost = async () => {
     if (signEvent == null) return;
     if (seen == null || seen[0] == null)
-      return messageApi.error('repost required seen relay, not found!');
+      return toast({
+        title: 'repost required seen relay, not found!',
+        status: 'error',
+      });
     if (ownerEvent.kind !== WellKnownEventKind.text_note)
-      return messageApi.error(
-        'non kind-1 repost feature are not available now, WIP',
-      );
+      return toast({
+        title: 'non kind-1 repost feature are not available now, WIP',
+        status: 'error',
+      });
 
     const rawEvent = Nip18.createRepost(ownerEvent, seen[0]);
     const event = await signEvent(rawEvent);
@@ -105,9 +107,10 @@ const PostReactions: React.FC<PostReactionsProp> = ({
     if (data.pr) {
       sendPaymentInWebLn(data.pr);
     } else {
-      messageApi.error(
-        `something seems wrong with the zap endpoint response data`,
-      );
+      toast({
+        title: `something seems wrong with the zap endpoint response data`,
+        status: 'error',
+      });
       console.debug(`invalid zapEndpoint response data`, data);
     }
   };
@@ -119,7 +122,8 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   const bookmark = async () => {
     if (signEvent == null) return;
     if (!worker == null) return;
-    if (isBookmarking) return messageApi.error('already execute bookmarking..');
+    if (isBookmarking)
+      return toast({ title: 'already execute bookmarking..', status: 'error' });
 
     setIsBookMarking(true);
 
@@ -139,38 +143,45 @@ const PostReactions: React.FC<PostReactionsProp> = ({
   };
 
   return (
-    <ul className={styles.reactions}>
-      {contextHolder}
-      <li>
-        <Tooltip placement="top" title={'repost'}>
-          <Icon onClick={repost} type="icon-repost" className={styles.upload} />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'zap'}>
-          <Icon onClick={zap} type="icon-bolt" className={styles.upload} />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'comment'}>
+    <div className="flex justify-between items-center py-0 px-0 my-3 w-full">
+      <Tooltip placement="top" title={'repost'}>
+        <div>
+          <Icon
+            onClick={repost}
+            type="icon-repost"
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
+          />
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'zap'}>
+        <div>
+          <Icon
+            onClick={zap}
+            type="icon-bolt"
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
+          />
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'comment'}>
+        <div>
           <Icon
             onClick={comment}
             type="icon-comment"
-            className={styles.upload}
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
           />
-        </Tooltip>
-      </li>
-      <li>
-        <Tooltip placement="top" title={'bookmark'}>
+        </div>
+      </Tooltip>
+      <Tooltip placement="top" title={'bookmark'}>
+        <div>
           <Icon
             style={{ cursor: isBookmarking ? 'not-allowed' : 'pointer' }}
             onClick={bookmark}
             type="icon-bookmark"
-            className={styles.upload}
+            className="w-[18px] h-[18px] cursor-pointer align-middle"
           />
-        </Tooltip>
-      </li>
-    </ul>
+        </div>
+      </Tooltip>
+    </div>
   );
 };
 

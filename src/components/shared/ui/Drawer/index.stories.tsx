@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Button } from 'antd';
 import {
   Drawer,
   DrawerClose,
@@ -10,6 +9,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '.';
+import { Button } from '../Button';
 
 const meta: Meta<typeof Drawer> = {
   component: Drawer,

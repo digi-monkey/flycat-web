@@ -6,7 +6,6 @@ import { deserializeMetadata } from 'core/nostr/content';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Event } from 'core/nostr/Event';
 import { useMemo } from 'react';
-import { message } from 'antd';
 import { Nip9802, SourceType } from 'core/nip/9802';
 import Link from 'next/link';
 import { URLPreview } from '../PostContent/Link/embed/preview';
@@ -40,7 +39,7 @@ export interface PostHighLightProp {
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
   extraHeader?: React.ReactNode;
 }

@@ -1,4 +1,4 @@
-import { Button, Col, Divider, Row } from 'antd';
+import { Col, Divider, Row } from 'antd';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { DeviceFrameset } from 'react-device-frameset';
 
@@ -6,6 +6,7 @@ import styles from './index.module.scss';
 import InstallButton from './install';
 import Link from 'next/link';
 import 'react-device-frameset/styles/marvel-devices.min.css';
+import { Button } from 'components/shared/ui/Button';
 
 export const Landing: React.FC = () => {
   return (
@@ -49,7 +50,7 @@ export const Landing: React.FC = () => {
             <div className={styles.action}>
               <InstallButton />
               <Button
-                type="link"
+                variant="link"
                 onClick={() =>
                   window.open('https://github.com/digi-monkey/flycat-web')
                 }

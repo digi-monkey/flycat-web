@@ -1,6 +1,5 @@
 import { Event } from 'core/nostr/Event';
 import { CallWorker } from 'core/worker/caller';
-import { message } from 'antd';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
@@ -25,7 +24,7 @@ interface PostItemsProps {
   showFromCommunity?: boolean;
   extraMenu?: {
     label: string;
-    onClick: (event: Event, msg: typeof message) => any;
+    onClick: (event: Event) => any;
   }[];
   extraHeader?: React.ReactNode;
   truncate?: boolean;

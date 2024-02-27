@@ -6,10 +6,9 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { formatDate } from 'utils/time';
 
 import PageTitle from 'components/PageTitle';
-import styles from './index.module.scss';
 import { Paths } from 'constants/path';
-import { List } from 'antd';
 import { delLocalSave } from 'pages/write/util';
+import { Button } from 'components/shared/ui/Button';
 
 const Draft: React.FC = () => {
   const [drafts, setDrafts] = useState<Article[]>([]);
@@ -19,40 +18,42 @@ const Draft: React.FC = () => {
     <BaseLayout>
       <Left>
         <PageTitle title={'My drafts'} />
-        <div className={styles.panel}>
-          <List
-            bordered
-            dataSource={drafts}
-            renderItem={article => (
-              <List.Item
-                actions={[
-                  <a
-                    key="list-loadmore-edit"
-                    href={Paths.write + `?did=${article.did}`}
-                  >
-                    Edit
-                  </a>,
-
-                  <a
-                    key="list-loadmore-edit"
-                    onClick={() => delLocalSave(article.did)}
-                  >
-                    Delete
-                  </a>,
-                ]}
-              >
-                <List.Item.Meta
-                  title={
-                    (article.title || 'No title') +
+        <div className="px-2">
+          {drafts.map(article => (
+            <div
+              key={article.pubKey + article.id}
+              className="flex justify-between align-middle px-2 py-1 mt-4"
+            >
+              <div className="flex flex-col gap-2">
+                <div className="font-bold">
+                  {(article.title || 'No title') +
                     '(' +
                     formatDate(article.updated_at) +
-                    ')'
+                    ')'}
+                </div>
+                <div className=" text-neutral-700 text-sm">
+                  {article.content.slice(0, 100)}
+                </div>
+              </div>
+              <div className="flex align-middle justify-end">
+                <Button
+                  variant={'link'}
+                  onClick={() =>
+                    (window.location.href = Paths.write + `?did=${article.did}`)
                   }
-                  description={article.content.slice(0, 100)}
-                />
-              </List.Item>
-            )}
-          />
+                >
+                  Edit
+                </Button>
+
+                <Button
+                  variant={'link'}
+                  onClick={() => delLocalSave(article.did)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </Left>
       <Right></Right>

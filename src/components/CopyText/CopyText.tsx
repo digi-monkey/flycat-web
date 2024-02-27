@@ -1,4 +1,4 @@
-import { message } from 'antd';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 export interface CopyTextProps {
   name: string;
@@ -15,8 +15,8 @@ export const CopyText = ({
   getTextToCopy,
   successMsg,
   failedMsg,
-  alertLastSecs = 5,
 }: CopyTextProps) => {
+  const { toast } = useToast();
   const copy = async (text: string) => {
     const inputElement = document.createElement('input');
     inputElement.value = text;
@@ -53,17 +53,17 @@ export const CopyText = ({
             await copy(text);
           } catch (error: any) {
             console.error('copy failed: ', error.message);
-            message.error(
-              failedMsg || 'Failed to copied to clipboard!',
-              alertLastSecs,
-            );
+            toast({
+              title: failedMsg || 'Failed to copied to clipboard!',
+              status: 'error',
+            });
             return;
           }
 
-          message.success(
-            successMsg || 'Text copied to clipboard!',
-            alertLastSecs,
-          );
+          toast({
+            title: successMsg || 'Text copied to clipboard!',
+            status: 'success',
+          });
         }}
       >
         {name}

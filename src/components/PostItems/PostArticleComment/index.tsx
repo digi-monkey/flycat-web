@@ -1,6 +1,5 @@
 import { Nip23 } from 'core/nip/23';
 import { Event } from 'core/nostr/Event';
-import { Avatar } from 'antd';
 import { useTranslation } from 'next-i18next';
 
 import Icon from 'components/Icon';
@@ -23,6 +22,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbQuery, dexieDb } from 'core/db';
 import { DbEvent } from 'core/db/schema';
 import { seedRelays } from 'core/relay/pool/seed';
+import Avatar from 'components/shared/ui/Avatar';
 
 interface PostArticleCommentProps {
   event: Event;

@@ -1,7 +1,6 @@
 import { EventTags } from 'core/nostr/type';
 import { Event } from 'core/nostr/Event';
 import { useMemo, useState } from 'react';
-import { Button } from 'antd';
 import { CallWorker } from 'core/worker/caller';
 import { isNsfwEvent } from 'utils/validator';
 import { renderContent } from './content';
@@ -13,6 +12,7 @@ import { DecodedNeventResult, Nip19, Nip19DataType } from 'core/nip/19';
 
 import styles from './index.module.scss';
 import dynamic from 'next/dynamic';
+import { Button } from 'components/shared/ui/Button';
 
 const SubPostItem = dynamic(
   async () => {
@@ -113,7 +113,7 @@ export const PostContent: React.FC<PostContentProp> = ({
           <div>
             <Button
               className={styles.viewMore}
-              type="link"
+              variant="link"
               onClick={toggleExpanded}
             >
               {expanded ? 'View Less' : 'View More'}

@@ -1,4 +1,3 @@
-import { Divider, Segmented, Tag } from 'antd';
 import ReplyEventInput from 'components/ReplyNoteInput';
 import { EventWithSeen } from 'pages/type';
 import { useCallWorker } from 'hooks/useWorker';
@@ -12,9 +11,8 @@ import { getEventIdsFromETags } from 'core/nostr/util';
 import { CallRelayType } from 'core/worker/type';
 
 import dynamic from 'next/dynamic';
-import styles from './index.module.scss';
 import PostItems from 'components/PostItems';
-import classNames from 'classnames';
+import Segmented from 'components/shared/ui/Segmented';
 
 const SubPostUI = dynamic(
   async () => {
@@ -148,13 +146,14 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
   };
 
   return (
-    <div className={classNames(className)}>
-      <div className={classNames(styles.repliesHeader)}>
-        <div className={styles.header}>
-          <div className={styles.title}>Replies{`(${commentList.length})`}</div>
+    <div className={className}>
+      <div className="flex flex-col px-4 py-5 gap-5">
+        <div className="flex justify-between w-full align-middle items-center">
+          <div className="text-neutral-900 font-bold text-[16px] font-poppins leading-24">
+            Replies{`(${commentList.length})`}
+          </div>
           <div>
             <Segmented
-              className={styles.tab}
               options={['recent', 'hot', 'zapest']}
               onChange={val => setCommentOrder(val as string)}
               value={commentOrder}
@@ -185,7 +184,7 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
             />
             {n.children.length > 0 && (
               <>
-                <div className={styles.subRepliesContainer}>
+                <div className="pl-16">
                   {n.children.map(c => (
                     <SubPostUI
                       key={c.value.id}
@@ -202,9 +201,9 @@ const Comments: React.FC<CommentsProps> = ({ rootEvent, className }) => {
         ))}
 
       {commentOrder !== 'recent' && (
-        <Divider orientation="left">
-          <Tag color="error">Feature Under Construction 🚧</Tag>
-        </Divider>
+        <div className="font-bold mt-2 px-2 py-1">
+          Feature Under Construction 🚧
+        </div>
       )}
     </div>
   );

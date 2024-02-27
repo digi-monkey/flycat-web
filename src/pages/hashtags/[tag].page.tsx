@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Spin } from 'antd';
 import { BaseLayout, Left, Right } from 'components/BaseLayout';
-import { seedRelays } from 'core/relay/pool/seed';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useCallWorker } from 'hooks/useWorker';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -14,6 +12,7 @@ import { useRouter } from 'next/router';
 import Icon from 'components/Icon';
 import PageTitle from 'components/PageTitle';
 import PostItems from 'components/PostItems';
+import { SmallLoader } from 'components/Loader';
 
 export function HashTags() {
   const router = useRouter();
@@ -61,7 +60,9 @@ export function HashTags() {
             />
           }
         />
-        <div>{isQuerying && <Spin />}</div>
+        <div>
+          <SmallLoader isLoading={isQuerying} />
+        </div>
         <PostItems msgList={events} worker={worker!} />
       </Left>
       <Right></Right>
