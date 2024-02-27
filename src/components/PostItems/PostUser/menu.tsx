@@ -1,9 +1,15 @@
-import type { MenuProps } from 'antd';
-import { Dropdown, Modal, message } from 'antd';
 import Icon from 'components/Icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from 'components/shared/ui/DropdownMenu';
+import { useToast } from 'components/shared/ui/Toast/use-toast';
 
 export function PostUserMenu({ event, publicKey, extraMenu }) {
-  const items: MenuProps['items'] = [
+  const { toast } = useToast();
+  const items = [
     {
       label: 'copy share link',
       key: 'copy-share-link',
@@ -12,11 +18,15 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
           const { copyToClipboard } = await import('utils/common');
           const shareLink = `${window.location.origin}/event/${event.id}`;
           await copyToClipboard(shareLink);
-          message.success(
-            'Link copy! paste to web2 platform to share nostr contents!',
-          );
+          toast({
+            title: 'Link copy! paste to web2 platform to share nostr contents!',
+            status: 'success',
+          });
         } catch (error: any) {
-          message.error(`share link copy failed! ${error.message}`);
+          toast({
+            title: `share link copy failed! ${error.message}`,
+            status: 'error',
+          });
         }
       },
     },
@@ -28,9 +38,15 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
           const { copyToClipboard } = await import('utils/common');
           const { Nip19, Nip19DataType } = await import('core/nip/19');
           await copyToClipboard(Nip19.encode(event.id, Nip19DataType.EventId));
-          message.success('note id copy to clipboard!');
+          toast({
+            title: 'note id copy to clipboard!',
+            status: 'success',
+          });
         } catch (error: any) {
-          message.error(`note id copy failed! ${error.message}`);
+          toast({
+            title: `share link copy failed! ${error.message}`,
+            status: 'error',
+          });
         }
       },
     },
@@ -41,9 +57,15 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
         try {
           const { copyToClipboard } = await import('utils/common');
           await copyToClipboard(JSON.stringify(event));
-          message.success('note JSON copy to clipboard!');
+          toast({
+            title: 'note JSON copy to clipboard!',
+            status: 'success',
+          });
         } catch (error: any) {
-          message.error(`note JSON copy failed! ${error.message}`);
+          toast({
+            title: `note JSON copy failed! ${error.message}`,
+            status: 'error',
+          });
         }
       },
     },
@@ -54,9 +76,15 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
         try {
           const { copyToClipboard } = await import('utils/common');
           await copyToClipboard(publicKey);
-          message.success('public key copy to clipboard!');
+          toast({
+            title: 'public key copy to clipboard!',
+            status: 'success',
+          });
         } catch (error: any) {
-          message.error(`public key copy failed! ${error.message}`);
+          toast({
+            title: `public key copy failed! ${error.message}`,
+            status: 'error',
+          });
         }
       },
     },
@@ -64,14 +92,12 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
       type: 'divider',
     },
     {
-      label: 'relays',
+      label: 'relay',
       key: '3',
       onClick: () => {
-        Modal.success({
-          title: 'Seen on Relays',
-          content: event.seen?.map(r => <p key={r}>{r}</p>),
-        });
+        alert(`event seen on relays: ${JSON.stringify(event.seen, null, 2)}`);
       },
+      // todo: use modal
     },
   ];
 
@@ -81,18 +107,37 @@ export function PostUserMenu({ event, publicKey, extraMenu }) {
         label: option.label,
         key: (items.length + 1).toString(),
         onClick: () => {
-          option.onClick(event, message);
+          option.onClick(event);
         },
       });
     }
   }
 
   return (
-    <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-      <Icon
-        type="icon-more-vertical"
-        className="w-5 h-5 fill-neutral-600 cursor-pointer"
-      />
-    </Dropdown>
+    <DropdownMenu>
+      <DropdownMenuTrigger className="w-auto p-0 m-0">
+        <Icon
+          type="icon-more-vertical"
+          className="w-5 h-5 fill-neutral-600 cursor-pointer block"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {items.map(item => {
+          if (item.type === 'divider') {
+            return <hr key={item.key} className="border-neutral-300" />;
+          }
+
+          return (
+            <DropdownMenuItem
+              key={item.key}
+              onClick={item.onClick}
+              className="text-neutral-800"
+            >
+              {item.label}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
